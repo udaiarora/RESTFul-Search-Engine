@@ -1,0 +1,1425 @@
+<HTML>
+<HEAD>
+<TITLE>Example 7.1: Simulated IMA Model</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="ariex0">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect51.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect53.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 7.1: Simulated IMA Model</H2>
+<P>This example illustrates the ARIMA procedure results for a case where
+the true model is known.
+An integrated moving average model is used for this illustration.
+<P>The following DATA step generates a pseudo-random sample of 100 periods
+from the ARIMA(0,1,1) process
+<SPAN CLASS="mathfont"><I>u</I><SUB><I>t</I></SUB> = <I>u</I><SUB><I>t</I>-1</SUB> + <I>a</I><SUB><I>t</I></SUB> - .8<I>a</I><SUB><I>t</I>-1</SUB></SPAN>,
+<SPAN CLASS="mathfont"><I>a</I><sub><I>t</I></sub>&#160; iid &#160; N(0,1)</SPAN>.
+<P><PRE>
+
+   title1 'Simulated IMA(1,1) Series';
+   data a;
+     u1 = 0.9; a1 = 0;
+     do i = -50 to 100;
+        a = rannor( 32565 );
+        u = u1 + a - .8 * a1;
+        if i &#62; 0 then output;
+        a1 = a;
+        u1 = u;
+        end;
+   run;
+</PRE>
+<P>The following ARIMA procedure statements identify and estimate the model.
+<P><PRE>
+
+   proc arima data=a;
+     identify var=u nlag=15;
+     run;
+     identify var=u(1) nlag=15;
+     run;
+     estimate q=1 ;
+     run;
+   quit;
+</PRE>
+<P>The results of the first IDENTIFY statement are shown in
+<A HREF="sect52.htm#ariex01a">Output 7.1.1</A>. 
+The output shows the behavior of the sample autocorrelation function
+when the process is nonstationary.
+Note that in this case the estimated autocorrelations are not very high,
+even at small lags.
+Nonstationarity is reflected in a pattern of significant autocorrelations
+that do not decline quickly with increasing lag,
+not in the size of the autocorrelations.
+<P></P><A NAME="ariex01a"><SPAN CLASS="ssften"><B>Output 7.1.1:</B> Output from the First IDENTIFY Statement</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Simulated IMA(1,1) Series</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The ARIMA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Name of Variable = u</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean of Working Series</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.099637</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Standard Deviation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.115604</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Number of Observations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">100</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=5 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelations</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Covariance</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Correlation</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Courier New, Courier" size="2" color="#0033AA"><b><PRE>
+-1 9 8 7 6 5 4 3 2 1 0 1 2 3 4 5 6 7 8 9 1</PRE>
+</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Std Error</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>0</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.244572</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.00000</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                    |********************|</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.547457</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.43988</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*********           |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.100000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.534787</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.42970</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .    |*********           |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.117770</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.569849</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.45787</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .    |*********           |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.132524</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.384428</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.30888</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              .     |******              |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.147497</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.405137</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.32552</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              .     |*******             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.153830</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.253617</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.20378</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              .     |**** .              |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.160571</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.321830</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.25859</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|             .      |***** .             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.163136</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.363871</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.29237</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|             .      |******.             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.167185</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>9</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.271180</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.21789</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|             .      |****  .             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.172222</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>10</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.419208</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.33683</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|             .      |*******             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.174957</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>11</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.298127</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.23954</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|             .      |***** .             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.181326</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.186460</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.14982</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|             .      |***   .             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.184463</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>13</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.313270</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.25171</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|             .      |***** .             |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.185676</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>14</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.314594</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.25277</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|            .       |*****  .            |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.189057</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>15</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.156329</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.12561</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|            .       |***    .            |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.192407</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>"." marks two standard errors</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><P>
+</TD></TR></TABLE></CENTER><BR><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The ARIMA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Inverse Autocorrelations</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Correlation</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Courier New, Courier" size="2" color="#0033AA"><b><PRE>
+-1 9 8 7 6 5 4 3 2 1 0 1 2 3 4 5 6 7 8 9 1</PRE>
+</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.12382</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                . **|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.17396</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .***|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.19966</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                ****|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.01476</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.02895</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .  *|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.20612</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |****                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.01258</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.09616</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                . **|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>9</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00025</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>10</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.16879</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .***|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>11</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.05680</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*  .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.14306</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |***.                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>13</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.02466</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>14</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.15549</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .***|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>15</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.08247</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |** .                |</PRE>
+</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Partial Autocorrelations</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Correlation</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Courier New, Courier" size="2" color="#0033AA"><b><PRE>
+-1 9 8 7 6 5 4 3 2 1 0 1 2 3 4 5 6 7 8 9 1</PRE>
+</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.43988</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*********           |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.29287</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |******              |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.26499</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*****               |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00728</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.06473</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*  .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.09926</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                . **|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.10048</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |** .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.12872</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |***.                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>9</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.03286</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*  .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>10</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.16034</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |***.                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>11</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.03794</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .  *|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.14469</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .***|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>13</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.06415</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*  .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>14</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.15482</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |***.                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>15</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.10989</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                . **|   .                |</PRE>
+</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The ARIMA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=10 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelation Check for White Noise</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>To Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Chi-Square</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Pr &gt; ChiSq</b></font></TD>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelations</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">87.22</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.440</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.430</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.458</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.309</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.326</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.204</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">131.39</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">12</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.259</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.292</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.218</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.337</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.240</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.150</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR>The second IDENTIFY statement differences the series.
+The results of the second IDENTIFY statement are shown in
+<A HREF="sect52.htm#ariex01d">Output 7.1.2</A>. 
+This output shows autocorrelation, inverse autocorrelation,
+and partial autocorrelation functions typical of MA(1) processes.
+<P></P><A NAME="ariex01d"><SPAN CLASS="ssften"><B>Output 7.1.2:</B> Output from the Second IDENTIFY Statement</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The ARIMA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Name of Variable = u</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Period(s) of Differencing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean of Working Series</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.019752</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Standard Deviation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.160921</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Number of Observations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">99</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation(s) eliminated by differencing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=5 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelations</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Covariance</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Correlation</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Courier New, Courier" size="2" color="#0033AA"><b><PRE>
+-1 9 8 7 6 5 4 3 2 1 0 1 2 3 4 5 6 7 8 9 1</PRE>
+</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Std Error</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>0</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.347737</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.00000</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                    |********************|</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.699404</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.51895</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|          **********|   .                |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.100504</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.036142</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.02682</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .   *|    .               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.124666</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.245093</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.18186</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .    |****.               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.124724</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.234167</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.17375</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               . ***|    .               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.127374</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.181778</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.13488</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .    |*** .               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.129746</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.184601</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.13697</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               . ***|    .               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.131155</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0088659</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00658</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .    |    .               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.132592</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.146372</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.10861</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .    |**  .               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.132595</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>9</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.241579</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.17925</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .****|    .               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.133490</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>10</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.240512</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.17846</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|               .    |****.               |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.135900</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>11</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.031005</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.02301</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              .     |     .              |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.138247</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.250954</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.18620</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              . ****|     .              |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.138285</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>13</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.095295</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.07071</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              .     |*    .              |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.140795</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>14</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.194110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.14403</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              .     |***  .              |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.141153</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>15</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.219688</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.16300</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|              .  ***|     .              |</PRE>
+</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.142630</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>"." marks two standard errors</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><P>
+</TD></TR></TABLE></CENTER><BR><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The ARIMA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Inverse Autocorrelations</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Correlation</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Courier New, Courier" size="2" color="#0033AA"><b><PRE>
+-1 9 8 7 6 5 4 3 2 1 0 1 2 3 4 5 6 7 8 9 1</PRE>
+</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.72538</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |***************     |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.48987</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |**********          |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.35415</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*******             |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.34169</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*******             |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.33466</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*******             |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.34003</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*******             |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.24192</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*****               |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.12899</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |***.                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>9</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.06597</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*  .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>10</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.01654</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>11</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.06434</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*  .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.08659</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |** .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>13</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.02485</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>14</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.03545</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .  *|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>15</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00113</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Partial Autocorrelations</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Correlation</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Courier New, Courier" size="2" color="#0033AA"><b><PRE>
+-1 9 8 7 6 5 4 3 2 1 0 1 2 3 4 5 6 7 8 9 1</PRE>
+</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.51895</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|          **********|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.40526</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|            ********|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.07862</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                . **|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.14588</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .***|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.02735</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |*  .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.13782</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .***|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.16741</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .***|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.06041</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .  *|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>9</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.18372</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                ****|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>10</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.01478</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>11</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.14277</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |***.                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.04345</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .  *|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>13</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.19959</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                ****|   .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>14</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.08302</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |** .                |</PRE>
+</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>15</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00278</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Courier New, Courier" size="2" color="#000000"><PRE>
+|                .   |   .                |</PRE>
+</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The ARIMA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=10 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelation Check for White Noise</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>To Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Chi-Square</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Pr &gt; ChiSq</b></font></TD>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelations</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">38.13</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.519</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.027</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.182</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.174</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.135</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.137</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50.62</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">12</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.007</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.109</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.179</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.178</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.023</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.186</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR>The ESTIMATE statement fits an ARIMA(0,1,1) model to the simulated data.
+Note that in this case the parameter estimates are
+reasonably close to the values used to generate the simulated data.
+(<IMG WIDTH="415" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq153.gif"
+ ALT="{{\mu}=0, \hat{{\mu}}=.02. {\theta}_{1}=.8, \hat{{\theta}}_{1}=.79. 
+{\sigma}^2=1, \hat{{\sigma}}^2=.82.}">)<P>The ESTIMATE statement results are shown in <A HREF="sect52.htm#ariex01g">Output 7.1.3</A>.
+<P></P><A NAME="ariex01g"><SPAN CLASS="ssften"><B>Output 7.1.3:</B> Output from Fitting ARIMA(0,1,1) Model</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The ARIMA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Conditional Least Squares Estimation</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx Std Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Pr &gt; |t|</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lag</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MU</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.02056</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.01972</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.04</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2997</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MA1,1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.79142</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.06474</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">12.22</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Constant Estimate</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.020558</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variance Estimate</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.819807</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Std Error Estimate</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.905432</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AIC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">263.2594</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SBC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">268.4497</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Number of Residuals</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">99</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>* AIC and SBC do not include log determinant.</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Correlations of Parameter Estimates</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MU</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MA1,1</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MU</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.124</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MA1,1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.124</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.000</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX3"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=10 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelation Check of Residuals</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>To Lag</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Chi-Square</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Pr &gt; ChiSq</b></font></TD>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autocorrelations</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6.48</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2623</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.033</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.030</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.153</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.096</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.013</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.163</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">13.11</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">11</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2862</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.048</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.046</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.086</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.159</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.027</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.145</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>18</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">20.12</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">17</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2680</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.069</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.130</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.099</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.006</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.164</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.013</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>24</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">24.73</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">23</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.3645</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.064</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.032</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.076</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.077</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.075</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.114</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX4"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Model for variable u</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimated Mean</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.020558</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Period(s) of Differencing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX5"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Moving Average Factors</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Factor 1: </b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1 - 0.79142 B**(1)</font></TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect51.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect53.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

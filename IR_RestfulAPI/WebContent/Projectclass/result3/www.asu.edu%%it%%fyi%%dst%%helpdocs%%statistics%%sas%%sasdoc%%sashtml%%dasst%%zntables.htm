@@ -1,0 +1,787 @@
+<HTML>
+<!-- This page produced Wed Jun 30 13:31:34 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Query and Reporting : Joining Tables </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1084674.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zetables.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1057610.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Doing More with SAS/ASSIST Software                                                                                       </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zntables">Joining Tables</A></FONT></H1>
+
+
+<P><A name="z1287053">&#13;You often need
+data that are stored in
+separate tables. For example, you may want to produce a report that gets information
+about flight delays from one table and boarding capacity from another.  Information
+from separate tables can be combined by matching values in columns that relate
+the tables. This is called <B>joining</B> tables. You can join a maximum
+of 16 tables in one query. Note that some limitations apply when you join
+DB2 tables. For more information, see </A><A href="#z1048053">Additional Considerations for Joining DB2 Tables</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zrojoins">Introducing Table Joins</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1287054">&#13;A join combines two or more tables side by side.
+If you do not
+specify how to join the tables, you get a <B>Cartesian product</B>.
+This means that SQL combines each row from the first table with every row
+from the second table, the second row of the first table is then matched with
+every row of the second table, and so on.  Therefore, two tables with 100
+rows each produce 100 * 100, or 10,000, rows. You seldom want all this information,
+and it often causes you to exceed the available disk space.</A>
+<P>To avoid a Cartesian product, you must specify how the
+tables should be combined. Typically, you want to pair rows based on matching
+values in one or more key columns of each table. The following example uses
+the tables in the following figure to illustrate a join.
+<P>
+<B><I>Joining Two Tables</I></B><BR>
+
+
+<P><IMG border="0" src="./images/01319283.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Pair the SALARY information in Table B with the NAME
+of the person in Table A by matching the values in the ID columns.  Therefore,
+your join criterion is <B>A.ID=B.ID</B>.  In SQL, the
+code is:  
+
+
+
+<PRE>select name, salary
+   from  a, b
+   where a.id = b.id;</PRE>        
+<P><A name="z1287057">&#13;Only rows
+with matching values of ID are output.  This is known as an <B>inner join</B>. The following figure shows the results of this query.</A>
+<P>
+<B><I>Output from Joined Tables</I></B><BR>
+
+
+<P><IMG border="0" src="./images/01319284.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>You can also join tables that have missing values. For
+example, ID <B>3</B> is missing from Table B. A <B>left join</B> outputs all the names in Table A (the left table) and matches
+them to the available salary information in Table B.  If a row in Table B
+is missing, missing values are supplied in the joined output. In this case, <B>Michael</B> from Table A is output with a missing value for SALARY
+next to his name. The following figure shows the results of this query.
+<P>
+<B><I>Output from Left Joined Tables</I></B><BR>
+
+
+<P><IMG border="0" src="./images/01319285.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>A <B>right join</B> works similarly.  All the
+rows from Table B (the right table) are output, and any missing rows from
+table A are output as missing values (or blanks, if the values are character
+data). The following figure shows the results of this query.
+<P>
+<B><I>Output from Right Joined Tables</I></B><BR>
+
+
+<P><IMG border="0" src="./images/01319286.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>If you join two tables that both have missing rows,
+you can combine the effect of a left and a right join by using a <B>full
+join</B>. The following figure shows the results of this query.  
+<P>
+<B><I>Output from Fully Joined Tables</I></B><BR>
+
+
+<P><IMG border="0" src="./images/01319287.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Inner joins can be performed on up to 16 tables at a
+time, whereas outer joins (left, right, full) work on only two tables at a
+time.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zaljoins">Joining Tables Manually</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1287062">&#13;If tables selected for joining have a
+relation defined between
+them, Query and Reporting joins them automatically; see </A><A href="#ztojoins">Joining Tables Automatically</A> for more information. If
+the tables do not have a relation defined between them, or if they have more
+than one such relation defined, you have to join the tables manually. The
+following sections show examples of how to join tables manually in both cases,
+as well as an example of performing outer joins, which must be done manually.
+<BR><H3><A name="zeljoins">Joining Tables Without Defined Relations</A></H3>
+
+
+<P><A name="z1287063">&#13;Follow
+these instructions to join two tables manually:</A>
+<OL START="1" type="1">
+<LI>Choose <B>Select</B> to open
+the Select window.<P>
+
+<LI>Select the AIRLINE.JOBCODES and AIRLINE.PAYROLL
+tables.<P>
+
+<LI>Select <B>Close</B> from the <B>File</B> menu to return to the Query
+window.
+<P>The <B>Incomplete Inner join</B>
+message appears under <B>Join</B>. The warning <B>Not all tables are joined</B> appears because the tables do not
+contain a relation defined on them.  Therefore, Query and Reporting has not
+automatically joined the tables. The following display shows the Query window with the two tables to be joined.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;To
+clear previously-defined subsets or expressions, select <B>subset</B> or <B>Expression</B>. Select <B>Clear</B> from the
+<B>Edit</B> menu, then select <B>Close</B> from the <B>File</B> menu.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>
+<P>
+<B><I>Query Window with Tables for Manual Join</I></B><BR>
+
+<P><IMG border="0" src="./images/01319288.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><DL>
+<DT><B><FONT color="FF00007">CAUTION:</FONT></B></DT><DD><B>Interrupting
+Processing</B>
+<A name="z1287069">&#13;If you run a query with an incomplete join, you create a Cartesian
+product, as described in </A><A href="#zrojoins">Introducing Table Joins</A>. Depending
+on the setup at your site, either the query is rejected or a WARNING window appears, verifying whether or not you really
+want to run this query. If you select <B>Yes</B> to run
+the query, your query may take a long time to process, depending on the size
+of the tables.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"></DD></DL><P>
+
+<LI>Select <B>Join</B> to open
+the Join Manager window. The Join
+Manager window shows the selected tables and all of their columns.
+Before the tables are joined, their names are highlighted.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If you are joining more than five tables, not all of the table names appear
+in the Join window; overwrite the first number
+in the <B>Tables</B> field to see more tables.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The following display shows the Join Manager
+window with AIRLINE.JOBCODES and AIRLINE.PAYROLL before they are joined. The <B>Group</B> field indicates whether groups of tables are joined.  <B>1,2</B>
+indicates that this group is not joined.
+<P>
+<P>
+<B><I><A name="z1134046">Join Manager Window With Two Tables To Be Joined</A></I></B><BR>
+
+<P><IMG border="0" src="./images/01319289.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+
+<LI>Type 
+
+
+<CODE><B>1</B></CODE> next to <B>A.JOBCODE</B> and 
+
+
+<CODE><B>1</B></CODE> next to <B>B.JOBCODE</B>
+and press ENTER.  Note that the column names for the two tables are the same
+in this example. The column names do not have to be the same, but their data
+types and values must match. You can select <B>Sort by</B>
+from the <B>Edit</B> menu to reorder columns in the tables
+by their names, join number, index, or matching names.
+<P>After you press ENTER and the tables are joined, the
+highlighting of the table names is removed, the <B>Group</B>
+field changes to <B>1,1</B> (indicating one group), and
+a message appears saying <B>All tables are joined</B>.
+The following display shows the Join Manager window
+after the tables have been joined. 
+<P>
+<P>
+<B><I>Join Manager Window With Two Joined Tables</I></B><BR>
+
+<P><IMG border="0" src="./images/01319290.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+
+<LI>Select
+<B>Close</B> from the <B>File</B> menu to return to the Query
+window. Note that the message under the <B>Join</B> button
+says <B>Complete inner join</B>.<P>
+</OL>
+
+<BR><H3>Joining Three Tables</H3>
+
+
+<P><A name="z1287076">&#13;To add a third table to the joined
+AIRLINE.JOBCODES and AIRLINE.PAYROLL
+tables, follow these instructions:</A>
+<OL START="1" type="1">
+<LI>Return to the Select
+window by choosing <B>Select</B> from the Query window.<P>
+
+<LI>Select one more table,
+AIRLINE.SCHEDULE<P>
+
+<LI>Select <B>Close</B> from the <B>File</B> menu to return to the Query
+window. The message <B>Incomplete Inner join</B> appears
+again.<P>
+
+<LI>Select <B>Join</B> to open
+the Join Manager window.
+<P>The table names are displayed at the top of the Join Manager window. AIRLINE.SCHEDULE is
+highlighted because
+it is not yet joined with another table. AIRLINE.SCHEDULE has no table alias
+under the <B>JOINS/relations</B> field for the same reason.
+This table is also listed as a separate group in the <B>Group</B>
+field.
+<P>The following display shows the Join Manager window before the third table AIRLINE.SCHEDULE is joined with
+AIRLINE.JOBCODES and AIRLINE.PAYROLL.
+<P>
+<P>
+<B><I>Join Manager Window With Third Table Before Joining</I></B><BR>
+
+<P><IMG border="0" src="./images/01319291.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+
+<LI>Because the columns from only two
+tables can be
+listed at the same time in this window, the <B>Alias</B>
+fields are blank and no columns are listed.  AIRLINE.PAYROLL and AIRLINE.SCHEDULE
+have a common column, IDNUM.  Type the alias 
+
+
+<CODE><B>B</B></CODE> in the first <B>Alias</B> field and the alias 
+
+
+<CODE><B>C</B></CODE> in the second <B>Alias</B> field.  When you press ENTER, the tables' columns are
+listed. Type 
+
+
+<CODE><B>1</B></CODE> next to <B>B.IDNUM</B> and <B>C.IDNUM</B>, respectively, and press ENTER.
+<P>When the three tables are joined, the highlighting is
+removed, the <B>Group</B> field changes to <B>1,1,1</B> (indicating one group), and a message appears saying <B>All tables are joined</B>,
+as shown in the following display.
+<P>
+<P>
+<B><I>Join Manager Table With Three Joined Tables</I></B><BR>
+
+<P><IMG border="0" src="./images/01319292.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+
+<LI>Select
+<B>Close</B> from the <B>File</B> menu to return to the Query
+window. Save or run your query.  After you run your query, you can save your
+output to a table.  See <A href="zetables.htm#zesastab">Creating a New SAS Table or View</A> for
+more information.<P>
+</OL>
+
+<BR><H3>Joining Tables with Outer Joins</H3>
+
+
+<P><A name="z1287086">&#13;When you
+join tables, Query and Reporting uses an inner join by default. However, you
+can choose another type of join if you are joining only two tables.  In DB2,
+outer joins are allowed on only two tables. Note that there may be other restrictions
+under DB2; for further information, see </A><A href="#z1048053">Additional Considerations for Joining DB2 Tables</A>. Outer joins must be performed manually.
+<OL START="1" type="1">
+<LI>If
+desired, save the previous query using <B>Save</B> from the <B>File</B> menu.<P>
+
+<LI>Reset the
+Query window
+by selecting <B>New</B> from the <B>File</B>
+menu<P>
+
+<LI>Open the Select window
+and choose the AIRLINE.SCHEDULE and AIRLINE.SUPERV tables. These tables do
+not have a relation defined on them.<P>
+
+<LI>Return to the Query
+window, and note that the <B>Incomplete Inner Join</B>
+message appears under <B>Join</B>.<P>
+
+<LI>To change this query to a right join, select <B>Join Type</B> from the
+<B>Edit</B> menu.<P>
+
+<LI>Select <B>Right join</B> from
+the list of join types and <B>Goback</B>.  When you return
+to the Query window, the <B>Incomplete
+Right join</B> message appears under the <B>Join</B>
+button.<P>
+
+<LI>Select <B>Join</B> to open
+the Join Manager window.<P>
+
+<LI> Type 
+
+
+<CODE><B>1</B></CODE> in the <B>A.IDNUM</B> column and 
+
+
+<CODE><B>1</B></CODE> in the <B>B.SUPID</B> column and press ENTER. (These steps are described earlier
+in <A href="#zeljoins">Joining Tables Without Defined Relations</A>.)  <P>
+
+<LI>Return to the Query
+window.<P>
+
+<LI>If desired, reorder the columns of the query and
+then select <B>Show SQL</B> from the <B>View</B> menu. The following display shows the second display of the
+SQL for the right join query.
+<P>
+<P>
+<B><I>Show SQL Window for Right Join</I></B><BR>
+
+<P><IMG border="0" src="./images/01319293.gif" vspace="12" alt="[IMAGE]">
+<P>Exit the Show SQL
+window.<P>
+
+<LI>Select <B>Submit</B> from
+the <B>Run</B> menu to run the query. The following display
+shows the results. This query creates a list of supervisors who have been
+assigned to flights as well as supervisors who have not been assigned to flights.
+<P>
+<P>
+<B><I>Results of Right Join</I></B><BR>
+
+<P><IMG border="0" src="./images/01319294.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zsasrels">Defining Relations on Tables</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1287098">&#13;When
+you query SAS tables, <B>relations</B> provide a way to identify
+rows and to relate (or join) rows in one table to rows in another table. You
+define a relation on one or more columns in a table. Relations are based on
+the database concept of primary and foreign keys; see 
+
+
+
+<B>SAS/ACCESS Software for Relational Databases:     Reference</B> for more
+information.</A>
+<P>You define a relation on tables based on one or more
+columns that tables contain.  For example, the SAS AIRLINE.PAYROLL table has
+a column named IDNUM that has the same attributes as the IDNUM column in AIRLINE.STAFF.
+Therefore, you would define and name a relation for IDNUM on the two tables.
+<P>Defining a relation between or among tables enables
+you to build intelligence into your query creation process.  When one relation
+is defined on tables that you join in a query, Query and Reporting automatically
+generates a WHERE or ON clause for that query. This saves you from defining
+a WHERE predicate for each join query.  (See <A href="#ztojoins">Joining Tables Automatically</A> for more information.) You can, of course,
+still select <B>Subset</B> from the Query window to add other predicates to your WHERE clause; see
+<A href="z0940396.htm#zesubset">Retrieving a Subset of Data</A> for
+more information.
+<P>If no relations are defined or if more than one relation
+is defined for the tables in the join, you must join the tables manually,
+as described in <A href="#zaljoins">Joining Tables Manually</A> and <A href="#z0241121">Joining Tables with Multiple Relations</A>.
+<P>The examples in
+this section
+are used to demonstrate
+joining tables automatically and joining tables with multiple relations later
+in this chapter.
+<P>
+<OL START="1" type="1">
+<LI>If desired, save the previous query by selecting <B>Save</B> from the
+<B>File</B> menu in the Query window.<P>
+
+<LI>Reset the Query window
+by selecting <B>New</B> from the <B>File</B>
+menu.<P>
+
+<LI>Go to the Select window
+and select the AIRLINE.MARCH and AIRLINE.FLINFO tables. Return to the Query window.<P>
+
+<LI>Select <B>Join</B> to open
+the Join Manager window.<P>
+
+<LI>Type a 
+
+
+<CODE><B>1</B></CODE> next to the <B>A.FLIGHT</B> and <B>B.FLIGHT</B> columns and press ENTER. A message indicates that the
+tables are joined.<P>
+
+<LI>Follow this selection path to open the Relations for Current Tables
+window:
+<P><TABLE cellpadding="2">
+<TR valign="middle">
+<TD nowrap bgcolor="#CCCCCC">View</TD>
+<TD><center><IMG border="0" src="../common/images/arrow.gif" alt="[arrow]"></center></TD>
+<TD nowrap bgcolor="#CCCCCC">Relations</TD>
+<TD><center><IMG border="0" src="../common/images/arrow.gif" alt="[arrow]"></center></TD>
+<TD nowrap bgcolor="#CCCCCC">Current Tables</TD></TR></TABLE>
+<P>
+<P>
+<B><I>Relations for Current Tables Window</I></B><BR>
+
+<P><IMG border="0" src="./images/01319295.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+
+<LI>In the <B>Relation
+name</B>
+field, type 
+
+
+<CODE><B>MARFLT</B></CODE>. A relation
+name can be up to eight characters long.<P>
+
+<LI>In the <B>Description</B>
+field, type 
+
+
+<CODE><B>March - Flight Info
+Relation</B></CODE>. A description can be up to 32 characters long.<P>
+
+<LI>Select <B>Save</B> to save
+the relation, then <B>Goback</B> to return to the Join Manager window.<P>
+
+<LI>Return to the
+Query
+window.<P>
+</OL>
+
+<P>Repeat steps 2 through 9 above to define a relation
+on the AIRLINE.DEST and AIRLINE.FLINFO tables. Define your relation on the
+A.DEST and B.DEST columns. Name this relation 
+
+
+<CODE><B>FLDEST</B></CODE> and give it a description of 
+
+
+<CODE><B>Destination Name Join</B></CODE>. Then, repeat steps 5 through 9 to define a second
+relation on the AIRLINE.DEST and AIRLINE.FLINFO tables. By typing 
+
+
+<CODE><B>2</B></CODE> (instead of 
+
+
+<CODE><B>1</B></CODE>) next to the columns, define this relation on the A.DEST and B.ORIG
+columns. Name this relation 
+
+
+<CODE><B>FLORIG</B></CODE> and give it a description of 
+
+
+<CODE><B>Origin Name Join</B></CODE>.
+<BR><H3>Modifying and Deleting Relations</H3>
+
+
+<P><A name="z1287115">&#13;In order to add, edit, or delete a relation, you must have the
+correct permissions to do so. Permission to modify relations is determined
+by the Query Manager in effect. Contact your SAS Support Consultant for details.</A>
+<P>To modify a relation, follow these
+instructions:
+<OL START="1" type="1">
+<LI>Select the tables associated with that relation
+in the Select window<P>
+
+<LI>Select <B>Join</B> to open
+the Join Manager window.<P>
+
+<LI>If you want only to change the name or description
+of the relation, proceed to the next step. Otherwise, modify the join as desired.<P>
+
+<LI>Follow this selection
+path:
+<P><TABLE cellpadding="2">
+<TR valign="middle">
+<TD nowrap bgcolor="#CCCCCC">View</TD>
+<TD><center><IMG border="0" src="../common/images/arrow.gif" alt="[arrow]"></center></TD>
+<TD nowrap bgcolor="#CCCCCC">Relations</TD>
+<TD><center><IMG border="0" src="../common/images/arrow.gif" alt="[arrow]"></center></TD>
+<TD nowrap bgcolor="#CCCCCC">Current Tables</TD></TR></TABLE>The Relations for Current Tables
+window appears, as shown in the previous display.<P>
+
+<LI>Type the name of the relation in the <B>Relation name</B> field. You can also enter a 
+
+
+<CODE><B>?</B></CODE> in the <B>Relation name</B>
+field and select the relation from the resulting list.<P>
+
+<LI>Select <B>Save</B>. When prompted,
+select <B>Yes</B> to overwrite the existing relation.<P>
+</OL>
+
+<P>To delete a relation, follow these
+instuctions:
+<OL START="1" type="1">
+<LI>Select the tables associated with that relation
+in the Select window.<P>
+
+<LI>Select <B>Join</B> to open
+the Join Manager window.<P>
+
+<LI>Follow this selection path:
+<P><TABLE cellpadding="2">
+<TR valign="middle">
+<TD nowrap bgcolor="#CCCCCC">View</TD>
+<TD><center><IMG border="0" src="../common/images/arrow.gif" alt="[arrow]"></center></TD>
+<TD nowrap bgcolor="#CCCCCC">Relations</TD>
+<TD><center><IMG border="0" src="../common/images/arrow.gif" alt="[arrow]"></center></TD>
+<TD nowrap bgcolor="#CCCCCC">Current
+Tables</TD></TR></TABLE>The Relations for Current Tables
+window appears, as shown in the previous display.<P>
+
+<LI>Type the name of the relation in the <B>Relation name</B> field. You can also enter a 
+
+
+<CODE><B>?</B></CODE> in the <B>Relation name</B>
+field and select the relation from the resulting list.<P>
+
+<LI>Select <B>Delete</B>, then <B>Goback</B> to return to the
+Join Manager
+window.<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="ztojoins">Joining Tables Automatically</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1287129">&#13;The
+Query window can join tables automatically
+if a relation is defined on the tables. In addition, as already discussed,
+relations can be defined either by a DBA or by a user.  (Note that for DB2,
+if any referential constraints are defined, these constraints are used by
+the Query Manager to join tables automatically.)</A>
+<P>Query and Reporting automatically joins tables that
+have exactly one relation defined on them.  The default action is to create
+an inner join. (See <A href="#zaljoins">Joining Tables Manually</A> for information
+on joining tables without a defined relation and for performing outer joins.)
+<P>In this section you join the AIRLINE.MARCH and AIRLINE.FLINFO
+tables on which you defined a relation in the previous section.
+<P>
+<OL START="1" type="1">
+<LI>Reset the Query window
+by selecting <B>New</B> from the <B>File</B>
+window.<P>
+
+<LI>Open the Select window
+and select the AIRLINE.MARCH and AIRLINE.FLINFO tables. Return to the Query window.<P>
+
+<LI>By convention, relations are a property of the
+second of the two tables joined, in this case, AIRLINE.MARCH. To see this
+property, type 
+
+
+<CODE><B>I</B></CODE> next to the table name in the Select window.  The Table Information window
+appears, as shown in the following display.
+<P>
+<P>
+<B><I>Table Information Window</I></B><BR>
+
+<P><IMG border="0" src="./images/01319296.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+
+<LI>Select <B>Close</B>
+from the <B>File</B> menu twice to return to the Query
+window. The message <B>All tables are joined</B> appears
+in the Query window, and the message <B>Complete Inner join</B> appears under the <B>Join</B>
+button.<P>
+</OL>
+
+<P>At this point, you can customize your query, run it,
+and save it as described in <A href="z0940396.htm#zvequery">Saving a Query</A>.
+Alternatively, you can save the query's output to a table, as described in <A href="zetables.htm">Creating New Tables</A>. If you intend to access the joined
+data frequently, it is often more efficient to save the output to a SAS table
+and then specify the new SAS table in your SAS code.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0241121">Joining Tables with Multiple Relations</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1287138">&#13;Tables with
+multiple relations must be joined manually because
+you have to decide which columns to use to join the tables. This example uses
+the relations you defined on the AIRLINE.DEST and AIRLINE.FLINFO tables in </A><A href="#zsasrels">Defining Relations on Tables</A>.
+<OL START="1" type="1">
+<LI>Reset
+the Query window
+by selecting <B>New</B> from the <B>File</B>
+menu.<P>
+
+<LI>Open the Select window
+and select AIRLINE.DEST and AIRLINE.FLINFO.<P>
+
+<LI>Open the Table Information
+window for the AIRLINE.FLINFO table to see the two relations defined on it.<P>
+
+<LI> Exit the Table information window and the Select
+window to return to the Query window. The <B>Not all tables are joined</B> message is displayed because you have
+not yet selected a relation.<P>
+
+<LI>Select <B>Join</B> to open
+the Join Manager window. The Join
+Manager window appears much as it does in <A href="#z1134046">Join Manager Window With Two Tables To Be Joined</A>. The table
+aliases under the <B>JOINS/relations</B> field are in
+lowercase letters. The aliases are lowercase to indicate that a relation exists
+between the tables but that it is not used yet. The following display shows
+the tables before they are joined.
+<P>
+<P>
+<B><I>Join Manager Window With Multiple Relations</I></B><BR>
+
+<P><IMG border="0" src="./images/01319297.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+
+<LI>Choose <B>Select
+Relation</B>
+from the <B>Edit</B> menu, or select one of the lowercase
+aliases under the <B>JOINS/relations</B> field to select
+a relation with which to join. The relations for your tables are listed. Select <B>Destination Name Join</B>. The tables are joined and the lowercase
+aliases in <B>JOINS/relations</B> change to uppercase.
+ Notice in the following display that a <B>1</B> automatically
+appeared in the <B>A.DEST</B> and <B>B.DEST</B> fields and the <B>Group</B> field changes
+to <B>1,1</B>.
+<P>
+<P>
+<B><I>Join Manager Window With Multiple Relations After Joining</I></B><BR>
+
+<P><IMG border="0" src="./images/01319298.gif" vspace="12" alt="[IMAGE]">
+<P><P>
+</OL>
+
+<P>Return to the
+Query window
+to customize, save, or run your query.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1048053">Additional Considerations for Joining DB2 Tables</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1287146">&#13;When
+you use the Query window, you can perform inner
+joins or outer joins (left, right, and full) on DB2 tables.  If one primary
+key/foreign key relation is defined between the tables, Query and Reporting
+joins the related tables automatically.  It generates a WHERE or ON clause
+that is based on the related column(s) in the tables, such as 
+
+
+</A><CODE><B>where payroll.idnum=staff.idnum</B></CODE>.
+<P>If no primary key/foreign key relation is defined or
+if more than one relation exists between the contributing tables, you must
+specify manually which columns are used to join the tables (see <A href="#zaljoins">Joining Tables Manually</A>).
+<P>Versions 4 and later of DB2 includes
+outer join operators.
+ Therefore, when you use the Query window and specify
+a left, right, or full join, Query and Reporting generates the WHERE or ON
+clause automatically.
+<P>DB2 versions prior to Version 4 lack outer join operators.
+You can still specify an outer join type in Query and Reporting. If relations
+are defined on the tables, a WHERE or ON clause is automatically generated.
+ If no relations are defined, you have to join the tables manually.  When
+you review your SQL code (by selecting <B>Show SQL</B>
+from the <B>View</B> menu), you see that DB2 SQL has used
+set operators (such as UNION) to produce an outer join result, instead of
+using outer join operators.
+<P>Because earlier versions of DB2 SQL do not have outer
+join operators, certain limitations apply to outer joins in Query and Reporting: 
+<P>
+<UL>
+
+<LI>Because you generate a WHERE or ON clause when
+you join the tables, you cannot specify <B>additional</B> WHERE predicates
+or expressions in the SELECT clause.  For example, if you select <B>Subset</B> in the Query window, enter
+a WHERE predicate, and exit the window, the Messages
+window appears with <B>Subset is disabled due to outer join</B>.
+ Then <B>Disabled</B> appears under <B>Subset</B>.  It works the same way with
+<B>Expression</B>.<P>
+
+<LI>Arithmetic expressions (such as those in a SELECT
+clause) are ignored.<P>
+
+<LI>Results from outer joins cannot be stored in a
+new DB2 table. (However, you can save the results to a SAS table.)<P>
+</UL>
+
+<P><A name="z1287154">&#13;The
+following table shows the default values in outer joins. </A>
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="znid-213">Default Values for Data Types in Outer Joins</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B>Data Type</B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Default Value</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">Character data</TD>
+  
+<TD  align="LEFT" valign="TOP">blank (' ')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">Numeric Data </TD>
+  
+<TD  align="LEFT" valign="TOP">0</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">Date </TD>
+  
+<TD  align="LEFT" valign="TOP">January 1, 0001</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">Time</TD>
+  
+<TD  align="LEFT" valign="TOP">Midnight</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">Timestamp</TD>
+  
+<TD  align="LEFT" valign="TOP">January 1, 0001, midnight</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<BR><H3>Referential Integrity</H3>
+
+
+<P><A name="z1287167">&#13;Referential
+integrity is implemented in the DB2 database management systems by specifying
+conditions where all references from one database column to another column
+must be validated.</A>
+<P><A name="z1287168">&#13;These referential constraints
+are established by defining <B>primary keys</B> and <B>foreign keys</B> for the columns in the relationship. A primary key defines a unique
+identifier for the rows of a table. A foreign key is a column where each value
+contains a value in the primary key of another defined table. After the relationship
+between a primary key and a foreign key has been established, DB2 enforces
+the referential integrity for you according to both the rules that DB2 has
+established and the referential constraints that you have specified.</A>
+<P>If referential constraints have been established, the Select window uses
+them to generate automatic joins between
+tables.  In the Query, Select,
+or Report Engine windows, you can enter the 
+
+
+<CODE><B>I</B></CODE> command next to a table or column name to open the Select Table information or Column information window.  These windows display information on
+referential constraints
+for your convenience.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1084674.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zetables.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1057610.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zntables">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

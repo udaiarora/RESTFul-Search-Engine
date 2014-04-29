@@ -1,0 +1,125 @@
+<HTML>
+<HEAD>
+<TITLE>Summing Series</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect51.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Working with Time Series Data</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Summing Series  </H2>
+<P><A NAME="idxtsd0551">&#13;</A><A NAME="idxtsd0550">&#13;</A><A NAME="idxtsd0553">&#13;</A><A NAME="idxtsd0552">&#13;</A>Simple cumulative sums are easy to compute using SAS sum statements.
+The following statements show how to compute the running sum of
+variable X in data set A, adding XSUM to the data set.
+<P><PRE>
+   data a;
+      set a;
+      xsum + x;
+   run;
+</PRE>
+<P><A NAME="idxtsd0555">&#13;</A><A NAME="idxtsd0554">&#13;</A><A NAME="idxtsd0557">&#13;</A><A NAME="idxtsd0556">&#13;</A>The SAS sum statement automatically retains the variable XSUM and
+initializes it to 0, and the sum statement treats missing values as 0.
+The sum statement is equivalent to using a RETAIN statement and
+the SUM function. The previous example could also be written as follows:
+<P><PRE>
+   data a;
+      set a;
+      retain xsum;
+      xsum = sum( xsum, x );
+   run;
+</PRE>
+<P>You can also use the EXPAND procedure to compute summations.
+For example
+<P><PRE>
+   proc expand data=a out=a method=none;
+      convert x=xsum / transform=( sum );
+   run;
+</PRE>
+<P>Like differencing, summation can be done at different
+lags and can be repeated to produce higher-order sums.
+To compute sums over observations separated by lags greater than 1,
+use the LAG and SUM functions together, and use a RETAIN statement
+that initializes the summation variable to zero.
+<P><A NAME="idxtsd0559">&#13;</A><A NAME="idxtsd0558">&#13;</A><A NAME="idxtsd0561">&#13;</A><A NAME="idxtsd0560">&#13;</A>For example, the following statements add the variable XSUM2 to data set A.
+XSUM2 contains the sum of every other observation, with even-numbered
+observations containing a cumulative sum of values of X from even observations,
+and odd-numbered observations containing a cumulative sum of values of X from 
+odd observations.
+<P><PRE>
+   data a;
+      set a;
+      retain xsum2 0;
+      xsum2 = sum( lag( xsum2 ), x );
+   run;
+</PRE>
+<P><A NAME="idxtsd0563">&#13;</A><A NAME="idxtsd0562">&#13;</A><A NAME="idxtsd0565">&#13;</A><A NAME="idxtsd0564">&#13;</A>Assuming that A is a quarterly data set,
+the following statements compute running sums of X for each quarter.
+XSUM4 contains the cumulative sum of X for all observations for the
+same quarter as the current quarter.
+Thus, for a first-quarter observation, XSUM4 contains a cumulative sum
+of current and past first-quarter values.
+<P><PRE>
+   data a;
+      set a;
+      retain xsum4 0;
+      xsum4 = sum( lag3( xsum4 ), x );
+   run;
+</PRE>
+<P><A NAME="idxtsd0567">&#13;</A><A NAME="idxtsd0566">&#13;</A><A NAME="idxtsd0569">&#13;</A><A NAME="idxtsd0568">&#13;</A>To compute higher-order sums, repeat the preceding process
+and sum the summation variable.
+For example, the following statements compute the first and second
+summations of X:
+<P><PRE>
+   data a;
+      set a;
+      xsum + x;
+      x2sum + xsum;
+   run;
+</PRE>
+<P><A NAME="idxtsd0571">&#13;</A><A NAME="idxtsd0570">&#13;</A><A NAME="idxtsd0573">&#13;</A><A NAME="idxtsd0572">&#13;</A><A NAME="idxtsd0575">&#13;</A><A NAME="idxtsd0574">&#13;</A>The following statements compute the second order four-period sum of X:
+<P><PRE>
+   data a;
+      set a;
+      retain xsum4 x2sum4 0;
+      xsum4 = sum( lag3( xsum4 ), x );
+      x2sum4 = sum( lag3( x2sum4 ), xsum4 );
+   run;
+</PRE>
+<P>You can also use PROC EXPAND to compute cumulative statistics 
+and moving window statistics.  See <A HREF="../chap11/index.htm">Chapter 11, &#34;The EXPAND Procedure,&#34;</A> for details.
+<P>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect51.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

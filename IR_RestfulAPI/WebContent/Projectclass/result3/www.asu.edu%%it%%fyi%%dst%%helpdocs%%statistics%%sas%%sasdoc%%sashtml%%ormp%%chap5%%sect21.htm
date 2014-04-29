@@ -1,0 +1,135 @@
+<HTML>
+<HEAD>
+<TITLE>NLINCON Statement</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="nlpnlincon">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect20.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect22.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>NLINCON Statement</H2>
+<A NAME="idxnlp0339">&#13;</A><A NAME="idxnlp0340">&#13;</A><A NAME="idxnlp0341">&#13;</A><A NAME="idxnlp0342">&#13;</A><A NAME="idxnlp0343">&#13;</A><A NAME="idxnlp0344">&#13;</A><A NAME="idxnlp0345">&#13;</A><DL><DD><B CLASS="ssbeleven"> NLINCON </B> <I CLASS="ssieleven"> nlcon [ , nlcon ...] [ / option ] <SPAN CLASS="ssbeleven"><B>;</B></SPAN> </I></DL>
+<DL><DD><B CLASS="ssbeleven"> NLC</B> <I CLASS="ssieleven"> nlcon [ , nlcon ...] [ / option ] <SPAN CLASS="ssbeleven"><B>;</B></SPAN> </I></DL>
+<PRE CLASS="tabbing"><TT>
+where       <I>nlcon := <EM>number</EM> operator <EM>variable_list</EM> operator <EM>number</EM></I> 
+or 		 <I>nlcon := -number operator variable_list</I> 
+or 		 <I>nlcon := variable_list operator number</I> 
+and 		 <I>operator :=</I> <SPAN CLASS="mathfont">&#60;= | &#60; | &#62;= | &#62; | =</SPAN> 
+and 		 <I>option := SUMOBS | EVERYOBS </I>
+</TT></PRE>
+<BR><BR>General nonlinear equality and inequality constraints are specified
+with the NLINCON statement. 
+The syntax of the NLINCON
+statement is similar to that of the BOUNDS statement
+with two small additions:
+<UL>
+<LI> The BOUNDS statement can contain only the names of
+      decision variables. 
+      The NLINCON statement can also contain the names of continuous
+      functions of the decision variables. 
+      These functions must be computed in the program statements, and
+      since they can depend on the values of some of the variables in the
+      DATA= data set there are two possibilities:
+<UL>
+<LI> If the continuous functions should be
+      summed across all observations read from the
+      DATA= data set, the NLINCON statement
+      must be terminated by the / SUMOBS
+      option<A NAME="idxnlp0337">&#13;</A>.
+<LI> If the continuous functions should  be evaluated
+      separately for each observation in the data set,
+      the NLINCON statement must be terminated
+      by the / EVERYOBS option<A NAME="idxnlp0338">&#13;</A>.
+      One constraint is generated for each observation in the data set.
+</UL>
+<LI> If the continuous function has to be evaluated
+      only once for the entire data set,
+      the NLINCON statement has the same
+      form as the BOUNDS statement.
+      If this constraint does depend on the values of
+      variables in the DATA= data set, it is evaluated
+      using the data of the first observation.
+<BR><BR></UL>
+<BR><BR>One- or two-sided constraints can be specified
+in the NLINCON statement.  However, equality constraints must
+be one-sided. 
+The pairs
+of operators (<SPAN CLASS="mathfont">&#60;</SPAN>,<SPAN CLASS="mathfont">&#60;=</SPAN>) and (<SPAN CLASS="mathfont">&#62;</SPAN>,<SPAN CLASS="mathfont">&#62;=</SPAN>)
+are treated in the same way.
+<BR><BR>These three statements require the values of
+the three functions <SPAN CLASS="mathfont"><I>v<SUB>1</SUB></I>, <I>v<SUB>2</SUB></I>, <I>v<SUB>3</SUB></I></SPAN> to be between
+zero and ten, and they are equivalent:
+<BR><BR><PRE>
+   nlincon 0 &#60;= v1 - v3,
+           v1 - v3 &#60;= 10;
+</PRE>
+<PRE>
+   nlincon 0 &#60;= v1 - v3 &#60;= 10;
+</PRE>
+<PRE>
+   nlincon 10 &#62;= v1 - v3 &#62;= 0;
+</PRE>
+<BR><BR>Also, consider the  Rosen-Suzuki problem. It has
+three nonlinear inequality constraints:
+
+<DL CLASS="equation"><DD><IMG WIDTH="363" HEIGHT="76"
+ SRC="images/nlpeq61.gif"
+ ALT="8 - x_1^2 - x_2^2 - x_3^2 - x_4^2
+ - x_1 + x_2 - x_3 + x_4 \geq 0 "></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="310" HEIGHT="76"
+ SRC="images/nlpeq62.gif"
+ ALT="10 - x_1^2 - 2 x_2^2 - x_3^2 - 2 x_4^2 + x_1 + x_4 \geq 0 "></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="301" HEIGHT="76"
+ SRC="images/nlpeq63.gif"
+ ALT="5 - 2 x_1^2 - x_2^2 - x_3^2 - 2 x_1 + x_2 + x_4 \geq 0 "></DL>
+These are specified as:
+<PRE>
+  nlincon c1 - c3 &#62;= 0;
+
+  c1 = 8 - x1 * x1 - x2 * x2 - x3 * x3 - x4 * x4 -
+         x1 + x2 - x3 + x4;
+  c2 = 10 - x1 * x1 - 2 * x2 * x2 - x3 * x3 - 2 * x4 * x4 +
+         x1 + x4;
+  c3 = 5 - 2 * x1 * x1 - x2 * x2 - x3 * x3 - 2 * x1 + x2 + x4;
+</PRE>
+<P><B>Note:</B> QUANEW and NMSIMP are
+the only optimization subroutines that support
+the NLINCON statement.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect20.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect22.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

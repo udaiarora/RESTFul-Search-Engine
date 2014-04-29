@@ -1,0 +1,547 @@
+<HTML>
+<HEAD>
+<TITLE>Input Data Sets</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect52.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Input Data Sets  </H2>
+<A NAME="idxmod0477">&#13;</A><A NAME="idxmod0476">&#13;</A><H3><I>DATA= Input Data Set</I></H3>
+<A NAME="idxmod0478">&#13;</A>For FIT tasks, the DATA= option specifies which input data set
+to use in estimating parameters. Variables in the model program are looked up in the DATA= data set
+and, if found, their attributes (type, length, label, and format) are
+set to be the same as those in the DATA= data set
+(if not defined otherwise within PROC MODEL),
+and values for the variables in the program are read from the data set.
+<P><H3><I>ESTDATA= Input Data Set</I></H3>
+<A NAME="idxmod0479">&#13;</A>The ESTDATA= option specifies an input data set that
+contains an observation giving values for some or all of
+the model parameters. The data set can also contain observations
+giving the rows of a covariance matrix for the parameters.
+<P>Parameter values read from the ESTDATA= data set provide initial starting
+values for parameters estimated.
+Observations providing covariance values, if any are present
+in the ESTDATA= data set, are ignored.
+<P>The ESTDATA= data set is usually created by the OUTEST= option
+in a previous FIT statement.
+You can also create an ESTDATA= data set with a SAS DATA step program.
+The data set must contain a numeric variable for each parameter to
+be given a value or covariance column. The name of the variable
+in the ESTDATA= data set must match the name of the parameter in the model. 
+Parameters with names longer than eight characters cannot be set from
+an ESTDATA= data set.
+The data set must also contain a character variable _NAME_ of length 8.
+_NAME_ has a blank value for the observation that gives values to the
+parameters. _NAME_ contains the name of a parameter for observations
+defining rows of the covariance matrix.
+<P>More than one set of parameter estimates and covariances can be stored
+in the ESTDATA= data set if the observations for the different
+estimates are identified by the variable _TYPE_.
+_TYPE_ must be a character variable of length 8. The TYPE= option is
+used to select for input the part of the ESTDATA= data set for which
+the _TYPE_ value matches the value of the TYPE= option.
+<P>The following SAS statements generate the ESTDATA= data set shown in 
+<A HREF="sect51.htm#moddonnads">Figure 14.55</A>. The second FIT statement uses the TYPE= option 
+to select the estimates from the GMM estimation as starting values
+for the FIML estimation.
+<A NAME="idxmod0480">&#13;</A><A NAME="idxmod0481">&#13;</A><A NAME="idxmod0483">&#13;</A><A NAME="idxmod0482">&#13;</A><PRE>
+            /* Generate test data */
+   data gmm2;
+       do t=1 to 50;
+          x1 = sqrt(t) ;
+          x2 = rannor(10) * 10;
+          y1 = -.002 * x2 * x2 - .05 / x2 - 0.001 * x1 * x1;
+          y2 = 0.002* y1 + 2 * x2 * x2 + 50 / x2 + 5 * rannor(1);
+          y1 = y1 + 5 * rannor(1);
+          z1 = 1; z2 = x1 * x1; z3 = x2 * x2; z4 = 1.0/x2;
+          output;
+       end;
+   run;
+   
+   proc model data=gmm2 ;
+      exogenous x1 x2;
+      parms a1 a2 b1 2.5 b2 c2 55 d1;
+      inst b1 b2 c2 x1 x2;
+      y1 = a1 * y2 + b1 * x1 * x1 + d1;
+      y2 = a2 * y1 + b2 * x2 * x2 + c2 / x2 + d1;
+   
+      fit y1 y2 / 3sls gmm kernel=(qs,1,0.2) outest=gmmest;
+   
+      fit y1 y2 / fiml type=gmm estdata=gmmest;
+   run;
+   
+   proc print data=gmmest;
+   run;
+</PRE>
+<P><A NAME="moddonnads">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Obs</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_TYPE_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_STATUS_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_NUSED_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>a1</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>a2</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>b1</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>b2</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>c2</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>d1</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3SLS</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.002229607</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.25002</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.025827</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.99609</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">49.8119</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.44533</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM </font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.002013073</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.53882</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.014908</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.99419</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">49.8035</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.64933</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.55:</B> ESTDATA= Data Set</SPAN><P>
+<P><H3><I>MISSING= PAIRWISE | DELETE</I></H3>
+<A NAME="idxmod0484">&#13;</A>When missing values are encountered for any one of
+the equations in a system of equations, 
+the default action is to drop that observation for all of the equations.
+The new MISSING=PAIRWISE option on the FIT statement provides a
+different method of handling missing values that avoids losing data
+for nonmissing equations for the observation.
+This is especially useful for SUR estimation on equations
+with unequal numbers of observations.
+<P>The option MISSING=PAIRWISE specifies that missing values are tracked 
+on an equation-by-equation basis.
+The MISSING=DELETE option specifies that the entire observation 
+is omitted from the analysis when any equation 
+has a missing predicted or actual value for the equation.
+The default is MISSING=DELETE.
+<P>When you specify the MISSING=PAIRWISE option, 
+the S matrix is computed as
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>S</I>=<I>D</I>(<I>R</I>'<I>R</I>)<I>D</I>
+</SPAN>
+</DL>
+<P>where D is a diagonal matrix that depends on the VARDEF= option,
+the matrix <SPAN CLASS="mathfont"><I>R</I></SPAN> is
+<SPAN CLASS="mathfont">(<b>r</b><sub>1</sub>, ... ,<b>r</b><sub><I>g</I></sub>)</SPAN>, 
+and <SPAN CLASS="mathfont"><b>r</b><sub><I>i</I></sub></SPAN> is the vector of residuals for the <I>i</I>th
+equation with <SPAN CLASS="mathfont"><I>r</I><SUB><I>ij</I></SUB></SPAN> replaced with zero 
+when <SPAN CLASS="mathfont"><I>r</I><SUB><I>ij</I></SUB></SPAN> is missing.
+<P>For MISSING=PAIRWISE, the calculation of the diagonal element <SPAN CLASS="mathfont"><I>d</I><SUB><I>i</I>,<I>i</I></SUB></SPAN>
+of <B>D</B> is based on <SPAN CLASS="mathfont"><I>n</I><SUB><I>i</I></SUB></SPAN>, the number of nonmissing observations
+for the <I>i</I>th equation, instead of on <I>n</I> 
+or, for VARDEF=WGT or WDF, on the sum of the weights for the 
+nonmissing observations for the <I>i</I>th equation instead of on the 
+sum of the weights for all observations.
+Refer to the description of the VARDEF= option for the definition of <B>D</B>.
+<P>The degrees of freedom correction for a shared parameter is computed using
+the average number of observations used in its estimation.
+<P>The MISSING=PAIRWISE option is not valid for the 
+GMM and FIML estimation methods.
+<P>For the instrumental variables estimation methods (2SLS, 3SLS),
+when an instrument is missing for an observation, 
+that observation is dropped for all equations,
+regardless of the MISSING= option.
+<P><H3><I>PARMSDATA= Input Data Set</I></H3>
+<A NAME="idxmod0485">&#13;</A>The option PARMSDATA= reads values for all parameters
+whose names match the names of variables in the PARMSDATA=
+data set. Values for any or all of the parameters in the model
+can be reset using the PARMSDATA= option.
+The PARMSDATA= option goes on the PROC MODEL statement,
+and the data set is read before any FIT or SOLVE statements are executed.
+<P>Together, the OUTPARMS= and PARMSDATA= options
+allow you to change part of a model and recompile the
+new model program without the need to reestimate equations
+that were not changed.
+<P>Suppose you have a large model with parameters estimated
+and you now want to replace one equation, Y, with a new specification.
+Although the model program must be recompiled with the new equation,
+you don't need to reestimate all the equations, just the one that changed.
+<P><A NAME="idxmod0486">&#13;</A>Using the OUTPARMS= and PARMSDATA= options, you could do the following:
+<P><PRE>
+   proc model model=oldmod outparms=temp; run;
+   proc model outmodel=newmod parmsdata=temp data=in;
+      ...  include new model definition with changed y eq. here ...
+      fit y;
+   run;
+</PRE>
+<P>The model file NEWMOD will then contain the new model and its estimated 
+parameters plus the old models with their original parameter values.
+<P><H3><I>SDATA= Input Data Set</I></H3>
+<A NAME="idxmod0487">&#13;</A>The SDATA= option allows a cross-equation covariance matrix to be
+input from a data set. 
+The <B>S</B> matrix read from the SDATA= data set, 
+specified in the FIT statement, is used to define the objective function for 
+the OLS, N2SLS, SUR, and N3SLS estimation methods and is used as the initial 
+<B>S</B> for the methods that iterate the <B>S</B> matrix.
+<P>Most often, the SDATA= data set has been created by the OUTS=
+or OUTSUSED= option on a previous FIT statement.
+The OUTS= and OUTSUSED= data sets from a FIT statement can
+be read back in by a FIT statement in the same PROC MODEL step.
+<P>You can create an input SDATA= data set using the DATA step.
+PROC MODEL expects to find a character variable _NAME_ in the SDATA= data
+set as well as variables for the equations in the estimation or solution.
+For each observation with a _NAME_ value matching
+the name of an equation, PROC MODEL fills the corresponding row
+of the <B>S</B> matrix with the values of the names of equations found in the
+data set. If a row or column is omitted from the data set, a 1 is placed
+on the diagonal for the row or column. Missing values are ignored, and since
+the <B>S</B> matrix is symmetric, you can include only a triangular part of the
+<B>S</B> matrix in the SDATA= data set with the omitted part indicated by
+missing values. If the SDATA= data set contains multiple observations
+with the same _NAME_, the last values supplied for the _NAME_ are used.
+The structure of the expected data set is further described in the
+&#34;OUTS=Data Set&#34; section.
+<P>Use the TYPE= option on the PROC MODEL or FIT statement to specify the 
+type of estimation method used to
+produce the <B>S</B> matrix you want to input.
+<P>The following SAS statements are used to generate an <B>S</B> matrix
+from a GMM and a 3SLS estimation and to store that
+estimate in the data set GMMS:
+<A NAME="idxmod0488">&#13;</A><A NAME="idxmod0489">&#13;</A><A NAME="idxmod0491">&#13;</A><A NAME="idxmod0490">&#13;</A><PRE>
+   proc model data=gmm2 ;
+      exogenous x1 x2;
+      parms a1 a2 b1 2.5 b2 c2 55 d1;
+      inst b1 b2 c2 x1 x2;
+      y1 = a1 * y2 + b1 * x1 * x1 + d1;
+      y2 = a2 * y1 + b2 * x2 * x2 + c2 / x2 + d1;
+   
+      fit y1 y2 / 3sls gmm kernel=(qs,1,0.2) outest=gmmest outs=gmms;
+   run;
+</PRE>
+<P>The data set GMMS is shown in <A HREF="sect51.htm#modwoodds">Figure 14.56</A>.
+<P><A NAME="modwoodds">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Obs</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_TYPE_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_NUSED_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y1</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y2</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3SLS</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27.1032</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">38.1599</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">y2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3SLS</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">38.1599</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">74.6253</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27.4205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">46.4028</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">y2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">46.4028</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">99.4656</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.56:</B> SDATA= Data Set</SPAN><P>
+<P><H3><I>VDATA= Input data set</I></H3>
+<A NAME="idxmod0492">&#13;</A>The VDATA= option allows a variance matrix for
+GMM estimation to be input
+from a data set. When the VDATA= option is used on the PROC MODEL or FIT 
+statement, the matrix that is
+input is used to define the objective function and is used as the
+initial V for the methods that iterate the V matrix.
+<P>Normally the VDATA= matrix is created from the OUTV= option on a
+previous FIT statement. Alternately an input VDATA= data set can be created
+using the DATA step. Each row and column of the V matrix is associated
+with an equation and an instrument. The position of each element in the V matrix
+can then be indicated by an equation name and an instrument name for the row
+of the element and an equation name and an instrument name for the column. 
+Each observation in the VDATA= data set
+is an element in the V matrix.
+The row and column of the element are indicated by
+four variables EQ_ROW, INST_ROW, EQ_COL, and INST_COL which contain
+the equation name or instrument name. The variable name for an element
+is VALUE. Missing values are set to 0. Because the
+variance matrix is symmetric, only a triangular part of 
+the matrix needs to be input.
+<P>The following SAS statements are used to generate a <B>V</B> matrix
+estimation from GMM and to store that estimate in the data set GMMV:
+<A NAME="idxmod0493">&#13;</A><A NAME="idxmod0494">&#13;</A><A NAME="idxmod0496">&#13;</A><A NAME="idxmod0495">&#13;</A><PRE>
+   proc model data=gmm2 ;
+      exogenous x1 x2;
+      parms a1 a2 b2 b1 2.5 c2 55 d1;
+      inst b1 b2 c2 x1 x2;
+      y1 = a1 * y2 + b1 * x1 * x1 + d1;
+      y2 = a2 * y1 + b2 * x2 * x2 + c2 / x2 + d1;
+   
+      fit y1 y2 / gmm outv=gmmv;
+   run;
+</PRE>
+<P>The data set GMM2 was generated by the example in the preceding ESTDATA= 
+section. The <B>V</B> matrix stored in GMMV is selected for use
+in an additional GMM estimation by the following FIT statement:
+<P><PRE>
+   fit y1 y2 / gmm vdata=gmmv;
+   run;
+   
+   proc print data=gmmv(obs=15);
+   run;
+</PRE>
+<P>A partial listing of the GMMV data set is shown in <A HREF="sect51.htm#modvdatads">Figure 14.57</A>.
+There are a total of
+78 observations in this data set. The <B>V</B> matrix is 12 by 12 for this
+example.
+<P><A NAME="modvdatads">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Obs</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_TYPE_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>EQ_ROW</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>EQ_COL</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>INST_ROW</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>INST_COL</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>VALUE</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1           </font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1           </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">    1509.59</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X1          </font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1           </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">    8257.41</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X1          </font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X1          </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">   47956.08</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 4</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X2          </font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1           </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">    7136.27</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 5</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X2          </font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X1          </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">   44494.70</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 6</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X2          </font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X2          </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">  153135.59</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 7</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y1/@B1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1           </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">   47957.10</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 8</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y1/@B1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X1          </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">  289178.68</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 9</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y1/@B1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X2          </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">  275074.36</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">10</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y1/@B1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y1/@B1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 1789176.56</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">11</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y2/@B2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1           </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">  152885.91</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">12</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y2/@B2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X1          </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">  816886.49</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">13</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y2/@B2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">X2          </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 1121114.96</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">14</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y2/@B2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y1/@B1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 4576643.57</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">GMM</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Y1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y2/@B2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">@PRED.Y2/@B2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">28818318.24</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.57:</B> The First 15 Observations in the VDATA= Data Set</SPAN><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect52.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

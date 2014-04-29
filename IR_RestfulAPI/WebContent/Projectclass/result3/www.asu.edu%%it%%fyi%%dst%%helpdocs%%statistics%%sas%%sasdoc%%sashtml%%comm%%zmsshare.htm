@@ -1,0 +1,307 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>CMS: APPC Access Method : System Configuration for the APPC Access Method for SAS/SHARE </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381760.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381775.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381851.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zmsshare">System Configuration for the APPC Access Method for SAS/SHARE</A></FONT></H1>
+
+
+<DL>
+<DT><B>VTAM Systems Personnel</B></DT>
+<DD>To configure resources for the CMS system that will enable
+it to behave as either a SAS/SHARE server
+or a client using the APPC access method, perform the following tasks: 
+<OL START="1" type="1">
+<LI>At a CMS server, create a VM directory entry for the server's
+virtual machine.<P>
+
+<LI>At a CMS client, create an entry in the VM directory for each
+user who will access the server.<P>
+
+<LI>At a CMS client, modify a system communications directory file
+with an entry for each server that users will access.<P>
+
+<LI>At a CMS client, set security for connecting clients.<P>
+
+<LI>At both a CMS client and a server, define
+a VTAM gateway.<P>
+
+<LI>At both a CMS client and a server, define logon mode table entries.<P>
+</OL>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zpcvmdir">Creating the Server VM Directory Entry for the Server Virtual Machine</A></FONT></B></TD></TR></TABLE>
+
+<P>You
+must include the following statements in the VM directory entry for the server
+virtual machine:  
+
+
+
+<PRE>USER SASSHARE XXXXXXX 20M 20M G 100
+MACHINE XA
+IPL CMS PARM AUTOCR
+OPTION MAXCONN 1024
+IUCV *IDENT SHR1 GLOBAL
+IUCV ALLOW
+CONSOLE 009 3215
+SPOOL   00C 2540 READER *
+SPOOL   00D 2540 PUNCH A
+SPOOL   00E 1403 A
+LINK MAINT 19E 19E RR
+LINK MAINT 19D 19D RR
+LINK MAINT 190 190 RR
+MDISK 191 3380 707 5 VM0800 MR XXXXXXX
+MDISK 192 3380 501 3 VM0450 MR XXXXXXX</PRE>Several lines that are specific to the APPC access method are explained
+in more detail.
+
+
+
+<PRE>IUCV *IDENT SHR1 GLOBAL
+IUCV ALLOW
+OPTION MAXCONN 1024</PRE>
+<P>The first line specifies the name of the server that will run in the
+virtual machine.  The server name, shown as SHR1 in this example, is specified
+by the SERVER= option of the SERVER procedure in the SAS program that creates
+the server.  The <B>server-id</B> is typically the name of the server
+virtual machine (the VM userid). If you specify <B>server-id</B> as
+RESANY, any valid server name can be specified for the SERVER= option.
+<P>The second line allows users to establish IUCV connections to the server
+virtual machine.
+<P>The third line specifies the maximum number of simultaneous connections
+to the server that you want to allow.  Generally, you should allow four to
+five connections for each user who accesses data through the server.  The
+number shown is only a guideline. The default MAXCONN value is 64. The maximum
+MAXCONN value is 65535.
+<P>SAS/SHARE does not specifically
+limit the number of simultaneous connections to a server.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Modifying an Entry in the VM Directory for Each User</FONT></B></TD></TR></TABLE>
+
+<P>Modify the VM directory entry by including the following statement in
+the VM directory entry for each user who will access a server:  
+
+
+
+<PRE>OPTION MAXCONN 128</PRE>
+<P>This statement specifies the maximum number of simultaneous connections
+to a server that you want to allow.  Generally, you should allow four to five
+connections for each server. The default MAXCONN value is 64. The maximum
+MAXCONN value is 65535.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zecomdir">Creating a System Communications Directory File</A></FONT></B></TD></TR></TABLE>
+
+<P>You
+must create a system communications directory file with an entry for each
+server that your users will access.  The system communications directory file
+is named SCOMDIR NAMES by default. It should reside on a system minidisk that
+is accessible to all CMS users.
+<P>Specify an entry for a server within the TSAF collection in the following
+form:  
+
+
+
+<PRE>:NICK.<I>server-id</I> :LUNAME.*IDENT
+                :TPN.<I>server-id</I>
+                :SECURITY.<I>level</I>
+                :MODENAME.<I>modename</I></PRE>
+<P>where
+<DL>
+<DT><B>server-id</B></DT>
+<DD>is the <B>server-id</B> as specified in the IUCV *IDENT
+VM directory entry record for the server virtual machine.<P></DD>
+
+<DT><B>level</B></DT>
+<DD>specifies whether to use security in a SAS/SHARE session.
+The two values for <B>level</B> are PGM, which indicates program security,
+or NONE. Specify PGM if the server is running secured (requiring a userid
+and password from each connecting user). Specify NONE if the server is running
+unsecured (not requiring a userid and password from each connecting user).
+See <A href="z0123908.htm#zssecure">Setting Security for SAS/CONNECT and SAS/SHARE</A>
+for more information about userid and password security.<P></DD>
+</DL>
+
+<P>Specify an entry for a server outside the TSAF collection in the following
+form:  
+
+
+
+<PRE>:NICK.<I>server-id</I> :LUNAME.<I>gateway server-id</I>
+                :TPN.SASTP62
+                :MODENAME.<I>modename</I>
+                :SECURITY.<I>level</I></PRE>
+<P>where
+<DL>
+<DT><B>server-id</B></DT>
+<DD>is the name of the LU for the server.<P></DD>
+
+<DT><B>gateway</B></DT>
+<DD>is the global gateway to the SNA network.<P></DD>
+
+<DT>TPN.SASTP62</DT>
+<DD>indicates the transaction program name as it is known to
+the target LU.<P></DD>
+
+<DT><B>modename</B></DT>
+<DD>is the communications mode for the SNA session that connects
+the gateway to the LU that is defined for the server.<P></DD>
+
+<DT><B>level</B></DT>
+<DD>specifies whether to use security in a SAS/SHARE session.
+The two values for <B>level</B> are PGM, which indicates program security,
+or NONE. Specify PGM if the server is running secured (requiring a userid
+and password from each connecting user). Specify NONE if the server is running
+unsecured (not requiring a userid and password from each connecting user).
+See <A href="z0123908.htm#zssecure">Setting Security for SAS/CONNECT and SAS/SHARE</A>
+for more information about userid and password security.<P></DD>
+</DL>
+
+<P>See the IBM publication <B>VM/ESA Connectivity Planning, Administration,
+and Operation (SC24-5448)</B> for more information about creating and processing
+communications directories. Contact IBM for information about obtaining this
+documentation.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Setting Security for Connecting Clients</FONT></B></TD></TR></TABLE>
+
+<P>Each user who connects to a server that is running in secured
+mode must specify a userid and a password that are valid on the system on
+which the server is running. A secured server requires a userid and password
+from each user, which it validates on the system where it is running.
+<P>You can specify a user's userid and password for the server's system
+in any of the following: 
+<P>
+<UL>
+
+<LI>an APPCPASS statement in the user's VM directory<P>
+
+<LI>a user communications directory file (UCOMDIR NAMES) on the user's
+A-disk<P>
+
+<LI>the SAS option APPCSEC<P>
+
+<LI>the USER= and PASSWORD= options.<P>
+</UL>
+
+<BR><H3>Specifying an APPCPASS VM Directory Statement</H3>
+
+
+<P>You can
+specify both a user's userid and password for the server's
+system in an APPCPASS statement in the user's VM directory as follows:  
+
+
+
+<PRE>APPCPASS <I>LU-name
+userid password</I></PRE>
+<P>where 
+<DL>
+<DT><B>LU-name</B></DT>
+<DD>specifies the gateway and server identifier that is defined
+in the :LUNAME specification in the communications directory. Gateway and
+server identifier names are restricted to eight characters each. <P></DD>
+
+<DT><B>userid</B></DT>
+<DD>specifies a user's userid for the system where the server
+is running.<P></DD>
+
+<DT><B>password</B></DT>
+<DD>specifies the password for the userid.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zucomdir">Creating a User Communications Directory File</A></FONT></B></TD></TR></TABLE>
+
+<P>You
+can specify both a user's userid and password for the server's system in a
+user communications directory file on the user's A-disk.  The file, named
+UCOMDIR NAMES by default, should contain an entry for each secure server that
+the user will connect to. An entry in a user communications directory file
+has the same format as one in a system communications directory file with
+the addition of these two fields:  
+
+
+
+<PRE>:USERID.<I>userid</I>
+:PASSWORD.<I>password</I></PRE>
+<P>This method is less secure than an APPCPASS statement because any other
+user who can read the UCOMDIR NAMES file can obtain the user's userid and
+password for the server's system.  You can limit this exposure by restricting
+access to the file, the minidisk, or the SFS directory in which the UCOMDIR
+NAMES file resides (for example, by putting a read password on the minidisk
+where the file resides).
+<P>A user can perform this procedure, thereby, eliminating a system administrator's
+support. Users can modify their own communications directories if they subsequently
+change passwords for the server's systems. This procedure also requires that
+users maintain other fields such as <B>server-id</B>, <B>gateway</B>, and <B>modename</B>.
+<P>See the IBM publication <B>VM/ESA Connectivity Planning, Administration,
+and Operation (SC24-5448)</B> for more information about the creation and
+processing of communications directories. Contact IBM for information about
+obtaining this documentation.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining a VTAM Gateway</FONT></B></TD></TR></TABLE>
+
+<P>See <A href="zconnect.htm#zgateway">Defining a VTAM Gateway</A> for information
+about defining a VTAM outbound gateway (N01SASOG) for CMS clients to reach
+specific servers, as well as for defining a VTAM inbound gateway (APPL statements
+similar to N01SASPG) for connecting inbound to a specific CMS server.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining Logon Mode Table Entries</FONT></B></TD></TR></TABLE>
+
+<P>See <A href="zconnect.htm#zmodetab">Defining Logon Mode Table Entries</A> for information
+about setting up a logon mode table to contain session properties.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">References</FONT></B></TD></TR></TABLE>
+
+<P>See <A href="zconnect.htm#zcdocref">References</A>
+for a list of documentation references.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381760.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381775.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381851.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zmsshare">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

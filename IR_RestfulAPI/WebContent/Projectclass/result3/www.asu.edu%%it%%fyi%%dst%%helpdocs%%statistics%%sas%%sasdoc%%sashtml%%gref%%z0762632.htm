@@ -1,0 +1,211 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Bringing SAS/GRAPH Output to the Web : Animating GIF Files (DEV=GIFANIM) </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1224484.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1024836.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0762632">Animating GIF Files (DEV=GIFANIM)</A></FONT></H1>
+
+
+<P><A name="z0763107">&#13;  
+  The
+GIFANIM driver provides a mechanism for combining GIF images created with SAS/GRAPH 
+procedures that allow you to create GIF animations for reports you publish
+on the Web. The behavior of the driver is controlled by graphics options that
+enable you to set such things as delay time, iteration count, transparency,
+and disposal methods.</A>
+<P>Before using the GIFANIM device driver, you should become
+familiar with the animation process, the controls available, and certain limitations.
+The driver counts on you to control the process so that the animated sequence
+will be constructed properly.
+<P>For an example, see <A href="z1026013.htm">Example 6: Creating a GIF Animation File</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">GIF Animation Process</FONT></B></TD></TR></TABLE>
+
+<P>The process involved with creating an animated GIF with
+the GIFANIM driver requires that you, the animator, take control of the job
+sequence and ensure that the resulting data stream is constructed properly.
+The GIFANIM data stream has three parts: Header, Body, and Trailer. Each portion
+of the data stream is equally important and must be present. Otherwise, an
+incomplete or unreadable animation sequence will result.
+<BR><H3>Preparing the Header</H3>
+
+
+<P>When creating a new animated GIF data stream, you must
+issue GOPTIONS GSFMODE=REPLACE prior to the invocation of the first  SAS/GRAPH procedure
+in the SAS job. The driver will then construct a new data stream by writing
+a valid GIF header and graphic data from the first procedure.
+<BR><H3>Preparing the Body</H3>
+
+
+<P> After the first SAS/GRAPH procedure
+has been executed, you must construct the body of the GIF animation. You can
+think of the Body as all the graphic images between the first and last image.
+Set GOPTIONS GSFMODE=APPEND to signal the GIFANIM driver to suppress the header
+information and to begin appending graphic data to the current data stream.
+The GOPTIONS GSFMODE=APPEND statement must appear somewhere between the first
+and second SAS/GRAPH  procedures.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If you use BY-group processing on the first graphics
+procedure to generate multiple graphs, they are automatically appended to
+the same GIF file. Thus, you do not need GSFMODE=APPEND  for that first procedure.
+If you do not use a second graphics procedure to append additional graphs
+to the GIF file, you do not need this Body section in your program.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Preparing the Trailer</H3>
+
+
+<P>The final step is to mark the end of the animation by
+appending a GIF trailer ('3B'x) to the data stream. The way to do this depends
+on whether the last procedure uses BY-group processing. 
+<P>
+<UL>
+
+<LI>Without BY-group processing, set GOPTIONS GEPILOG='3B'X
+before the last SAS/GRAPH  procedure.<P>
+
+<LI>With BY-group processing, do not assign a value
+to GEPILOG; otherwise your GIF animation sequence will be incomplete. Because
+a GEPILOG is written after each graph in a BY-group, the GIF decoder will
+interpret the first 
+
+
+<CODE><B>'3B'x</B></CODE>
+as the end of the animation. Instead, you should use a DATA step to add the
+trailer to the data stream:  
+
+
+
+<PRE>data _null_;
+   file out recfm=n mod;
+   put '3B'x;
+run;</PRE><P>
+</UL>
+
+<P>After the animation is complete, issue a GOPTIONS RESET=ALL
+statement to prepare for succeeding SAS jobs.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">GIFANIM Device Driver Controls</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0763117">&#13;You can control the GIFANIM device
+driver with these GOPTIONS
+settings: </A>
+<DL>
+<DT> ITERATION=<I>iteration-count</I></DT>
+<DD>specifies the number of times to repeat
+the animation loop, or whether to loop infinitely. An iteration of 0 specifies
+an infinite loop.<P></DD>
+
+<DT>GSFMODE=REPLACE | APPEND</DT>
+<DD>specifies whether the graphics output should
+replace the contents of an existing file or be  appended to it. In addition,
+the GIFANIM driver uses the value of GSFMODE to determine when to write the
+GIF header.<P></DD>
+
+<DT>DELAY=<I>delay-time</I></DT>
+<DD>controls the amount of time between graphs
+in the animation sequence. A delay time of 1 specifies a delay of .01 seconds.<P></DD>
+
+<DT>DISPOSAL = NONE | BACKGROUND | PREVIOUS | UNSPECIFIED</DT>
+<DD>specifies what happens to the graphic after
+it is displayed.<P></DD>
+
+<DT>USERINPUT | NOUSERINPUT</DT>
+<DD>enables or disables user input during image
+animation if supported by the browser displaying the animation.<P></DD>
+
+<DT>TRANSPARENCY | NOTRANSPARENCY</DT>
+<DD>specifies whether the background of the
+image should appear to be transparent when the image is displayed in the browser.<P></DD>
+</DL>
+
+<P>For a complete description of these options, see
+<A href="z0713550.htm">Graphics Options and Device Parameters Dictionary</A>. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Beginning with Version 7, some of the options
+that control the GIFANIM driver's behavior are different from  earlier releases.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Changing the Size of the Output</FONT></B></TD></TR></TABLE>
+
+<P> If the default size of the GIFANIM device is not suitable
+for your needs, you can modify GOPTIONS HSIZE= and VSIZE= accordingly. The
+following SAS macro has been provided so that you can set HSIZE= and VSIZE=
+indirectly in pixel units: 
+
+
+
+<PRE>%macro IMGSIZE(w=1280, h=1024, dpi=100,
+               rows=43, cols=83);
+
+   %if &amp;dpi &lt;=0 %then
+      %put DPI must be greater than zero.;
+   %else %do;
+      goptions hsize=%sysevalf(&amp;w/&amp;dpi)in
+               vsize=%sysevalf(&amp;h/&amp;dpi)in
+               hpos=&amp;cols vpos=&amp;rows
+   %end;
+
+%mend IMGSIZE;</PRE>
+<P>For example, to create an image that is 373 pixels wide
+and 280 pixels high, submit this macro call:
+
+
+
+<PRE>%imgsize(w=373, h=280);</PRE>
+<P>Here are some key points to remember when using the
+%IMGSIZE macro:
+<P>
+<UL>
+
+<LI>You may set HSIZE and VSIZE up to 12.8 in. and
+10.24 in., respectively. The device entry will need to be redefined with PROC
+GDEVICE if a larger size is required. <P>
+
+<LI>The dots per inch (dpi) should match that of the
+device driver being used. The resolution of the GIFANIM device driver is 100
+dpi. Because this is the default value for the %IMGSIZE macro, you should
+not have to specify the dpi value unless you use PROC GDEVICE to modify GIFANIM.
+The ROWS and COLS parameters were added to the %IMGSIZE macro to facilitate
+setting GOPTIONS HPOS= and VPOS=, if you wish to do so.<P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1224484.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1024836.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0762632">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

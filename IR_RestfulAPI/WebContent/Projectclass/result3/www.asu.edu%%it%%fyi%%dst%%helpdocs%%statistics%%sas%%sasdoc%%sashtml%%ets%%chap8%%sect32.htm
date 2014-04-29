@@ -1,0 +1,652 @@
+<HTML>
+<HEAD>
+<TITLE>Example 8.1: Analysis of Real Output Series</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="autex1">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The AUTOREG Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 8.1: Analysis of Real Output Series</H2>
+<P>In this example, the annual real output series is analyzed over the
+period 1901 to 1983 (Gordon 1986, pp 781-783). With the DATA step,
+the original data is transformed using the natural logarithm, and the
+differenced series DY is created for further analysis. The log of real output
+is plotted in <A HREF="sect32.htm#autex01a">Output 8.1.1</A>.
+<P><PRE>
+
+   title 'Analysis of Real GNP';
+   data gnp;
+      date = intnx( 'year', '01jan1901'd, _n_-1 );
+      format date year4.;
+      input x @@;
+      y  = log(x);
+      dy = dif(y);
+      t  = _n_;
+      label y  = 'Real GNP'
+            dy = 'First Difference of Y'
+            t  = 'Time Trend';
+   datalines;
+   ... datalines omitted ...
+   ;
+   
+   proc gplot data=gnp;
+      plot y * date /
+          haxis='01jan1901'd '01jan1911'd '01jan1921'd '01jan1931'd
+                '01jan1941'd '01jan1951'd '01jan1961'd '01jan1971'd
+                '01jan1981'd '01jan1991'd;
+      symbol i=join;
+   run;
+</PRE>
+<P></P><A NAME="autex01a"><SPAN CLASS="ssften"><B>Output 8.1.1:</B> Real Output Series: 1901 - 1983</SPAN></A>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/autex01a.gif" ALT="autex01a.gif (3200 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>The (linear) trend-stationary process is estimated using the following form:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="139" HEIGHT="72"
+ SRC="images/auteq276.gif"
+ ALT="y_{t} = {\beta}_{0} + {\beta}_{1} t + {\nu}_{t}"></DL>
+<P>where
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="198" HEIGHT="70"
+ SRC="images/auteq277.gif"
+ ALT="{\nu}_{t} = {\epsilon}_{t} - {\varphi}_{1}
+ {\nu}_{t-1} - {\varphi}_{2} {\nu}_{t-2}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="93" HEIGHT="74"
+ SRC="images/auteq278.gif"
+ ALT="{\epsilon}_{t} {\sim} \rm{IN}(0, {\sigma}_{{\epsilon}})"></DL>
+<P>The preceding trend-stationary model assumes that uncertainty over future
+horizons is bounded since the error term,  <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq16.gif"
+ ALT="{{\nu}_{t}}">, has a finite
+variance.
+The maximum likelihood AR estimates are shown in <A HREF="sect32.htm#autex01b">Output 8.1.2</A>.
+<P><PRE>
+
+   proc autoreg data=gnp;
+      model y = t / nlag=2 method=ml;
+   run;
+</PRE>
+<P></P><A NAME="autex01b"><SPAN CLASS="ssften"><B>Output 8.1.2:</B> Estimating the Linear Trend Model</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The AUTOREG Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=4 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Maximum Likelihood Estimates</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.23954331</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DFE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00303</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Root MSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.05507</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SBC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-230.39355</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AIC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-240.06891</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Regress R-Square</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.8645</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Total R-Square</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.9947</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Durbin-Watson</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.9935</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Standard Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br>Pr &gt; |t|</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable Label</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Intercept</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4.8206</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0661</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">72.88</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0302</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.001346</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">22.45</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Time Trend</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.2041</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1040</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-11.58</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.3748</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1039</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3.61</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0005</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=7 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autoregressive parameters assumed given.</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Standard Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br>Pr &gt; |t|</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable Label</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Intercept</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4.8206</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0661</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">72.88</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0302</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.001346</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">22.45</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Time Trend</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR>Nelson and Plosser (1982) failed to reject the hypothesis that
+macroeconomic time series are nonstationary and have no tendency to return to
+a trend line. In this context, the simple random walk process can be used as an
+alternative process:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="148" HEIGHT="72"
+ SRC="images/auteq279.gif"
+ ALT="y_{t} = {\beta}_{0} + y_{t-1} + {\nu}_{t}"></DL>
+<P>where <IMG WIDTH="56" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq280.gif"
+ ALT="{ {\nu}_{t}= {\epsilon}_{t}}"> and <SPAN CLASS="mathfont"><I>y<SUB>0</SUB></I>=0</SPAN>.
+In general, the difference-stationary process is written as
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="255" HEIGHT="74"
+ SRC="images/auteq281.gif"
+ ALT="{\phi}(L)(1-L) y_{t} = {\beta}_{0}{\phi}(1) + {\theta}(L)
+ {\epsilon}_{t}"></DL>
+<P>where L is the lag operator. You can observe that
+the class of a difference-stationary process should have at least one unit root
+in the AR polynomial <IMG WIDTH="99" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq282.gif"
+ ALT="{{\phi}(L)(1-L)}">.<P>The Dickey-Fuller procedure is used
+to test the null hypothesis that the series has a unit root in the AR
+polynomial.
+Consider the following equation for the augmented Dickey-Fuller test:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="328" HEIGHT="110"
+ SRC="images/auteq283.gif"
+ ALT="{\Delta} y_{t} = {\beta}_{0} + {\delta}t +
+ {\beta}_{1} y_{t-1} + \sum_{i=1}^m{{\gamma}_{i}{\Delta} y_{t-i}} + {\epsilon}_{t}"></DL>
+<P>where <IMG WIDTH="86" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq284.gif"
+ ALT="{{\Delta}=1-L}">.
+The test statistic <IMG WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq285.gif"
+ ALT="{ {\tau}_{{\tau}}}"> is the usual <I>t</I> ratio for
+the parameter estimate <IMG WIDTH="22" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq286.gif"
+ ALT="{ \hat{{\beta}}_{1}}">, but
+the <IMG WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq285.gif"
+ ALT="{ {\tau}_{{\tau}}}"> does not follow
+a <I>t</I> distribution.
+<P>The %DFTEST macro computes the test statistic
+ <IMG WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq285.gif"
+ ALT="{ {\tau}_{{\tau}}}"> and its <I>p</I> value to perform the Dickey-Fuller test.
+The default value of <I>m</I> is 3,
+but you can specify <I>m</I> with the AR= option.
+The option TREND=2 implies that the Dickey-Fuller test equation
+contains linear time trend. See <A HREF="../chap4/index.htm">Chapter 4, &#34;SAS Macros and Functions,&#34;</A> for details.
+<P><PRE>
+
+   %dftest(gnp,y,trend=2,outstat=stat1)
+   
+   proc print data=stat1;
+   run;
+</PRE>
+<P>The augmented Dickey-Fuller test indicates that the output series may have a
+difference-stationary process. The statistic _TAU_ has a value of -2.61903 and
+its <I>p</I>-value is 0.29104. See <A HREF="sect32.htm#autex01c">Output 8.1.3</A>.
+<P></P><A NAME="autex01c"><SPAN CLASS="ssften"><B>Output 8.1.3:</B> Augmented Dickey-Fuller Test Results</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Obs</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_TYPE_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_STATUS_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_DEPVAR_</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_MSE_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Intercept</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR_V</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>time</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DLAG_V</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR_V1</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR_V2</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR_V3</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_NOBS_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_TAU_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_TREND_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_DLAG_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_PVALUE_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">OLS</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">.003198469</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.76919</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.004816233</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.15629</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.37194</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.025483</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.082422</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.61903</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27321</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">COV</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Intercept</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">.003198469</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.08085</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> .</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000513286</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.01695</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.00549</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.008422</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.010556</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.61903</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27321</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">COV</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">time     </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">.003198469</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.00051</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> .</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000003387</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00011</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.00004</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.000054</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.000068</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.61903</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27321</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">COV</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">DLAG_V   </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">.003198469</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.01695</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> .</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-.000108543</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.00356</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00120</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.001798</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.002265</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.61903</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27321</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">COV</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V1    </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">.003198469</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.00549</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> .</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000035988</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00120</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.01242</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.003455</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.002095</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.61903</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27321</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">COV</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V2    </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">.003198469</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.00842</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> .</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000054197</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00180</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00346</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.014238</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.002910</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.61903</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27321</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">COV</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0 Converged</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR_V3    </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">.003198469</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.01056</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> .</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000067710</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00226</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.00209</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.002910</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0.013538</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">79</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.61903</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27321</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR>The AR(1) model for the differenced series DY is estimated using the maximum
+likelihood method for the period 1902 to 1983.
+The difference-stationary process is written
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="107" HEIGHT="72"
+ SRC="images/auteq287.gif"
+ ALT="{\Delta} y_{t} = {\beta}_{0} + {\nu}_{t}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="124" HEIGHT="70"
+ SRC="images/auteq288.gif"
+ ALT="{\nu}_{t} = {\epsilon}_{t}
+- {\varphi}_{1} {\nu}_{t-1}"></DL>
+<P>The estimated value of  <IMG WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq266.gif"
+ ALT="{\varphi}_{1}"> is -0.297 and that of
+ <IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq47.gif"
+ ALT="{{\beta}_{0}}"> is 0.0293. All estimated values are statistically
+significant.
+<P><PRE>
+
+   proc autoreg data=gnp;
+      model dy = / nlag=1 method=ml;
+   run;
+</PRE>
+<P></P><A NAME="auto4"><SPAN CLASS="ssften"><B>Output 8.1.4:</B> Estimating the Differenced Series with AR(1) Error</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The AUTOREG Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=4 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Maximum Likelihood Estimates</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.27107673</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DFE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">80</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00339</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Root MSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.05821</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SBC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-226.77848</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AIC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-231.59192</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Regress R-Square</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0000</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Total R-Square</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0900</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Durbin-Watson</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.9268</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Standard Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br>Pr &gt; |t|</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Intercept</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0293</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.009093</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3.22</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0018</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.2967</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1067</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.78</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0067</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Autoregressive parameters assumed given.</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Standard Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br>Pr &gt; |t|</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Intercept</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0293</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.009093</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3.22</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0018</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

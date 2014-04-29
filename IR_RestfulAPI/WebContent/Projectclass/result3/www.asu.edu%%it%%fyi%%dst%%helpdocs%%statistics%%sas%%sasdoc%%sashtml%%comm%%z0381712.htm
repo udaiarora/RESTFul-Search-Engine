@@ -1,0 +1,342 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Sign-on Script Files : TCPUNIX.SCR Script </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381711.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381713.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0381712">TCPUNIX.SCR Script</A></FONT></H1>
+
+
+<P>
+The following script connects to a UNIX remote host with the TCP/IP access
+method.  
+
+
+
+<PRE>/* trace on; */
+/* echo  on; */
+/*-------------------------------------------------------------------*/
+/*--            Copyright (C) 1996 by SAS Institute Inc., Cary NC  --*/
+/*--                                                               --*/
+/*-- name:      tcpunix.scr                                        --*/
+/*--                                                               --*/
+/*-- purpose:   SAS/CONNECT SIGNON/SIGNOFF script for connecting   --*/
+/*--            to any UNIX host by means of the TCP/IP access     --*/
+/*--            method                                             --*/
+/*--                                                               --*/
+/*-- notes:   1. This script may need modifications that account   --*/
+/*--             for the local flavor of your UNIX environment.    --*/
+/*--             The logon procedure should mimic the events that  --*/
+/*--             you go through when "telnet"-ing to the same      --*/
+/*--             UNIX host. If you are connecting to a spawner     --*/
+/*--             that is running in your UNIX environment, this    --*/
+/*--             script should need little or no modifications.    --*/
+/*--                                                               --*/
+/*--          2. You must have specified OPTIONS COMAMID=TCP       --*/
+/*--             in the local SAS session before using the SIGNON  --*/
+/*--             statement.                                        --*/
+/*--                                                               --*/
+/*-- assumes: 1. The command to execute SAS in your remote (UNIX)  --*/
+/*--             environment is "sas". If this is incorrect        --*/
+/*--             for your site, change the contents of the line    --*/
+/*--             that contains:                                    --*/
+/*--             type 'sas ...                                     --*/
+/*--                                                               --*/
+/*-- support:   SAS Institute staff                                --*/
+/*--                                                               --*/
+/*-------------------------------------------------------------------*/
+
+
+   /*----------------------------------------------------------------*/
+   /*-- if you are connecting to DEC ULTRIX, and the remote        --*/
+   /*-- machine does not run the DECnet connection/gateway         --*/
+   /*-- software, logins by means of SAS/CONNECT will appear to    --*/
+   /*-- hang. This is due to the ULTRIX "/etc/telnetd" server      --*/
+   /*-- treating a DONT ECHO request for both input and output     --*/
+   /*-- streams.                                                   --*/
+   /*--                                                            --*/
+   /*-- This DEBUG statement causes the SAS TCP/IP access method   --*/
+   /*-- not to reply to the ECHO request, keeping the DEC telnetd  --*/
+   /*-- server happy.                                              --*/
+   /*--                                                            --*/
+   /*-- Uncomment the DEBUG statement, if the logon appears to hang--*/
+   /*----------------------------------------------------------------*/
+   /* debug '00001000'; */
+
+   /*----------------------------------------------------------------*/
+   /*-- If you are connecting to INTEL ABI, you need to uncomment  --*/
+   /*-- the following DEBUG statement.  This DEBUG statement       --*/
+   /*-- allows SAS/CONNECT to set the terminal type to TTY during  --*/
+   /*-- the TELNET negotiations that take place during SIGNON.     --*/
+   /*----------------------------------------------------------------*/
+   /* debug '00004000'; */
+
+
+<B>[1]</B> log "NOTE: Script file 'tcpunix.scr' entered.";
+
+    if not tcp then goto notcp;
+<B>[2]</B> if signoff then goto signoff;
+
+     /* --------------- TCP/IP SIGNON ---------------------------------*/
+
+<B>[3]</B> waitfor 'login:'
+           , 'Username:'
+           , 'Scripted signon not allowed' : noscript
+           , 120 seconds: noinit;
+
+/*----------------UNIX LOGON---------------------------------------*/
+/*-- for some reason, it needs an LF to turn the line around     --*/
+/*--  after the login name has been typed. (CR will not do)      --*/
+/*-----------------------------------------------------------------*/
+
+<B>[4]</B> input 'Userid?';
+     type LF;
+<B>[5]</B> waitfor 'Password', 30 seconds : nolog;
+     input nodisplay 'Password?';
+     type LF;
+
+unx_log:
+<B>[6]</B> waitfor 'Hello>'               : unxspawn /*- UNIX spawner prompt-*/
+           , '$'                /*-- a common prompt character       --*/
+           , '>'                /*-- another common prompt character --*/
+           , '%'                /*-- another common prompt character --*/
+           , '}'                /*-- another common prompt character --*/
+           , 'Login incorrect'      : nouser
+           , 'Enter terminal type'  : unx_term
+           , 'TERM'                 : unx_term
+           , 30 seconds             : timeout
+           ;
+
+
+   log 'NOTE: Logged onto UNIX... Starting remote SAS now.';
+   /* NOTERMINAL suppresses prompts from remote SAS session.     */
+   /* NO\$SYNTAXCHECK prevents remote side from going into       */
+   /* syntax checking mode when a syntax error is encountered.   */
+<B>[7]</B> type 'sas -dmr -comamid tcp -device grlink -noterminal -no\$syntaxcheck' LF;
+<B>[8]</B> waitfor 'SESSION ESTABLISHED', 90 seconds : nosas;
+
+<B>[9]</B> log 'NOTE: SAS/CONNECT conversation established.';
+   stop;
+
+<B>[1</B><B>0]</B> unxspawn:
+      /* The UNIX spawner executes only a single UNIX command     */
+      /* after the client logs on.  In the TYPE statement below,  */
+      /* you may specify a SAS command line. You may also specify */
+      /* a UNIX shell script that issues the SAS command line in  */
+      /* addition to any other commands to be executed prior to   */
+      /* SAS invocation.  The following is a sample startup       */
+      /* file:                                                    */
+      /*#---------------------------------------------------------*/
+      /*# sas_startup                                             */
+      /*#---------------------------------------------------------*/
+      /*#!/bin/ksh                                                */
+      /*. ~/.profile                                              */
+      /*sas -dmr -noterminal -no\$syntaxcheck -device grlink      */
+      /*#---------------------------------------------------------*/
+      /*                                                          */
+      /* If you choose to use a "startup" file, change the TYPE   */
+      /* statement below to something like the following:         */
+      /* type '/usr/local/whatever/sas_startup' LF;               */
+
+<B>[1</B><B>1]</B> type 'sas -dmr -comamid tcp -device grlink -noterminal ';
+     type '-no\$syntaxcheck' LF;
+
+     waitfor 'SESSION ESTABLISHED', 90 seconds : nosas;
+     stop;
+
+/*---------------- TCP/IP SIGNOFF --------------------------------------*/
+signoff:
+    /* If you have established your connection to UNIX by means */
+    /* of a UNIX spawner, you should delete or comment the      */
+    /* following WAITFOR and TYPE statements.  They are not     */
+    /* necessary for signing off a UNIX spawner and will        */
+    /* result in slower performance of SIGNOFF.                 */
+<B>[1</B><B>2]</B> waitfor '$'
+           , '>'                /*-- another common prompt character --*/
+           , '%'                /*-- another common prompt character --*/
+           , '}'                /*-- another common prompt character --*/
+           , 30 seconds
+           ;
+
+   type    'logout' LF;
+   log 'NOTE: SAS/CONNECT conversation terminated.';
+   stop;
+
+/*--------------- SUBROUTINES -----------------------------------*/
+
+unx_term:
+/*---------------------------------------------------------------*/
+/*-- Some UNIX platforms want the terminal type,               --*/
+/*-- so tell them we are the most basic of terminals.          --*/
+/*---------------------------------------------------------------*/
+   type 'tty' LF;
+   goto unx_log;
+
+
+/*--------------- ERROR ROUTINES --------------------------------*/
+
+
+<B>[1</B><B>3]</B> timeout:
+     log 'ERROR: Timeout waiting for remote session response.';
+     abort;
+
+     nouser:
+     log 'ERROR: Unrecognized userid or password.';
+     abort;
+
+  notcp:
+     log 'ERROR: Incorrect communications access method.';
+     log 'NOTE: You must set "OPTIONS COMAMID=TCP;" before using this';
+     log '      script file.';
+     abort;
+
+  noinit:
+     log 'ERROR: Did not understand remote session banner.';
+
+  nolog:
+     log 'ERROR: Did not receive userid or password prompt.';
+     abort;
+
+  nosas:
+    log 'ERROR: Did not get SAS software startup messages.';
+     abort;
+
+  noscript:
+     /* This is the result of trying to sign on with a script file */
+     /* to a UNIX spawner that has been invoked with the -NOSCRIPT */
+     /* option.  You need to clear any script file reference and   */
+     /* then re-execute SIGNON.                                    */
+     log 'ERROR: Scripted signons are not allowed.';
+     log 'NOTE:  Clear any script file reference and retry SIGNON.';
+     abort;</PRE>
+
+
+ 
+<OL START="1" type="1">
+<LI>The LOG statement sends the enquoted message to the log file or
+to the LOG window of the local SAS session. Although it is not necessary to
+include LOG statements in your script file, the LOG statements keep the user
+informed about the progress of the connection.<P>
+
+<LI>The IF/THEN statement can detect whether the script was called
+by the SIGNON statement or the SIGNOFF statement. When you are signing off,
+the IF/THEN statement directs script processing to the statement labeled SIGNOFF.
+See step 12.<P>
+
+<LI>The WAITFOR statement awaits the login prompt from the remote
+host. If the statement does not receive the prompt within 120 seconds, it
+directs script processing to branch to the statement labeled NOINIT.<P>
+
+<LI>The INPUT statement displays a window with the text 
+
+
+<CODE><B>Userid?</B></CODE> to allow the user
+to enter a remote host logon userid. The TYPE statement sends a line feed
+to the remote host to enter the userid to the remote host.<P>
+
+<LI>The WAITFOR statement waits for the password prompt from the remote
+host and branches to the NOLOG label if it is not received within 30 seconds.
+The INPUT statement that follows the WAITFOR statement displays a window in
+which the user enters a password.<P>
+
+<LI>The WAITFOR statement waits for one of several common UNIX prompts
+and branches to various error handles if a prompt is not displayed. For a
+connection to the UNIX spawner, the string "Hello >" is received and the control
+branches to the 
+
+
+<CODE><B>unxspawn</B></CODE> label in step 10. Verify that the WAITFOR statement in the
+script looks for the correct prompt for your site.<P>
+
+<LI>The TYPE statement invokes  SAS on the remote host. The DMR option
+is necessary to invoke a special processing mode for SAS/CONNECT.
+The COMAMID= option specifies the access method that is used to make the connection.<P>
+
+<LI>The message 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> is displayed when a SAS session
+is started on the remote host with the DMR and the COMAMID=TCP options. The
+ WAITFOR  statement awaits the display of the message 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> to
+be issued by the remote host. If the 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> response is received
+within 90 seconds, processing continues with the next LOG statement.  If the 
+
+
+<CODE><B>SESSION
+ESTABLISHED</B></CODE> response does not occur within 90 seconds, the script assumes
+that the remote SAS session has not started, and processing branches to the
+statement labeled NOSAS.<P>
+
+<LI>After the connection has been successfully established, the user
+must stop the rest of the script from processing.  Without this STOP statement,
+processing continues through the remaining statements in the script.<P>
+
+<LI>This section of code is executed when you connect to a remote
+UNIX spawner.<P>
+
+<LI>The TYPE statement invokes SAS on the remote host. The DMR option
+is necessary to invoke a special processing mode for SAS/CONNECT.
+The COMAMID= option specifies the access method that is used to make the connection.<P>
+
+<LI>This section of code is executed when the script is invoked to
+terminate the link.  The IF statement (see step 2) sends processing to this
+section of the script when the script is invoked by a SIGNOFF statement. This
+section logs the user off the remote host after the user executes  
+
+
+<CODE><B>LOGOFF</B></CODE>. Before it stops
+the link, the script issues a LOG statement to notify the user that the link
+is terminated.<P>
+
+<LI>These statements are processed only if the prompts expected in
+the previous steps are not received. This section of the script issues messages
+to the local SAS log and then abnormally ends the script processing as well
+as the SIGNON.<P>
+</OL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381711.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381713.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0381712">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

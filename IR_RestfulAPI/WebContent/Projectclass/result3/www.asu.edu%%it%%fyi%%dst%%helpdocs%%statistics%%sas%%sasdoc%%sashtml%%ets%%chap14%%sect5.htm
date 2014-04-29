@@ -1,0 +1,357 @@
+<HTML>
+<HEAD>
+<TITLE>General Form Models</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect6.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>General Form Models  </H2>
+<P>The single equation example shown in the preceding section was 
+written in normalized form
+and specified as an assignment of the regression function to the
+dependent variable LHUR.
+However, sometimes it is impossible or inconvenient to write a
+nonlinear model in normalized form.
+<P>To write a general form equation, give the equation a name
+with the prefix &#34;EQ.&#34; .
+This EQ.-prefixed variable represents the equation error.
+Write the equation as an assignment to this variable.
+<P>For example,
+suppose you have the following nonlinear model relating the 
+variables <I>x</I> and <I>y</I>:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="161" HEIGHT="74"
+ SRC="images/modeq16.gif"
+ ALT="{\epsilon} = a + b {\ln}( c y + d x )"></DL>
+<P>Naming this equation `one', you can fit this model 
+with the following statements:
+<P><PRE>
+   proc model data=xydata;
+      eq.one = a + b * log( c * y + d * x );
+      fit one;
+   run;
+</PRE>
+<P>The use of the EQ. prefix tells PROC MODEL that the variable
+is an error term and that it should not expect actual values
+for the variable ONE in the input data set.
+<P><H3><I>Demand and Supply Models</I></H3>
+General form specifications are often useful when you have several
+equations for the same dependent variable.
+This is common in demand and supply models, where
+both the demand equation and the supply equation are written as
+predictions for quantity as functions of price.
+<P>For example, consider the following demand and supply system:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="497" HEIGHT="74"
+ SRC="images/modeq17.gif"
+ ALT="\rm{(demand)}\hspace*{.75in} quantity = {\alpha}_{1} + {\alpha}_{2} price + {\alpha}_{3} income + {\epsilon}_{1}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="382" HEIGHT="74"
+ SRC="images/modeq18.gif"
+ ALT="\rm{(supply)}\hspace*{.75in} quantity = {\beta}_{1} + {\beta}_{2} price + {\epsilon}_{2}"></DL>
+<P>Assume the <I>quantity</I> of interest is the amount of energy 
+consumed in the U.S.;
+the <I>price</I> is the price of gasoline, and the <I>income</I> variable is 
+the consumer debt.
+When the market is at equilibrium, these equations determine the
+market price and the equilibrium quantity.
+These equations are written in general form as
+
+<DL CLASS="equation"><DD><IMG WIDTH="352" HEIGHT="74"
+ SRC="images/modeq19.gif"
+ ALT="{\epsilon}_{1} = quantity - ({\alpha}_{1} + {\alpha}_{2} price + {\alpha}_{3} income)"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="245" HEIGHT="74"
+ SRC="images/modeq20.gif"
+ ALT="{\epsilon}_{2} = quantity - ({\beta}_{1} + {\beta}_{2} price )"></DL>
+<P>Note that the endogenous variables <I>quantity</I> and <I>price</I> depend
+on two error terms so that OLS 
+should not be used. The following example uses three-stage least-squares 
+estimation.
+<P>Data for this model is obtained from the SASHELP.CITIMON data set.
+<P><PRE>
+   title1 'Supply-Demand Model using General-form Equations';
+   proc model data=sashelp.citimon;
+      endogenous eegp eec;
+      exogenous exvus cciutc;
+      parameters a1 a2 a3 b1 b2 ;
+      label eegp   = 'Gasoline Retail Price'
+            eec    = 'Energy Consumption'
+            cciutc = 'Consumer Debt';
+   
+      /* -------- Supply equation ------------- */
+      eq.supply = eec - (a1 + a2 * eegp + a3 * cciutc);
+   
+      /* -------- Demand equation ------------- */
+      eq.demand = eec - (b1 + b2 * eegp );
+   
+      /* -------- Instrumental variables -------*/
+      lageegp = lag(eegp); lag2eegp=lag2(eegp);
+   
+      /* -------- Estimate parameters --------- */
+      fit supply demand / n3sls fsrsq;
+      instruments _EXOG_ lageegp lag2eegp;
+   run;
+</PRE>
+<P>The FIT statement specifies the two equations to estimate
+and the method of estimation, N3SLS. Note that `3SLS' is an alias
+for N3SLS. The option FSRSQ
+is selected to get a report of the first stage R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> to
+determine the acceptability of the selected instruments.
+<P>Since three-stage least squares is an instrumental variables method,
+instruments are specified with the INSTRUMENTS statement.
+The instruments selected are
+all the exogenous variables, selected with the _EXOG_ option,
+and two lags of the variable EEGP, LAGEEGP and LAG2EEGP.
+<P>The data set CITIMON has four observations that generate
+missing values because
+values for either EEGP, EEC, or CCIUTC are missing. This is revealed
+in the &#34;Observations Processed&#34; output shown in <A HREF="sect5.htm#modout7a">Figure 14.7</A>.
+Missing values are also generated when the equations cannot 
+be computed for a given observation. Missing observations
+are not used in the estimation.
+<P><A NAME="modout7a">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Supply-Demand Model using General-form Equations</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>3SLS Estimation Summary</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observations Processed</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Read</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">145</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solved</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">143</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>First</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Last</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">145</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Used</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">139</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Missing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lagged</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.7:</B> Supply-Demand Observations Processed</SPAN><P>
+<P>The lags used to create the instruments also reduce the number
+of observations used. In this case, the first 2 observations were
+used to fill the lags of EEGP.
+<P>The data set has a total of 145
+observations, of which 4 generated missing values and 2
+were used to fill lags, which left 139 observations for the estimation.
+In the estimation summary, in <A HREF="sect5.htm#modout7">Figure 14.8</A>, the
+total degrees of freedom for the model and error is 139.
+<P><A NAME="modout7">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Supply-Demand Model using General-form Equations</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=8 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear&nbsp;3SLS&nbsp;Summary&nbsp;of&nbsp;Residual&nbsp;Errors&nbsp;</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Equation</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF Model</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Root MSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>R-Square</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Adj R-Sq</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>supply</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">136</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">39.5791</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2910</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.5395</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>demand</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">137</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">43.2677</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.3158</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.5620</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear 3SLS Parameter Estimates </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx Std Err</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br> Pr &gt; |t|</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>1st Stage R-Square</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>a1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6.82196</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.3788</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">18.01</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.0000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>a2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00614</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00303</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.02</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0450</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.9617</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>a3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">9E-7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3.165E-7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2.84</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0051</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.0000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>b1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7.30952</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.3799</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">19.24</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.0000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>b2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.00853</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00328</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.60</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0103</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.9617</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.8:</B> Supply-Demand Parameter Estimates</SPAN><P>
+<P>One disadvantage of specifying equations in general form
+is that there are no actual values associated with the equation,
+so the R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> statistic cannot be computed.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect6.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

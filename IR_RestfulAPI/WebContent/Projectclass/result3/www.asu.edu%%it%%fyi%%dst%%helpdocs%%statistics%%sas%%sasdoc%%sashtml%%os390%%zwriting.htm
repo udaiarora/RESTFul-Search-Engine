@@ -1,0 +1,676 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Accessing External Files : Writing to External Files </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0166056.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0404460.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zreading.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zwriting">Writing to External Files</A></FONT></H1>
+
+
+<P>After allocating an external file, you can use the FILE
+statement, FILE command, or FOPEN function to write to the file.  This section
+describes the FILE statement.  For information about the FILE command, see 
+
+
+
+<B>SAS Language Reference: Dictionary</B>.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You can also use FOPEN, FWRITE, FPUT, FNOTE, FPOINT,
+and FCLOSE to access external files. See 
+
+
+
+<B>SAS Language Reference: Dictionary</B> for details.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">FILE Statement</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549365">&#13;   The FILE statement specifies the current output file for PUT
+statements in the DATA step. (See 
+
+
+
+<B>SAS Language Reference: Dictionary</B> for a complete description of the
+PUT statement.)</A>
+<P>When multiple FILE statements are present, the PUT statement
+builds and writes output lines to the file that was specified in the most
+recent FILE statement. If no FILE statement was specified, the PUT statement
+writes to the SAS log.
+<P>The specified output file must be an external file,
+not a SAS data library, and it must be a valid access type. 
+<P>The FILE statement is executable; therefore, you can
+use it in conditional processing (in an IF/THEN statement, for example).
+<P>As with INFILE, it is possible to alternately access
+multiple external files.  See the example in <A href="zreading.htm#zxf-rmef">Reading from Multiple External Files</A>. You cannot write to multiple members
+of a single PDS at the same time. However, you can write to multiple members
+of a PDSE at one time.
+<P>Under OS/390, SAS uses the IBM ENQUEUE/DEQUEUE facility
+to prevent multiple users from writing to the same physical file simultaneously.
+ This facility also prevents the SAS System and ISPF from overwriting each
+other.
+<BR><H3>FILE Statement Syntax</H3>
+
+
+<P>This section provides a brief overview of FILE statement
+syntax. For complete information about the FILE statement, see <A href="zptfmain.htm">FILE</A>.
+<P>The syntax of the FILE statement
+is
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+FILE  <I>file-specification </I>&lt;<I> type</I>&gt; &lt;<I>options </I>&gt;
+&lt;<I>host-options</I>&gt;;
+</TD></TR></TABLE> 
+<DL>
+<DT><B>file-specification</B></DT>
+<DD>identifies the file.  It can be in the following
+forms: 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zenid-24">File Specification Examples for the FILE Statement</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B>Form </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Example </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">fileref </TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>report</PRE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">fileref(<B>member</B>) </TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>report(feb)</PRE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'physical-filename'</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>'library.daily.report'</PRE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'physical-filename(member)'</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>'library.daily.output(report1)'</PRE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">reserved filerefs </TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>LOG</PRE>
+
+
+ or 
+
+
+
+<PRE>PRINT</PRE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">HFS file</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>'/u/userid/file'</PRE><P>
+<PRE>'HFS:myfile'</PRE></TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P>See <A href="zspecify.htm">Specifying Physical Files</A>
+for details about different ways of specifying <B>physical-filename</B>.<P></DD>
+
+<DT><B>type</B></DT>
+<DD>specifies the type of file.  Nonstandard
+(host-specific) file types that you can specify for OS/390 are 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>DLI</TD>
+<TD align="left">for IMS-DL/I databases (see <A href="zexf-non.htm#zexf-ims">Accessing IMS-DL/I and CA-IDMS Databases</A>)</TD></TR>
+
+<TR align=left valign="top">
+<TD>HFS and
+PIPE</TD>
+<TD align="left">for files in UNIX System Services
+(see <A href="z1-hfs.htm">Accessing UNIX System Services Files</A>)</TD></TR>
+
+<TR align=left valign="top">
+<TD>VSAM</TD>
+<TD align="left">for VSAM files (see
+<A href="zexf-non.htm#zxf-vsam">Accessing VSAM Data Sets</A>).</TD></TR>
+</TABLE>
+<P></DD>
+
+<DT><B>options</B></DT>
+<DD>describe the output file's characteristics
+and specify how it is to be written with a PUT statement.  Many of these options
+are not host-dependent and are documented in <B>SAS Language:  Reference</B>. For information about options that are specific to OS/390, see
+<A href="zptfmain.htm">FILE</A>. You
+can use these options to do the following: 
+<P>
+<UL>
+
+<LI>define variables that will contain information
+about the external file<P>
+
+<LI>specify special open and close processing<P>
+
+<LI>specify file
+characteristics.<P>
+</UL>
+<P></DD>
+</DL>
+
+<BR><H3>FILE Statement Examples</H3>
+
+
+<P>
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zenid-27">File Specification Examples for the FILE Statement</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  colspan="2" align="LEFT" valign="BOTTOM" ><B>Type of  Data Set </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B> Example </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">sequential </TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file 'my.new.dataset';</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">member of a PDS or PDSE</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file out(newdata);
+or file 'my.new.dataset(newdata)';</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">sequential or member of a PDS or PDSE*</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file myfilerf;</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">HFS</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file '/usr/tmp/newdata';</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">HFS</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file 'newmem.dat' hfs;</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">HFS</TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file 'HFS:raw';</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">VSAM  </TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file payroll
+vsam;</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">IMS  </TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file psb dli;</PRE>
+</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">SAS log  </TD>
+  
+<TD  align="LEFT" valign="TOP">
+<PRE>file log;</PRE>
+</TD>
+</TR>
+
+<TR valign="top" bgcolor="#FAFAD2">
+<TD colspan="3">*depending on what the fileref is
+associated with</TD>
+</TR>
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Writing to Sequential Data Sets</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549440">&#13;
+ 
+
+The disposition of a sequential data set can be OLD, MOD, or SHR. Using OLD
+eliminates the possibility of another job writing to the data set at the same
+time your job is writing to it.</A>
+<P>If you specify OLD or SHR, SAS begins writing at the
+beginning of the data set, replacing existing information. To append new information
+to the existing information, specify the MOD option in the FILE statement.
+<P>The following example assigns the fileref RAW to the
+data set MYID.RAW.DATAX and uses the fileref in a simple DATA step:  
+
+
+
+<PRE>filename raw 'myid.raw.datax' disp=old;
+data _null_;
+   file raw;
+   msgline='write this line';
+   put msgline;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Writing to Members of PDS or PDSE Data Sets</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549443">&#13; 
+To write to a member of a PDS, include the member name along with the data
+set name in the FILE statement, the FILENAME statement, the FILENAME function,
+the TSO ALLOCATE command, or the JCL DD statement. Omitting the member name
+causes an error message because SAS tries to treat the PDS as a sequential
+data set.</A>
+<P>The disposition of the PDS member can be OLD or SHR;
+you cannot use a disposition of MOD for a member of a PDS. In both cases,
+SAS begins writing at the beginning of the member, replacing existing information.
+Using OLD eliminates the possibility of another job writing into the member
+at the same time your job is writing into it.
+<P>In a single DATA step you can write to only one member
+of a particular PDS; however, you can write to members of separate PDSs. To
+write to more than one member of a given PDS, you must use a separate DATA
+step for each member. In a single DATA step, you can write to multiple members
+of a PDSE.
+<P>The following example assigns the fileref RAW to the
+PDS member MEM1 and then uses the fileref in a simple DATA step:  
+
+
+
+<PRE>/* PDS Example */
+filename raw 'myid.raw.data(mem1)' disp=old;
+data _null_;
+   file raw;
+   put 'write this line';
+run;</PRE>
+<P>This next example assigned the fileref MYPDSE to the
+PDSE member REG3 and then uses the fileref in a simple DATA step:
+
+
+
+<PRE>/* PDSE Example */
+filename mypdse 'sales.div1.reg3' disp=shr;
+data a;
+   x=1;
+   file mypdse(june97);
+   put x;
+   file mypdse(jul97);
+   put x;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Writing to a Printer</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549449">&#13; This example uses the FILENAME
+and FILE statements to route
+output to a printer.  
+
+
+</A>
+<PRE>filename prnt printer sysout=a;
+data _null_;
+   file prnt;
+   put 'text to write';
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Writing to the Internal Reader</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549450">&#13;
+ This example uses the FILENAME and FILE statements to write
+to an internal reader.  
+
+
+</A>
+<PRE>filename injcl '.misc.jcl' disp=shr;
+filename outrdr sysout=a pgm=intrdr
+      recfm=fb lrecl=80;
+data _null_;
+  infile injcl(myjcl);
+  file outrdr noprint notitles;
+  input;
+  put _infile_;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Writing to a Temporary Data Set</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549451">&#13;
+
+The following examples use the FILENAME and FILE statements to write to a
+temporary data set. </A>
+<P>
+<UL>
+
+<LI>This example shows how to use default attributes
+to define a temporary file:  
+
+
+
+<PRE>filename tempfile '&amp;mytemp' ;
+data out;
+   file tempfile;
+   put ...;
+run;</PRE><P>
+
+<LI>The next example defines a temporary file and
+specifies some of its attributes:  
+
+
+
+<PRE>filename nextone '&amp;mytemp' disp=new
+   lrecl=80 blksize=320 space=(trk,(3));
+data out;
+   file nextone;
+   put ...;
+run;</PRE><P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-dsattr">Using the FILE Statement to Specify Data Set Attributes</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549454">&#13;
+ You can specify data set attributes in the FILE statement as
+well as in the FILENAME statement or FILENAME function.  SAS supplies default
+values for any attributes that you do not specify. (For information about
+default values, see </A><A href="z1main.htm#zdcbover">Overview of DCB Attributes</A>
+and <A href="z1main.htm#zdcbdesc">DCB Option Descriptions</A>.)
+<P>This example specifies values for LRECL= and RECFM=
+in the FILE statement and allows SAS to use the default value for BLKSIZE=:
+ 
+
+
+
+<PRE>filename x 'userid.newdata' disp=new
+       space=(trk,(5,1)) volume=xyz111;
+data out;
+   file x lrecl=80 recfm=fb;
+   put ... ;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the Data Set Attributes of an Input File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549456">&#13;
+ In this example, data is read from the input file; then the
+data is written to an output file, using the same file characteristics. The
+DCB option in the FILE statement tells SAS to use the same data set attributes
+for the output file as were used for the input file.  
+
+
+</A>
+<PRE>filename in  'userid.input';
+filename out 'userid.output';
+data;
+   infile in;
+   input;
+   file out dcb=in;
+   put _infile_;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the FILE Statement to Specify Data Set Disposition</FONT></B></TD></TR></TABLE>
+
+<BR><H3>Appending Data with the MOD Option</H3>
+
+
+<P><A name="z0549457">&#13;   In this example, the MOD option is used to append data to the
+end of an external file.  
+
+
+</A>
+<PRE>filename out 'user.output';
+data _null_;
+ /* New data is written to 'user.output'  */
+   file out;
+   put ... ;
+run;
+
+data _null_;
+ /* data is appended to 'user.output'     */
+   file out mod;
+   put ... ;
+run;</PRE>
+<BR><H3>Appending Data with the MOD Disposition</H3>
+
+
+<P>This example is similar to the previous one except that
+instead of using the MOD option, the DISP= option is used.  The OLD option
+is then used to overwrite the data.  
+
+
+
+<PRE>filename out 'user.output' disp=mod;
+data _null_;
+ /* data is appended to 'user.output'    */
+   file out;
+   put ... ;
+run;
+
+data _null_;
+ /* data is written at the beginning of  */
+ /* 'user.output'                         */
+   file out old;
+   put ... ;
+run;
+
+data _null_;
+ /* data is written at the beginning of  */
+ /* 'user.output'                         */
+   file out;
+   put ... ;
+run;
+
+data _null_;
+ /* data is appended to 'user.output'    */
+   file out mod;
+   put ... ;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zxf-wpds">Writing to Print Data Sets</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549459">&#13;
+ A print data set contains carriage-control information (also
+called ASA control characters) in column 1 of each line.  These characters
+(blank, 0, -, +, and 1) control the operation of a printer, causing
+it to skip lines, to begin a new page, and so on.  They do not normally appear
+on a printout.  A nonprint data set does not contain any carriage-control
+characters.</A>
+<P>When you write to a print data set, SAS shifts all column
+specifications in the PUT statement one column to the right in order to accommodate
+the carriage-control characters in column 1.  Therefore, if you expect to
+print an external file, you should designate the file as a print data set
+either when you allocate it or when you write to it. 
+<P>
+<UL>
+
+<LI>The preferred method for designating a data set
+as a print data set is when you allocate it, using the RECFM= option in the
+FILENAME statement, the FILENAME function, the JCL DD statement, or the TSO
+ALLOCATE command.  Adding the letter A to the end of the value for the RECFM=
+option (RECFM=FBA or RECFM=VBA, for example) causes SAS to include carriage
+control characters in the data set that is being created.  See <A href="z1main.htm">FILENAME</A> for complete information
+about the RECFM= option.<P>
+
+<LI>When you write to a data set that was not designated
+as a print data set when it was allocated, you can designate it as a print
+data set in several ways, depending on what you plan to do with the data set.
+Here are some examples: 
+<P>
+<UL>
+
+<LI>Use the PRINT option in the FILE statement, as
+in:  
+
+
+
+<PRE>file saveit print;</PRE>
+<P>SAVEIT is the fileref of the data set.  The PRINT type
+in the FILE statement includes a page number, date, and title; this is the
+simplest way to create a print data set.<P>
+
+<LI>Use PRINT as the fileref in the FILE statement
+(different from the PRINT option above), as in:  
+
+
+
+<PRE>file print;</PRE>
+<P>The PRINT fileref in the FILE statement causes SAS to
+write the information either to the standard SAS procedure output file (PRINT=SASLIST),
+or to another output file if you have used a PROC PRINTTO statement to redirect
+your output. (See <A href="z1ntto.htm">PRINTTO</A>
+and <A href="z0217291.htm#znamepto">Using the PRINTTO Procedure</A>
+for information about PROC PRINTTO.) In either case, this file contains carriage-control
+characters by default. You can suppress the carriage-control characters by
+specifying the NOPRINT option in the FILE statement (see <A href="#zwriting">Writing to External Files</A>).<P>
+
+<LI>Use the
+letter A as part of the value in the RECFM=
+option in the FILE statement:  
+
+
+
+<PRE>file saveit recfm=vba;</PRE>
+<P>As in the FILENAME statement or FILENAME function, the
+letter A in the RECFM= option of the SAS FILE statement causes SAS to include
+carriage-control characters in the data set that is being created.  SAS also
+changes the record format of the target data set.<P>
+</UL>
+<P>
+</UL>
+ For information about how to process print files as input,
+see <A href="zreading.htm#z0217257">Reading from Print Data Sets</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Designating a Print Data Set as a Nonprint Data Set</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549469">&#13;  The NOPRINT option is useful when you use a DATA step to copy
+a data set that already contains carriage-control information. In this case,
+use NOPRINT to prevent SAS from adding an additional column of carriage-control
+information.</A>
+<P>If a data set has been allocated as a print data set,
+you can use the NOPRINT option in the FILE statement to omit carriage-control
+information. For example, suppose you specified RECFM=VBA, indicating a print
+data set, when you allocated a file and that you assigned with the fileref
+OUTDD. The following SAS statement designates OUTDD as a nonprint data set:
+ 
+
+
+
+<PRE>file outdd noprint;</PRE>
+<P>To write lines without carriage-control information
+to the SAS procedure output file, specify: 
+
+
+
+<PRE>file print noprint;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0166056.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0404460.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zreading.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zwriting">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

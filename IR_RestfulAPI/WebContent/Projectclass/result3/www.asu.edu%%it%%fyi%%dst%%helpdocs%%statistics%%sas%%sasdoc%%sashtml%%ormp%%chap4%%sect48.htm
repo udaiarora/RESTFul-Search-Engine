@@ -1,0 +1,139 @@
+<HTML>
+<HEAD>
+<TITLE>Dual Variables, Reduced Costs, and Status</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NETFLOW Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Dual Variables, Reduced Costs, and Status  </H2>
+<A NAME="idxnet1390">&#13;</A><A NAME="idxnet1391">&#13;</A><A NAME="idxnet1392">&#13;</A><A NAME="idxnet1393">&#13;</A><A NAME="idxnet1394">&#13;</A><A NAME="idxnet1395">&#13;</A>During optimization, dual variables and reduced costs
+are used to determine whether an arc, constraint slack, surplus,
+or nonarc variable should have a flow or value change.
+The <A HREF="sect15.htm#netflowarcout">ARCOUT</A>= and <A HREF="sect15.htm#netflowconout">CONOUT</A>= data sets each have a variable called 
+<SPAN CLASS="ssfeleven">_RCOST_</SPAN>
+that contains reduced cost values.
+<A NAME="idxnet1396">&#13;</A><A NAME="idxnet1397">&#13;</A><A NAME="idxnet1398">&#13;</A><A NAME="idxnet1399">&#13;</A><A NAME="idxnet1400">&#13;</A>In the <A HREF="sect15.htm#netflowconout">CONOUT</A>= data set, this variable also has the reduced costs
+of nonarc variables.
+For an arc, the
+reduced cost is the amount that would be added to the total cost
+if that arc were made to convey one more unit of flow.
+For a nonarc variable, the
+reduced cost is the amount that would be added to the total
+cost if the value currently assigned to that nonarc variable
+were increased by one.
+<P>During the optimization of a minimization problem, if an arc has a
+positive reduced cost, PROC NETFLOW takes steps to decrease the flow
+through it.
+If an arc has a
+negative reduced cost, PROC NETFLOW takes steps to increase the flow
+through it.
+At optimality,
+the reduced costs of arcs with
+flow at their respective lower bounds are nonnegative;
+otherwise, the optimizer would have tried to increase the flow,
+thereby decreasing the total cost.
+The <SPAN CLASS="ssfeleven">_STATUS_</SPAN> of each such nonbasic arc is LOWERBD NONBASIC.
+<A NAME="idxnet1401">&#13;</A>The reduced costs of arcs with  flow at capacity
+are nonpositive.
+The <SPAN CLASS="ssfeleven">_STATUS_</SPAN> of each such nonbasic arc is UPPERBD NONBASIC.
+Even though it would  decrease total cost,
+the optimizer cannot increase the flows through such arcs because
+of the capacity bound.
+Similar arguments apply for nonarc variables.
+<P>The reduced cost is
+also the amount that would be subtracted from the total cost
+if that arc was made to convey one less unit of flow.
+Similarly, a reduced cost is
+the amount subtracted from the total cost
+if the value currently assigned to that nonarc variable
+is decreased by one.
+<P>The dual variables and reduced costs can be used to detect whether
+multiple optimal solutions exist.
+A zero reduced cost of a nonbasic arc indicates the
+existence of multiple optimal solutions.
+A zero reduced cost indicates, by definition,
+that the flow through such arcs
+can be changed with zero change to the total cost.
+(Basic arcs and basic nonarc variables
+technically have zero reduced costs. A missing value is used
+for these so that reduced costs of nonbasic
+arcs and nonbasic nonarc variables that are zero are highlighted.)
+<P>The range over which
+costs can vary before the present solution becomes
+nonoptimal can be determined through examination of
+the reduced costs.
+For any nonbasic
+arc with assigned flow  equal to its lower bound,
+the amount by which the cost must be decreased before it
+becomes profitable for this arc to convey additional flow is the
+value of its reduced cost.
+The cost reduction necessary for a nonbasic
+arc currently assigned capacity
+flow to undergo a worthwhile flow decrease is the absolute value of
+its reduced cost.
+In both cases, this minimum cost reduction changes the
+reduced cost to zero.
+Any further reduction promotes a possible basis change.
+<P>The reduced cost of an arc <SPAN CLASS="mathfont">(<I>t</I>,<I>h</I>)</SPAN> is
+<IMG WIDTH="168" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq16.gif"
+ ALT="rc_{t,h} = c_{t,h} - \pi_t + \pi_h">where
+<IMG WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq17.gif"
+ ALT="\pi_i">is the dual value for node <SPAN CLASS="mathfont"><I>i</I></SPAN> and
+<SPAN CLASS="mathfont"><I>c</I><SUB><I>t</I>,<I>h</I></SUB></SPAN>
+is the cost of the arc with tail node <SPAN CLASS="mathfont"><I>t</I></SPAN> and
+head node <SPAN CLASS="mathfont"><I>h</I></SPAN>.
+<P>If the problem has side constraints and arc <SPAN CLASS="mathfont">(<I>t</I>,<I>h</I>)</SPAN> has
+nonzero lhs coefficients, then the following term
+must be subtracted from <SPAN CLASS="mathfont"><I>rc</I><SUB><I>t</I>,<I>h</I></SUB></SPAN> : <BR>
+<IMG WIDTH="152" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq18.gif"
+ ALT=" \sum_i condual_i H_{i,(t,h)}">where
+<SPAN CLASS="mathfont"><I>condual</I><SUB><I>i</I></SUB></SPAN> is
+the dual variable of constraint <SPAN CLASS="mathfont"><I>i</I></SPAN>, <SPAN CLASS="mathfont"><I>H</I><SUB><I>i</I>,(<I>t</I>,<I>h</I>)</SUB></SPAN> is
+the coefficient of arc <SPAN CLASS="mathfont">(<I>t</I>,<I>h</I>)</SPAN> in constraint <SPAN CLASS="mathfont"><I>i</I></SPAN>.
+<P>If <SPAN CLASS="mathfont"><I>d</I><SUB><I>n</I></SUB></SPAN> is the objective function coefficient of nonarc variable <SPAN CLASS="mathfont"><I>n</I></SPAN>,
+the reduced cost is
+<IMG WIDTH="223" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq19.gif"
+ ALT="rc_n = d_n - \sum_i condual_i Q_{i,n}">where
+<SPAN CLASS="mathfont"><I>Q</I><SUB><I>i</I>,<I>n</I></SUB></SPAN> is
+the coefficient of nonarc variable <SPAN CLASS="mathfont"><I>n</I></SPAN> in constraint <SPAN CLASS="mathfont"><I>i</I></SPAN>.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

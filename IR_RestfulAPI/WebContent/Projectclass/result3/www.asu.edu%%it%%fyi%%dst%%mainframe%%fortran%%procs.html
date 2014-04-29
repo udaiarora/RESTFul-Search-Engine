@@ -1,0 +1,603 @@
+<HTML>
+<HEAD>
+  <META NAME="GENERATOR" CONTENT="Adobe PageMill 3.0 Win">
+  <TITLE>IT: MVS FORTRAN: FORTRAN Procedures</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<H3><TABLE WIDTH="585" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+  <TR>
+    <TD WIDTH="585">
+    <H3><FONT SIZE="+0" FACE="Arial">FORTRAN PROCEDURES</FONT></H3>
+
+    <P><FONT SIZE="-1" FACE="Arial">Cataloged procedures greatly
+    simplify the use of FORTRAN. All of the needed EXEC statements
+    and most of the required DD statements are already included in
+    the cataloged procedures, making the overall task for the user
+    much easier.</FONT></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">ASU Modified Cataloged Procedures</FONT></H4>
+
+    <P><FONT SIZE="-1" FACE="Arial">The following cataloged procedures
+    were modified for use at ASU. Note that these all have FORV2
+    as the first five characters in their names.</FONT></P>
+
+    <UL>
+      <LI><A HREF="#FORV2C"><FONT SIZE="-1" FACE="Arial">FORV2C</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - Compile only</FONT>
+      <LI><A HREF="#FORV2CG"><FONT SIZE="-1" FACE="Arial">FORV2CG</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - Compile and Go (execute using the
+      loader); <A HREF="#Figure 1">sample batch job shown in Figure
+      1</A></FONT>
+      <LI><A HREF="#FORV2CL"><FONT SIZE="-1" FACE="Arial">FORV2CL</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - Compile and Link-edit</FONT>
+      <LI><A HREF="#FORV2CLG"><FONT SIZE="-1" FACE="Arial">FORV2CLG</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - Compile, Link-edit and Go (execute);
+      <A HREF="#Figure 2">sample batch job shown in Figure 2</A></FONT>
+      <LI><A HREF="#FORV2G"><FONT SIZE="-1" FACE="Arial">FORV2G</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - Go (execute a previously saved load
+      module)</FONT>
+      <LI><A HREF="#FORV2L"><FONT SIZE="-1" FACE="Arial">FORV2L</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - Load and execute (using the loader)</FONT>
+      <LI><A HREF="#FORV2LG"><FONT SIZE="-1" FACE="Arial">FORV2LG</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - Link-edit and Go (execute)</FONT>
+    </UL>
+
+    <H4><FONT SIZE="-1" FACE="Arial">Linkage Editor versus Loader</FONT></H4>
+
+    <P><FONT SIZE="-1" FACE="Arial">Some of the cataloged procedures
+    invoke the linkage editor program; others use the loader program.
+    The loader is faster and should be used under the following conditions:</FONT></P>
+
+    <UL>
+      <LI><FONT SIZE="-1" FACE="Arial">If a program is only to be run
+      a few times</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">If changes are still being made
+      to a program</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">If the special capabilities
+      of the linkage editor are not needed (no linkage editor control
+      statements are used)</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">If an output load module is
+      not to be saved</FONT>
+    </UL>
+
+    <P><FONT SIZE="-1" FACE="Arial">If a program is to be executed
+    many times with no revisions, use the linkage editor to build
+    and save a load module. The load module can be executed without
+    compiling and linking again.</FONT></P>
+
+    <H3><FONT SIZE="+0" FACE="Arial">SAMPLE JOB SETUPS</FONT></H3>
+
+    <P><FONT SIZE="-1" FACE="Arial">The following sample job steps
+    are intended to show how each of the FORV2 procedures are commonly
+    used. If necessary, additional explanatory notes are included
+    at the end of each sample. Some notes are meant to bring extra
+    depth to the written material by providing a little more detail.
+    Many of the explanatory notes are not intended for beginning
+    FORTRAN users; if you do not understand a note, simply skip it.
+    Intermediate and advanced IBM FORTRAN users are the target of
+    such notes.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">In the job steps, brackets ([,])
+    are used to indicate optional items. Do not code the brackets
+    if using an optional item.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">There are references to &quot;symbolic
+    parameters&quot; in the following sample setups and notes. They
+    usually appear as optional items. Symbolic parameters have not
+    been discussed to this point because they are not necessary to
+    an understanding of the basic job setups. </FONT><A NAME="FORV2C"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">FORV2C - Compile Only</FONT></H4>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2C[,symbolic parameters as needed]
+//FORT.SYSIN DD *
+&lt;---------- FORTRAN Source Statements ----------&gt;
+//</PRE>
+    </BLOCKQUOTE>
+
+    <P><B><FONT SIZE="-1" FACE="Arial">NOTES:</FONT></B><FONT SIZE="-1"
+     FACE="Arial"><BR>
+    All FORTRAN source for the main program and subroutines may be
+    entered at one time. Each unit of the program is compiled separately
+    with individual listings for each provided. The position of the
+    main program in the source input does not (usually) make any
+    difference; however, it is recommended that it appear first (at
+    the top). The default option for compiler optimization is opt=2.
+    This default value is used in procedures FORV2C, FORV2CL, and
+    FORV2CLG.</FONT> <A NAME="FORV2CG"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">FORV2CG - Compile and Go (Execute
+    using the Loader)</FONT></H4>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2CG[,symbolic parameters as needed]
+//FORT.SYSIN DD *
+&lt;---------- FORTRAN Source Statements ----------&gt;
+//GO.SYSIN DD *
+&lt;---------- Data ----------&gt;
+//</PRE>
+    </BLOCKQUOTE>
+
+    <P><B><FONT SIZE="-1" FACE="Arial">NOTE:</FONT></B><FONT SIZE="-1"
+     FACE="Arial"><BR>
+    If the program requires no data, the GO.SYSIN DD statement may
+    be omitted.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">Although it is not normally done
+    this way, an object module (output from a previous compilation)
+    may be input to the loader as well. Place the following statements
+    immediately before the GO.SYSIN DD statement in the above example:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.SYSLIN DD
+//          DD *
+&lt;---------- Object Module ----------&gt;</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">For object records stored in
+    cataloged disk or tape data sets, use the following statements:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.SYSLIN DD
+//          DD DSN=WYL.xx.yyy.OBJECT,DISP=SHR</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">For object records which are
+    stored as members of a partitioned data set, use the following
+    statements:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.SYSLIN DD
+//         DD DSN=WYL.xx.yyy.OBJECT(CODE),DISP=SHR</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">NOTE:<BR>
+    The default value for compiler optimization is opt=0 for the
+    FORV2CG procedure. </FONT><A NAME="FORV2CL"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">FORV2CL - Compile and Link-Edit
+    (Saving a Load Module)</FONT></H4>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2CL,PGMLIB='WYL.xx.yyy.libname',
+//  LMNAME=progname,LUNIT=unit,LDISP='(,CATLG)',
+//  LSPACE='(TRK,(10,10,3))'[,other symbolic parameters]
+//FORT.SYSIN DD *
+&lt;---------- FORTRAN Source Statements ----------&gt;
+//</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The above example creates a load
+    module library. (Special note: Once a load module has been placed
+    in a partitioned data set, that data set may contain only load
+    modules.)</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">Replace &quot;xx&quot; and &quot;yyy&quot;
+    with the first two and last three characters of your userid,
+    respectively. Replace &quot;libname&quot; with the desired name
+    of the library (up to 33 characters in length, including periods).
+    Substitute the name of the program (up to 8 characters) for &quot;progname&quot;.
+    RESRCH or INSTRC should replace &quot;unit&quot;. Provide an
+    appropriate value for LSPACE (load module library SPACE parameter);
+    the above space definition may not be suitable.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">If the load module library was
+    previously cataloged, use the following EXEC statement:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2CL,PGMLIB='WYL.xx.yyy.libname',
+// LMNAME=progname,LDISP=OLD,LSPACE=,LUNIT=</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">IMPORTANT:<BR>
+    The linkage editor accepts either object module or load module
+    input. To make more efficient use of disk space, store load modules
+    and not object modules on disk. Object modules are not required
+    to modify and relink-edit a program.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">NOTE:<BR>
+    If subroutine modules are to be used with other processors, PL/1,
+    Assembler, and others, then 'object' modules usually are required
+    for SYSLIN input to the linkage editor.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">For creation of a subroutine
+    library, it is recommended that each subroutine be individually
+    compiled and link-edited using the FORV2CL procedure. The linkage
+    editor option NCAL should be specified to cancel the automatic
+    library calls (use LKDOPTS='NCAL, LIST,MAP').</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The output load module should
+    be saved using the subroutine name as the member name (specify
+    LMNAME=subroutine name). A subroutine library created in this
+    manner is flexible. It can be used as an automatic call library
+    or it can be accessed via linkage editor control statements.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">If it is necessary to input object
+    deck(s) to the linkage editor, place one of the following JCL
+    statements after the last FORTRAN statement:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//LKED.SYSIN DD *
+&lt;---------- Object Modules ----------&gt;
+or
+//LKED.SYSIN DD DSN=WYL.xy.yyy.OBJECT,DISP=SHR</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">Linkage editor control statements
+    may also be input either following an object deck or alone (no
+    object module entered). </FONT><A NAME="FORV2CLG"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">FORV2CLG - Compile, Link-Edit
+    and Go (Execute)</FONT></H4>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2CLG [,symbolic parameters as needed]
+//FORT.SYSIN DD *
+&lt;----- FORTRAN Source Statements -----&gt;
+//GO.SYSIN DD *
+&lt;----- Data -----&gt;
+//</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">NOTE:<BR>
+    The GO.SYSIN DD statement may be omitted if the program requires
+    no data.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">Load modules may be saved, as
+    was shown for a compile and link- edit procedure. All of the
+    notes from that section apply here as well. The FORV2CLG procedure
+    merely affords you the additional opportunity to execute the
+    new load module (program). </FONT><A NAME="FORV2G"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">FORV2G - Go (Execute a Previously
+    Saved Load Module)</FONT></H4>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2G,GOPGM=progname[,symbolic parameters as needed
+//STEPLIB  DD
+//         DD DSN=WYL.xx.yyy.libname,DISP=SHR
+//GO.SYSIN DD *
+&lt;----- Data -----&gt;
+//</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">NOTE:<BR>
+    The GO.SYSIN DD statement may be omitted if the program requires
+    no data.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">Replace &quot;WYL.xx.yyy.libname&quot;
+    by the name of the previously cataloged load module library.
+    Replace &quot;progname&quot; by the name of the program (library
+    member name). </FONT><A NAME="FORV2L"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">FORV2L - Load and Execute (Using
+    the Loader)</FONT></H4>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2L[,symbolic parameters as needed]
+//GO.SYSLIN DD *
+&lt;----- Object Module -----&gt;
+//GO.SYSIN DD *
+&lt;----- Data -----&gt;
+//</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The GO.SYSLIN statement is required
+    to define the primary input to the loader, which is either an
+    object or load module, or both. If the primary input is stored
+    in a partitioned or a sequential data set, the above GO.SYSLIN
+    DD statement is inappropriate. Instead use (assuming a cataloged
+    data set)</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.SYSLIN DD DSN=datasetname(membername),DISP=SHR</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">to retrieve a PDS member.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">Or, use</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.SYSLIN DD DSN=datasetname,DISP=SHR</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">to retrieve a sequential data
+    set.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">NOTE:<BR>
+    The GO.SYSIN DD statement may be omitted if the program requires
+    no data. </FONT><A NAME="FORV2LG"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">FORV2LG - Link-Edit and Go (Execute)</FONT></H4>
+
+    <BLOCKQUOTE>
+      <PRE>
+// EXEC FORV2LG[,symbolic parameters as needed]
+//LKED.SYSIN DD *
+&lt;-Linkage Editor Control Statements and/or Object Modules-&gt;
+//GO.SYSIN DD *
+&lt;----- Data -----&gt;
+//</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The LKED.SYSIN DD statement is
+    required to define the primary input to the linkage editor. This
+    input can consist of intermixed linkage editor control statements
+    and object modules. (Load modules themselves may be secondary
+    input to the linkage editor.)</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The symbolic parameters used
+    to save a load module in the section &quot;Compile and Link-Edit&quot;
+    apply to the FORV2LG procedure. That is, FORV2LG may be used
+    in the same manner to save a load module for later use.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">NOTE:<BR>
+    If the program requires no data, the GO.SYSIN DD statement may
+    be omitted.</FONT></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">Stored Data Set Input</FONT></H4>
+
+    <P><FONT SIZE="-1" FACE="Arial">The emphasis in all the prior
+    job setups was on using input placed directly in the job stream.
+    This may not always be convenient, especially if the input-to-be
+    was previously stored in a data set. The following examples show
+    the appropriate substitutions to be made in a job setup for various
+    situations.</FONT></P>
+
+    <H5><FONT SIZE="-2" FACE="Arial">Used with the Compiler</FONT></H5>
+
+    <P><FONT SIZE="-1" FACE="Arial"><li>Input a Cataloged Sequential
+    Data Set:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//FORT.SYSIN DD DSN=WYL.xx.yyy.datasetname,DISP=SHR</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial"><li>Input Several Members from
+    a Cataloged Partitioned Data Set:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//FORT.SYSIN DD DSN=WYL.xx.yyy.pdsname(member1),DISP=SHR
+//           DD DSN=WYL.xx.yyy.pdsname(member2),DISP=SHR
+//           DD DSN=WYL.xx.yyy.pdsname(member3),DISP=SHR
+... and so on ...</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The above members are concatenated
+    and read as if they were one data set.</FONT></P>
+
+    <H5><FONT FACE="Arial">Used as Data in a Program</FONT></H5>
+
+    <P><FONT SIZE="-1" FACE="Arial"><li>Input a Cataloged Sequential
+    Data Set:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.SYSIN DD DSN=WYL.xx.yyy.datasetname,DISP=SHR</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial"><li>Input a Member from a Cataloged
+    Partitioned Data Set:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.SYSIN DD DSN=WYL.xx.yyy.pdsname(member),DISP=SHR,
+//   LABEL=(,,,IN)</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial"><li>Input More Than One Member
+    from a Cataloged Partitioned Data Set:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+//GO.FT05F001  DD DSN=WYL.xx.yyy.pdsname(member1),DISP=SHR,
+//  LABEL=(,,,IN)
+//  DD DSN=WYL.xx.yyy.pdsname(member2),DISP=SHR,
+//  LABEL=(,,,IN)
+//  DD DSN=WYL.xx.yyy.pdsname(member3),DISP=SHR,
+//  LABEL=(,,,IN)
+... and so on ...</PRE>
+    </BLOCKQUOTE>
+
+    <H5><FONT SIZE="-2" FACE="Arial">Used With the Linkage Editor
+    or Loader</FONT></H5>
+
+    <P><FONT SIZE="-1" FACE="Arial">Data sets stored for later use
+    with the linkage editor or loader may be defined on the appropriate
+    GO.SYSLIN or LKED.SYSIN statement in the same way that data sets
+    are used with the compiler.</FONT></P>
+
+    <H3><FONT SIZE="+0" FACE="Arial">FORTRAN EXAMPLES</FONT></H3>
+
+    <P><A HREF="#Figure 1"><FONT SIZE="-1" FACE="Arial">Figure 1</FONT></A><FONT
+     SIZE="-1" FACE="Arial"> is a sample batch job which uses the
+    FORV2CG procedure to:</FONT></P>
+
+    <OL>
+      <LI><FONT SIZE="-1" FACE="Arial">Compile FORTRAN source code</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Link, Load and execute the object
+      code from the compiler step using the Loader</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Create a sequential data set
+      named 'FORIO' for data to be written into by the executing FORTRAN
+      program</FONT>
+    </OL>
+
+    <P><A HREF="#Figure 2"><FONT SIZE="-1" FACE="Arial">Figure 2</FONT></A><FONT
+     SIZE="-1" FACE="Arial"> is a sample batch job which uses the
+    FORV2CLG procedure to:</FONT></P>
+
+    <OL>
+      <LI><FONT SIZE="-1" FACE="Arial">Compile FORTRAN source code</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Create a load module library
+      (PDS) named LMLIB</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Link object module and build
+      a load module (named TESTX) which is stored as a member of the
+      load module library</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Create a sequential data set
+      named 'FORIO' for data to be written into by the executing FORTRAN
+      program</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Execute the FORTRAN program</FONT>
+    </OL>
+
+    <P><FONT SIZE="-1" FACE="Arial"></FONT><A NAME="Figure 1"></A></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">Figure 1 - FORV2CG Procedure</FONT></H4>
+
+    <PRE>
+// JOB
+//*
+//* This is a jobstream using the FORTRAN 'Compile and Go' Proc.
+//* This job will compile a short instream FORTRAN source
+//* program and link, load and execute the job with the loader
+//* processor.  No load module will be saved.  The data input to
+//* the FORTRAN program being executed is contained instream.
+//* STEP 1 contains the FORV2CG proc exec statement.
+//*
+//STEP1 EXEC FORV2CG
+//*
+//* The FORTRAN source follows the next statement.
+//*
+//FORT.SYSIN DD *
+//*
+C      FORTRAN SOURCE CODE
+       CHARACTER*20 C
+       DIMENSION A(10),B(-4:5)
+       READ (5,1)C,A1
+1      FORMAT(2X,A20/F10.2)
+       DO 10 I=1,10
+       A(I)=A1+1.2**I
+10     CONTINUE
+       DO 20 J=-4,5
+       K=J+5
+       B(J)=A(K)*1.1
+20     CONTINUE
+       WRITE(6,30)C
+30     FORMAT(1H1,'TITLE OF JOB = ',A20)
+       WRITE(10,40)(B(L),L=-4,5)
+40     FORMAT(2(5F16.6/))
+       STOP
+       END
+/*
+//*
+//* The program input data follows the next statement.
+//*
+//GO.SYSIN DD *
+VS FORTRAN TEST
+1.12
+/*
+//*
+//* The following statements define a sequential data set
+//* for FORTRAN unit 10
+//*
+//GO.FT10F001 DD DSN=WYL.xx.yyy.FORIO,DISP=(NEW,CATLG,DELETE),
+//  DCB=(RECFM=FB,LRECL=80,BLKSIZE=6160),UNIT=RESRCH,
+//  SPACE=(TRK,(2,1),RLSE)
+//</PRE>
+
+    <P><A NAME="Figure 2"></A></P>
+
+    <H4><FONT FACE="Arial">Figure 2 - FORV2CLG Procedure</FONT></H4>
+
+    <PRE>
+// JOB
+//*
+//* This jobstream uses the FORTRAN 'Compile, Link, and Go'
+//* Proc.  It will compile a short FORTRAN source program and
+//* link, load and execute the job with the linkage editor.  A
+//* load module will be saved.  The data input to the FORTRAN
+//* program being executed is contained within the job.  STEP1
+//* contains the FORV2CLG proc exec statement.
+//*
+//STEP1 EXEC FORV2CLG,FOPTS='LIST,XREF',
+//  PGMLIB='WYL.xx.yyy.LMLIB',LMNAME=TESTX,
+//  LUNIT=RESRCH,LDISP=',CATLG',LSPACE='TRK,(3,1,1)'
+//FORT.SYSIN DD *
+C      FORTRAN SOURCE CODE - ROUTINE STAEOF IS IN SYS2.ASU.LIB
+C      ROUTINES CPUSET AND CPUCKT ARE IN SYS2.ASU.VLIB
+       DIMENSION A(5),I(1:5),X(-4:0)
+       PARAMETER (IAMT=1000)
+       CALL STAEOF
+       CALL CPUSET(IAMT)
+       DO 20 J=1,5
+       K=J-5
+       READ(5,100)A(J),I(J),X(K)
+20     CONTINUE
+       CALL CPUCKT(IA)
+       WRITE(6,200)
+       WRITE(6,400)IA
+       DO 40 L=-4,0
+       K=L+5
+       WRITE(10,300)A(K),I(K),X(L)
+40     CONTINUE
+       ENDFILE 10
+100    FORMAT(F10.2,I6,F8.3)
+200    FORMAT(1H1,'FORTRAN TEST')
+300    FORMAT(1H0,F10.2,1X,I6,1X,F8.3)
+400    FORMAT(1H ,'TIME REMAINING ',2X I10,2X,I10)
+       STOP
+       END
+/*
+//* The following lines form a concatenated syslib call library:
+//LKED.SYSLIB DD
+//         DD
+//         DD DSN=SYS2.ASU.VLIB,DISP=SHR
+//         DD DSN=SYS2.ASU.LIB,DISP=SHR
+//* The program input data follows the next statement.
+//GO.SYSIN  DD *
+     16.421961411893.141
+      1.31900011 493.190
+       .01666117   9.821
+    461.001110011762.011
+1119671.18   919  14.1
+/*
+//* Define a sequential data set for FORTRAN unit 10
+//GO.FT10F001 DD DSN=WYL.XX.YYY.FORIO,DISP=(NEW,CATLG,DELETE),
+//  DCB=(RECFM=FB,LRECL=80,BLKSIZE=6160),UNIT=RESRCH,
+//  SPACE=(TRK,(2,1),RLSE)</PRE>
+</TD>
+  </TR>
+</TABLE><BR>
+<BR>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

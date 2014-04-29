@@ -1,0 +1,712 @@
+<HTML>
+<HEAD>
+<TITLE>Example 3.12: An Assignment Problem</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="lperef12">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect58.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The LP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 3.12: An Assignment Problem</H2>
+<P>This example departs somewhat from the emphasis of previous ones.
+Typically, linear programming models are large, have
+considerable structure, and are solved with some regularity.
+Some form of automatic model building, or matrix generation
+as it is commonly called, is a useful aid.
+The sparse input format provides a great deal of flexibility
+in model specification so that, in many cases, the DATA step
+can be used to generate the matrix.
+<P>The following assignment problem illustrates some techniques
+in matrix generation. 
+In this example, you have four machines that can produce any of 
+six grades of cloth, and you have five customers that demand 
+various amounts of each grade of cloth. 
+The return from supplying a customer with a demanded grade depends
+on the machine on which the cloth was made.
+In addition, the machine capacity depends both upon the specific
+machine used and the grade of cloth made.
+<P>To formulate this problem, let <SPAN CLASS="mathfont"><I>i</I></SPAN> denote customer,
+<SPAN CLASS="mathfont"><I>j</I></SPAN> denote grade, and <SPAN CLASS="mathfont"><I>k</I></SPAN>
+denote machine. 
+Then let <SPAN CLASS="mathfont"><I>x</I><SUB><I>ijk</I></SUB></SPAN> denote the amount of cloth grade <SPAN CLASS="mathfont"><I>j</I></SPAN> made on
+machine <SPAN CLASS="mathfont"><I>k</I></SPAN> for customer <SPAN CLASS="mathfont"><I>i</I></SPAN>;
+let <SPAN CLASS="mathfont"><I>r</I><SUB><I>ijk</I></SUB></SPAN> denote the return from selling
+one unit of grade <I>j</I>  cloth made on machine <I>k </I>
+to customer <I>i</I> ;
+let <SPAN CLASS="mathfont"><I>d</I><SUB><I>ij</I></SUB></SPAN> denote the demand for
+grade <SPAN CLASS="mathfont"><I>j</I></SPAN> cloth by customer <SPAN CLASS="mathfont"><I>i</I></SPAN>;
+let <SPAN CLASS="mathfont"><I>c</I><SUB><I>jk</I></SUB></SPAN> denote the number of units of machine
+<SPAN CLASS="mathfont"><I>k</I></SPAN> required to produce one
+unit of grade <SPAN CLASS="mathfont"><I>j</I></SPAN> cloth;
+and let <SPAN CLASS="mathfont"><I>a</I><SUB><I>k</I></SUB></SPAN> denote the
+number of units of machine <SPAN CLASS="mathfont"><I>k</I></SPAN> available.
+Then, you get
+<P><TABLE COLS=3 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL ALIGN=CENTER><COL><COL>
+<TR VALIGN="TOP"><TD ALIGN=CENTER NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>max <IMG WIDTH="95" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq69.gif"
+ ALT="\Sigma_{ijk} r_{ijk}x_{ijk}"></TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=CENTER NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=CENTER NOWRAP>subject to:</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="101" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq70.gif"
+ ALT="\Sigma_{k} x_{ijk}=d_{ij}"></TD><TD ALIGN=LEFT NOWRAP>for all <SPAN CLASS="mathfont"><I>i</I></SPAN> and <SPAN CLASS="mathfont"><I>j</I></SPAN></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=CENTER NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="124" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq71.gif"
+ ALT="\Sigma_{ij} c_{jk}x_{ijk}\leq a_k"></TD><TD ALIGN=LEFT NOWRAP>for all <SPAN CLASS="mathfont"><I>k</I></SPAN></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=CENTER NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="67" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq72.gif"
+ ALT="x_{ijk}\geq 0"></TD><TD ALIGN=LEFT NOWRAP>for all <SPAN CLASS="mathfont"><I>i</I></SPAN>, <SPAN CLASS="mathfont"><I>j</I></SPAN>, and <SPAN CLASS="mathfont"><I>k</I></SPAN></TD></TR>
+</TABLE>
+<P>The data are saved in three data sets. 
+The <SPAN CLASS="ssfeleven">OBJECT</SPAN> data set contains
+the returns for satisfying demand, the <SPAN CLASS="ssfeleven">DEMAND</SPAN> data set contains the
+amounts demanded, and the <SPAN CLASS="ssfeleven">RESOURCE</SPAN> data set contains the conversion factors
+for each grade and the total amounts of machine resources available.
+<P><PRE>
+   title 'An Assignment Problem';
+
+   data object;
+      input machine customer
+            grade1 grade2 grade3 grade4 grade5 grade6;
+      datalines;
+   1 1 102 140 105  105  125  148
+   1 2 115 133 118  118  143  166
+   1 3  70 108  83   83   88   86
+   1 4  79 117  87   87  107  105
+   1 5  77 115  90   90  105  148
+   2 1 123 150 125  124  154   .
+   2 2 130 157 132  131  166   .
+   2 3 103 130 115  114  129   .
+   2 4 101 128 108  107  137   .
+   2 5 118 145 130  129  154   .
+   3 1  83  .   .    97  122  147
+   3 2 119  .   .   133  163  180
+   3 3  67  .   .    91  101  101
+   3 4  85  .   .   104  129  129
+   3 5  90  .   .   114  134  179
+   4 1 108 121  79   .   112  132
+   4 2 121 132  92   .   130  150
+   4 3  78  91  59   .    77   72
+   4 4 100 113  76   .   109  104
+   4 5  96 109  77   .   105  145
+   ;
+</PRE>
+<P><PRE>
+   data demand;
+      input customer
+            grade1 grade2 grade3 grade4 grade5 grade6;
+      datalines;
+   1 100 100 150  150  175  250
+   2 300 125 300  275  310  325
+   3 400   0 400  500  340    0
+   4 250   0 750  750    0    0
+   5   0 600 300    0  210  360
+   ;
+</PRE>
+<P><PRE>
+   data resource;
+      input machine
+            grade1 grade2 grade3 grade4 grade5 grade6 avail;
+      datalines;
+   1 .250 .275 .300  .350  .310  .295  744
+   2 .300 .300 .305  .315  .320  .     244
+   3 .350 .    .     .320  .315  .300  790
+   4 .280 .275 .260  .     .250  .295  672
+   ;
+</PRE>
+<P>The linear program is built using the DATA step.
+The model is saved in a SAS data set in the sparse input
+format for PROC LP.
+Each section of the following DATA step generates a
+piece of the linear program. 
+The first section generates the objective function; the next 
+section generates the demand constraints; and the last section 
+generates the machine resource availability constraints.
+<P><PRE>
+   /*  build the linear programming model */
+
+   data model;
+      array grade{6} grade1-grade6;
+      length _type_ $ 8 _row_ $ 8 _col_ $ 8;
+      keep _type_ _row_ _col_ _coef_;
+
+      ncust=5;
+      nmach=4;
+      ngrade=6;
+
+      /* generate the objective function */
+
+      _type_='MAX';
+      _row_='OBJ';
+      do k=1 to nmach;
+         do i=1 to ncust;
+            link readobj;     /* read the objective coefficient data */
+            do j=1 to ngrade;
+               if grade{j}^=. then do;
+                  _col_='X'||put(i,1.)||put(j,1.)||put(k,1.);
+                  _coef_=grade{j};
+                  output;
+               end;
+            end;
+         end;
+      end;
+</PRE>
+<P><PRE>
+      /* generate the demand constraints */
+
+      do i=1 to ncust;
+         link readdmd;        /* read the demand data */
+         do j=1 to ngrade;
+            if grade{j}^=. then do;
+               _type_='EQ';
+               _row_='DEMAND'||put(i,1.)||put(j,1.);
+               _col_='_RHS_';
+               _coef_=grade{j};
+               output;
+               _type_=' ';
+               do k=1 to nmach;
+                  _col_='X'||put(i,1.)||put(j,1.)||put(k,1.);
+                  _coef_=1.0;
+                  output;
+               end;
+            end;
+         end;
+      end;
+</PRE>
+<P><PRE>
+      /* generate the machine constraints */
+
+      do k=1 to nmach;
+         link readres;       /* read the machine data */
+         _type_='LE';
+         _row_='MACHINE'||put(k,1.);
+         _col_='_RHS_';
+         _coef_=avail;
+         output;
+         _type_=' ';
+         do i=1 to ncust;
+            do j=1 to ngrade;
+               if grade{j}^=. then do;
+                  _col_='X'||put(i,1.)||put(j,1.)||put(k,1.);
+                  _coef_=grade{j};
+                  output;
+                  end;
+               end;
+            end;
+         end;
+</PRE>
+<P><PRE>
+   readobj: set object;
+   return;
+   readdmd: set demand;
+   return;
+   readres: set resource;
+   return;
+   run;
+</PRE>
+<P>With the model built and saved in a data set, it is ready
+for solution using PROC LP.
+The following program solves the model and saves the
+solution in the data set called <SPAN CLASS="ssfeleven">PRIMA</SPAN>L:
+<P><PRE>
+   /* solve the linear program */
+
+   proc lp data=model sparsedata noprint primalout=primal;
+   run;
+</PRE>
+
+<P>The following output is produced by PROC LP.
+<P></P><A NAME="lpoo16"><SPAN CLASS="ssften"><B>Output 3.12.1:</B> Label ?</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>An Assignment Problem</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE--></i></b></font></CENTER>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>The LP Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Problem Summary</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Objective Function</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">Max OBJ</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Rhs Variable</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">_RHS_</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Type Variable</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">_type_</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Problem Density (%)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">5.31</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Variables</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">Number</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Non-negative</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">120</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Slack</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">4</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Total</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">124</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Constraints</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">Number</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>LE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">4</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>EQ</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">30</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Objective</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Total</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">35</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><P></P><SPAN CLASS="ssften"><B>Output 3.12.1:</B> (continued)</SPAN>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>The LP Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Solution Summary</b></font></TD>
+</TR>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b><br>Terminated&nbsp;Successfully</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Objective Value</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">871426.03763</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Phase 1 Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Phase 2 Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">43</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Phase 3 Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Integer Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Integer Solutions</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Initial Basic Feasible Variables</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">26</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Time Used (seconds)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Number of Inversions</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Epsilon</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1E-8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Infinity</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1.797693E308</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Maximum Phase 1 Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Maximum Phase 2 Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Maximum Phase 3 Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Maximum Integer Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Time Limit (seconds)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">120</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><BR>The solution is prepared for reporting using the
+DATA step, and a report is written using PROC TABULATE.
+<P><PRE>
+   /* report the solution */
+
+   data solution;
+      set primal;
+      keep customer grade machine amount;
+      if substr(_var_,1,1)='X' then do;
+        if _value_^=0 then do;
+          customer = substr(_var_,2,1);
+          grade    = substr(_var_,3,1);
+          machine  = substr(_var_,4,1);
+          amount   = _value_;
+          output;
+        end;
+     end;
+   run;
+
+   proc tabulate data=solution;
+      class customer grade machine;
+      var   amount;
+      table (machine*customer), (grade*amount);
+   run;
+</PRE>
+
+<P>The report shown in <A HREF="sect57.htm#lpoo17">Output 3.12.2</A> gives the assignment of
+customer, grade of cloth, and machine that maximizes the
+return and does not violate the machine resource availability.
+<P></P><A NAME="lpoo17"><SPAN CLASS="ssften"><B>Output 3.12.2:</B> An Assignment Problem</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<CENTER>
+ 
+<TABLE  rules=none frame=void>
+<TR>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD COLSPAN=2 ROWSPAN=4 ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD COLSPAN=6 ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>grade</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1       </b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2       </b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3       </b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>4       </b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>5       </b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>6       </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>amount</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>amount</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>amount</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>amount</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>amount</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>amount</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Sum</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Sum</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Sum</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Sum</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Sum</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Sum</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>machine</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>customer</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        100.00</font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        150.00</font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        150.00</font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        175.00</font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        250.00</font></TD>
+</TR>
+<TR>
+ <TD ROWSPAN=5 ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1       </b></font></TD>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1       </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        300.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        256.72</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        210.31</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>4       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        750.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>5       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">         92.27</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ROWSPAN=2 ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2       </b></font></TD>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        143.28</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        340.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>5       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        300.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ROWSPAN=4 ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3       </b></font></TD>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        275.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        310.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        325.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        289.69</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>4       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        750.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>5       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        210.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        360.00</font></TD>
+</TR>
+<TR>
+ <TD ROWSPAN=5 ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>4       </b></font></TD>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        100.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        300.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        125.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        400.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>4       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        250.00</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=TOP bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>5       </b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">        507.73</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">.</font></TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+</TR>
+</TABLE>
+<P>
+</CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><P></P><SPAN CLASS="ssften"><B>Output 3.12.2:</B> (continued)</SPAN>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"></TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect58.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

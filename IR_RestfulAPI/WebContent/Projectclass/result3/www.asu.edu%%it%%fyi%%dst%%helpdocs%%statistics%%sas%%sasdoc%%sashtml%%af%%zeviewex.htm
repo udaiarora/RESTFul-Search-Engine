@@ -1,0 +1,214 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>External File Viewer Class : Using the External File Viewer </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z5slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0231250.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z13hods.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zeviewex">Using the External File Viewer</A></FONT></H1>
+
+
+<P>This example creates a simple external file viewer that allows you to
+select the file to display and to change the font.  In this application commands
+are issued from a pull-down menu.
+<P>  
+<OL START="1" type="1">
+<LI>Create a frame containing an external file viewer object. Assign
+these object attributes: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>Name</TD>
+<TD align="left">FILEVIEW</TD></TR>
+
+<TR align=left valign="top">
+<TD>Font</TD>
+<TD align="left">SAS Font</TD></TR>
+
+<TR align=left valign="top">
+<TD>Scrollbars</TD>
+<TD align="left">Vertical is turned on.
+Horizontal is turned on</TD></TR>
+</TABLE>
+
+<P>Do not specify a file or fileref.<P>
+
+<LI>Create the PMENU entry to accompany the viewer. In the Program
+Editor, enter the following code:  
+
+
+
+<PRE>proc pmenu c=sasuser.menucat;
+   menu fileview;
+      item 'File' menu=file;
+      item 'View' menu=view;
+      item 'Help';
+   menu file;
+      item 'Open' selection=o;
+      item 'End';
+      selection o 'open';
+   menu view;
+      item 'Font' selection=f;
+      selection f 'font';
+run;
+quit;</PRE><P>
+
+<LI>Assign the PMENU Entry to FILEVIEW: 
+<P>
+<UL>
+
+<LI>From the General Attributes window, select <B>Keys,
+Pmenus and Commands</B> and in the PMENU Name field enter 
+
+
+<CODE><B>SASUSER.MENUCAT.FILEVIEW.PMENU</B></CODE>.  Turn on <B>Pmenu is always active</B>.<P>
+</UL>
+<P>
+
+<LI>Create the SCL program that determines what happens when the user
+makes a selection from the pull-down menu. Open the SOURCE entry for the frame
+and enter the following code:<P>
+</OL>
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0316936">&nbsp;</A><A href="z0316936.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+length filename $ 200 fontlist 8 rc 8;
+
+INIT:
+   filename = '';
+   fontlist = makelist(0, 'L') ;
+   control allcmds ;
+return;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0316937">&nbsp;</A><A href="z0316937.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+MAIN:
+   if ( _status_ = 'E' or _status_ = 'C') then
+      return;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0316940">&nbsp;</A><A href="z0316940.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+   select(word(1, 'u'));</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0316941">&nbsp;</A><A href="z0316941.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+   when ('OPEN');
+      rc = filedialog('OPEN',filename);
+      call notify('fileview','_set_file_',
+                   filename, 'n');</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0316943">&nbsp;</A><A href="z0316943.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+   when ('FONT');
+      fontlist = fontsel(fontlist,' ' );
+      call notify('fileview', '_set_font_',
+                   fontlist);
+   otherwise;
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0316955">&nbsp;</A><A href="z0316955.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+call nextcmd();
+return;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0316957">&nbsp;</A><A href="z0316957.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+TERM:
+   rc = dellist(fontlist);
+return;</PRE></TD></TR></TABLE>
+
+
+
+<OL START="4" type="1">
+<LI>Compile and save the program. Test the viewer with the TESTAF
+command: 
+<P>
+<UL>
+
+<LI>When the frame opens, select OPEN from the File menu. Select a
+text file from the file selector.<P>
+
+<LI>Select Font from the View menu and select a font from the font
+selector.<P>
+</UL>
+<P>
+</OL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z5slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0231250.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z13hods.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zeviewex">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

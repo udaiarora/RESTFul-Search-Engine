@@ -1,0 +1,303 @@
+<HTML>
+<HEAD>
+<TITLE>Example 3.14: A Multicommodity Transshipment Problem with Fixed Charges</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="lperef14">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect58.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect60.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The LP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 3.14: A Multicommodity Transshipment Problem with Fixed Charges</H2>
+<P>The following example illustrates a DATA step program
+for generating a linear program to solve a multicommodity
+network flow model that has fixed charges.
+Consider a network consisting of the following nodes: farm-a, farm-b,
+farm-c, Chicago, St. Louis, and New York.
+You can ship three commodities from each farm to Chicago or
+St. Louis and from Chicago or St. Louis to New York.
+The following table shows the unit shipping cost for each of
+the four commodities across each of the arcs. 
+The table also shows the supply (positive numbers) at each of 
+the from nodes and the demand (negative numbers) at each 
+of the to nodes.
+The fixed charge is a fixed cost for shipping any nonzero
+amount across an arc. 
+For example, if any amount of any of the
+four commodities is sent from farm-c to St. Louis, then a
+fixed charge of 75 units is added to the shipping cost.
+<P></P><A NAME="lptre14"><SPAN CLASS="ssften"><B>Table 3.8:</B> Farms to cities network problem</SPAN></A> 
+<PRE>
+                 Unit Shipping  Supply and Demand  Fixed
+  From    To         Cost                          Charge
+  Node   Node      1  2  3  4     1   2   3   4
+
+farm-a  Chicago   20 15 17 22   100 100  40   .     100
+farm-b  Chicago   15 15 15 30   100 200  50  50      75
+farm-c  Chicago   30 30 10 10    40 100  75 100     100
+farm-a  StLouis   30 25 27 22     .   .   .   .     150
+farm-c  StLouis   10  9 11 10     .   .   .   .      75
+Chicago NY        75 75 75 75  -150 -200 -50 -75    200
+StLouis NY        80 80 80 80     .   .   .   .     200
+</PRE>
+
+<P>The following program is designed to take the data in the form given
+in the preceding table. 
+It builds the node arc incidence matrix for
+a network given in this form and adds integer variables to capture
+the fixed charge using the type
+of constraints discussed in <A HREF="sect53.htm">Example 3.8</A>.
+The program solves the model using PROC LP, saves the
+solution in the <A HREF="sect8.htm#lp_3baf">PRIMALOUT=</A> data set named <SPAN CLASS="ssfeleven">SOLUTION</SPAN>, 
+and displays the solution.
+The DATA step can be easily modified to handle larger problems
+with similar structure.
+<P><PRE>
+   title 'Multi-commodity Transshipment Problem with Fixed Charges';
+
+   data network;
+      retain M 1.0e6;
+      length _col_ $ 22 _row_ $ 22;
+      keep _type_ _col_ _row_ _coef_;
+      array sd sd1-sd4;
+      array c c1-c4;
+
+      input arc $10. from $ to $ c1 c2 c3 c4 sd1 sd2 sd3 sd4 fx;
+</PRE>
+<P><PRE>
+      /* for the first observation define some of the rows */
+
+      if _n_=1 then do;
+         _type_='upperbd';
+         _row_='upper';
+         output;
+         _type_='lowerbd';
+         _row_='lower';
+         output;
+         _type_='min';
+         _row_='obj';
+         output;
+         _type_='integer';
+         _row_='int';
+         output;
+         end;
+      _col_='_rhs_';
+      _type_='le';
+</PRE>
+<P><PRE>
+      do over sd;                        /* loop for each commodity     */
+         _coef_=sd;
+         if sd&#62;0 then do;                /*  the node is a supply node  */
+            _row_=from||' commodity'||put(_i_,2.);
+            if from^=' ' then output;
+         end;
+         else if sd&#60;0 then do;           /*  the node is a demand node  */
+            _row_=to||' commodity'||put(_i_,2.);
+            if to^=' ' then output;
+         end;
+         else if from^=' ' &#38; to^=' ' then do;  /* a transshipment node  */
+            _coef_=0;
+            _row_=from||' commodity'||put(_i_,2.);
+            output;
+            _row_=to  ||' commodity'||put(_i_,2.);
+            output;
+         end;
+      end;
+</PRE>
+<P><PRE>
+      do over c;                         /* loop for each commodity     */
+      _col_=arc||' commodity'||put(_i_,2.);
+      if from^=' ' &#38; to^=' ' then do;
+                                     /* add node arc incidence matrix*/
+        _type_='le';
+        _row_=from||' commodity'||put(_i_,2.);
+        _coef_=1;
+        output;
+        _row_=to     ||' commodity'||put(_i_,2.);
+        _coef_=-1;
+        output;
+        _type_='  ';
+        _row_='obj';
+        _coef_=c;
+        output;
+                                     /* add fixed charge variables      */
+        _type_='le';
+        _row_=arc;
+        _coef_=1;output;
+        _col_='_rhs_';
+        _type_='  ';
+        _coef_=0;
+        output;
+        _col_=arc||'fx';
+        _coef_=-M;
+        output;
+        _row_='int';
+        _coef_=1;
+        output;
+        _row_='obj';
+        _coef_=fx;
+        output;
+        _row_='upper';
+        _coef_=1;
+        output;
+
+      end;
+      end;
+</PRE>
+<P><PRE>
+      datalines;
+   a-Chicago  farm-a  Chicago 20 15 17 22  100  100  40   . 100
+   b-Chicago  farm-b  Chicago 15 15 15 30  100  200  50  50  75
+   c-Chicago  farm-c  Chicago 30 30 10 10   40  100  75 100 100
+   a-StLouis  farm-a  StLouis 30 25 27 22    .    .   .   . 150
+   c-StLouis  farm-c  StLouis 10  9 11 10    .    .   .   .  75
+   Chicago-NY Chicago NY      75 75 75 75 -150 -200 -50 -75 200
+   StLous-NY  StLouis NY      80 80 80 80    .    .   .   . 200
+   ;
+</PRE>
+<P><PRE>
+   /* solve the model */
+
+   proc lp sparsedata pout=solution  noprint;
+   run;
+
+   /* print the solution */
+
+   data;
+      set solution;
+      rename _var_=arc _value_=amount;
+      if _value_^=0 &#38; _type_='NON-NEG';
+   run;
+
+   proc print;
+      id arc;
+      var amount;
+   run;
+</PRE>
+<P>The results from this example are
+shown in <A HREF="sect59.htm#lpoo20">Output 3.14.1</A>.
+The <A HREF="sect8.htm#lp_3bbe">NOPRINT</A> option in the PROC LP statement suppresses the
+Variable and Constraint Summary sections. 
+This is useful when solving large models for which a report program 
+is available.
+Here, the solution is saved in data set <SPAN CLASS="ssfeleven">SOLUTION</SPAN> and reported 
+using PROC PRINT.
+The solution shows the amount that is shipped over each arc.
+<P></P><A NAME="lpoo20"><SPAN CLASS="ssften"><B>Output 3.14.1:</B> Multicommodity Transshipment Problem with Fixed Charges</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Multi-commodity Transhipment Problem with Fixed-Charges</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE--></i></b></font></CENTER>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>arc</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>amount</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a-Chicago  commodity 1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 10</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a-Chicago  commodity 2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">b-Chicago  commodity 1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">c-Chicago  commodity 3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 50</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">c-Chicago  commodity 4</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 75</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">c-StLouis  commodity 1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 40</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">c-StLouis  commodity 2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">Chicago-NY commodity 1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">Chicago-NY commodity 2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">Chicago-NY commodity 3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 50</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">Chicago-NY commodity 4</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 75</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">StLous-NY  commodity 1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 40</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">StLous-NY  commodity 2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">100</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect58.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect60.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

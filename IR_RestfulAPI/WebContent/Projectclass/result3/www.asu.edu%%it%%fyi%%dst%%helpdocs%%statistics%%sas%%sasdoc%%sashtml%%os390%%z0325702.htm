@@ -1,0 +1,193 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using the INFILE/FILE User Exit Facility : Writing a User Exit Module </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0325735.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zuncdesc.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0325702">Writing a User Exit Module</A></FONT></H1>
+
+
+<P><A name="z1097627">&#13;
+You can write a user exit module in any language
+that meets the following criteria: </A>
+<P>
+<UL>
+
+<LI>the language runs in 31-bit addressing mode<P>
+
+<LI>the language supports standard OS
+linkage.<P>
+</UL>
+
+<P>Examples of such languages are IBM assembly language
+and C.  See <A href="z-sample.htm">Sample Program</A>
+for an example of an exit that is written in assembly language. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;In all the figures in this appendix, the field names that
+are shown in parentheses (for example, EXITIDB in <A href="#zifue-f2">UEBCB Structure, Part 1 of 2</A>) are those that were used in the Sample
+Program.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>In your user exit module, you should include code for
+all seven of the functions that are described in <A href="zuncdesc.htm">Function Descriptions</A>. At the beginning of your user exit
+module, examine the function code that was passed to you in the Function Request
+Control Block (described in the next section) and branch to the routine or
+function that is being requested.
+<P>When you write the user exit module, you must follow
+IBM conventions for assembler linkage, and you must set R15 to a return code
+value that indicates whether the user exit was successful.  Any nonzero return
+code causes execution to stop. If you want to write an error message to the
+SAS log, use the SAS LOG service routine. (See "LOG" in <A href="zservice.htm">SAS Service Routines</A>.)
+<P>If the user exit
+terminates with a nonzero return code
+value, you must put the address of a user-defined message string that ends
+in a null (00x) character in the Pointer to User Error Message (ERRMSG) field
+of the User Exit BAG Control Block. (See <A href="#ze-uebcb">User Exit BAG Control Block</A>.) This message is printed in the SAS log.
+<P>Return code
+values that apply to particular function
+requests are listed with the descriptions of those functions in later sections
+of this appendix.
+<P>Be sure to take advantage of the SAS service routines
+when you write your user exit functions.  See <A href="zservice.htm">SAS Service Routines</A> for details.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Function Request Control Block</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557553">&#13;
+  The Function Request
+Control Block (FRCB) provides a means of communication between SAS and your
+user exit functions. Each time SAS invokes the user exit module, R1 points
+to a Function Request Control Block (FRCB) that contains, at a minimum, the
+fields shown in </A><A href="#zifue-f1">Function Request Control Block Fields</A>. 
+<P>
+<B><I><A name="zifue-f1">Function Request Control Block Fields</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328324.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The 4-byte Function Code communicates the current
+user
+exit phase to the user exit.  It contains one of the following values: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>0</TD>
+<TD align="left">indicates the Initialization function.</TD></TR>
+
+<TR align=left valign="top">
+<TD>4</TD>
+<TD align="left">indicates the Parse Options function.</TD></TR>
+
+<TR align=left valign="top">
+<TD>8</TD>
+<TD align="left">indicates the Open function.</TD></TR>
+
+<TR align=left valign="top">
+<TD>12</TD>
+<TD align="left">indicates the Read function.</TD></TR>
+
+<TR align=left valign="top">
+<TD>16</TD>
+<TD align="left">indicates the Concatenation function.</TD></TR>
+
+<TR align=left valign="top">
+<TD>20</TD>
+<TD align="left">indicates the Write function.</TD></TR>
+
+<TR align=left valign="top">
+<TD>24</TD>
+<TD align="left">indicates the Close function.</TD></TR>
+</TABLE>
+
+<P>These functions are described in
+<A href="zuncdesc.htm">Function Descriptions</A>. Each time
+SAS calls the user exit, the user exit should branch to the appropriate exit
+routine, as determined by the Function code.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="ze-uebcb">User Exit BAG Control Block</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557570">&#13;   In
+</A><A href="#zifue-f1">Function Request Control Block Fields</A>, the UEBCB (User Exit
+BAG Control Block) serves as a common anchor point for work areas that SAS
+has obtained on behalf of the user exit.  SAS reserves a user word in the
+UEBCB for the user exit to use.  You can use this word to store a pointer
+to memory that you allocate for use by all your exit routines.  SAS does not
+modify this word during the lifespan of the user exit.  The <B>lifespan</B> is defined as the time period between the Initialization function
+request and the Close function request.
+<P><A href="#zifue-f2">UEBCB Structure, Part 1 of 2</A>
+and <A href="#z0663534">UEBCB Structure, Part 2 of 2</A>
+illustrate the structure of the UEBCB and its relationship to other data areas: 
+<P>
+<B><I><A name="zifue-f2">UEBCB Structure, Part 1 of 2</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328325.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>
+<P>
+<B><I><A name="z0663534">UEBCB Structure, Part 2 of 2</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328326.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The Flag Byte 1 field can
+have one of several values.
+The following list gives the values and their meanings: 
+<DL>
+<DT>'80'x  EX_NEXT</DT>
+<DD>prompt the exit for the next record.<P></DD>
+
+<DT>'40'x  EX_DEL</DT>
+<DD>ignore the current record.<P></DD>
+
+<DT>'20'x  EX_EOF</DT>
+<DD>end-of-file has been reached.<P></DD>
+
+<DT>'10'x  EX_EOFC</DT>
+<DD>this exit supports read/write calls after
+end-of-file has been reached.<P></DD>
+
+<DT>'08'x  EX_ALC</DT>
+<DD>this exit uses the ALLOC/FREE routines.<P></DD>
+
+<DT>'04'x  EX_STOR</DT>
+<DD>this exit supports stored programs and views.<P></DD>
+</DL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0325735.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zuncdesc.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0325702">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

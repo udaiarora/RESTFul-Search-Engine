@@ -1,0 +1,177 @@
+<HTML>
+<HEAD>
+  <META NAME="GENERATOR" CONTENT="Adobe PageMill 3.0 Win">
+  <TITLE>IT: MVS FORTRAN: ELLPACK</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<H3><TABLE WIDTH="585" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+  <TR>
+    <TD WIDTH="585">
+    <H3><FONT SIZE="+0" FACE="Arial">ELLPACK</FONT></H3>
+
+    <P><FONT SIZE="-1" FACE="Arial">ELLPACK is a system for solving
+    elliptic partial differential equations. It uses FORTRAN code
+    as its base language. A problem is described by writing it in
+    a user-oriented ELLPACK language as a program. The ELLPACK preprocessor
+    (PP) processes this program by translating it to a FORTRAN source
+    program called the ELLPACK control program. This program is then
+    compiled and linked to a precompiled ELLPACK module library.
+    Finally, the program is executed, producing a solution to the
+    problem.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">** NOTE **</FONT></P>
+
+    <UL>
+      <LI><FONT SIZE="-1" FACE="Arial">No consulting support is available
+      for ELLPACK. Since the package source code is a mixture of 1966
+      and 1977 level of FORTRAN standards, some routines, usually input
+      and output (I/O), do not function correctly. Thus some of the
+      various calculations or options can not be used.</FONT>
+    </UL>
+
+    <H4><FONT SIZE="-1" FACE="Arial">Job Stream for preprocessor
+    (PP)</FONT></H4>
+
+    <PRE>
+   // JOB
+   // EXEC FORV2G,GOPGM=PP    &lt;-- PP IS NAME OF MAIN PROGRAM MEMBER
+   //STEPLIB DD
+   //        DD DSN=SYS2.ELLPACK.LIB.PPLIBA,DISP=SHR
+   //GO.PROG DD DSN=WYL.xx.yyy.EX1E1,DISP=SHR  &lt;-- program code
+   //GO.TEMPLAT DD DSN=WYL.xx.yyy.TEMPLAT,DISP=SHR &lt;-- control code
+   //GO.FORT DD DSN=WYL.xx.yyy.PPFTOUT,  &lt;-- control program (output)
+   // DISP=(NEW,CATLG),UNIT=RESRCH,
+   // SPACE=(TRK,(2,1)),DCB=(RECFM=FB,LRECL=80,BLKSIZE=7440)
+   // EXEC WNOTIFY
+   //</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">** NOTE **</FONT></P>
+
+    <UL>
+      <LI><FONT SIZE="-1" FACE="Arial">The ELLPACK program is written
+      and stored in a card image format data set. The text &quot;Solving
+      Elliptic Problems Using ELLPACK&quot; is the recommended manual
+      for information for preparing the ELLPACK program.</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">The TEMPLAT data set is a file
+      containing information about the form of the ELLPACK control
+      program which the PP program uses to construct the ELLPACK control
+      program.</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">The data set PPFTOUT contains
+      a FORTRAN code file (control program). The control program is
+      input for the main program.</FONT>
+    </UL>
+
+    <H4><FONT SIZE="-1" FACE="Arial">Sample ELLPACK Program</FONT></H4>
+
+    <P><FONT SIZE="-1" FACE="Arial">The following shows an example
+    of an ELLPACK program that was supplied with the program code
+    tape. This example is a simple elliptic problem which determines
+    a function 'u(x,y)' which satifies the partial differential equation
+    shown below:</FONT></P>
+
+    <PRE>
+     u(x,x)+u(y,y)+3u(x)-4u=exp(x+y)sin(pi*x)
+
+*   **********************************************************
+*   *                                                        *
+*   *  EXAMPLE ELLPACK PROGRAM 1.E1                          *
+*   *                                                        *
+*   **********************************************************
+OPTIONS.        TIME  $  MEMORY
+EQUATION.       UXX + UYY + 3.0D0*UX - 4.0D0*U  =  DEXP(X+Y)*DSIN(PI*X)
+BOUNDARY.       U = 0.0D0                 ON  X = 0.0D0
+                U = DSIN(PI*X) - X/2.0D0  ON  Y =-1.0D0
+                U = Y/2.0D0               ON  X = 1.0D0
+                U = X                     ON  Y = 2.0D0
+GRID.           6 X POINTS
+                6 Y POINTS
+DISCRETIZATION. 5 POINT STAR
+SOLUTION.       LINPACK BAND
+OUTPUT.         TABLE (U)
+                PLOT (U)
+END.</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The ELLPACK main program compiles
+    the FORTRAN source code contained in the control program file.
+    The object code from this compile task is linked to the main
+    program library and then the resulting load module is executed.
+    Some output is printed and plotted. The current implementation
+    of ELLPACK does not include the plotter.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The job stream (JCL) for the
+    main program (the previous example) is listed below:</FONT></P>
+
+    <PRE>
+   // JOB
+   //ELLRUN EXEC FORV2CLG,VER=OLD
+   //FORT.SYSIN DD DSN=WYL.xx.yyy.PPFTOUT,DISP=SHR &lt;-- file from pp run
+   //LKED.SYSLIB DD DSN=SYS2.ELLPACK.LIB.MAIN,DISP=SHR
+   //            DD DSN=WYL.xx.yyy.FUNCLMOD,DISP=SHR &lt;-- custom lib
+   //            DD DSN=SYS2.VSF2FORT.OLDLIB,DISP=SHR
+   //GO.FT01F001 DD DSN=&amp;&amp;MODSCRA,DISP=NEW,UNIT=SYSDA, &lt;-- temp file
+   //  SPACE=(TRK,(5,5)),DCB=(RECFM=VB,LRECL=512,BLKSIZE=512)
+   //GO.FT02F001 DD DSN=&amp;&amp;ECPSCRA,DISP=NEW,UNIT=SYSDA, &lt;-- temp file
+   //  SPACE=(TRK,(5,5)),DCB=(RECFM=VB,LRECL=80,BLKSIZE=800)
+   // EXEC WNOTIFY
+   //</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">** NOTE **</FONT></P>
+
+    <UL>
+      <LI><FONT SIZE="-1" FACE="Arial">The function load module is
+      a custom lib and is needed for some correction/changes to code
+      to permit certain jobs to run correctly. If you so desire, plot
+      routines may be added to this library. See text (manual) for
+      details. The Mechanical Engineering department has a copy of
+      the tape, containing all of the ELLPACK source code. Use the
+      following JCL jobs to copy the function load module and templat
+      file to your account.</FONT>
+    </UL>
+
+    <PRE>
+       // JOB
+       // EXEC IEBCOPY
+       //SYSUT1 DD DSN=PDACD.ELL.FUNCLMOD,DISP=SHR
+       //SYSUT2 DD DSN=WYL.xx.yyy.FUNCLMOD,
+       // DISP=(NEW,CATLG,DELETE),UNIT=RESRCH,
+       // SPACE=(TRK,(15,5,20)),DCB=(RECFM=U,BLKSIZE=15476)
+       //
+
+       // JOB
+       // EXEC IEBGENER
+       //SYSUT1 DD DSN=PDACD.ELL.TEMPLAT,DISP=SHR
+       //SYSUT2 DD DSN=WYL.xx.yyy.TEMPLAT,
+       // DISP=(NEW,CATLG,DELETE),UNIT=RESRCH,
+       // SPACE=(TRK,(5,5)),DCB=(RECFM=FB,LRECL=80,BLKSIZE=7440)</PRE>
+
+    <P>&nbsp;</TD>
+  </TR>
+</TABLE></H3>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

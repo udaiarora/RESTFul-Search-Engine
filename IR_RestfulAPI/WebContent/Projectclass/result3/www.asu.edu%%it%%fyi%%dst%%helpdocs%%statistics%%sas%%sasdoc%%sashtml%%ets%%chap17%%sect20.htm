@@ -1,0 +1,397 @@
+<HTML>
+<HEAD>
+<TITLE>Example 17.1: Spectral Analysis of Sunspot Activity</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="speex1">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect19.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The SPECTRA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 17.1: Spectral Analysis of Sunspot Activity</H2>
+<P>This example analyzes Wolfer's sunspot data (Anderson 1971).
+The following statements read and plot the data.
+<P><PRE>
+
+   title &#34;Wolfer's Sunspot Data&#34;;
+   data sunspot;
+      input year wolfer @@;
+      datalines;
+   1749  809 1750  834 1751  477 1752  478 1753  307 1754  122 1755   96
+   1756  102 1757  324 1758  476 1759  540 1760  629 1761  859 1762  612
+   1763  451 1764  364 1765  209 1766  114 1767  378 1768  698 1769 1061
+   1770 1008 1771  816 1772  665 1773  348 1774  306 1775   70 1776  198
+   1777  925 1778 1544 1779 1259 1780  848 1781  681 1782  385 1783  228
+   1784  102 1785  241 1786  829 1787 1320 1788 1309 1789 1181 1790  899
+   1791  666 1792  600 1793  469 1794  410 1795  213 1796  160 1797   64
+   1798   41 1799   68 1800  145 1801  340 1802  450 1803  431 1804  475
+   1805  422 1806  281 1807  101 1808   81 1809   25 1810    0 1811   14
+   1812   50 1813  122 1814  139 1815  354 1816  458 1817  411 1818  304
+   1819  239 1820  157 1821   66 1822   40 1823   18 1824   85 1825  166
+   1826  363 1827  497 1828  625 1829  670 1830  710 1831  478 1832  275
+   1833   85 1834  132 1835  569 1836 1215 1837 1383 1838 1032 1839  858
+   1840  632 1841  368 1842  242 1843  107 1844  150 1845  401 1846  615
+   1847  985 1848 1243 1849  959 1850  665 1851  645 1852  542 1853  390
+   1854  206 1855   67 1856   43 1857  228 1858  548 1859  938 1860  957
+   1861  772 1862  591 1863  440 1864  470 1865  305 1866  163 1867   73
+   1868  373 1869  739 1870 1391 1871 1112 1872 1017 1873  663 1874  447
+   1875  171 1876  113 1877  123 1878   34 1879   60 1880  323 1881  543
+   1882  597 1883  637 1884  635 1885  522 1886  254 1887  131 1888   68
+   1889   63 1890   71 1891  356 1892  730 1893  849 1894  780 1895  640
+   1896  418 1897  262 1898  267 1899  121 1900   95 1901   27 1902   50
+   1903  244 1904  420 1905  635 1906  538 1907  620 1908  485 1909  439
+   1910  186 1911   57 1912   36 1913   14 1914   96 1915  474 1916  571
+   1917 1039 1918  806 1919  636 1920  376 1921  261 1922  142 1923   58
+   1924  167
+   ;
+   
+   symbol1 i=splines v=dot;
+   proc gplot data=sunspot;
+      plot wolfer*year;
+   run;
+</PRE>
+<P>The plot of the sunspot series is shown in <A HREF="sect20.htm#speex01a">Output 17.1.1</A>.
+<P></P><A NAME="speex01a"><SPAN CLASS="ssften"><B>Output 17.1.1:</B> Plot of Original Data</SPAN></A>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/speex01a.gif" ALT="speex01a.gif (8031 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>The spectral analysis of the sunspot series is performed by the 
+following statements:
+<P><PRE>
+
+   proc spectra data=sunspot out=b p s adjmean whitetest;
+      var wolfer;
+      weights 1 2 3 4 3 2 1;
+   run;
+   
+   proc print data=b(obs=12);
+   run;
+</PRE>
+<P>The PROC SPECTRA statement specifies the P and S options to 
+write the periodogram and spectral density estimates 
+to the OUT= data set B.
+The WEIGHTS statement specifies a triangular spectral window for smoothing
+the periodogram to produce the spectral density estimate.
+The ADJMEAN option zeros the frequency 0 value and avoids
+the need to exclude that observation from the plots.
+The WHITETEST option prints tests for white noise.
+<P>The Fisher's Kappa test statistic of 16.070 is larger than the
+5% critical value of 7.2, so the null
+hypothesis that the sunspot series is white noise is rejected.
+<P>The Bartlett's Kolmogorov-Smirnov statistic of 0.6501 is greater than
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="290" HEIGHT="78"
+ SRC="images/speeq31.gif"
+ ALT="a \sqrt{1 / (m-1)} = 1.36 \sqrt{1 / 87} = 0.1458"></DL>
+<P>so reject the null hypothesis that the spectrum represents white noise.
+<P>The printed output produced by PROC SPECTRA is shown in
+<A HREF="sect20.htm#speex01b">Output 17.1.2</A>. 
+The output data set B created by PROC SPECTRA is shown in part in
+<A HREF="sect20.htm#speex01c">Output 17.1.3</A>.
+<P></P><A NAME="speex01b"><SPAN CLASS="ssften"><B>Output 17.1.2:</B> White Noise Test Results</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Wolfer's Sunspot Data</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>SPECTRA Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE1--></CENTER>
+<P>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Test for White Noise for<br>Variable wolfer</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>M-1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">87</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Max(P(*))</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">4062267</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Sum(P(*))</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">21156512</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+<A NAME="IDX1">&nbsp;</A>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Fisher's Kappa: (M-1)*Max(P(*))/Sum(P(*))</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Kappa</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">16.70489</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+<A NAME="IDX2">&nbsp;</A>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Bartlett's Kolmogorov-Smirnov<br>Statistic:<br> Maximum absolute difference<br>of the standardized<br> partial sums of the periodogram<br>and the CDF of a<br> uniform(0,1) random variable.</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Test Statistic</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.650055</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+</TD></TR></TABLE></CENTER><P></P><A NAME="speex01c"><SPAN CLASS="ssften"><B>Output 17.1.3:</B> First 12 Observations of the OUT= Data Set</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Wolfer's Sunspot Data</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Obs</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>FREQ</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>PERIOD</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>P_01</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>S_01</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.00000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">   .   </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">      0.00</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">59327.52</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.03570</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">176.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">   3178.15</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">61757.98</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.07140</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 88.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">2435433.22</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">69528.68</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 4</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.10710</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 58.667</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1077495.76</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">66087.57</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 5</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.14280</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 44.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 491850.36</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">53352.02</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 6</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.17850</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 35.200</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">   2581.12</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">36678.14</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.21420</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 29.333</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 181163.15</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">20604.52</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 8</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.24990</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 25.143</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 283057.60</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">15132.81</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 9</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.28560</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 22.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 188672.97</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">13265.89</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">10</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.32130</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 19.556</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 122673.94</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">14953.32</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">11</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.35700</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 17.600</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">  58532.93</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">16402.84</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">12</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.39270</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 16.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 213405.16</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">18562.13</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+</TD></TR></TABLE></CENTER><BR>The following statements plot the periodogram and spectral density estimate:
+<P><PRE>
+
+   proc gplot data=b;
+      plot p_01 * freq;
+      plot p_01 * period;
+      plot s_01 * freq;
+      plot s_01 * period;
+   run;
+</PRE>
+<P>The periodogram is plotted against frequency in <A HREF="sect20.htm#speex01d">Output 17.1.4</A>
+and plotted against period in <A HREF="sect20.htm#speex01e">Output 17.1.5</A>.
+The spectral density estimate is plotted against frequency
+in <A HREF="sect20.htm#speex01f">Output 17.1.6</A> and plotted against period in <A HREF="sect20.htm#speex01g">Output 17.1.7</A>.
+<P></P><A NAME="speex01d"><SPAN CLASS="ssften"><B>Output 17.1.4:</B> Plot of Periodogram by Frequency</SPAN></A>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/speex01d.gif" ALT="speex01d.gif (4168 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P></P><A NAME="speex01e"><SPAN CLASS="ssften"><B>Output 17.1.5:</B> Plot of Periodogram by Period</SPAN></A>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/speex01e.gif" ALT="speex01e.gif (4565 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P></P><A NAME="speex01f"><SPAN CLASS="ssften"><B>Output 17.1.6:</B> Plot of Spectral Density Estimate by Frequency</SPAN></A>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/speex01f.gif" ALT="speex01f.gif (4135 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P></P><A NAME="speex01g"><SPAN CLASS="ssften"><B>Output 17.1.7:</B> Plot of Spectral Density Estimate by Period</SPAN></A>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/speex01g.gif" ALT="speex01g.gif (4522 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>Since PERIOD is the reciprocal of frequency, the plot axis for PERIOD
+is stretched for low frequencies and compressed at high frequencies.
+One way to correct for this is to use a WHERE statement to restrict the 
+plots and exclude the low frequency components.
+The following statements plot the spectral density for periods less than 50.
+<P><PRE>
+
+   proc gplot data=b;
+      where period &#60; 50;
+      plot s_01 * period / HREF=11;
+   run;
+</PRE>
+<P>The spectral analysis of the sunspot series  
+confirms a strong 11-year cycle of sunspot activity.
+The plot makes this clear by drawing a reference line 
+at the 11 year period, which highlights the position 
+of the main peak in the spectral density.
+<P><A HREF="sect20.htm#speex01h">Output 17.1.8</A> shows the plot.
+Contrast <A HREF="sect20.htm#speex01h">Output 17.1.8</A> with <A HREF="sect20.htm#speex01g">Output 17.1.7</A>.
+<P></P><A NAME="speex01h"><SPAN CLASS="ssften"><B>Output 17.1.8:</B> Plot of Spectral Density Estimate by Period to 50 Years</SPAN></A>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/speex01h.gif" ALT="speex01h.gif (4534 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect19.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

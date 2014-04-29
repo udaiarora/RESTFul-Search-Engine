@@ -1,0 +1,80 @@
+<HTML>
+<HEAD>
+<TITLE>Example 10.11: CRSP ACCESS97 CDROM Data Files</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="datex11">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect54.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The DATASOURCE Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 10.11: CRSP ACCESS97 CDROM Data Files</H2>
+<P>This example demonstrates how to work with the CRSP ACCESS97 CDROM
+data files by first running the CRSP supplied <I>stk_dump_bin</I> utility,
+to create a UNIX (SUN) binary file. The UNIX binary file can then be
+processed by PROC DATASOURCE using the CRSPMUS filetype for monthly data
+or the CRSPDUS filetype for DAILY data.
+<A NAME="idxdat0330">&#13;</A><A NAME="idxdat0329">&#13;</A><A NAME="idxdat0332">&#13;</A><A NAME="idxdat0331">&#13;</A>The DATASOURCE procedure expects the data file to use IEEE
+big Endian byte ordering. The exact command that you need to use
+to convert the data depends on whether you extracted the big Endian
+or little Endian data off of the CD, and whether you are running
+on a host whose native binary representation is big or little Endian.
+Consult your <I>1997 CRSP ACCESS97 Stock File User's Guide, Appendix C</I>
+for details on the reverse/keep option for the byte-ordering flag.
+Assuming a Windows NT platform and daily data:
+<P><PRE>
+ind_dump_bin %crsp_dstk% filename1 460 1000080 1000081 1000502 reverse unix
+stk_dump_bin %crsp_dstk% filename2 10 1 0 0 0 reverse unix permlist_filename
+</PRE>
+<P>Once you have converted the ACCESS97 data into the unix binary format,
+you are ready to invoke PROC DATASOURCE:
+<P><PRE>
+   filename calfile 'filename1';
+   filename secfile 'filename2' lrecl=36000;
+
+   proc datasource filetype=crspdus
+      infile=( calfile secfile )
+      interval=day
+      outselect=off
+      out=da outkey=dakey outcont=dacont outevent=daevent;
+      keep _all_;
+      keepevent _all_;
+   run;
+</PRE>
+<P>The above example uses an LRECL to accomodate the size of the 1997 daily
+data. Subsequent years may need a larger lrecl.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect54.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

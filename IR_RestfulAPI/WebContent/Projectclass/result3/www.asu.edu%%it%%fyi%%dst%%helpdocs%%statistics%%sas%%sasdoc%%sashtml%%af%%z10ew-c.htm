@@ -1,0 +1,264 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Tree View Control : Using the Tree View Control </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z11-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z11over.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z22ttrs.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z10ew-c">Using the Tree View Control</A></FONT></H1>
+
+
+<P>The Tree View Control enables you to create a hierarchical list of different
+text elements, or nodes.
+<P>The Tree View control is made up of a series of individual nodes. Nodes
+can contain both a bitmap and a text label. The first node in the tree is
+referred to as the root node. All other nodes are children of this node. Each
+node, including the root node, is defined by an SCL list. The SCL list can
+contain the following items: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>text</TD>
+<TD align="left">the text of the node.</TD></TR>
+
+<TR align=left valign="top">
+<TD>iconOpen</TD>
+<TD align="left">the icon number used when
+the node is expanded. The default is CATOPEN (#317).</TD></TR>
+
+<TR align=left valign="top">
+<TD>iconClosed</TD>
+<TD align="left">the icon number used
+when the node is collapsed. The default is SASCAT (#340).</TD></TR>
+
+<TR align=left valign="top">
+<TD>showChildren</TD>
+<TD align="left">NO (the default) means
+that the tree is not expanded if there is a child list. YES means that the
+tree is expanded if there is a child list.</TD></TR>
+
+<TR align=left valign="top">
+<TD>expandable</TD>
+<TD align="left">YES (the default) means
+that the node can be expanded. NO means that the node cannot be expanded.</TD></TR>
+
+<TR align=left valign="top">
+<TD>children</TD>
+<TD align="left">an SCL list identifier
+that contains the child nodes.</TD></TR>
+</TABLE>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;When establishing nodes on a Tree View control, your FRAME SCL
+must use the _addNodes method. The _addNodes method takes specific parameters,
+as shown in the previous example.
+<P>The first parameter indicates the start node ID. Specifying zero indicates
+that the items are to be added to the root node. The second parameter indicates
+the SCL list to add. The third parameter indicates where to add the items
+in relationship to the specified start node. Valid values are <B><CODE><FONT size="+1">firstchild</FONT></CODE></B>, <B><CODE><FONT size="+1">lastchild</FONT></CODE></B>, <B><CODE><FONT size="+1">before</FONT></CODE></B>, and
+<B><CODE><FONT size="+1">after</FONT></CODE></B>.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">When to use the Tree View Control</FONT></B></TD></TR></TABLE>
+
+<P>Use the Tree View control when you want to provide users with a view
+of hierarchical information (which may or may not be expandable). Typically,
+the Tree View control is used in conjunction with other controls to display
+the information selected within a tree.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example</FONT></B></TD></TR></TABLE>
+
+<P>The Tree View control is unavailable in the Components window by default,
+so you must locate the Tree View class in the Explorer window and then drag
+and drop it onto a frame to instantiate the class.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The tree portion of a Tree View control is only visible at <B>run-time</B>.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The following example creates
+a simple tree view control that has a
+root node and two sub-nodes: 
+<OL START="1" type="1">
+<LI>From the Explorer window, select SASHELP.CLASSES.<P>
+
+<LI>Select Treeview_c from the list of
+classes.<P>
+
+<LI>Drag and drop the Treeview_c class onto a frame.<P>
+
+<LI>Add the following SCL to the INIT section of the FRAME SCL for
+the frame that contains the tree view control:<P>
+</OL>
+
+<PRE>/* Copyright (c) 1999 by SAS Institute Inc., Cary, NC USA */
+
+INIT:
+  treeList = makelist();
+  rootList = makelist();
+  rc = insertc(rootList, 'Tree Root Node', -1, 'text');
+  RC = insertc(rootList, 'Yes', -1, 'children');
+  
+  rootChildren=makelist();
+  rc = insertl(rootList, rootChildren, -1, 'children');
+
+  node1=makelist();
+  rc = insertc(node1, 'Node 1', -1, 'text');
+  rc = insertn(node1, 610, -1, 'iconClosed');
+
+  rc=insertl(rootChildren, node1, -1);
+
+  node2=makelist();
+  rc = insertc(node1, 'Node 2', -1, 'text');
+  rc = insertc(node1, 611, -1, 'iconClosed');
+
+  rc=insertl(rootChildren, node2, -1);
+
+ rc = insertl(treeList,rootList,--1);
+ call putlist(treeList, 'List to Create Tree View', 0);
+ treeView1._addNodes(0, treeList, 'firstchild');
+return;
+
+TERM:
+  rc = dellist(treeList, 'y');
+return; </PRE>
+<P>The following example creates a Tree View control with a root node,
+three branches, and four nodes for each branch. Selecting any node causes
+the text of that node to appear in a Text Entry control. 
+<OL START="1" type="1">
+<LI>Create a frame and add a Text Entry control.<P>
+
+<LI>From the Explorer window, select
+SASHELP.CLASSES.<P>
+
+<LI>Select Treeview_c from the list of classes.<P>
+
+<LI>Drag and drop the Treeview_c class onto the frame.<P>
+
+<LI>Add the
+following FRAME SCL:<P>
+</OL>
+
+<PRE>/* Copyright (c) 1999 by SAS Institute Inc., Cary, NC USA */
+
+rc=rc;
+
+dcl sashelp.classes.treenode_c.class currentNode,
+      string currentNodeText;
+
+INIT: 
+ /* Make the main tree list. */
+ treeList = makelist();
+
+ /* Make the root node list. */
+ rootList = makelist();
+ rc = insertc(rootList, 'Tree Root Node', -1, 'text');
+ rc = insertn(rootList, 590, -1, 'iconOpen'); 
+ rc = insertn(rootList, 590, -1, 'iconClosed');
+ rc = insertc(rootList, 'Yes', -1, 'showChildren');
+ rc = insertc(rootList, 'Yes', -1, 'expandable');
+
+/* Add a list in the root node named CHILDREN to hold child nodes. */
+ rootChildrenList = makelist();
+ rc = insertl(rootList, rootChildrenList, -1, 'CHILDREN');
+ numberOfChildren = 3;
+ numberOfLeafs = 4;
+
+do i = 1 to numberOfChildren;
+   dcl string numAsChar;
+   numAsChar = trim(left(putn(i, 'BEST.')));
+
+   /* Make the branch node */
+   branchList = makelist();
+   rc = insertc(branchList, 'Branch '||numAsChar, -1, 'text');
+   rc = insertc(branchList, 590, -1, 'iconOpen');
+   rc = insertc(branchList, 590, -1, 'iconClosed');
+
+   /* showChildren = Yes means it is expanded if it has a child list
+                     No means it is not if it has a child list */
+
+   rem = mod(i, 2);
+   if rem = 0 then
+      rc = insertc(branchList, 'No', --1, 'showChildren');
+   else
+      rc = insertc(branchList, 'Yes', --1, 'showChildren');
+
+   /* Add a list in this branch node named CHILDREN to hold its child node */
+   branchChildren = makelist();
+   rc = insertc(branchList, branchChildren, -1, 'CHILDREN');
+
+   do j = 1 to numberOfLeafs;
+      numAsChar = trim(left(putn(j, 'Best.')));
+      leafList = makelist();
+
+      /* add correct values for Attributes node on the list */
+      rc = insertc(leafList, 'Leaf  '||numAsChar, -1, 'text');
+      rem = mod(j, 4);
+      if rem = 1 then icon = 593;
+      else if rem = 2 then icon = 601;
+      else if rem = 3 then icon = 595;
+      else icon = 597;
+      rc = insertn(leafList, icon, -1, 'iconOpen');
+      rc = insertn(leafList, icon, -1, 'iconClosed');
+      rc = insertl(branchChildren, leafList, -1);
+   end; /*do while j */
+
+   rc = insertl(rootChildrenList, branchList, -1);
+ end; /* do while i */
+
+ /* Wrapper needed around the root list for adding the nodes. */
+ rc = insertl(treeList, rootList, -1);
+
+ /* _addNodes 1st parm = startnode with 0 being add a new root as well.
+              2nd parm = list to add.
+              3rd parm = where to add = 'firstchild', 'lastchild', 'before', 'after'
+ */
+ treeView1._addNodes(0, treeList, 'firstchild');
+ call putlist(treeList, 'Tree View List', 0);
+ rc = dellist(treeList, 'Y');
+return;
+
+
+TREEVIEW1:
+   /* If there is a current node then we set its text value in the first text entry. */
+   currentNode = treeview1.selectedNode;
+   if currentNode then do;
+      currentNodeText = currentNode.text;
+      if currentNodeText ne textEntry1.text then
+         textEntry1.text = currentNodeText;
+   end;
+return;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z11-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z11over.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z22ttrs.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z10ew-c">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

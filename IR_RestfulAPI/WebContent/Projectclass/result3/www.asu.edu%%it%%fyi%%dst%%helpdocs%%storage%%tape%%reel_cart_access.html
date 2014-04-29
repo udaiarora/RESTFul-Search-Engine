@@ -1,0 +1,170 @@
+<html>
+<head>
+<title>
+Round-reel & Cartridge Tape Access
+</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h2><center>
+Round-reel &amp; Cartridge Tape Access
+</center></h2>
+<p>
+The ftp utility is used, albeit indirectly, for UNIX access to data on
+round-reel and 3480-cartridge tapes.  Both IBM and non-IBM tapes can be
+processed, provided the tapes are not recorded in a system-specific
+format or are in a format compatible with IBM MVS processing.
+<p>
+Since ftp cannot directly access tape files, the tape files must be
+copied to disk before ftp can access them.  From UNIX, ftp is used to
+submit an MVS batch job to copy the tape files to MVS disk, then ftp is
+used to transfer the files from MVS disk to UNIX.  (Note:  This process
+can be used from any system having ftp access.  You also have the option
+of logging on to the MVS system with TSO, submitting the batch job, and
+then use TSO's ftp command to transfer the data.)
+<p>
+The creation and submission of the batch job is not an automated
+process.  You need to create a UNIX file containing the JCL for an IBM
+MVS batch job, use ftp to submit the batch job, and then (after the
+batch job completes) use ftp to retrieve the files.
+<p>
+The process to retrieve data from tape via the ftp utility consists of
+the following steps or commands:
+<pre>
+  a) put the tape in the tape library
+  b) create the batch job JCL
+  c) connect to the IBM MVS system:         ftp acmvs.inre.asu.edu
+  d) point at MVS batch queues:             site filetype=jes
+  e) submit the batch job:                  put batchfile
+  f) monitor the batch job:                 dir
+  g) retrieve the batch job output:         get jobid.x
+  h) point at disk volumes:                 site filetype=seq
+  i) get the file:                          get remote.file local.file
+  j) terminate the ftp utility:             quit
+</pre><p>
+Step a:  Check the tape into the tape library (ECB-130).  The tape
+facilities of the IBM MVS system are used for accessing data on tape
+from UNIX.
+<p>
+Step b:  Use an editor to create a UNIX file containing the MVS batch
+job.  The batch job should include any JCL needed to retrieve the data
+from tape and to write it on MVS disk in a format suitable for
+subsequent transfer via ftp.
+<p>
+The batch job must contain a fully specified JOB statement.
+Use the parameter UNIT=FTP on
+the JCL DD statement used to create the MVS disk file.  Files created on
+UNIT FTP do not count toward disk quotas and are deleted each night.
+<p>
+If you want to monitor or "fetch" the batch job from UNIX, the jobname
+on the JOB statement must be your MVS userid plus exactly one additional
+alphanumeric character.  You should also include MSGCLASS=W on the JOB
+statement, SYSOUT=W on all DD sysout statements, and PRTCLAS=W on
+selected EXEC statements.  (The PRTCLAS parameter is used on an EXEC
+statement only if the JCL procedure being executed permits use of the
+parameter.)  If you do not include these parameters, the batch job will
+still process normally, though you won't be able to monitor/fetch the
+batch job.
+<p>
+Step c:  Use "ftp acmvs.inre.asu.edu" to connect to the IBM MVS system.
+You will be prompted to enter your MVS userid, and then your MVS
+password.  (You need a userid with MVS access.  If you do not have MVS
+access, complete and sign the requisite form available at the Computer
+Accounts Office in the Computing Commons.  A userid with MVS access
+cannot be obtained via self-subscription.)
+<p>
+Step d: Use the ftp command "site filetype=jes" to point at the batch
+queues.  Normally ftp is pointing at disk volumes; however, after using
+"site filetype=jes", you can submit, monitor, and retrieve batch jobs.
+<p>
+Step e: Use the ftp command "put batchfile" to submit a batch job.
+Normally "put" would transfer a file to disk on the remote system;
+however, after using "site filetype=jes", "put" submits the contents of
+the indicated file as a batch job.  The name "batchfile" is merely an
+example; substitute the name of the UNIX file containing the batch job.
+<p>
+Step f: Use the ftp command "dir" to monitor the batch job.  Normally
+"dir" lists filenames; however, after using "site filetype=jes", "dir"
+lists batch job names.  (You will be able to monitor the batch job only
+if you used the jobname and print class W as described in "Step a".)
+<p>
+Step g: Use the ftp command "get jobid.x" to fetch the batch job.
+Normally "get" retrieves a disk file; however, after using "site
+filetype=jes", "get" retrieves a batch job.  (You will be able to fetch
+the batch job only if you used the jobname and print class W as
+described in "Step a".)  Replace "jobid" with the letter "j" and the
+job's id number.  Use "dir" to determine the job's id number.  If the
+job's id is 12345, "get j12345.x" will fetch the job and save it on UNIX
+as j12345.x, and "get j12345.x newname" will fetch and save the job as
+"newname".
+<p>
+(A batch job actually consists of multiple print files, with the JCL
+listing being print file 0 and the other print file being numbered 1
+through n.  The "x" in j12345.x represents "all" print files in the
+batch job.  A specific print file can be retrieved by replacing "x" with
+the print file number.)
+<p>
+Step h: Use the ftp command "site filetype=seq" to point at the disk
+volumes.  This reverses the effect of "site filetype=jes" and allows you
+to transfer disk files instead of batch jobs.
+<p>
+Step i: Use the ftp command "get remote.file local.file" to copy the
+disk file from MVS to UNIX.  Replace "remote.file" with the name of the
+MVS disk file; replace "local.file" with the name you want the file to
+have on UNIX.  For example, "get 'wyl.xx.yyy.mydata' data123" retrieves
+wyl.xx.yyy.mydata from MVS and saves it as data123 on UNIX.
+<p>
+Step j: Use the ftp command "quit" to terminate the ftp session.
+<p>
+(Refer to the communications write-ups for more information on ftp and
+on other ftp commands.)
+<p>
+The following sample JCL statements are representative of those which
+may appear in an MVS batch job.  These sample statements don't do
+anything particularly useful and are shown for illustration purposes
+only. The JOB statement is fully specified and uses the MSGCLASS=W
+parameter.  It has a jobname consisting of an MVS userid (ABCDE) plus
+exactly one additional character; you need to use your own MVS userid,
+password, and account number.  The other statements show proper use of
+SYSOUT=W, PRTCLAS=W, and UNIT=FTP.  DO NOT copy this JCL literally; you
+MUST use whatever JCL is appropriate for your particular situation.
+<pre>
+  //ABCDE3 JOB (accountnumber),REGION=8M,TIME=2,
+  //  MSGCLASS=W,PASSWORD=mvspassword
+  //STEP1  EXEC  SAMPLE,PRTCLAS=W
+  //TAPEIN  DD  DSN=SOMENAME,DISP=(OLD,KEEP),
+  //  UNIT=CART,VOL=SER=123456,LABEL=(1,NL),
+  //  DCB=(RECFM=FB,LRECL=80,BLSIZE=6400)
+  //DISKOUT  DD  DSN=WYL.AB.CDE.MYDATA,DISP=(NEW,CATLG,DELETE),
+  //  SPACE=(TRK,(30,10),RLSE),UNIT=FTP,
+  //  DCB=(RECFM=FB,LRECL=80,BLKSIZE=6400)
+  //MYPRINT DD SYSOUT=W
+  //
+</pre>
+<p>
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3"><BR>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A> | <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:unix-q@asu.edu">unix-q@asu.edu</A></FONT><br>
+ <FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+ Page Last Updated: Tuesday September  7, 1999</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,208 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS/GRAPH Statements : Example 8.  Creating a Simple Web Page with the ODS HTML Statement </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0724351.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z8n04-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zods1-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zods0-ex">Example 8.  Creating a Simple Web Page with the ODS HTML Statement</A></FONT></H1>
+
+
+<P><A name="z0752166">&#13;<B>Features:</B>
+
+
+</A>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD> ODS HTML statement options:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD> BODY=</TD></TR>
+<TR valign="top"><TD></TD><TD> PATH=</TD></TR>
+<TR valign="top"><TD></TD><TD> CLOSE</TD></TR></TABLE></TD></TR>
+<TR valign="top"><TD></TD><TD>GOPTIONS statement options:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>  COLORS= </TD></TR>
+<TR valign="top"><TD></TD><TD> DEVICE=</TD></TR>
+<TR valign="top"><TD></TD><TD> TRANSPARENCY</TD></TR>
+<TR valign="top"><TD></TD><TD>  NOBORDER
+(default)</TD></TR></TABLE></TD></TR>
+<TR valign="top"><TD></TD><TD>LEGEND statement options:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD> ACROSS=</TD></TR>
+<TR valign="top"><TD></TD><TD>  LABEL=</TD></TR>
+<TR valign="top"><TD></TD><TD>  MODE=</TD></TR>
+<TR valign="top"><TD></TD><TD> ORIGIN=</TD></TR>
+<TR valign="top"><TD></TD><TD>  SHAPE=</TD></TR></TABLE></TD></TR>
+<TR valign="top"><TD></TD><TD> WHERE
+statement</TD></TR></TABLE>
+<P><B>Sample library member:</B>  GR08N08 
+<P>
+<P>
+<B><I>Displaying a Map in a Web Page</I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329146.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>This example
+illustrates the simplest way to use the
+ODS HTML statement to create an HTML file and a GIF file that you can display
+in a Web browser.  It generates one body file that displays one piece of SAS/GRAPH output
+-- a map of average per capita income for four states.
+<P>This example also illustrates default pattern behavior
+with maps and explicit placement of the legend on the graph. It shows how
+the default solid map pattern rotates through every color in a colors list
+defined in the GOPTIONS statement. By default, the outline color is the first
+color in the list, in this case, BLACK.
+<P>And it shows how to use a LEGEND statement to arrange
+and position a legend so it fits well with the graph's layout. 
+<P>
+<P>  <B>Assign the libref and the Web-server path.</B>
+FILENAME assigns the fileref ODSOUT, which is a destination for the HTML and
+GIF files produced by the example program. To assign that location as the
+HTML destination for program output, ODSOUT is specified later in the program
+on the ODS HTML statement's PATH= option. ODSOUT must point to a Web-server
+location if procedure output is to be viewed on the Web. 
+
+
+
+<PRE>libname maps '<I>SAS-MAPS-library</I>';
+filename odsout '<I>path-to-Web-server-space</I>';</PRE>
+<P><B>Close the ODS Listing destination for procedure
+output, and set the graphics environment.</B> To conserve system resources,
+ODS LISTING CLOSE closes the Listing destination for procedure output. Thus,
+the graphics output is not displayed in the GRAPH window, although it is written
+to the graphics catalog and to the GIF files. COLORS= on the GOPTIONS statement
+defines a list of four colors for the graph.
+
+
+
+<PRE>ods listing close;
+goptions reset=global gunit=pct cback=white
+         colors=(black blue green red)
+         ftext=swiss ftitle=swissb htitle=6 htext=4;</PRE>
+<P>  <B>Create the data set INCOME.</B> INCOME contains
+state codes for four states and the average income of each state.
+
+
+
+<PRE>data income;
+   input state income;
+   datalines;
+04    19001
+35    17106
+40    17744
+48    19857
+;</PRE>
+<P>  <B>Assign graphics options for producing the ODS
+HTML output</B>. DEVICE=GIF causes the ODS HTML statement to generate the
+graphics output as GIF files. TRANSPARENCY causes the graphics output to use
+the Web-page background as the background of the graph. Because the default
+setting NOBORDER is used, the edge of the graph is not visible on the Web
+page.
+
+
+
+<PRE>goptions device=gif transparency noborder;</PRE>
+<P>  <B>Open the ODS HTML destination.</B> BODY=
+names the file for storing HTML output. PATH= specifies the ODSOUT fileref
+as the destination for all the HTML and GIF files. 
+
+
+
+<PRE>ods html body='income_body.html'
+         path=odsout;</PRE>
+<P>  <B>Define titles and a footnote for the map.</B>
+By default, any defined titles and footnotes are included in the graphics
+output (GIF file). 
+
+
+
+<PRE>title '1994 Personal Income Per Capita';
+title2 f=swissb '(Arizona, New Mexico, Texas, and Oklahoma)';
+footnote1 h=3 j=r 'GMAP ';</PRE>
+<P><B>Define legend characteristics.</B> ACROSS=
+defines the number of columns in the legend. ORIGIN= specifies an exact location
+for the legend. MODE= allows the legend to share the output area. LABEL= specifies
+a legend label and left-justifies it above the legend values. SHAPE= specifies
+a size and shape for the legend values.  
+
+
+
+<PRE>legend across=2
+       origin=(10,20)
+       mode=share
+       label=(position=top
+             justify=left
+             'Average Income')
+       shape=bar(4,4);</PRE>
+<P>  <B>Generate the prism map.</B> Because the NAME=
+option is omitted, SAS/GRAPH assigns
+the default name GMAP to the GRSEG entry in the graphics catalog. This is
+the name that is assigned to the GIF file created by the ODS HTML statement.
+
+
+
+<PRE>proc gmap map=maps.us data=income;
+     format income dollar6.0;
+     id state;
+     prism income / discrete
+                    legend=legend;
+run;
+quit;</PRE>
+<P>  <B>Close the ODS HTML destination, and open the
+ODS Listing destination.</B> You must close the HTML destination before
+you can view the output with a browser. ODS LISTING opens the Listing destination
+so that the destination is again available for displaying output during this
+SAS session.
+
+
+
+<PRE>ods html close;
+ods listing;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0724351.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z8n04-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zods1-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zods0-ex">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

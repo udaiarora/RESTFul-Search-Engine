@@ -1,0 +1,417 @@
+<HTML>
+<HEAD>
+<TITLE>Example 9.4: Consolidations</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="comex4">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect32.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 9.4: Consolidations</H2>
+<P>This example consolidates product tables by region and
+region tables by corporate division. <A HREF="sect33.htm#comex04a">Output 9.4.1</A> shows the North
+Central and Northeast regional summaries for the Equipment division
+for the first quarter. <A HREF="sect33.htm#comex04c">Output 9.4.2</A> shows the profit summary for
+the Equipment division. Similar tables for the Publishing division
+are produced but not shown here.
+<P><PRE>
+   data product;
+      input pcode div region month sold revenue recd cost;
+   datalines;
+   1 1 1 1 56 5600 29 2465
+   1 1 1 2 13 1300 30 2550
+   1 1 1 3 17 1700 65 5525
+   2 1 1 1  2  240 50 4900
+   2 1 1 2 82 9840 17 1666
+   more data lines
+   ;
+   
+   proc format;
+      value divfmt 1='Equipment'
+                   2='Publishing';
+      value regfmt 1='North Central'
+                   2='Northeast'
+                   3='South'
+                   4='West';
+   run;
+   
+   proc sort data=product;
+      by div region pcode;
+   run;
+   
+   title1 '     XYZ Development Corporation      ';
+   title2 ' Corporate Headquarters: New York, NY ';
+   title3 '           Profit Summary             ';
+   title4 '                                      ';
+</PRE>
+<P><PRE>
+   proc computab data=product sumonly;
+      by div region pcode;
+      sumby _total_ div region;
+   
+      format div    divfmt.;
+      format region regfmt.;
+      label  div = 'DIVISION';
+   
+      /* specify order of columns and column titles */
+      columns jan feb mar qtr1 / mtitle='- first quarter -' ' '  nozero;
+      columns apr may jun qtr2 / mtitle='- second quarter -' ' ' nozero;
+      columns jul aug sep qtr3 / mtitle='- third quarter -' ' '  nozero;
+      columns oct nov dec qtr4 / mtitle='- fourth quarter -' ' ' nozero;
+      column  jan  / ' ' 'January' '=';
+      column  feb  / ' ' 'February' '=';
+      column  mar  / ' ' 'March' '=';
+      column  qtr1 / 'Quarter' 'Summary' '=';
+   
+      column  apr  / ' ' 'April' '=' _page_;
+      column  may  / ' ' 'May' '=';
+      column  jun  / ' ' 'June' '=';
+      column  qtr2 / 'Quarter' 'Summary' '=';
+   
+      column  jul  / ' ' 'July' '=' _page_;
+      column  aug  / ' ' 'August' '=';
+      column  sep  / ' ' 'September' '=';
+      column  qtr3 / 'Quarter' 'Summary' '=';
+   
+      column  oct  / ' ' 'October' '=' _page_;
+      column  nov  / ' ' 'November' '=';
+      column  dec  / ' ' 'December' '=';
+      column  qtr4 / 'Quarter' 'Summary' '=';
+   
+      /* specify order of rows and row titles */
+      row     sold    / ' ' 'Number Sold' f=8.;
+      row     revenue / ' ' 'Sales Revenue';
+      row     recd    / ' ' 'Number Received' f=8.;
+      row     cost    / ' ' 'Cost of' 'Items Received';
+      row     profit  / ' ' 'Profit' 'Within Period' ol;
+      row     pctmarg / ' ' 'Profit Margin' dul;
+   
+      /* select column for appropriate month */
+      _col_ = month + ceil( month / 3 ) - 1;
+   
+      /* calculate quarterly summary columns */
+      colcalc:
+         qtr1 = jan + feb + mar;
+         qtr2 = apr + may + jun;
+         qtr3 = jul + aug + sep;
+         qtr4 = oct + nov + dec;
+   
+      /* calculate profit rows */
+       rowcalc:
+          profit = revenue - cost;
+          if cost &#62; 0 then pctmarg = profit / cost * 100;
+   run;
+</PRE>
+<P></P><A NAME="comex04a"><SPAN CLASS="ssften"><B>Output 9.4.1:</B> Summary by Regions for the Equipment Division</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>     XYZ Development Corporation      </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i> Corporate Headquarters: New York, NY </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>           Profit Summary             </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+ 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b><i>DIVISION=Equipment region=Northeast pcode=1</i></b></font></TD>
+</TR>
+</TABLE>
+</CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">------------SUMMARY TABLE:  DIVISION=Equipment region=North Central------------ 
+                                                                                
+                           ------------- first quarter --------------           
+                                                                                
+                                                              Quarter           
+                             January   February      March    Summary           
+                           =========  =========  =========  =========           
+                                                                                
+          Number Sold            198        223        119        540           
+                                                                                
+          Sales Revenue     22090.00   26830.00   14020.00   62940.00           
+                                                                                
+          Number Received        255        217        210        682           
+                                                                                
+          Cost of                                                               
+          Items Received    24368.00   20104.00   19405.00   63877.00           
+                           ---------  ---------  ---------  ---------           
+                                                                                
+          Profit                                                                
+          Within Period     -2278.00    6726.00   -5385.00    -937.00           
+                                                                                
+          Profit Margin        -9.35      33.46     -27.75      -1.47           
+                           =========  =========  =========  =========           
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><BR><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>     XYZ Development Corporation      </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i> Corporate Headquarters: New York, NY </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>           Profit Summary             </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+ 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b><i>DIVISION=Publishing region=North Central pcode=4</i></b></font></TD>
+</TR>
+</TABLE>
+</CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">--------------SUMMARY TABLE:  DIVISION=Equipment region=Northeast-------------- 
+                                                                                
+                           ------------- first quarter --------------           
+                                                                                
+                                                              Quarter           
+                             January   February      March    Summary           
+                           =========  =========  =========  =========           
+                                                                                
+          Number Sold             82        180        183        445           
+                                                                                
+          Sales Revenue      9860.00   21330.00   21060.00   52250.00           
+                                                                                
+          Number Received        162         67        124        353           
+                                                                                
+          Cost of                                                               
+          Items Received    16374.00    6325.00   12333.00   35032.00           
+                           ---------  ---------  ---------  ---------           
+                                                                                
+          Profit                                                                
+          Within Period     -6514.00   15005.00    8727.00   17218.00           
+                                                                                
+          Profit Margin       -39.78     237.23      70.76      49.15           
+                           =========  =========  =========  =========           
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><P></P><A NAME="comex04c"><SPAN CLASS="ssften"><B>Output 9.4.2:</B> Profit Summary for the Equipment Division</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>     XYZ Development Corporation      </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i> Corporate Headquarters: New York, NY </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>           Profit Summary             </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+ 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b><i>DIVISION=Publishing region=North Central pcode=4</i></b></font></TD>
+</TR>
+</TABLE>
+</CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">-----------------------SUMMARY TABLE:  DIVISION=Equipment---------------------- 
+                                                                                
+                           ------------- first quarter --------------           
+                                                                                
+                                                              Quarter           
+                             January   February      March    Summary           
+                           =========  =========  =========  =========           
+                                                                                
+          Number Sold            280        403        302        985           
+                                                                                
+          Sales Revenue     31950.00   48160.00   35080.00  115190.00           
+                                                                                
+          Number Received        417        284        334       1035           
+                                                                                
+          Cost of                                                               
+          Items Received    40742.00   26429.00   31738.00   98909.00           
+                           ---------  ---------  ---------  ---------           
+                                                                                
+          Profit                                                                
+          Within Period     -8792.00   21731.00    3342.00   16281.00           
+                                                                                
+          Profit Margin       -21.58      82.22      10.53      16.46           
+                           =========  =========  =========  =========           
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><BR><A HREF="sect33.htm#comex04d">Output 9.4.3</A> shows the consolidation report of profit summary
+over both divisions and regions.
+<P></P><A NAME="comex04d"><SPAN CLASS="ssften"><B>Output 9.4.3:</B> Profit Summary</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>     XYZ Development Corporation      </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i> Corporate Headquarters: New York, NY </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>           Profit Summary             </i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">-----------------------------SUMMARY TABLE:  TOTALS---------------------------- 
+                                                                                
+                           ------------- first quarter --------------           
+                                                                                
+                                                              Quarter           
+                             January   February      March    Summary           
+                           =========  =========  =========  =========           
+                                                                                
+          Number Sold            590        683        627       1900           
+                                                                                
+          Sales Revenue     41790.00   55910.00   44800.00  142500.00           
+                                                                                
+          Number Received        656        673        734       2063           
+                                                                                
+          Cost of                                                               
+          Items Received    46360.00   35359.00   40124.00  121843.00           
+                           ---------  ---------  ---------  ---------           
+                                                                                
+          Profit                                                                
+          Within Period     -4570.00   20551.00    4676.00   20657.00           
+                                                                                
+          Profit Margin        -9.86      58.12      11.65      16.95           
+                           =========  =========  =========  =========           
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect32.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

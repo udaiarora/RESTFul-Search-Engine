@@ -1,0 +1,606 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>OS/2: APPC Access Method : System Configuration for the APPC Access Method </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381530.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381548.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381716.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z2config">System Configuration for the APPC Access Method</A></FONT></H1>
+
+
+<P>
+<DL>
+<DT><B>Network Administrator</B></DT>
+<DD>This section highlights the general tasks that you perform
+to configure the OS/2 host for the APPC access method.
+<P>To configure each SAS/CONNECT local
+and remote host and each SAS/SHARE client
+and server, define the following properties: 
+<OL START="1" type="1">
+<LI>Local control point and logical units<P>
+
+<LI>Communications
+modes.<P>
+</OL>
+<P></DD>
+</DL>
+
+<P>To configure a SAS/CONNECT remote
+host and a  SAS/SHARE  server, define
+the following properties: 
+<OL START="1" type="1">
+<LI>Default communications parameters<P>
+
+<LI>Transaction program SASTP62<P>
+
+<LI>Transaction program
+SASRMT for SAS/CONNECT only<P>
+
+<LI>Attach Manager.<P>
+</OL>
+
+<P>If you are using IBM Communications Server, you may
+use either of these
+methods to configure the  OS/2  system: 
+<OL START="1" type="1">
+<LI>Interact with the configuration utility, supplying answers to
+menu prompts that are captured automatically in the Network Description File
+(NDF).<P>
+
+<LI>Edit directly the NDF.<P>
+</OL>
+
+<P>The instructions and examples in this section assume the direct editing
+of the Network Description File (NDF). If you use the Communications Manager
+utility, verify your selections with the NDF files that are provided in the
+configuration example in this section.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining the Local Control Point and Logical Units</FONT></B></TD></TR></TABLE>
+
+<P>You must define the local control
+point by using the  DEFINE_LOCAL_CP  definition statement and the local logical
+units (LU) by using the DEFINE_LOCAL_LU definition statement. You must define
+one control point per workstation, and you may define one or more LUs.
+<P>An LU can be independent or dependent. An LU for another OS/2 workstation
+is always independent. The communications software that is used in your network
+determines whether an LU for a SAS/CONNECT remote
+host on an OS/390 or on a CMS host is capable of performing as an independent
+or dependent LU. Such an LU may be defined as dependent because of the level
+of the control program running in the communications controller that connects
+the OS/2 workstation to the mainframe. Ask your SNA support personnel whether
+you are limited to a dependent LU capability.
+<P>SAS/CONNECT can use either a
+dependent or an independent LU. However, if you are using dependent LUs, you
+must have one dependent LU defined for each concurrent remote session that
+is established by the local session. A single independent LU allows multiple
+concurrent  SAS/CONNECT  sessions.
+<P>If multiple local LUs are defined (for example, to support concurrent
+dependent LU environments), you may specify the LU_ALIAS that is associated
+with the LU through the option APPC_LUNAME. See <A href="z0381531.htm#z3cvar">Setting SAS Options and Variables</A> for information about APPC_LUNAME.
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;SAS/SHARE and
+the SAS/CONNECT Remote Library Services
+(RLS) require an independent LU.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining Communications Modes</FONT></B></TD></TR></TABLE>
+
+<P>If site-naming
+conventions permit, you should specify the mode
+name as SASAPPC. The APPC access method uses this default name if the option
+APPC_LU62MODE is not defined.
+<P>You specify a mode definition using the  DEFINE_MODE  verb, which provides
+two classes of information: 
+<P>
+<UL>
+
+<LI>maximum session constraints<P>
+
+<LI>performance metrics.<P>
+</UL>
+
+<P>The
+MAX_NEGOTIABLE_SESSION_LIMIT parameter sets the upper boundary on
+concurrent session requests from a partner logical unit. The PLU_MODE_SESSION_LIMIT
+parameter sets the upper boundary on concurrent session requests that are
+initiated by the local LU within the defined MODE_NAME.
+<P>Specify  MAX_NEGOTIABLE_SESSION_LIMIT(32767)  and, at minimum, PLU_MODE_SESSION_LIMIT(16382).
+See <A href="#os2ex">Configuration Example</A> for an example
+of how these parameters are used.
+<P>You must also set the MIN_CONWINNERS_SOURCE parameter because only contention-winner
+sessions are used for locally-initiated communication. Unless you are using
+Remote Library Services (RLS), communication between SAS/CONNECT local
+and remote hosts requires only one contention-winner session. RLS requires
+a minimum of four contention-winner sessions. This limit affects the number
+of data sets that can be accessed concurrently through RLS and SAS/SHARE.
+Therefore, you should specify one contention-winner session from each connection
+and one for each data set that is open.
+<P>Your local SNA administrators may have defined multiple classes of service
+within the network to control performance and security. The COS_NAME parameter
+is used to associate a class of service with a mode. You reference these classes
+of service through a unique MODE_NAME parameter and the option APPC_LU62MODE.
+See <A href="z0381531.htm#z3cvar">Setting SAS Options and Variables</A> for
+information about APPC_LU62MODE. Keep in mind that mode names must be consistently
+defined across the distributed domain. In addition to defining a mode name
+locally and presenting it to a remote control point, you must also define
+the mode name at the remote control point. For example, all mode names that
+you defined locally through DEFINE_MODE that may be presented to a host VTAM
+control point must also be defined to that VTAM through the assembly of corresponding
+MODEENT macros.
+<P>If naming conventions at your site prevent you from using the default
+communications mode name, SASAPPC, include DEFAULT_MODE_NAME in the DEFINE_DEFAULTS
+specification for the workstation in order to avoid having to define APPC_LU62MODE
+for each SAS/CONNECT local host or SAS/SHARE client.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining Default Communications Parameters</FONT></B></TD></TR></TABLE>
+
+<P>If your environment supports APPN, specify  IMPLICIT_INBOUND_PLU_SUPPORT
+ (YES) in a  DEFINE_DEFAULTS  statement.  Doing so eliminates a need to define
+partner LUs for clients that will establish a SAS/CONNECT remote
+session or will connect to a SAS/SHARE server
+on this workstation.
+<P>If restrictions at your site force you to specify  IMPLICIT_INBOUND_PLU_SUPPORT(NO),
+ you must define a partner LU and a partner LU location for each workstation
+control point or LU that is associated with either a SAS/CONNECT local
+host that will connect to a remote host or a SAS/SHARE client
+that will access a server on your workstation.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zpctprog">Defining the SASTP62 Transaction Program</A></FONT></B></TD></TR></TABLE>
+
+<P>You must define transaction program SASTP62, which handles inbound
+communications, to allow a  SAS/CONNECT 
+remote host or a SAS/SHARE server to
+run on a workstation. Typical content of SASTP62 follows:  
+
+
+
+<PRE>DEFINE_TP TP_NAME(SASTP62)
+DESCRIPTION(Internal SAS Service TP)
+FILESPEC(D:\SAS\SASTP62.EXE)
+CONVERSATION_TYPE(EITHER)
+CONV_SECURITY_RQD(NO)
+SYNC_LEVEL(EITHER)
+TP_OPERATION(QUEUED_OPERATOR_PRELOADED)
+PROGRAM_TYPE(BACKGROUND)
+INCOMING_ALLOCATE_QUEUE_DEPTH(255)
+INCOMING_ALLOCATE_TIMEOUT(120)
+RECEIVE_ALLOCATE_TIMEOUT(60);</PRE>
+<P>You must supply the appropriate SAS root path to the FILESPEC parameter.
+The CONV_SECURITY_RQD parameter specifies whether the SAS/CONNECT remote
+session or the SAS/SHARE server should
+run in a secure mode. If you specify YES for this parameter, the TP will require
+a userid and a password for the workstation. The timeout parameters are specified
+in seconds. See the next section for more information about security. See <A href="z0381531.htm#z3cvar">Setting SAS Options and Variables</A> for information
+about the APPC_SECURE option. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;SASTP62.EXE is an internal transaction
+program that cannot be located in the SAS directory.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3><A name="zecurity">Security Configuration</A></H3>
+
+
+<P>You can require users
+who are connecting to a  SAS/CONNECT 
+remote host or to a SAS/SHARE server
+to supply a userid and a password by specifying CONV_SECURITY_RQD(YES) when
+you define transaction program SASTP62. If you choose to run in a secure mode,
+you must configure userid and password profiles for each workstation.
+<P>You may create userid and password profiles for connecting users through
+a series of menus that are provided with the Communications Manager utility.
+The userid and password that you define will be stored in an encrypted format
+in the .sec file for the associated configuration.
+<P>Alternatively, you can instruct the Communications Manager utility to
+interact with User Profile Management, the IBM OS/2 access control system.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining the SASRMT Transaction Program</FONT></B></TD></TR></TABLE>
+
+<P>The SASRMT transaction program, which handles inbound communications,
+applies to a SAS/CONNECT remote host
+only.
+<P>You must define transaction program SASTP62 to allow a SAS/CONNECT remote
+host to run on a workstation. The content of SASRMT follows:  
+
+
+
+<PRE>DEFINE_TP TP_NAME(SASRMT)
+DESCRIPTION(Remote SAS Initiation TP)
+FILESPEC(D:\SAS\SAS.EXE)
+PARM_STRING(-DMR -COMAMID APPC -REMOTE <I>local-LU</I> 
+-NOTERMINAL -NO$SYNTAXCHECK -CONFIG D:\SAS\CONFIG.SAS)
+CONVERSATION_TYPE(EITHER)
+CONV_SECURITY_RQD(NO)
+SYNC_LEVEL(EITHER)
+TP_OPERATION(NONQUEUED_AM_STARTED)
+PROGRAM_TYPE(PRESENTATION_MANAGER)
+RECEIVE_ALLOCATE_TIMEOUT(INFINITE);</PRE>
+<P>You must specify 
+<P>
+<UL>
+
+<LI>the full pathname for SAS.EXE to the FILESPEC parameter.<P>
+
+<LI>the full pathname for the SAS configuration file to the
+PARM_STRING
+parameter for the SAS/CONNECT remote
+host. <P>
+
+<LI>the SAS system options COMAMID= and  REMOTE=  in the CONFIG.SAS
+file. If you enabled security for SASTP62, you should also specify CONV_SECURITY_RQD(YES)
+for SASRMT. <P>
+</UL>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You may also create a SAS configuration file
+to contain the required options.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining the Attach Manager</FONT></B></TD></TR></TABLE>
+
+<P>The Attach Manager
+agent is required to enable users to start
+a SAS/CONNECT remote session or to
+access a  SAS/SHARE  server on a workstation.
+Typically, you should have the Attach Manager agent started automatically
+when the Communications Manager utility initializes.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Configuring Sessions on Other Workstations</FONT></B></TD></TR></TABLE>
+
+<P>In environments other than APPN, in order to connect to a SAS/CONNECT remote
+host or to a SAS/SHARE server that
+is running on another workstation, you must define a partner LU using the
+DEFINE_PARTNER_LU statement. The definition for a SAS/SHARE server
+should specify PARALLEL_SESSION_SUPPORT(YES). 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;A partner LU definition
+requires supporting partner LU location and logical link definitions in the
+Network Description File (NDF). See <A href="#os2ex">Configuration Example</A>
+for examples of partner LU, partner LU location, and logical link definitions.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>A SAS/CONNECT remote session
+on an OS/390 host can use either a predetermined LU or a dynamically selected
+LU from a pool of LUs. The advantage of using a specific LU is that only one
+partner LU definition is required in  environments other than APPN. The disadvantage
+is that each workstation must specify a different partner LU definition. Pooling
+avoids this requirement. However, environments other than APPN require a partner
+LU definition on the workstation for each pooled LU on an OS/390 host.
+<P>Thus, pooling requires that more partner LUs be defined, but the set
+of partner LUs is the same for all workstations. Pooling is also easier if
+only a relatively small fraction of your users are simultaneously connected
+to remote sessions on an OS/390 host. For example, if only 10 of 100 users
+will be connected simultaneously, a pool of only 10 LUs is sufficient and
+is preferable to defining 100 reserved LUs. If pooling is enabled, each user
+must specify a dynamically assigned LU from an LU pool through APPC_SURROGATE_LUNAME.
+See <A href="z0381531.htm#z3cvar">Setting SAS Options and Variables</A> for
+information about setting this option.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="os2ex">Configuration Example</A></FONT></B></TD></TR></TABLE>
+
+<P>SAS Institute developed
+the following working example of an NDF,
+which defines a Token Ring network that is connected to an OS/390 system through
+an IBM 3174 Establishment Controller, Configuration Support-C, with the APPN
+LIC feature.
+<P>This example does not take advantage of APPN network node dynamic directory
+services because an APPN-capable VTAM (V4R1) was not available to verify the
+configuration. The availability of these dynamic directory services should
+reduce the workstation configuration burden by eliminating partner LU and
+associated definitions.
+<BR><H3><A name="cp">Local Control Point and Single Logical Unit</A></H3>
+
+
+<P>The following definitions establish
+the local control point and a single logical unit for the workstation:  
+
+
+
+<PRE>DEFINE_LOCAL_CP FQ_CP_NAME(USNETI01.NETCP801)
+  DESCRIPTION(INDEPENDENT CP NODE DEFINITION)
+  CP_ALIAS(N01P0001)
+  NAU_ADDRESS(INDEPENDENT_LU)
+  NODE_TYPE(EN) NODE_ID(X'12345')
+  HOST_FP_SUPPORT(YES);
+
+DEFINE_LOCAL_LU LU_NAME(N01P0001)
+  DESCRIPTION(Independent LU)
+  LU_ALIAS(APPCIND )
+  NAU_ADDRESS(INDEPENDENT_LU);</PRE>
+<BR><H3><A name="zloglink">Logical Link Definitions</A></H3>
+
+
+<P>The following
+logical link definitions provide data link control
+details to the associated symbolic link name. The first definition is for
+the 3174 host sub-area gateway; the second is for a peer workstation on the
+Token Ring network. The symbolic link names NETCP800 and NETCP802 are used
+in the partner logical unit location definitions shown in <A href="#ztnerdef">Partner Logical Unit Location Definitions</A>.  
+
+
+
+<PRE>DEFINE_LOGICAL_LINK LINK_NAME(NETCP800)
+  DESCRIPTION(3174 Host Gateway)
+  FQ_ADJACENT_CP_NAME(USNETI01.NETCP800)
+  ADJACENT_NODE_TYPE(NN)
+  PREFERRED_NN_SERVER(NO)
+  DLC_NAME(IBMTRNET)
+  ADAPTER_NUMBER(0)
+  DESTINATION_ADDRESS(X'400031740001')
+  CP_CP_SESSION_SUPPORT(YES)
+  ACTIVATE_AT_STARTUP(YES)
+  LIMITED_RESOURCE(NO)
+  LINK_STATION_ROLE(USE_ADAPTER_DEFINITION)
+  SOLICIT_SSCP_SESSION(NO)
+  EFFECTIVE_CAPACITY(USE_ADAPTER_DEFINITION)
+  COST_PER_CONNECT_TIME(USE_ADAPTER_DEFINITION)
+  COST_PER_BYTE(USE_ADAPTER_DEFINITION)
+  SECURITY(USE_ADAPTER_DEFINITION)
+  PROPAGATION_DELAY(USE_ADAPTER_DEFINITION)
+  USER_DEFINED_1(USE_ADAPTER_DEFINITION)
+  USER_DEFINED_2(USE_ADAPTER_DEFINITION)
+  USER_DEFINED_3(USE_ADAPTER_DEFINITION);
+
+DEFINE_LOGICAL_LINK LINK_NAME(NETCP802)
+  DESCRIPTION(Token Ring Peer Node)
+  FQ_ADJACENT_CP_NAME(USNETI01.NETCP802)
+  ADJACENT_NODE_TYPE(NN)
+  PREFERRED_NN_SERVER(NO)
+  DLC_NAME(IBMTRNET)
+  ADAPTER_NUMBER(0)
+  DESTINATION_ADDRESS(X'400000314003')
+  CP_CP_SESSION_SUPPORT(YES)
+  ACTIVATE_AT_STARTUP(NO)
+  LIMITED_RESOURCE(NO)
+  LINK_STATION_ROLE(USE_ADAPTER_DEFINITION)
+  SOLICIT_SSCP_SESSION(NO)
+  EFFECTIVE_CAPACITY(USE_ADAPTER_DEFINITION)
+  COST_PER_CONNECT_TIME(USE_ADAPTER_DEFINITION)
+  COST_PER_BYTE(USE_ADAPTER_DEFINITION)
+  SECURITY(USE_ADAPTER_DEFINITION)
+  PROPAGATION_DELAY(USE_ADAPTER_DEFINITION)
+  USER_DEFINED_1(USE_ADAPTER_DEFINITION)
+  USER_DEFINED_2(USE_ADAPTER_DEFINITION)
+  USER_DEFINED_3(USE_ADAPTER_DEFINITION);</PRE>
+<BR><H3>Partner Logical Unit Definitions</H3>
+
+
+<P>The
+following partner logical unit definitions provide the aliases
+that are associated with communication partners, among other attributes. The
+first group, which contains partner LUs N02SV601 through N02SV605, corresponds
+to the set of potential OS/390 SAS/CONNECT remote
+sessions. The LU for an OS/390 remote session is selected dynamically from
+a pool of LUs that is defined on an OS/390 host for this purpose. See <A href="z0172548.htm">OS/390: APPC Access Method</A>  for details
+about defining pool size with the SAS options LUPOOL, LUFIRST, LULAST, and
+LUPREFIX. Each LU in the pool must be defined as a partner LU on the workstation.
+<P>The final entry, N01P0002, is a peer partner on the Token Ring network
+on which a user may connect to a SAS/CONNECT remote
+host or to a SAS/SHARE server.  
+
+
+
+<PRE>DEFINE_PARTNER_LU 
+  FQ_PARTNER_LU_NAME(USNETI01.N02SV601)
+  PARTNER_LU_ALIAS(N02SV601)
+  PARTNER_LU_UNINTERPRETED_NAME(N02SV601)
+  MAX_MC_LL_SEND_SIZE(32767)
+  CONV_SECURITY_VERIFICATION(NO)
+  PARALLEL_SESSION_SUPPORT(YES);
+
+DEFINE_PARTNER_LU 
+  FQ_PARTNER_LU_NAME(USNETI01.N02SV602)
+  PARTNER_LU_ALIAS(N02SV602)
+  PARTNER_LU_UNINTERPRETED_NAME(N02SV602)
+  MAX_MC_LL_SEND_SIZE(32767)
+  CONV_SECURITY_VERIFICATION(NO)
+  PARALLEL_SESSION_SUPPORT(YES);
+
+DEFINE_PARTNER_LU 
+  FQ_PARTNER_LU_NAME(USNETI01.N02SV603)
+  PARTNER_LU_ALIAS(N02SV603)
+  PARTNER_LU_UNINTERPRETED_NAME(N02SV603)
+  MAX_MC_LL_SEND_SIZE(32767)
+  CONV_SECURITY_VERIFICATION(NO)
+  PARALLEL_SESSION_SUPPORT(YES);
+
+DEFINE_PARTNER_LU 
+  FQ_PARTNER_LU_NAME(USNETI01.N02SV604)
+  PARTNER_LU_ALIAS(N02SV604)
+  PARTNER_LU_UNINTERPRETED_NAME(N02SV604)
+  MAX_MC_LL_SEND_SIZE(32767)
+  CONV_SECURITY_VERIFICATION(NO)
+  PARALLEL_SESSION_SUPPORT(YES);
+
+DEFINE_PARTNER_LU 
+  FQ_PARTNER_LU_NAME(USNETI01.N02SV605)
+  PARTNER_LU_ALIAS(N02SV605)
+  PARTNER_LU_UNINTERPRETED_NAME(N02SV605)
+  MAX_MC_LL_SEND_SIZE(32767)
+  CONV_SECURITY_VERIFICATION(NO)
+  PARALLEL_SESSION_SUPPORT(YES);
+
+DEFINE_PARTNER_LU 
+  FQ_PARTNER_LU_NAME(USNETI01.N01P0002)
+  PARTNER_LU_ALIAS(N01P0002)
+  PARTNER_LU_UNINTERPRETED_NAME(N01P0002)
+  MAX_MC_LL_SEND_SIZE(32767)
+  CONV_SECURITY_VERIFICATION(NO)
+  PARALLEL_SESSION_SUPPORT(YES);</PRE>
+<BR><H3><A name="ztnerdef">Partner Logical Unit Location Definitions</A></H3>
+
+
+<P>The following partner LU location definitions associate an owning
+control point name, FQ_OWNING_CP_NAME, with the previously defined partner
+LUs. The first definition routes any LU name that is prefixed with N02 to
+the Token Ring node NETCP800, which was previously defined by the DEFINE_LOGICAL_LINK
+specification. In this example, the DEFINE_LOGICAL_LINK specification defines
+the 3174 host sub-area gateway. The second definition matches peer LU N01P0002
+with the previously defined link definition NETCP802. See <A href="#zloglink">Logical Link Definitions</A> for the link definition NETCP802.
+ 
+
+
+
+<PRE>DEFINE_PARTNER_LU_LOCATION 
+  FQ_PARTNER_LU_NAME(USNETI01.N02 )
+  WILDCARD_ENTRY(PARTIAL)
+  FQ_OWNING_CP_NAME(USNETI01.NETCP800)
+  LOCAL_NODE_NN_SERVER(NO);
+
+DEFINE_PARTNER_LU_LOCATION 
+  FQ_PARTNER_LU_NAME(USNETI01.N01P0002)
+  WILDCARD_ENTRY(NO)
+  FQ_OWNING_CP_NAME(USNETI01.NETCP802)
+  LOCAL_NODE_NN_SERVER(NO);</PRE>
+<BR><H3>Mode Definitions</H3>
+
+
+<P>The following mode definition
+provides two classes of information:
+maximum session constraints and performance tuning metrics.  
+
+
+
+<PRE>DEFINE_MODE MODE_NAME(MAPPCIND)
+  COS_NAME(#CONNECT)
+  DEFAULT_RU_SIZE(YES)
+  RECEIVE_PACING_WINDOW(4)
+  MAX_NEGOTIABLE_SESSION_LIMIT(32767)
+  PLU_MODE_SESSION_LIMIT(12)
+  MIN_CONWINNERS_SOURCE(6);</PRE>
+<BR><H3>Default Communication Specifications</H3>
+
+
+<P>The default communication specifications are established with
+DEFINE_DEFAULTS. Setting  IMPLICIT_INBOUND_PLU_SUPPORT  to YES avoids having
+to configure any potential partner LU that may initiate communication with
+the workstation. The DEFAULT_MODE_NAME definition specifies a MODE_NAME to
+use if the one presented on an allocation request is undefined.
+<P>Thus, if you do not define the default mode name, SASAPPC, and you do
+not define the APPC_LU62MODE environment variable, the DEFAULT_MODE_NAME is
+used. A DEFAULT_LOCAL_LU_ALIAS may also be defined. If it is absent, the local
+control point LU is the active default. See CP_ALIAS of DEFINE_LOCAL_CP in <A href="#cp">Local Control Point and Single Logical Unit</A>.
+<P>If the APPC_LUNAME environment variable is not
+set,
+the active default
+LU is used.  
+
+
+
+<PRE>DEFINE_DEFAULTS IMPLICIT_INBOUND_PLU_SUPPORT(YES)
+  DEFAULT_MODE_NAME(MAPPCIND)
+  MAX_MC_LL_SEND_SIZE(32767)
+  DIRECTORY_FOR_INBOUND_ATTACHES(*)
+  DEFAULT_TP_OPERATION(NONQUEUED_AM_STARTED)
+  DEFAULT_TP_PROGRAM_TYPE(BACKGROUND)
+  DEFAULT_TP_CONV_SECURITY_RQD(NO)
+  MAX_HELD_ALERTS(10);</PRE>
+<BR><H3>SASRMT and SASTP62 Transaction Programs</H3>
+
+
+<P>The following two transaction
+programs are required to allow a SAS/CONNECT remote
+session to run on the  OS/2  workstation. For SAS/SHARE,
+the transaction program SASTP62 is required.  
+
+
+
+<PRE>DEFINE_TP TP_NAME(SASRMT)
+  DESCRIPTION(Remote SAS Initiation TP)
+  FILESPEC(C:\SAS\SAS.EXE)
+  PARM_STRING(-DMR -CONFIG C:\SAS\CONFIG.DMR)
+  CONVERSATION_TYPE(EITHER)
+  CONV_SECURITY_RQD(NO)
+  SYNC_LEVEL(EITHER)
+  TP_OPERATION(NONQUEUED_AM_STARTED)
+  PROGRAM_TYPE(PRESENTATION_MANAGER)
+  RECEIVE_ALLOCATE_TIMEOUT(INFINITE);
+
+DEFINE_TP TP_NAME(SASTP62)
+  DESCRIPTION(Internal SAS Service TP)
+  FILESPEC(C:\SAS\SASTP62.EXE)
+  CONVERSATION_TYPE(EITHER)
+  CONV_SECURITY_RQD(NO)
+  SYNC_LEVEL(EITHER)
+  TP_OPERATION(QUEUED_OPERATOR_PRELOADED)
+  PROGRAM_TYPE(BACKGROUND)
+  INCOMING_ALLOCATE_QUEUE_DEPTH(255)
+  INCOMING_ALLOCATE_TIMEOUT(120)
+  RECEIVE_ALLOCATE_TIMEOUT(60);</PRE>
+<BR><H3>Attach Manager Start</H3>
+
+
+<P>The final statement in this
+example NDF starts the Attach Manager
+agent. The Attach Manager is needed to enable SAS/CONNECT users
+to sign on to the workstation or for SAS/SHARE users
+to connect to a server that is running on the workstation.  
+
+
+
+<PRE>START_ATTACH_MANAGER;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zppcrefs">References</A></FONT></B></TD></TR></TABLE>
+
+<P>For complete details on how to configure
+the OS/2 system before
+you can use the APPC access method, refer to the following documents: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>SNA Technical Overview (GC30-3073)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SNA Formats (GA27-3136)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>VTAM Programming for LU6.2
+(SC30-3400)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Extended Services for OS/2 Communications Manager User's Guide
+(S04G-1015)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Extended Services for OS/2 Communications Manager Configuration
+Guide (S04G-1002)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Extended Services for OS/2 Problem Determination Guide for the
+Service Coordinator (S04G-1006)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Extended Services for OS/2 Programming Services and Advanced Problem
+Determination for Communications (S04G-1007)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Extended Services for OS/2 Communications Manager System Management
+Programming Reference (S04G-1116)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Extended Services for OS/2 APPC Programming Reference (S04G-1025)</B></TD></TR></TABLE>
+<P>Contact IBM for
+information about this documentation.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381530.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381548.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381716.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z2config">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

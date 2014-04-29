@@ -1,0 +1,130 @@
+<HTML>
+<HEAD>
+<TITLE>An Integer Programming Example</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The LP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>An Integer Programming Example  </H2>
+<P>The following is a simple mixed integer programming problem.
+Details can be found in <A HREF="sect53.htm">Example 3.8</A> in the  <A HREF="sect44.htm#lp_5000">&#34;Examples&#34;</A>  section.
+<P><PRE>
+   data;
+      input _row_ $10. choco gumdr ichoco igumdr _type_ $ _rhs_;
+      datalines;
+   object        .25    .75   -100    -75 max        .
+   cooking        15     40      0      0 le     27000
+   color           0  56.25      0      0 le     27000
+   package     18.75      0      0      0 le     27000
+   condiments     12     50      0      0 le     27000
+   chocolate       1      0 -10000      0 le         0
+   gum             0      1      0 -10000 le         0
+   only_one        0      0      1      1 eq         1
+   binary          .      .      1      2 binary     .
+   ;
+</PRE>
+
+<P>The row with <SPAN CLASS="ssiten"><I>BINARY</I></SPAN> type indicates that this problem is a mixed
+integer program and all the integer variables are binary.  The
+integer values of the row set an ordering for PROC LP to
+pick the branching variable when <A HREF="sect8.htm#lp_3bem">VARSELECT=</A><SPAN CLASS="ssiten"><I>PRIOR</I></SPAN> 
+is chosen.  Smaller values will have higher priorities.  
+The <SPAN CLASS="ssfeleven">_ROW_</SPAN> variable here is an alias of the <SPAN CLASS="ssfeleven">_ID_</SPAN> 
+variable.
+<P>This problem can be solved with the following statements:
+<P><PRE>
+    proc lp canselect=lifo backtrack=obj varselect=far endpause;
+    run;
+    quit;
+    %put &#38;_orlp_; 
+</PRE>
+
+<P>The options  <A HREF="sect8.htm#lp_3beb">CANSELECT=</A>,  <A HREF="sect8.htm#lp_3bea">BACKTRACK=</A>, 
+and <A HREF="sect8.htm#lp_3bem">VARSELECT=</A>
+specify the rules for picking the next active problem 
+and the rule to choose the branching variable.  In this
+example, the values <SPAN CLASS="ssiten"><I>LIFO, OBJ</I></SPAN> and <SPAN CLASS="ssiten"><I>FAR</I></SPAN> serve as the default
+values, so the three options can be omitted from the PROC LP statement.
+The following is the output from the %PUT statement:
+<P>
+<IMG WIDTH="791" HEIGHT="71" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/lp7eq5.gif"
+ ALT="\begin{framing}
+{5.5in}
+\begin{verbatim}
+STATUS=SUCCESSFUL PHASE=3 OBJECTIVE=285...
+ ..._BEST=285 PHASE1_ITER=1 PHASE2_ITER=5 
+ PHASE3_ITER=5\end{verbatim}\end{framing}"><P><A NAME="lpoo00">&#13;</A><SPAN CLASS="ssften"><B>Figure 3.1:</B> The Output of _ORLP_</SPAN><P>
+<P><H3><I>Preprocessing</I></H3>
+<A NAME="idxlp70008">&#13;</A><A NAME="idxlp70009">&#13;</A>Using the <A HREF="sect8.htm#lp_3bda">PREPROCESS=</A> option, you 
+can apply the preprocessing
+techniques to pre-solve and then solve the preceding mixed 
+integer program:
+<P><PRE>
+    proc lp preprocess=1 endpause;
+    run;
+    quit;
+    %put &#38;_orlp_;
+</PRE>
+
+<P>The preprocessing statistics are written to the SAS
+log file as follows:
+<P><PRE>
+   NOTE: Preprocessing 1 ...
+   NOTE:     2 upper bounds decreased.
+   NOTE:     2 coefficients reduced.
+   NOTE: Preprocessing 2 ...
+   NOTE:     2 constraints eliminated.
+   NOTE: Preprocessing done.
+</PRE>
+
+<P>The new output <A HREF="sect30.htm#lp_4e00">_ORLP_</A> is as follows.
+<P>
+<IMG WIDTH="790" HEIGHT="71" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/lp7eq6.gif"
+ ALT="\begin{framing}
+{5.5in}
+\begin{verbatim}
+STATUS=SUCCESSFUL PHASE=3 OBJECTIVE=285...
+ ..._BEST=285 PHASE1_ITER=1 PHASE2_ITER=4 
+ PHASE3_ITER=0\end{verbatim}\end{framing}"><P><A NAME="lpoo02">&#13;</A><SPAN CLASS="ssften"><B>Figure 3.2:</B> The Output of _ORLP_ with Preprocessing Option On</SPAN><P>
+<P>In this example, the number of integer iterations (INT_ITER=) is zero,
+which means that the preprocessing has reduced the gap between the 
+relaxed linear problem and the mixed integer program to zero.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

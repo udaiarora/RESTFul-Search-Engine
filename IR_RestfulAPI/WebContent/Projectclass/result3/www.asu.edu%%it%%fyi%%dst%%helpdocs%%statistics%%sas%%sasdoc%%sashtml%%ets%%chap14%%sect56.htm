@@ -1,0 +1,367 @@
+<HTML>
+<HEAD>
+<TITLE>Goal Seeking: Solving for Right-Hand-Side Variables</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect55.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect57.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Goal Seeking: Solving for Right-Hand-Side Variables  </H2>
+<P><A NAME="idxmod0553">&#13;</A><A NAME="idxmod0552">&#13;</A>The process of computing input values needed to produce target
+results is often called <I>goal seeking</I>.
+To compute a goal-seeking solution,
+use a SOLVE statement that lists the variables
+you want to solve for and provide a data set containing values
+for the remaining variables.
+<P>Consider the following demand model for packaged rice
+
+<DL CLASS="equation"><DD><IMG WIDTH="401" HEIGHT="77"
+ SRC="images/modeq273.gif"
+ ALT="quantitydemanded = {\alpha}_{1} + {\alpha}_{2}price^{2 / 3} + {\alpha}_{3}income"></DL>
+where <I>price</I> is the price of the package and <I>income</I> is disposable
+personal income.
+The only variable the company has control over is the price
+it charges for rice.
+This model is estimated using the following simulated data and
+PROC MODEL statements:
+<PRE>
+   data demand;
+      do t=1 to 40;
+          price = (rannor(10) +5) * 10;
+          income = 8000 * t ** (1/8);
+          demand = 7200 - 1054 * price ** (2/3) +
+                   7 * income + 100 * rannor(1);
+          output;
+      end;
+   run;
+
+   data goal;
+       demand = 85000;
+       income = 12686;
+   run;
+</PRE>
+The goal is to find the price the company would have to charge
+to meet a sales target of 85,000 units. To do this, a data
+set is created with a DEMAND variable set to 85000 and with an
+INCOME variable set to 12686, the last income value. 
+<PRE>
+   proc model data=demand ;
+      demand = a1 - a2 * price ** (2/3) + a3 * income;
+      fit demand / outest=demest;
+   run;
+</PRE>
+The desired price is then determined using the following PROC MODEL
+statement:
+<PRE>
+       solve price / estdata=demest data=goal solveprint;
+   run;
+</PRE>
+<P>The SOLVEPRINT option prints the solution values, number of iterations,
+and final residuals at each observation. 
+The SOLVEPRINT output from this solve is shown in <A HREF="sect56.htm#modgoal2">Figure 14.68</A>.
+<P><A NAME="modgoal2">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Single-Equation Simulation</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000000</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>ERROR.demand</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000000</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solution Values</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>price</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">33.59016</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.68:</B> Goal Seeking, SOLVEPRINT Output</SPAN><P>
+<P>The output indicates that it took 6 Newton iterations to determine
+the PRICE of 33.5902,
+which makes the DEMAND value within 16E-11 of the goal of 85,000 units.
+<P>Consider a more ambitious goal of 100,000 units. 
+The output shown in <A HREF="sect56.htm#modgoal1">Figure 14.69</A> indicates that the
+sales target of 100,000 units is not attainable according to
+this model.
+<P><A NAME="modgoal1">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Single-Equation Simulation</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">3 parameter estimates were read from the ESTDATA=DEMEST data set.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Single-Equation Simulation</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Could not reduce norm of residuals in 10 subiterations.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">The solution failed because 1 equations are missing or have extreme values for observation 1 at NEWTON iteration 1.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Additional information on the values of the variables at this observation, which may be helpful in determining the cause of the failure of the solution process, is printed below.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.000000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Missing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Iteration Errors - Missing.</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.000000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Missing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">2 execution errors for this observation </font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Check for missing input data or uninitialized lags.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>      (Note that the LAG and DIF functions return missing values for the initial lag starting observations. This is a change from the 1982 and earlier versions of SAS/ETS which returned zero for uninitialized lags.)</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Simulation aborted.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.69:</B> Goal Seeking, Convergence Failure</SPAN><P>
+<P>The program data vector indicates that even with PRICE nearly
+0 (4.462312E-22) the demand is still 4,164 less than the goal. 
+You may need to reformulate your model or collect more data to
+more accurately reflect the market response.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect55.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect57.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

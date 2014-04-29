@@ -1,0 +1,362 @@
+<HTML>
+<HEAD>
+<TITLE>How to Make the Data Read of PROC NETFLOW More Efficient</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="netflowreadeffic">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect54.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NETFLOW Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>How to Make the Data Read of PROC NETFLOW More Efficient</H2>
+<P>This section contains information useful when you want to solve large
+constrained network problems. However, much of this information
+is also useful if you have a large linear programming problem.
+<A NAME="idxnet1452">&#13;</A><A NAME="idxnet1453">&#13;</A>All of the options described in this section that are not directly applicable
+ to networks (options such as ,
+<A HREF="sect15.htm#netflowasingleobs">ARC_SINGLE_OBS</A>,
+<A HREF="sect15.htm#netflownnodes">NNODES</A>, and <A HREF="sect15.htm#netflownarcs">NARCS</A>) 
+can be specified to improve the speed at which LP data is read.
+<P><H3><I>Large Constrained Network Problems</I></H3>
+Many of the models presented to PROC NETFLOW are enormous.
+They can be considered large by linear programming standards;
+<A NAME="idxnet1454">&#13;</A><A NAME="idxnet1455">&#13;</A>problems with thousands of variables and constraints.
+When dealing with side constrained network programming problems,
+models can have not only a linear programming component of that
+magnitude, but also a larger, possibly <EM>much</EM> larger, 
+network component.
+<P>The majority of network problem's decision variables are arcs.
+Like an LP decision variable, an arc has an objective function 
+coefficient, upper and lower value bounds, and a name.
+Arcs can have coefficients in constraints.
+Therefore, an arc is quite similar to an LP variable and
+places the same memory 
+demands on optimization software as an LP variable.
+But a typical network model has many more arcs and nonarc variables
+than the typical LP model has variables.
+And arcs have tail and head nodes.
+Storing and processing node names require huge amounts of memory.
+To make matters worse, node names occupy memory at times
+when alot of other data should reside in memory as well.
+<P>While memory requirements are lower for a model with 
+embedded network component compared with the equivalent LP <EM>once
+optimization starts</EM>, the same is usually not true <EM>during the data 
+read</EM>. Even though nodal flow conservation constraints in the LP
+<A NAME="idxnet1456">&#13;</A><A NAME="idxnet1457">&#13;</A>should not be specified in the constrained network 
+formulation, the memory requirements to read the latter are greater
+because each arc (unlike an LP variable) originates at one node,
+and is directed toward another.
+<P><H3><I>Paging</I></H3>
+PROC NETFLOW has facilities to read data when the available memory is
+insufficient to store all the data at once.
+PROC NETFLOW does this by allocating memory for different purposes, 
+for example,
+to store an array or receive data read from an input SAS data set. 
+After that memory has filled, the information is sent to disk and 
+PROC NETFLOW can resume filling that memory with new information.
+Often, information must be retrieved from disk so that data previously
+read can be examined or checked for consistency. 
+Sometimes, to prevent any data from being lost, or to retain any 
+changes made to the information in memory, the contents of the memory
+must be sent to disk before other information can take its place.
+This process of swapping information to and from disk is called paging.
+Paging can be very time consuming, so it is crucial to minimize
+the amount of paging performed.
+<P>There are several steps you can take to make PROC NETFLOW read
+the data of network and linear programming models more efficiently,
+particularly when memory is scarse and the amount of paging must be
+reduced.
+PROC NETFLOW will then be able to tackle large problems in what 
+can be considered reasonable amounts of time.
+<P><H3><I>The Order of Observations</I></H3>
+PROC NETFLOW is quite flexible in the ways data can be supplied to it.
+Data can be given by any reasonable means.
+PROC NETFLOW has convenient defaults that can save you work when 
+generating the data.
+There can be several ways to supply the same piece of data, and some pieces
+of data can be given more than once.
+PROC NETFLOW reads everything, then merges it all together.
+However, this flexibility and convenience come at a price; 
+PROC NETFLOW may not
+assume the data has a characteristic that, if possessed by the data, 
+could save time and memory during the data read.
+There are several options that indicate the 
+data has some exploitable characteristic.
+<P>For example, an arc cost can be specified once or several times in the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= or, 
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set, or both.
+Every time it is given in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>, a check is made to ensure that the new value
+is the same as any corresponding value read in a previous observation 
+of <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>.
+Every time it is given in <A HREF="sect15.htm#netflowcondata">CONDATA</A>, a check is made to ensure that the new value
+is the same as the value read in a previous observation of <A HREF="sect15.htm#netflowcondata">CONDATA</A>,
+or previously in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>.
+It would save PROC NETFLOW time if it knew that arc cost data would be encountered
+only once while reading <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>, so performing the time consuming check
+for consistency would not be necessary.
+Also, if you indicate that <A HREF="sect15.htm#netflowcondata">CONDATA</A> contains data for constraints only,
+PROC NETFLOW will not expect any arc information, so memory will not be allocated
+to receive such data while reading <A HREF="sect15.htm#netflowcondata">CONDATA</A>.
+This memory is used for other purposes and this might lead to a reduction
+in paging.
+If applicable, use the <A HREF="sect15.htm#netflowasingleobs">ARC_SINGLE_OBS</A> or the <A HREF="sect15.htm#netflowcsingleobs">CON_SINGLE_OBS</A> option, or both,
+and the <A HREF="sect15.htm#netflownonreplic">NON_REPLIC</A>=COEFS specification
+to improve how <A HREF="sect15.htm#netflowarcdata">ARCDATA</A> and <A HREF="sect15.htm#netflowcondata">CONDATA</A> are read.
+<P>PROC NETFLOW allows the observations in input data sets to be in any order.
+However, major time savings can result if you are prepared to order observations
+in particular ways. 
+Time spent by the SORT procedure to sort the input data sets,
+particularly the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set, may be more than made 
+up for when PROC NETFLOW reads them, because PROC NETFLOW has in memory information
+possibly used when the previous observation was read.
+PROC NETFLOW can assume a piece of data
+is either similar to that of the last observation read or is new.
+In the first case, valuable information such as an arc or a nonarc variable number
+or a constraint 
+number is retained from the previous observation.
+In the last case, checking the data with what has been read previously 
+is not necessary.
+<P>Even if you do not sort the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set, grouping observations
+that contain data for the same arc or nonarc variable or the same row pays off.
+PROC NETFLOW establishes whether an observation being read is similar to the observation
+just read.
+<P>Practically, lots of input data sets for PROC NETFLOW might have this 
+characteristic, because it is natural for data for each constraint
+to be grouped together (<A HREF="sect42.htm#netflowdenseformat">dense</A> format of <A HREF="sect15.htm#netflowcondata">CONDATA</A>) or data for each
+column to be grouped together (<A HREF="sect42.htm#netflowsparseformat">sparse</A> format of <A HREF="sect15.htm#netflowcondata">CONDATA</A>).
+<A NAME="idxnet1458">&#13;</A><A NAME="idxnet1459">&#13;</A><A NAME="idxnet1460">&#13;</A><A NAME="idxnet1461">&#13;</A>If data for each arc or nonarc is spread over more than one observation of 
+the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set, it is natural to group these observation together.
+<P>Use the <A HREF="sect15.htm#netflowgrouped">GROUPED</A> parameter to indicate whether observations of 
+the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set, <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set, or both, are grouped in a way that can be exploited 
+during data read.
+<P>Time is saved if the type data for each row appears 
+near the top of the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set,
+especially if it has the <A HREF="sect42.htm#netflowsparseformat">sparse</A> format.
+Otherwise, when reading an observation,
+if PROC NETFLOW does not know if a row is a constraint
+or special row, so the data is set aside.
+Once the data set has been completely read, PROC NETFLOW must reprocess the data it
+set aside. By then, it knows the type of each constraint or row 
+or, if it's type was not provided, it is assumed to have a default type.
+<P><H3><I>Better Memory Utilization</I></H3>
+In order for PROC NETFLOW to make better utilization
+of available memory, you can now specify options that indicate the approximate
+size of the model.
+PROC NETFLOW then knows what to expect.
+For example, if you indicate
+that the problem has no nonarc variables, PROC NETFLOW will not allocate memory
+to store nonarc data. That memory is utilized better for other purposes.
+Memory is often allocated to receive or store data
+of some type. If you indicate that the model does not have
+much data of a particular type, the memory that would otherwise have been
+allocated to receive or store that data can be used to receive or
+store data of another type.
+<P><UL>
+<LI> <A HREF="sect15.htm#netflownnodes">NNODES</A>= approximate number of nodes
+<LI> <A HREF="sect15.htm#netflownarcs">NARCS</A>= approximate number of arcs
+<LI> <A HREF="sect15.htm#netflownnas">NNAS</A>= approximate number of nonarc variables or LP variables
+<LI> <A HREF="sect15.htm#netflowncons">NCONS</A>= approximate number of constraints
+<LI> <A HREF="sect15.htm#netflowncoefs">NCOEFS</A>= approximate number of constraint coefficients
+</UL>
+These options will sometimes be referred to as Nxxxx= options.
+<P>You do not need to specify all these option for the model, but the more you do, the
+better.
+If you do not specify some or all of these options, PROC NETFLOW guesses the size of the problem by using what it
+already knows about the model.  
+Sometimes PROC NETFLOW guesses the size of the model by looking at the
+number of observations in the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= and <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data sets.
+However, PROC NETFLOW uses rough rules of thumb; that typical models are proportioned
+in certain ways (for example, if there are constraints, arcs and nonarcsusually have 5
+constraint coefficients).
+If your model has an unusual shape or a disproportionate number of something,
+you are encouraged to use these options.
+<P>If you do use the options, if you do not know the exact values to specify, <EM>overestimate</EM>
+the values.
+For example, if you specify NARCS=10000 but the model has 10100 arcs, when dealing with the last
+100 arcs, PROC NETFLOW might have to page out data for 10000 arcs each time one of the last arcs
+must be dealt with.
+Memory could have been allocated for all 10100 arcs without affecting (much) the rest of the data read,
+so NARCS=10000 could be more of a hindrance than a help.
+<P>The point of these Nxxxx=
+options is to indicate the model size when PROC NETFLOW does not know
+it. When PROC NETFLOW knows the &#34;real&#34; value, that value is used instead
+of Nxxxx= .
+<P>When PROC NETFLOW is given a constrained solution warm start, PROC NETFLOW 
+knows from the warm start information all model size parameters, so 
+Nxxxx= options are not used. When an unconstrained warm
+start is used and the <A HREF="sect15.htm#netflowsnd">SAME_NONARC_DATA</A> is specified, PROC NETFLOW knows
+the number of nonarc variables, so that is used instead of the value of the <A HREF="sect15.htm#netflownnas">NNAS</A>= option.
+<P><A HREF="sect15.htm#netflowarcsonlyarcdata">ARCS_ONLY_ARCDATA</A> indicates that data for only arcs are in the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set.
+Memory would not be wasted to receive data for nonarc and LP variables.
+<P>Use the memory usage parameters:
+<UL>
+<LI> <A HREF="sect15.htm#netflowbytes">BYTES</A>= size of PROC NETFLOW main working memory in number of bytes
+<LI> <A HREF="sect15.htm#netflowmaxarraybytes">MAXARRAYBYTES</A>= maximum number of bytes that an array can occupy
+<LI> <A HREF="sect15.htm#netflowmemrep">MEMREP</A> indicates that memory usage report is to be displayed on the 
+SAS log
+</UL>
+<P>Specifying the <A HREF="sect15.htm#netflowbytes">BYTES</A>= parameter is particularly important.
+Specify as large a number as possible, but not such a large number of bytes that
+will cause PROC NETFLOW (rather, the SAS System running underneath PROC NETFLOW) to run
+out of memory.
+Use the <A HREF="sect15.htm#netflowmaxarraybytes">MAXARRAYBYTES</A>= option if the model is really large or 
+&#34;disproportionate&#34;.
+Try increasing or decreasing the <A HREF="sect15.htm#netflowmaxarraybytes">MAXARRAYBYTES</A>= option.
+Limiting the amount of memory for use by big arrays is good if they
+would take up too much memory to the detriment of 
+smaller arrays, buffers, and other things that require memory.
+However, too small a value of the <A HREF="sect15.htm#netflowmaxarraybytes">MAXARRAYBYTES</A>= option might cause PROC NETFLOW to
+page a big array excessively.
+Never specify a value for the <A HREF="sect15.htm#netflowmaxarraybytes">MAXARRAYBYTES</A>= option that is smaller than the main node length
+array. PROC NETFLOW reports the size of this array on the SAS log if you specify the <A HREF="sect15.htm#netflowmemrep">MEMREP</A> option.
+The <A HREF="sect15.htm#netflowmaxarraybytes">MAXARRAYBYTES</A>= option influences paging not only in the data read, but also during
+optimization.
+It is often better if optimization is performed as fast as possible, even if the read 
+is made slower as a consequence.
+<P><H3><I>Use Defaults to Reduce the Amount of Data</I></H3>
+Use as much as possible the parameters that specify default values.
+For example, if there are lots of arcs with the same cost value <SPAN CLASS="ssiten"><I>c</I></SPAN>,
+use <A HREF="sect15.htm#netflowdefcost">DEFCOST</A>=<SPAN CLASS="ssiten"><I>c</I></SPAN> for arcs that have that cost.
+Use missing values in the <A HREF="sect20.htm#netflowcost">COST</A> variable in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A> instead of
+<SPAN CLASS="ssiten"><I>c</I></SPAN>.
+PROC NETFLOW ignores missing values, but must read, store, and process nonmissing values, even 
+if they are equal to a default option or could have been equal to a default parameter
+had it been specified.
+Sometimes, using default parameters makes the need for some SAS
+variables in the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>=
+and <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data sets no longer necessary, or reduces the
+quantity of data that must be read.
+The default options are:
+<UL>
+<LI> <A HREF="sect15.htm#netflowdefcost">DEFCOST</A>= default cost of arcs, objective function of nonarc variables or LP variables
+<LI> <A HREF="sect15.htm#netflowdefminflow">DEFMINFLOW</A>= default lower flow bound of arcs, lower bound of nonarc variables or LP variables
+<LI> <A HREF="sect15.htm#netflowdefcapacity">DEFCAPACITY</A>= default capacity of arcs, upper bound of nonarc variables or LP variables
+<LI> <A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>=LE <A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>=<SPAN CLASS="mathfont">&#60;=</SPAN> <BR>
+<A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>=EQ <A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>== <BR>
+<A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>=GE <A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>=<SPAN CLASS="mathfont">&#62;=</SPAN>
+default constraint type
+</UL>
+<P>The default options themselves have defaults. 
+For example, you do not need to
+specify <A HREF="sect15.htm#netflowdefcost">DEFCOST</A>=0 in the 
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement.
+You should still have missing values in the <A HREF="sect20.htm#netflowcost">COST</A> variable in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>
+for arcs that have zero costs.
+<P>If the network has only one supply node, one demand node of both use
+<UL>
+<LI> <A HREF="sect15.htm#netflowsource">SOURCE</A>= name of single node that has supply capability
+<LI> <A HREF="sect15.htm#netflowsupplyopt">SUPPLY</A>= the amount of supply of <A HREF="sect15.htm#netflowsource">SOURCE</A>
+<LI> <A HREF="sect15.htm#netflowsink">SINK</A>= name of single node that demands flow
+<LI> <A HREF="sect21.htm#netflowdemand">DEMAND</A>= the amount of flow <A HREF="sect15.htm#netflowsink">SINK</A> demands
+</UL>
+<P>Do not specify that a constraint has zero right-hand-side values.
+That is the default.
+The only time it might be practical to specify a zero rhs is in 
+observations of <A HREF="sect15.htm#netflowcondata">CONDATA</A> read early so that PROC NETFLOW can infer 
+that a row is a constraint.
+This could prevent coefficient data from being put aside because 
+PROC NETFLOW did not know the row was a constraint.
+<P><H3><I>Names of Things</I></H3>
+To cut data read time and memory requirements, reduce the number of bytes in the
+longest node name, longest arc name, and longest constraint name
+to 8 bytes or less.
+The longer a name, the more bytes must be stored and compared with other names.
+<P>If an arc has no constraint coefficients, do not give it a name 
+in the <A HREF="sect25.htm#netflowname">NAME</A> list variable in the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set.
+Names for such arcs serve no purpose.
+<P>PROC NETFLOW can have a default name for each arc.
+If an arc is directed from node <I>tailname</I>
+toward node <I>headname</I>, the default name for that arc is <I>tailname_headname</I>.
+If you do not want PROC NETFLOW to use these default arc names, specify
+<A HREF="sect15.htm#netflownamectrl">NAMECTRL</A>=1.
+Otherwise, PROC NETFLOW must use memory for storing node names and these 
+node names must be
+searched often.
+<P>If you want to use the default <I>tailname_headname name</I>, that is, 
+<A HREF="sect15.htm#netflownamectrl">NAMECTRL</A>=2 or <A HREF="sect15.htm#netflownamectrl">NAMECTRL</A>=3,
+do not use underscores in node names.
+If a <A HREF="sect15.htm#netflowcondata">CONDATA</A> has a <A HREF="sect42.htm#netflowdenseformat">dense</A> format and has a variable in the <A HREF="sect40.htm#netflowvar">VAR</A> list 
+<SPAN CLASS="ssfeleven">A_B_C_D</SPAN>, or
+if the value <SPAN CLASS="ssfeleven">A_B_C_D</SPAN> is encountered as a value of the <A HREF="sect18.htm#netflowcolumn">COLUMN</A> list variable
+when reading <A HREF="sect15.htm#netflowcondata">CONDATA</A> that has the <A HREF="sect42.htm#netflowsparseformat">sparse</A> format, PROC NETFLOW first looks for a node named A.
+<A NAME="idxnet1462">&#13;</A><A NAME="idxnet1463">&#13;</A><A NAME="idxnet1464">&#13;</A><A NAME="idxnet1465">&#13;</A>If it finds it, it looks for a node called <SPAN CLASS="ssfeleven">B_C_D</SPAN>.
+It then looks for a node with the name <SPAN CLASS="ssfeleven">A_B</SPAN> and possibly a node with name <SPAN CLASS="ssfeleven">C_D</SPAN>.
+A search for a node named <SPAN CLASS="ssfeleven">A_B_C</SPAN> and possibly a node named D is done.
+Underscores could have caused PROC NETFLOW to look unnecessarily for nonexistant 
+nodes.
+Searching for node names can be expensive, and the amount of memory to store node
+names large.
+It might be better to assign the arc name <SPAN CLASS="ssfeleven">A_B_C_D</SPAN> directly to an arc 
+by having that value as a <A HREF="sect25.htm#netflowname">NAME</A> list variable value for that arc 
+in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A> and specify <A HREF="sect15.htm#netflownamectrl">NAMECTRL</A>=1.
+<P><H3><I>Other Ways to Speed-up Data Reads</I></H3>
+Use warm starts as much as possible.
+<UL>
+<LI> <A HREF="sect15.htm#netflowwarm">WARM</A> indicates that the input SAS data sets contain a warm start.
+</UL>
+The data read of a warm start is much faster than a cold start data read.
+The model size is known before the read starts.
+The observations of the <A HREF="sect15.htm#netflownodedata">NODEDATA</A> or <A HREF="sect15.htm#netflownodedata">DUALIN</A>
+data sets have observations ordered by node name and constraint name.
+Information is stored directly into the data structures used by PROC NETFLOW.
+For a cold start, much of preprocessing must be performed before
+the information can be stored in the same way.
+And using a warm start can greatly reduce the time PROC NETFLOW spends doing 
+optimization.
+<P><UL>
+<LI> <A HREF="sect15.htm#netflowsnd">SAME_NONARC_DATA</A> is an option that excludes data from processing.
+</UL>
+This option indicates that the warm start 
+nonarc variable data in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A> is read and any nonarc variable data in
+<A HREF="sect15.htm#netflowcondata">CONDATA</A> is to be ignored.
+Use this option if it is applicable, or when <A HREF="sect15.htm#netflowcondata">CONDATA</A> has no nonarc variable 
+data, or such data is duplicated in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>. 
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A> is always read before <A HREF="sect15.htm#netflowcondata">CONDATA</A>.
+<P>Arcs and nonarc variables can have associated with them values 
+or quantities that have no bearing with the
+optimization. 
+This information is given in <A HREF="sect15.htm#netflowarcdata">ARCDATA</A> in the <A HREF="sect23.htm#netflowid">ID</A> list variables.
+For example, in a distribution problem,
+information such as truck number and driver's name can be associated
+with each arc. This is useful when a
+solution is saved in an output SAS data set.
+However, PROC NETFLOW needs to reserve memory to process this information when
+data is being read.
+For large problems when memory is scarse, it might be better to
+remove ancilliary data from <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>.
+After PROC NETFLOW runs, use SAS software to merge this information into the output data sets
+that contain the optimal solution.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect54.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

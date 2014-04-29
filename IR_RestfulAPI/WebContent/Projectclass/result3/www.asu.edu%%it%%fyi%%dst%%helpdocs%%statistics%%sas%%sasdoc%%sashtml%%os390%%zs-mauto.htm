@@ -1,0 +1,171 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Macros : Autocall Libraries </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217187.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217192.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-stored.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zs-mauto">Autocall Libraries</A></FONT></H1>
+
+
+<P><A name="z0552261">&#13;An
+autocall library contains files that define SAS macros. Under OS/390, an autocall
+library is a partitioned data set. Each autocall macro should be a separate
+member in a partitioned data set. SAS Institute supplies some autocall macros
+in the system autocall library; you can also define autocall macros yourself
+in a user autocall library. In order to use the autocall facility, the SAS
+system option MAUTOSOURCE must be in effect. (See 
+
+
+
+<B>SAS Language Reference: Dictionary</B> for details about
+MAUTOSOURCE.)</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zasautos">Specifying a User Autocall Library</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552262">&#13;  You can designate an
+physical file, or a concatenation of physical
+files, as your user-written autocall library in any of the following ways: </A>
+<P>
+<UL>
+
+<LI>with the SASAUTOS= system option. You can designate
+one or more filerefs or data set names as your autocall library.  See <A href="z1utos.htm">SASAUTOS=</A>
+for more information.<P>
+
+<LI>with the SASAUTOS parameter of the SAS CLIST (under
+TSO). In this case, SAS concatenates the user autocall library in front of
+the system autocall library, which is specified by the CLIST parameter MAUTS.<P>
+
+<LI>with the SASAUTO= parameter of the SAS cataloged
+procedure.<P>
+</UL>
+
+<BR><H3>Example: Specifying an Autocall Library in Batch Mode</H3>
+
+
+<P><A name="z0552266">&#13;In batch mode, you could use the following JCL statements to
+specify an autocall library: </A>
+<DL>
+<DT>single autocall library:</DT>
+<DD>
+<PRE>//MYJOB    JOB <I>account</I>. ...
+//         EXEC SAS,OPTIONS='MAUTOSOURCE'
+//SASAUTOS DD DSN=MY.MACROS,DISP=SHR</PRE><P></DD>
+
+<DT>concatenated autocall library:</DT>
+<DD>
+<PRE>//MYJOB    JOB <I>account</I> ...
+//         EXEC SAS,OPTIONS='MAUTOSOURCE'
+//SASAUTOS DD DSN=MY.MACROS1,DISP=SHR
+//         DD DSN=MY.MACROS2,DISP=SHR
+//         DD DSN=<I>default.autocall.library</I>,
+//            DISP=SHR</PRE><P></DD>
+</DL>
+
+<BR><H3>Example: Specifying an Autocall Library under TSO</H3>
+
+
+<P><A name="z0552271">&#13;Under TSO, you can specify an autocall library either when you
+invoke SAS or during a SAS session. </A>
+<DL>
+<DT>When you invoke SAS:</DT>
+<DD>
+<P>
+<DL>
+<DT>single autocall library:</DT>
+<DD>
+<PRE>sas options('mautosource sasautos=
+   "myid.macros"')</PRE><P></DD>
+
+<DT>concatenated autocall library:</DT>
+<DD>
+<PRE>sas options('mautosource sasautos=
+   ("myid.macros1","myid.macros2",sasautos)')</PRE><P></DD>
+</DL>
+<P></DD>
+
+<DT>During a SAS session:</DT>
+<DD>
+<P>
+<DL>
+<DT>single autocall library:</DT>
+<DD>
+<PRE>options mautosource sasautos=
+   'myid.macros';</PRE><P></DD>
+
+<DT>concatenated autocall library:</DT>
+<DD>
+<PRE>options mautosource sasautos=
+   ('myid.macros1','myid.macros2',
+   sasautos);</PRE><P></DD>
+</DL>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Creating an Autocall Macro</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552284">&#13; To create an
+autocall macro, do the following: </A>
+<OL START="1" type="1">
+<LI>Create a partitioned data set to function as an
+autocall library, or use an existing autocall library.<P>
+
+<LI>In the autocall library, create a member that
+contains the source statements for the macro.  The member name must be the
+same as the name of the macro.<P>
+</OL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The SAS macro facility allows
+you to include the underscore character in macro names; however, OS/390 does
+not allow the underscore character in partitioned data set member names. To
+create an autocall member for a macro name that contains an underscore, use
+a pound sign (#) in place of the underscore in the member name. For example,
+to create an autocall member for a macro named _SETUP_, name the member #SETUP#.
+However, invoke the macro by the macro name, as follows:
+
+
+
+<PRE>%_setup_</PRE>&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217187.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217192.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-stored.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zs-mauto">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

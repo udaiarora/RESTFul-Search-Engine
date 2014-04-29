@@ -1,0 +1,104 @@
+<HTML>
+<HEAD>
+<TITLE>DATA Step Program for Extracting Information</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect6.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Analyzing the Sample Path</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>DATA Step Program for Extracting Information  </H2>
+<A NAME="idxqs80039">&#13;</A>When you click the <B>Analyze</B> button
+in the Simulation control panel (see <A HREF="sect1.htm#cpsimula">Figure 8.3</A>), 
+the QSIM Application executes
+SAS code to extract and summarize the sample path saved in
+the WORK.SAMPLE data set.
+You, too, can write a SAS program to extract and analyze these
+data.
+For example, suppose you want to subset the data
+on the time the queue is in each state.
+The following DATA step subsets WORK.SAMPLE with those
+observations that have state information on queue with ID 5:
+<P><PRE>
+ data subset; 
+    set sample; 
+    if id=5;
+    keep timenow number time;
+    label number=&#34;Queue Length&#34;;
+    time = ( timenow - lag(timenow) ); 
+    number = lag(state);
+ run;
+</PRE>
+<P>The resulting data set has three variables: TIMENOW for the time
+that the state changes; NUMBER for the number in the queue;
+and TIME for the length of time in that state.
+The following SAS code executes the UNIVARIATE procedure
+to produce summary statistics and the GCHART procedure to
+produce a histogram as shown in <A HREF="sect3.htm#analqueu">Figure 8.5</A>.
+<P><PRE>
+ proc univariate data=subset; 
+    weight time;
+    var number;
+ run;
+
+ proc gchart;
+    label = &#34;Time in Queue&#34;;
+    vbar number / subvar=time discrete; 
+ run;
+</PRE>
+<P>A similar SAS program subsets the data on server utilization
+and produces the output in <A HREF="sect4.htm#analserv">Figure 8.10</A> and <A HREF="sect4.htm#analpser">Figure 8.9</A>.
+<P><PRE>
+ data subset; 
+    set sample; 
+    if id=4;
+    keep timenow number time;
+    label number=&#34;Utilization&#34;;
+    time = ( timenow - lag(timenow) ); 
+    number = lag(state);
+ run;
+
+ proc univariate data=subset;
+    weight time;
+    var busy;
+ run;
+
+ proc gchart;
+    pie busy / sumvar=time discrete percent=outside;
+ run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect6.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

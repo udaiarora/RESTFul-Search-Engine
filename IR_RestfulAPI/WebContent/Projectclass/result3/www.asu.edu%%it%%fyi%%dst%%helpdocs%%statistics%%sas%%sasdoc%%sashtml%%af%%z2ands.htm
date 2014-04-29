@@ -1,0 +1,644 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Data Set Model Class : Using the Data Set Model Class </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0232039.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0225528.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z2ands">Using the Data Set Model Class</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Commands for the Data Set Model Class</FONT></B></TD></TR></TABLE>
+
+<P>The following commands are supported by the Data Set Model class through
+the _execCmd method. Note that SCL programs should use the method that corresponds
+to the command; commands are provided for interactive use by end-users. 
+<DL>
+<DT><B>n</B></DT>
+<DD>scrolls the display to the absolute row referenced
+by the command. If the <B>n</B> value is greater than the number of
+rows in the table, the last row in the table is displayed.
+<P>This command returns an error when the access method used to read the
+table does not support access by absolute row number or when a WHERE clause
+is in effect.
+<P>This command corresponds to the method _gotoAbsoluteRow.<P></DD>
+
+<DT>ADD</DT>
+<DD>adds a new row to the table. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The ADD
+command is not allowed when browsing a table or if the NOADD option is specified.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>By default, all values in a new row are missing. If an initial value
+has been stored for the column, the value for a new row contains the initial
+value for the column. If no WHERE clause or key is specified, the new row
+becomes the current row if the engine supports this behavior.
+<P>This command corresponds to the method _addRow.<P></DD>
+
+<DT>AUTOSAVE &lt;<B>n</B>></DT>
+<DD>specifies how frequently the model automatically
+saves the table. The autosave value determines how many rows must be modified
+before an automatic save is performed. By default, the table is saved automatically
+whenever 25 rows have been modified since the last save.
+<P>To check the current autosave parameter value, issue the AUTOSAVE command
+without specifying an <B>n</B> value.
+<P>Regardless of the AUTOSAVE parameter value, you can save the table at
+any time by using the SAVE command.
+<P>This command corresponds to methods: _getAutosave, _save, and _setAutosave.<P></DD>
+
+<DT>CREATE <B>table</B> &lt;REPLACE>
+&lt;WITH &lt;ALL | <B>column-list</B>>></DT>
+<DD>creates a new SAS table using some or all of the
+columns from the current table. The new table duplicates both the structure
+and contents of the current table.
+<P>The CREATE command will write the rows to the table in the same order
+they were read by the engine. For example, if a WHERE clause or _setKey method
+has been applied, only those rows meeting the WHERE clause or set key condition
+are written to the table.
+<P>You can select which columns are included in the new table in the following
+ways: 
+<P>
+<UL>
+
+<LI>by listing the desired column names as command arguments<P>
+
+<LI>by using the ALL argument to select all columns in the
+table.<P>
+</UL>
+
+<P>You can add a list of table options following the table name. The list
+must be enclosed in parentheses.
+<P>By default, the CREATE command fails with an error message if the named
+table already exists. Specify the REPLACE option if you want the new table
+to replace an existing table with the same name. If you use the REPLACE option,
+it must come before the column name arguments.
+<P>This command corresponds to the _saveAs method.<P></DD>
+
+<DT>DELETE &lt;<B>row</B> &lt;
+...<B>row-n</B>>></DT>
+<DD>deletes one or more rows in the table.
+<P>The DELETE command is an editing command and is not valid when browsing
+a table. <DL>
+<DT><B><FONT color="FF00007">CAUTION:</FONT></B></DT><DD><B>Deletions cannot be recovered.</B>
+You cannot recover the contents of a deleted row.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"></DD></DL>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The DELETE command is not allowed if
+the NODELETE option is specified.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>In record-level locking, the DELETE command deletes only the currently
+locked row in the table.
+<P>In member-level locking, you can delete one or more rows at a time.
+To delete a single row, follow the DELETE command with the row number for
+the row to be deleted. If you are currently editing a row, issuing the DELETE
+command deletes that row.
+<P>To delete multiple rows, follow the DELETE command with a list of row
+numbers. Separate the row numbers with at least one space. For example, issue
+the following command to delete rows 5 and 10:  
+
+
+
+<PRE></PRE>
+
+
+
+
+
+<CODE><B>delete 5 10</B></CODE>
+<P>To delete a range of rows, specify the first and last row numbers of
+the range, separated by a dash. For example, the following command deletes
+all rows between 5 and 10, inclusive:  
+
+
+
+<PRE></PRE>
+
+
+
+
+
+<CODE><B>delete 5-10</B></CODE>
+<P>This command corresponds to the method _deleteRow.<P></DD>
+
+<DT>DUP &lt;<B>n</B> &lt; <B>row</B>>></DT>
+<DD>copies the current row (in record-level locking).
+The newly copied row is immediately added to the table, and it becomes the
+current row if the engine supports this behavior. If you copy multiple rows
+simultaneously, the last row copied becomes the current row if the engine
+supports this behavior. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The DUP command is not allowed when browsing a table or if the
+NOADD option is specified.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>By default, the current row is duplicated once. To duplicate the same
+row again, issue the DUP command again.  Alternatively, you can follow the
+DUP command with the desired number of copies. For example, the following
+command duplicates the current row three times:  
+
+
+
+<PRE></PRE>
+
+
+
+
+
+<CODE><B>dup 3</B></CODE>
+<P>In member-level locking, the DUP command copies the specified row <B>n</B> times and adds the new rows to the table. If no row is specified,
+the current row is used. You can select the row to copy by supplying its number
+as the <B>row</B> argument in the DUP command. To specify the <B>row</B> argument, you must also specify the <B>n</B> argument (the
+number of times you want the row duplicated). For example, the following command
+duplicates row 5 two times:  
+
+
+
+<PRE></PRE>
+
+
+
+
+
+<CODE><B>dup 2 5</B></CODE>
+<P>This command corresponds to the method _copyRow.<P></DD>
+
+<DT>FIND <B>find-request</B></DT>
+<DD>finds the next row (beginning at the current row,
+or at row 1 if there is no current row) that meets the specified <B>find-request</B>.
+<P>This command corresponds to the method
+_findRow.<P></DD>
+
+<DT>RFIND</DT>
+<DD>finds the next row that meets the <B>find-request</B> that was previously specified on a FIND command.
+<P>If the last FIND or RFIND command reached the end of the
+table without
+a match, the search begins at the beginning of the table.
+<P>This command corresponds to the method _repeatFindRow.<P></DD>
+
+<DT>SAVE</DT>
+<DD>stores all changes made to the table since the last
+time it was saved. See also the AUTOSAVE command.
+<P>This command corresponds to the method _save.<P></DD>
+
+<DT>SORT &lt;ASCENDING | DESCENDING> <B>column</B>
+&lt;/<B>options</B>></DT>
+<DD>sorts the table by the specified columns, and if
+no output table is specified, the table is sorted in place. Multiple columns
+can be specified.  The SORT command uses the sorting program that SAS supports
+for your operating system. If multiple columns are specified, the table is
+sorted by those columns in the order in which they are specified.
+<P>The SORT command is not valid in browse mode unless you specify an output
+data set.
+<P>You can specify sort options to be used for the sort depending on your
+operating system. All sort options must be preceded by a slash (/). See the
+_sort method for a list of the sort options.<P></DD>
+
+<DT>UPDATE &lt;RECORD | MEMBER></DT>
+<DD>changes the model from browsing to editing, or changes
+the control level of the model when already open for editing by specifying
+the argument.
+<P>The UPDATE command is not allowed when the BRONLY option has been specified.
+<P>The table can be opened for editing with a control level of either RECORD
+or MEMBER. If you do not use either argument, the default control level used
+is the control level specified in the attribute window of the attached viewer
+or in the CNTLLEV data set option (if one is specified).
+<P>When the table is opened for editing, you can use the UPDATE command
+to change the current control level for the table by specifying the parameter.
+<P>The UPDATE command fails if the specified control level would cause
+a locking conflict. For example, you cannot specify UPDATE MEMBER if the table
+is open with a control level of RECORD in another window or SAS session.
+<P>This command corresponds to the method _setOpenmode.<P></DD>
+
+<DT>WHERE
+&lt;&lt;ALSO><B>expression</B>> | &lt;UNDO|CLEAR></DT>
+<DD>imposes one or more sets of conditions that rows
+in the table must meet in order to be read. <B>Expression</B> is any
+valid SAS expression involving one or more of the columns in the table. Rows
+that do not satisfy the specified conditions cannot be edited.
+<P>The complete set of conditions is called a temporary WHERE clause. The
+conditions can be modified or canceled during the lifetime of the object.
+In contrast, the WHERE option (specified in the ATTRIBUTE window) defines
+a permanent WHERE clause that cannot be changed or canceled during the FRAME
+session and which is not affected by WHERE commands.
+<P>The WHERE command has several forms:
+<P>WHERE <B>expression</B> applies the conditions specified in the
+<B>expression</B> as the new temporary WHERE clause, replacing any clause
+previously in effect.
+<P>WHERE ALSO <B>expression</B> adds the conditions specified in
+the <B>expression</B> to the existing temporary WHERE clause.
+<P>WHERE UNDO deletes the most recently added set of conditions from the
+temporary WHERE clause.
+<P>WHERE | WHERE CLEAR cancels the current temporary WHERE clause.
+<P>If you use the ADD or DUP command to add a new row and enter values
+that do not meet the WHERE conditions, the row cannot be edited once you go
+to a new row.
+<P>The WHERE command cannot be used in conjunction with the _setKey method.
+<P>This command corresponds to the method
+_setWhere.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zl-attrs">Column Attributes</A></FONT></B></TD></TR></TABLE>
+
+<P>The Data Set Model class supports the column attributes shown in Table
+1. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You cannot change the NAME, TYPE, or LENGTH of a column. &nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="z1-tab">Column Attribute Items</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B>Item </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Type </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Description </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'NAME'  </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the name of the column:<P>must be 32 or fewer characters in length,<P> must be a valid SAS name or nliteral if
+validvarname option is specified</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'TYPE' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the type of the column:<P>'C' for character columns <P>'N' for numeric columns</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'LENGTH' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the data length for the column:<P>for character items, the maximum length is 32K<P>for numeric items, the maximum
+length is 8</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'FORMAT' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the format name for the column:<P>must be appropriate for the type of the column</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'INFORMAT' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the informat name for the column:<P>must be appropriate for the type of the column</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'LABEL' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the label for the column:<P> may be a maximum of 256 characters</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'INITVALUE' </TD>
+  
+<TD  align="LEFT" valign="TOP">C|N </TD>
+  
+<TD  align="LEFT" valign="TOP">the initial value to use for the column when adding new records to the
+table.  The type is the same as the data column.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'DSPROTECTD</TD>
+  
+<TD  align="LEFT" valign="TOP">C</TD>
+  
+<TD  align="LEFT" valign="TOP">indicates whether the column values are derived via SQL. Valid values
+are 'Y' | 'N'.</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zs-attrs">Data Set Model Attributes</A></FONT></B></TD></TR></TABLE>
+
+<P>The Data Set Model class supports the following data set
+attributes:
+<P>
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="z2-tab">Data Set Attribute Items</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B>List item </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Type </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Description </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'NAME'</TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the name of the open table, if any</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'MEMBER_TYPE' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the member type for the table, for example,   DATA or VIEW</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'ENGINE' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the name of the engine used for the table</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'CREATE_DATE' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the creation date of the table as a datetime value</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'MODIFY_DATE' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the last modified date of the table as a datetime   value</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'PROTECTION' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the level of password protection on the table:   READ, WRITE, or ALTER</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'TYPE'</TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the type for the displayed table</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'OPENMODE' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the open mode for the table: EDIT or BROWSE</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'LOCK_LEVEL' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the locking level for the table: RECORD or MEMBER</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'LABEL' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the label for the table</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'NUMBER_OF_ROWS' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the number of logical rows in the table,   if known (those not marked
+for deletion).  It returns -1 if unknown.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'NUMBER_OF_COLUMNS' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the number of columns in the table</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'INDEXES' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the index status of the table:</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">1         the table is indexed</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">0         the table is not indexed</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'NUMBER_OF_DELETEDROWS' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the number of deleted rows in the table</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'COMPRESSED' </TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the type of compression used for the table</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'SORTED' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the sort status of the table:</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">1         the table is sorted</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">0         the table is not sorted</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'COLUMN_LIST' <P>('VARIABLE_LIST')</TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the identifier of an SCL list that   contains character items for each
+column in the table</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'WHERE_LIST' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the identifier of an SCL list that contains character   items for any
+currently applied where clause</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'OPTION_LIST' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the identifier of an SCL list   that contains character items for the
+following   data set model options: BRONLY, NOADD, and NODELETE</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">'LOCKED_ROW' </TD>
+  
+<TD  align="LEFT" valign="TOP">N </TD>
+  
+<TD  align="LEFT" valign="TOP">the relative row number of the row that is locked.   If no row is locked,
+a value of -1 is returned.</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0232039.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0225528.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z2ands">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

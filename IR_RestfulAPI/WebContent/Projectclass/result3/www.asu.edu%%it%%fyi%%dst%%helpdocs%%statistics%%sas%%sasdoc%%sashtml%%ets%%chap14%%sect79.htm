@@ -1,0 +1,270 @@
+<HTML>
+<HEAD>
+<TITLE>Example 14.8: Nonlinear FIML Estimation</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="modex6">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect78.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect80.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 14.8: Nonlinear FIML Estimation</H2>
+<P>The data and model for this example were obtained from Bard (1974, p.133-138).
+The example is a two-equation econometric model used by Bodkin and Klein
+to fit U.S production data for the years 1909-1949. The model is
+the following:
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>g<SUB>1</SUB></I> = <I>c<SUB>1</SUB></I> 10<SUP><I>c<SUB>2</SUB></I><I>z<SUB>4</SUB></I></SUP>(<I>c<SUB>5</SUB></I>  <I>z</I><SUP>-<I>c<SUB>4</SUB></I></SUP><SUB>1</SUB>
++ (1- <I>c<SUB>5</SUB></I>) <I>z</I><SUP>-<I>c<SUB>4</SUB></I></SUP><SUB>2</SUB>)<SUP>-<I>c<SUB>3</SUB></I>/<I>c<SUB>4</SUB></I></SUP>
+- <I>z<SUB>3</SUB></I> = 0
+</SPAN>
+</DL>
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>g<SUB>2</SUB></I> = [<I>c<SUB>5</SUB></I>/(1-<I>c<SUB>5</SUB></I>)](<I>z<SUB>1</SUB></I>/<I>z<SUB>2</SUB></I>)<SUP>(-1 - <I>c<SUB>4</SUB></I>)</SUP> - <I>z<SUB>5</SUB></I> = 0
+</SPAN>
+</DL>
+<P>where <SPAN CLASS="mathfont"><I>z<SUB>1</SUB></I></SPAN> is capital input, <SPAN CLASS="mathfont"><I>z<SUB>2</SUB></I></SPAN> is labor input,
+<SPAN CLASS="mathfont"><I>z<SUB>3</SUB></I></SPAN> is real output, <SPAN CLASS="mathfont"><I>z<SUB>4</SUB></I></SPAN> is time in years
+with 1929 as year zero, and <SPAN CLASS="mathfont"><I>z<SUB>5</SUB></I></SPAN> is the ratio of price
+of capital services to wage scale. The <SPAN CLASS="mathfont"><I>c</I><SUB><I>i</I></SUB></SPAN>'s are the
+unknown parameters. <SPAN CLASS="mathfont"><I>z<SUB>1</SUB></I></SPAN> and <SPAN CLASS="mathfont"><I>z<SUB>2</SUB></I></SPAN> are considered
+endogenous variables. A FIML estimation is performed.
+<A NAME="idxmod0702">&#13;</A><PRE>
+   data bodkin;
+      input z1 z2 z3 z4 z5;
+   datalines;
+   1.33135 0.64629 0.4026 -20 0.24447
+   1.39235 0.66302 0.4084 -19 0.23454
+   1.41640 0.65272 0.4223 -18 0.23206
+   1.48773 0.67318 0.4389 -17 0.22291
+   1.51015 0.67720 0.4605 -16 0.22487
+   1.43385 0.65175 0.4445 -15 0.21879
+   1.48188 0.65570 0.4387 -14 0.23203
+   1.67115 0.71417 0.4999 -13 0.23828
+   1.71327 0.77524 0.5264 -12 0.26571
+   1.76412 0.79465 0.5793 -11 0.23410
+   1.76869 0.71607 0.5492 -10 0.22181
+   1.80776 0.70068 0.5052  -9 0.18157
+   1.54947 0.60764 0.4679  -8 0.22931
+   1.66933 0.67041 0.5283  -7 0.20595
+   1.93377 0.74091 0.5994  -6 0.19472
+   1.95460 0.71336 0.5964  -5 0.17981
+   2.11198 0.75159 0.6554  -4 0.18010
+   2.26266 0.78838 0.6851  -3 0.16933
+   2.33228 0.79600 0.6933  -2 0.16279
+   2.43980 0.80788 0.7061  -1 0.16906
+   2.58714 0.84547 0.7567   0 0.16239
+   2.54865 0.77232 0.6796   1 0.16103
+   2.26042 0.67880 0.6136   2 0.14456
+   1.91974 0.58529 0.5145   3 0.20079
+   1.80000 0.58065 0.5046   4 0.18307
+   1.86020 0.62007 0.5711   5 0.18352
+   1.88201 0.65575 0.6184   6 0.18847
+   1.97018 0.72433 0.7113   7 0.20415
+   2.08232 0.76838 0.7461   8 0.18847
+   1.94062 0.69806 0.6981   9 0.17800
+   1.98646 0.74679 0.7722  10 0.19979
+   2.07987 0.79083 0.8557  11 0.21115
+   2.28232 0.88462 0.9925  12 0.23453
+   2.52779 0.95750 1.0877  13 0.20937
+   2.62747 1.00285 1.1834  14 0.19843
+   2.61235 0.99329 1.2565  15 0.18898
+   2.52320 0.94857 1.2293  16 0.17203
+   2.44632 0.97853 1.1889  17 0.18140
+   2.56478 1.02591 1.2249  18 0.19431
+   2.64588 1.03760 1.2669  19 0.19492
+   2.69105 0.99669 1.2708  20 0.17912
+   ;
+   
+   proc model data=bodkin;
+      parms c1-c5;
+      endogenous z1 z2;
+      exogenous z3 z4 z5;
+   
+      eq.g1 = c1 * 10 **(c2 * z4) * (c5*z1**(-c4)+
+              (1-c5)*z2**(-c4))**(-c3/c4) - z3;
+      eq.g2 = (c5/(1-c5))*(z1/z2)**(-1-c4) -z5;
+   
+      fit g1 g2 / fiml ;
+   run;
+</PRE>
+<P>When FIML estimation is selected, the log likelihood of the system
+is output as the objective value.
+The results of the estimation are show in <A HREF="sect79.htm#modbodkin">Output 14.8.1</A>.
+<P></P><A NAME="modbodkin"><SPAN CLASS="ssften"><B>Output 14.8.1:</B> FIML Estimation Results for U.S. Production Data</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=8 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear&nbsp;FIML&nbsp;Summary&nbsp;of&nbsp;Residual&nbsp;Errors&nbsp;</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Equation</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF Model</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Root MSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>R-Square</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Adj R-Sq</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>g1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">37</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0529</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00143</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0378</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>g2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">40</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0173</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000431</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0208</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=5 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear FIML Parameter Estimates </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx Std Err</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br> Pr &gt; |t|</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>c1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.58395</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0218</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26.76</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>c2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.005877</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000673</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">8.74</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>c3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.3636</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1148</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">11.87</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>c4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.473688</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2699</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.75</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0873</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>c5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.446748</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0596</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7.49</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Number of Observations</b></font></TD>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Statistics for System</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Used</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">41</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Log Likelihood</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">110.7773</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Missing</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect78.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect80.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

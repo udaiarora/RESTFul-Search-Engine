@@ -1,0 +1,124 @@
+<HTML>
+<HEAD>
+<TITLE>Getting Started</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect1.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The SIMLIN Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H1><FONT SIZE="5">Getting Started  </FONT></H1>
+<P>The SIMLIN procedure processes the coefficients in a data set
+created by the SYSLIN procedure using the OUTEST= option
+or by another regression procedure such as PROC REG.
+To use PROC SIMLIN you must first produce the coefficient data set
+and then specify this data set on the EST= option of the PROC SIMLIN statement.
+You must also tell PROC SIMLIN which variables are endogenous 
+and which variables are exogenous.
+List the endogenous variables in an ENDOGENOUS statement,
+and list the exogenous variables in an EXOGENOUS statement.
+<P>The following example illustrates the creation of an OUTEST= data set 
+with PROC SYSLIN and the computation and printing of the reduced 
+form coefficients for the model with PROC SIMLIN.
+<P><PRE>
+
+   proc syslin data=in outest=e;
+      model y1 = y2 x1;
+      model y2 = y1 x2;
+   run;
+   
+   proc simlin est=e;
+      endogenous y1 y2;
+      exogenous x1 x2;
+   run;
+</PRE>
+<P>If the model contains lagged endogenous variables
+you must also use a LAGGED statement to tell
+PROC SIMLIN which variables contain lagged values, which endogenous
+variables they are lags of, and the number of periods of lagging.
+For dynamic models, the TOTAL and INTERIM= options can be used on
+the PROC SIMLIN statement to compute and print total and impact 
+multipliers. (See &#34;Dynamic Multipliers&#34; later in this section for an
+explanation of multipliers.)
+<A NAME="idxsim0002">&#13;</A><A NAME="idxsim0001">&#13;</A>In the following example the variables Y1LAG1, Y2LAG1, and Y2LAG2
+contain lagged values of the endogenous variables Y1 and Y2.
+Y1LAG1 and Y2LAG1 contain values of Y1 and Y2 for the previous observation,
+while Y2LAG2 contains 2 period lags of Y2.
+The LAGGED statement specifies the lagged relationships,
+and the TOTAL and INTERIM= options request multiplier analysis.
+The INTERIM=2 option prints matrices showing the impact
+that changes to the exogenous variables have on 
+the endogenous variables after 1 and 2 periods.
+<P><PRE>
+
+   data in; set in;
+     y1lag1 = lag(y1);
+     y2lag1 = lag(y2);
+     y2lag2 = lag2(y2);
+   run;
+   
+   proc syslin data=in outest=e;
+      model y1 = y2 y1lag1 y2lag2 x1;
+      model y2 = y1 y2lag1 x2;
+   run;
+   
+   proc simlin est=e total interim=2;
+      endogenous y1 y2;
+      exogenous x1 x2;
+      lagged y1lag1 y1 1 y2lag1 y2 1 y2lag2 y2 2;
+   run;
+</PRE>
+<P>After the reduced form of the model is computed, the model can be
+simulated by specifying an input data set on the PROC SIMLIN statement
+and using an OUTPUT statement to write the simulation results to 
+an output data set.
+The following example modifies the PROC SIMLIN step from the preceding
+example to simulate the model and stores the results in an output data set.
+<P><PRE>
+
+   proc simlin est=e total interim=2 data=in;
+      endogenous y1 y2;
+      exogenous x1 x2;
+      lagged y1lag1 y1 1 y2lag1 y2 1 y2lag2 y2 2;
+      output out=sim predicted=y1hat y2hat 
+                     residual=y1resid y2resid;
+   run;
+</PRE>
+<P><HR>
+<H4><A HREF="sect3.htm">Prediction and Simulation</A></H4>
+<P><!--End of Table of Child-Links-->
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect1.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

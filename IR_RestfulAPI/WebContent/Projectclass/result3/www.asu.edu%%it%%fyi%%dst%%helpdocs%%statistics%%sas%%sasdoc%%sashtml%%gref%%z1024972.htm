@@ -1,0 +1,518 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Bringing SAS/GRAPH Output to the Web : Using the Output Delivery System (ODS) with SAS/GRAPH Software </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1024732.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1025181.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1024972">Using the Output Delivery System (ODS) with SAS/GRAPH Software</A></FONT></H1>
+
+
+<P><A name="z1081595">&#13;  Using ODS with SAS/GRAPH
+has numerous advantages over generating Web output with the HTML or WEBFRAME
+device drivers. With ODS, you can</A>
+<P>
+<UL>
+
+<LI>name the body file(s) for storing the ODS output
+(see <A href="#z1025049">Specifying Body Files for Displaying Graphs</A>)<P>
+
+<LI>determine whether titles and footnotes are written
+as part of the graphs or as part of the HTML files (see <A href="#z1025092">Controlling Titles and Footnotes with ODS Output</A>)<P>
+
+<LI>combine graphics and
+non-graphics output in your
+Web page (see <A href="#z1025095">Adding Non-graphics Output to a Web Page</A>)<P>
+
+<LI>generate a Table of Contents to link to the output
+(see <A href="#z1025098">Linking to Output through a Table of Contents</A>)<P>
+
+<LI>generate a Table of Pages to link to the output
+(see <A href="#z1025101">Linking to Output through a Table of Pages</A>)<P>
+
+<LI>use HTML frames to display the Table of Contents
+or Table of Pages (see <A href="#z1025104">Using Frames to Display ODS Output</A>)<P>
+
+<LI>create drill-down graphs (see
+<A href="z1025181.htm">About Drill-down Graphs</A>)<P>
+
+<LI>create Java applets or ActiveX controls (see
+<A href="z1224484.htm">Creating Java Applets and ActiveX Controls</A>).<P>
+</UL>
+
+<P>These sections only briefly discuss ODS as it is used
+with SAS/GRAPH. For a more detailed discussion of ODS, see <B>The Complete Guide to the SAS Output Delivery     System</B>.
+<P>At a minimum, to use ODS with SAS/GRAPH,
+you must do
+all of the following:
+<OL START="1" type="1">
+<LI>use a GOPTIONS statement to specify that DEVICE=GIF,
+DEVICE=JAVA, or DEVICE=ACTIVEX. For each GRSEG generated in the SAS program,
+the GIF device driver creates a GIF file, the JAVA device driver creates a
+Java applet, and the ACTIVEX device driver creates an ActiveX control.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The JAVA and ACTIVEX device drivers can only be used with the GCHART,
+GCONTOUR, GMAP, GPLOT, and G3D procedures.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P>
+
+<LI>use the ODS HTML statement to specify the ODS
+options you want to use. At a minimum, you must use the BODY= (alias FILE=)
+option to specify a body file. <P>
+
+<LI>run a graphics procedure.<P>
+
+<LI>close the HTML destination by specifying ODS HTML
+CLOSE.<P>
+</OL>
+
+<P><B>Operating Environment Information:</B>&nbsp;&nbsp;&nbsp;In mainframe environments,
+you must also use the PATH= option to direct output files. In CMS, you must
+use the URL= suboption when you use the CONTENTS=, FRAME=, or PAGE= options.
+The URL= suboption specifies a valid URL for linking to other Web pages (CMS
+file specifications do not form valid URLs).&nbsp;&nbsp;<img border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom">
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Managing Links</FONT></B></TD></TR></TABLE>
+
+<P>With ODS, you
+can create output files within your file system, or create them directly on
+your Web server (assuming you can write files to that server). Either way,
+ODS builds the links for you. In this chapter, the examples are based on the
+assumption that you are creating all your output files in the same location
+within your file system. To deliver the output through a Web server, you can
+copy the files from your file system to the Web server.
+<P>To create the output files directly on the Web server for distribution
+across the Web, ODS needs to build valid URLs for the linking information.
+In this case, several options on the ODS HTML statement affect how ODS constructs
+the links and references. For details, see <A href="zodschap.htm#z1032761">How ODS Constructs Links and References</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Managing ODS Destinations</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1081610">&#13;
+ ODS
+supports multiple destinations for procedure output. When using ODS with SAS/GRAPH,
+you manage two of those locations: the <B>listing</B> destination, which
+is the destination that receives traditional SAS output, and the <B>HTML</B> destination, which receives the HTML and GIF files needed for Web
+output.</A>
+<P>ODS destinations can be open or closed. When a destination
+is open, ODS can send output to it, and when a destination is closed, ODS
+cannot send output to it. An open destination always uses system resources.
+<P>By default, the Listing destination is open, and the
+HTML destination is closed. Thus, when you do not specify the ODS HTML statement,
+procedure output is written to the Listing destination, and the output is
+rendered the same way it has been rendered in all earlier releases of the
+SAS System. Specifying the ODS HTML statement opens the HTML destination,
+but it has no effect on the Listing destination, which remains open unless
+you explicitly close it.
+<P>When using SAS/GRAPH procedures with ODS, you should
+conserve system resources by closing the Listing destination before issuing
+the ODS HTML statement. After generating ODS output, you must close the HTML
+destination before you can view that output. A typical ODS session with SAS/GRAPH
+should be structured like this: 
+
+
+
+<PRE>/* specify the output location */
+filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+
+/* close the listing destination */
+ods listing close;
+
+/* open the html destination */
+ods html path=odsout body='myfile.html';
+
+/* SAS/GRAPH program code */
+
+/* close the html destination */
+ods html close;
+
+/* open the listing destination */
+ods listing;</PRE>
+<P>If both the Listing and the HTML destinations are open
+when you use the GIF driver to generate graphics for the Web, the following
+output is generated:
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>HTML destination</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>Listing destination</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">The GIF driver creates a GIF file for each graph. Each
+file's name corresponds to the name of the   GRSEG entry for the same graph.</TD>
+  
+<TD  align="LEFT" valign="TOP">The GIF driver creates a GIF file named <B>sasgraph.gif</B> and writes or appends to it (depending on the GSFMODE= setting) each
+time it generates a graph.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">All the HTML files specified on the ODS HTML statement
+are created. Only the GIF files that are created in the HTML destination are
+referenced in the HTML files.</TD>
+  
+<TD  align="LEFT" valign="TOP"><BR></TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P>Output in the Listing destination is superfluous for
+Web use for the following reasons:
+<P>
+<UL>
+
+<LI>The file sasgraph.gif is not referenced in an
+HTML file.<P>
+
+<LI>Previewing GRSEGs in the GRAPH window is not a
+reliable way to proofread the graphs for use with the Web because the GRAPH
+window and a Web browser render graphs differently.<P>
+</UL>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;For more information on ODS destinations, see <B>The Complete Guide to the SAS
+Output Delivery     System</B>.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">ODS and Procedures that Support RUN-Group Processing</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0750793">&#13;    When you use ODS, it
+is wise to specify a QUIT statement at the end of every procedure that supports
+RUN-group processing. If you end every procedure step explicitly, rather than
+waiting for the next PROC or DATA step to end it for you, the QUIT statement
+will cause the selection list to clear, and you will be less likely to encounter
+unexpected results.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1025049">Specifying Body Files for Displaying Graphs</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1081631">&#13; 
+When you use ODS with SAS/GRAPH, you specify a body file to reference the
+graphics output. A body file is simply an HTML file that is created by ODS
+to contain non-graphics output and to reference graphics output so that it
+displays as if it were part of the HTML file. You can use many body files
+during the SAS session, although only one at a time can be open. </A><A href="#z1031655">Displaying a Body File in a Browser</A> shows a body file that
+references charts that were generated by PROC GCHART.
+<P>
+<P>
+<P>
+<B><I><A name="z1031655">Displaying a Body File in a Browser</A></I></B><BR>
+
+<P><IMG border="0" src="./images/01329081.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To open a body
+file, use the ODS HTML statement's BODY=
+option. The following code creates a body file named sales.html, which is
+created in the output location specified on the FILENAME statement (see <A href="z1024503.htm#z1024573">Specifying Output Locations for HTML and GIF Files</A>). A more
+complete ODS example is shown in <A href="z1025109.htm">Example 2: Using ODS with SAS/GRAPH Software</A>. 
+
+
+
+<PRE>filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+ods html body='sales.html' path=odsout;</PRE>
+<P>The body file remains open and all graphics and non-graphics
+output is written to it until the HTML destination is closed or another body
+file is opened.
+<P>To direct output to multiple body files, use an ODS
+HTML statement with the BODY= option each time you want to close the current
+body file and open another:  
+
+
+
+<PRE>filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+
+ods html body='sales.html' path=odsout;
+
+/* code whose output goes to sales.html */
+
+ods html body='costs.html' path=odsout;
+
+/* code whose output goes to costs.html */
+
+ods html close;</PRE>
+<P>If you use BY-group processing on a graphics procedure,
+a separate graph is generated for each value of the BY variable. In that case,
+all the graphs will be referenced in the same body file, unless you use the
+ODS HTML statement's NEWFILE= option. For example, you might use NEWFILE=OUTPUT: 
+
+
+
+<PRE> /* use newfile= to open a new */
+ /* body file for each graph */
+filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+ods html body='sales.html' path=odsout
+    newfile=output;</PRE>
+<P>NEWFILE=OUTPUT opens a new body file for each new graph
+that is generated, whether the graphs are generated with BY-group processing
+or by multiple procedure runs. The new body files are named by appending consecutive
+numbers to the name you specify in the BODY= option. In the example above,
+the initial body file is named sales.html, and the additional body files that
+are created will be named sales1.html, sales2.html, and so on.
+<P>To determine the appearance of output on the Web page,
+the body file uses table definitions and style definitions. This document
+shows output with the default definitions. Other definitions are available
+with the STYLE= option. You can also create your own style definitions. For
+information on table definitions and style definitions, see <B>The Complete Guide to the SAS Output Delivery     System</B>. 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1025092">Controlling Titles and Footnotes with ODS Output</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1081639">&#13;
+ 
+With ODS, if DEVICE=JAVA or DEVICE=ACTIVEX, titles and footnotes
+are always stored as part of the HTML file. However, if DEVICE=GIF, titles
+and footnotes are stored by default as part of the image in the GIF file.</A>
+<P>With DEVICE=GIF, you can direct titles and footnotes to the body file
+with the NOGTITLE and NOGFOOTNOTE options in the ODS HTML statement. When
+titles and/or footnotes are directed to the body file, they do not appear
+in the GIF file image.  
+
+
+
+<PRE>/* direct titles and footnotes */
+/* to the html file            */
+filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+ods html body='sales.html' path=odsout
+    nogtitle nogfootnote;</PRE>
+<P>Titles and footnotes in the body file are rendered as
+separate HTML tables near the top and bottom of each page of HTML output.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;With NOGTITLE and NOGFOOTNOTE, if either titles or footnotes
+take up much more vertical space than the other, the text on a vertical axis
+may not be centered properly relative to the axis tick marks. If this happens,
+you may not want to specify the option.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1025095">Adding Non-graphics Output to a Web Page</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1081642">&#13;  When you
+open a body file in ODS, all graphics and non-graphics output is referenced
+in that body file until the HTML destination is closed or another body file
+is opened. Thus, you do not have to do anything special to combine graphics
+and non-graphics output. Simply open a body file and run the procedures whose
+output you want to combine: 
+
+
+</A>
+<PRE>filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+
+/* close the listing destination */
+ods listing close;
+
+/* open html destination and a body file */
+ods html body='sales.html' path=odsout;
+
+/* generate graphics and */
+/* non-graphics output   */
+/* using the current data set */
+proc gchart;
+     vbar3d state / sumvar=sales;
+run;
+quit;
+
+proc print noobs;
+run;
+
+/* close the html destination,  */
+ods html close;
+/* open the listing destination */
+ods listing;</PRE>
+<P>In this example, the GCHART procedure output is referenced
+in the body file, and then the PRINT procedure output is written below it.
+The two outputs appear together on the same Web page when file sales.html
+is viewed in a browser.
+<P>For a more complete example, see <A href="zods1-ex.htm">Example 9.  Combining Graphs and Reports in a Web Page</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1025098">Linking to Output through a Table of Contents</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1081645">&#13;
+  With ODS, you can create a contents file to link to the graphics
+and non-graphics output generated during a SAS session. A contents file is
+simply a file that uses a Table of Contents to link to the output. You can
+use multiple contents files during the SAS session, although only one at a
+time can be open. </A>
+<P>
+<P>
+<P>
+<B><I>Displaying a Contents File in a Browser</I></B><BR>
+
+<P><IMG border="0" src="./images/01329082.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To create
+a contents file, specify a name for the file
+in the ODS HTML statement's CONTENTS= option.
+<P>The following code creates a contents file named salesCon.html,
+which is created in the output location specified in the FILENAME statement
+(see <A href="z1024503.htm#z1024573">Specifying Output Locations for HTML and GIF Files</A>).
+A more complete ODS example is shown in <A href="z1025109.htm">Example 2: Using ODS with SAS/GRAPH Software</A>.  
+
+
+
+<PRE>filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+ods html body='sales.html' path=odsout
+    contents='salesCon.html'; </PRE>
+<P>The contents file remains open and links are written
+to it for all graphics and non-graphics output that is generated by the SAS
+program until one of the following occurs: 
+<P>
+<UL>
+
+<LI> The HTML destination is closed.<P>
+
+<LI>Another contents file is opened. To
+open a new
+contents file, specify another ODS HTML statement and use CONTENTS= to specify
+the new file's name.<P>
+</UL>
+
+<P>For graphics procedures, use the DESCRIPTION= option
+to specify the text to be displayed for the links to that procedure's output.
+If you don't use the DESCRIPTION= option, the procedure's default description
+text is used. 
+<P>To use the Table of Contents, view the contents file
+in the browser. When you select a link from the Table of Contents, the browser
+goes to the target output referenced by that link. To use the Table of Contents
+again, you must use the browser's [<SMALL><B>Back</B></SMALL>] button or some other
+mechanism to return to the contents page. If your browser supports HTML frames,
+you can keep the Table of Contents visible and its links accessible at all
+times by displaying the contents page in a frame (see <A href="#z1025104">Using Frames to Display ODS Output</A>).
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1025101">Linking to Output through a Table of Pages</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1081654">&#13;  
+ With ODS, you can create a page file to link to the graphics
+and non-graphics output generated during a SAS session. A page file is simply
+a file that uses a Table of Pages (page references) to link to output. You
+can use multiple page files during the SAS session, although only one at a
+time can be open.</A>
+<P>
+<P>
+<P>
+<B><I>Displaying a Page File in a Browser</I></B><BR>
+
+<P><IMG border="0" src="./images/01329083.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To create a page
+file, specify a name for the file in
+the ODS HTML statement's PAGE= option. 
+<P>The following code creates a page file named salePage.html,
+which is created in the output location specified in the FILENAME statement
+(see <A href="z1024503.htm#z1024573">Specifying Output Locations for HTML and GIF Files</A>).
+For a more complete ODS example, see <A href="z1025109.htm">Example 2: Using ODS with SAS/GRAPH Software</A>.  
+
+
+
+<PRE>filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+ods html body='sales.html' path=odsout
+    page='salePage.html'; </PRE>
+<P>The page file remains open and links are written to
+it for all graphics and non-graphics output that is generated by the SAS program
+until one of the following occurs:
+<P>
+<UL>
+
+<LI>The HTML destination is closed.<P>
+
+<LI>Another page file is opened. To open a new page
+file, specify another ODS HTML statement and use PAGE= to specify the new
+file's name.<P>
+</UL>
+
+<P>To use the Table of Pages, view the page file in the
+browser. When you select a link from the Table of Pages, the browser goes
+to the target output referenced by that link. To use the Table of Pages again,
+you must use the browser's [<SMALL><B>Back</B></SMALL>] button or some other mechanism
+to return to the page file. If your browser supports HTML frames, you can
+keep the Table of Pages visible and its links accessible at all times by displaying
+the page file in a frame.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1025104">Using Frames to Display ODS Output</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1081662">&#13;  With ODS, you can create a frame file to display a Table of
+Contents, a Table of Pages, or both. A frame file is simply a file that uses
+two frames: one to reference a contents file, a page file, or both and a second
+to display output that is selected from the table of contents or pages. To
+use a frame file, your browser must support HTML frames. </A><A href="#z1031660">Displaying a Frame File in a Browser</A> shows a frame file that
+is displaying a Table of Contents.
+<P>
+<P>
+<P>
+<B><I><A name="z1031660">Displaying a Frame File in a Browser</A></I></B><BR>
+
+<P><IMG border="0" src="./images/01329084.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To create a frame
+file, specify a name for the file
+on the ODS HTML statement's FRAME= option. You must also use the options CONTENTS=,
+PAGE=, or both to provide a table to display in the left frame.
+<P>The following code creates a frame file named saleFram.html,
+which is created in the output location specified in the FILENAME statement
+(see <A href="z1024503.htm#z1024573">Specifying Output Locations for HTML and GIF Files</A>).
+A more complete ODS example is shown in <A href="z1025109.htm">Example 2: Using ODS with SAS/GRAPH Software</A>.  
+
+
+
+<PRE>filename odsout '<I>path-to-Web-server</I>';
+goptions device=gif;
+ods html body='sales.html' path=odsout
+    contents='saleCon.html'
+    frame='saleFram.html';</PRE>
+<P>To use the frame file, view the frame file in the browser.
+When you select a link from the Table of Contents or Table of Pages, the content
+of the right frame changes to display the output that is the target of the
+selected link, but the links from the contents or pages remain accessible
+in the left frame. 
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1024732.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1025181.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1024972">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

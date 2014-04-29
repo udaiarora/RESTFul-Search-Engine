@@ -1,0 +1,659 @@
+<HTML>
+<HEAD>
+<TITLE>Numerical Solution Methods</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect58.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Numerical Solution Methods  </H2>
+<P><A NAME="idxmod0555">&#13;</A><A NAME="idxmod0554">&#13;</A><A NAME="idxmod0557">&#13;</A><A NAME="idxmod0556">&#13;</A>If the SINGLE option is not used,
+PROC MODEL computes values that simultaneously satisfy the
+model equations for the variables named in the SOLVE statement.
+PROC MODEL provides three iterative methods, Newton,
+Jacobi, and Seidel, for computing a simultaneous solution of the system
+of nonlinear equations.
+<P><H3><I>Single-Equation Solution</I></H3>
+For normalized-form equation systems, 
+the solution can either simultaneously satisfy all the equations or can
+be computed for each equation separately, using the actual values of the solution
+variables in the current period to compute each predicted value.
+By default, PROC MODEL computes a simultaneous solution. 
+<A NAME="idxmod0558">&#13;</A>The SINGLE option on the SOLVE statement selects
+single-equation solutions.
+<P>Single-equation simulations are often made to produce residuals (which
+estimate the random terms of the stochastic equations) rather than the
+predicted values themselves. 
+If the input data and range are the same as that used for parameter estimation, 
+a static single-equation simulation will reproduce the residuals of the estimation.
+<P><H3><I>Newton's Method</I></H3>
+<A NAME="idxmod0560">&#13;</A><A NAME="idxmod0559">&#13;</A>The NEWTON option on the SOLVE statement 
+requests Newton's method to simultaneously solve the equations for
+each observation. Newton's method is the default solution method.
+Newton's method is an iterative scheme that uses the
+derivatives of the equations with respect 
+to the solution variables, <I>J</I>, to compute a change vector as
+
+<DL CLASS="equation"><DD><IMG WIDTH="163" HEIGHT="77"
+ SRC="images/modeq274.gif"
+ ALT="{\Delta} y^i = J^{-1}q(y^i,x, {{\theta}})"></DL>
+PROC MODEL builds and solves <I>J</I> using efficient sparse matrix techniques.
+The solution variables <I><B>y</B><SPAN CLASS="mathfont"><SUP><I>i</I></SUP></SPAN></I> at the <I>i</I>th iteration
+are then updated as
+
+<DL CLASS="equation"><DD><IMG WIDTH="160" HEIGHT="76"
+ SRC="images/modeq275.gif"
+ ALT="y^{i+1} = y^i + d x {\Delta} y^i"></DL>
+<I>d</I> is a damping factor between 0 and 1 chosen iteratively so that
+
+<DL CLASS="equation"><DD><IMG WIDTH="233" HEIGHT="77"
+ SRC="images/modeq276.gif"
+ ALT="{\Vert} q(y^{i+1},x, {{\theta}}) {\Vert} \lt 
+{\Vert} q(y^i,x, {{\theta}}) {\Vert} "></DL>
+The number of subiterations allowed for finding a suitable <I>d</I>
+is controlled by the MAXSUBITER= option. The number of iterations
+of Newton's method allowed for each observation is controlled by
+MAXITER= option.
+Refer to Ortega and Rheinbolt (1970) for more details.
+<P><H3><I>Jacobi Method</I></H3>
+<A NAME="idxmod0562">&#13;</A><A NAME="idxmod0561">&#13;</A>The JACOBI option on the
+SOLVE statement selects a matrix-free 
+alternative to Newton's method. This method is the traditional nonlinear
+Jacobi method found in the literature. 
+The Jacobi method as implemented in PROC MODEL substitutes predicted values for
+the endogenous variables and iterates until a fixed point is reached.
+Then necessary derivatives are computed only for the diagonal elements
+of the jacobian, <B>J</B>.
+<P>If the normalized-form equation is 
+
+<DL CLASS="equation"><DD><IMG WIDTH="104" HEIGHT="74"
+ SRC="images/modeq277.gif"
+ ALT="y = f(y,x, {{\theta}})"></DL>
+the Jacobi iteration has the form 
+
+<DL CLASS="equation"><DD><IMG WIDTH="134" HEIGHT="77"
+ SRC="images/modeq278.gif"
+ ALT="y^{i+1} = f(y^i,x, {{\theta}})"></DL>
+<P><H3><I>Seidel Method</I></H3>
+<A NAME="idxmod0564">&#13;</A><A NAME="idxmod0563">&#13;</A>The Seidel method is an order-dependent alternative to the Jacobi method. 
+The Seidel method is selected by the SEIDEL option on the SOLVE statement
+and is applicable only to normalized-form equations. 
+The Seidel method is like the Jacobi method except that in the 
+Seidel method the model is 
+further edited to substitute the predicted values into the solution variables 
+immediately after they are computed.
+Seidel thus differs from the other methods in that the values
+of the solution variables are not fixed within an iteration. 
+With the other methods, the order of the equations in the model program makes no
+difference, but the Seidel method may work much differently when the
+equations are specified in a different sequence. Note that this
+fixed point method is the traditional nonlinear Seidel method found 
+in the literature.
+<P>The iteration has the form
+
+<DL CLASS="equation"><DD><IMG WIDTH="134" HEIGHT="80"
+ SRC="images/modeq279.gif"
+ ALT="y^{i+1}_{j} = f({\hat{y}}^i,x, {{\theta}})"></DL>
+where <SPAN CLASS="mathfont"><b>y</b><sup><I>i</I>+1</sup><sub><I>j</I></sub></SPAN> is the <I>j</I>th
+equation variable at the <I>i</I>th iteration and
+
+<DL CLASS="equation"><DD><IMG WIDTH="367" HEIGHT="80"
+ SRC="images/modeq280.gif"
+ ALT="{\hat{y}}^i = ( y^{i+1}_{1}, y^{i+1}_{2}, y^{i+1}_{3}, { ... },
+ y^{i+1}_{j-1}, y^i_{j},
+ y^i_{j+1}, { ... }, y^i_{g})'"></DL>
+<P>If the model is recursive, and if the equations are in recursive order, 
+the Seidel method will converge at once. 
+If the model is block-recursive, the Seidel method may converge faster 
+if the equations are grouped by block and the blocks are placed 
+in block-recursive order.
+The BLOCK option can be used to determine the block-recursive form.
+<P><H3><I>Comparison of Methods</I></H3>
+Newton's method is the default and should work better than the others
+for most small- to medium-sized models. The Seidel method is always faster
+than the Jacobi for recursive models with equations in recursive order.
+For very large models and some highly nonlinear smaller models, 
+the Jacobi or Seidel methods can sometimes be faster. Newton's method
+uses more memory than the Jacobi or Seidel methods.
+<P>Both the Newton's method and the Jacobi method are order-invariant in
+the sense that the order in which equations are specified in the model
+program has no effect on the operation of the iterative solution
+process. In order-invariant methods, the values of the solution
+variables are fixed for the entire execution of the model program.
+Assignments to model variables are automatically
+changed to assignments to corresponding equation variables. 
+Only after the model program has completed execution are the results
+used to compute the new solution values for the next iteration.
+<P><H3><I>Troubleshooting Problems</I></H3>
+<A NAME="idxmod0566">&#13;</A><A NAME="idxmod0565">&#13;</A>In solving a simultaneous nonlinear dynamic model you may encounter
+some of the following problems.
+<P><H4><I></I></H4>[cmodelfsolvemi]Missing Values
+<A NAME="idxmod0568">&#13;</A><A NAME="idxmod0567">&#13;</A>For SOLVE tasks, there can be no missing parameter values.
+If there are missing right-hand-side variables,
+this will result in a missing left-hand-side variable for that observation.
+<P><H4><I>Unstable Solutions</I></H4>
+A solution may exist but be unstable. 
+An unstable system can cause the Jacobi and Seidel methods to diverge.
+<P><H4><I>Explosive Dynamic Systems</I></H4>
+A model may have well-behaved solutions at
+each observation but be dynamically unstable. The solution may
+oscillate wildly or grow rapidly with time.
+<P><H4><I>Propagation of Errors</I></H4>
+During the solution process, solution
+variables can take on values that cause computational errors. For
+example, a solution variable that appears in a LOG function may be
+positive at the solution but may be given a negative value during one of
+the iterations. When computational errors occur, missing values are
+generated and propagated, and the solution process may collapse.
+<P><H3><I>Convergence Problems</I></H3>
+The following items can cause convergence problems:
+<UL>
+<LI> illegal function values ( that is <IMG WIDTH="42" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq281.gif"
+ ALT="{\sqrt{-1}}"> )
+<LI> local minima in the model equation
+<LI> no solution exists
+<LI> multiple solutions exist
+<LI> initial values too far from the solution
+<LI> the CONVERGE= value too small.
+</UL>
+<P>When PROC MODEL fails to find a solution to the system, the current iteration
+information and the program data vector are printed. The simulation
+halts if actual values are not available for the simulation to proceed.
+Consider the following program:
+<PRE>
+   data test1;
+      do t=1 to 50;
+         x1 = sqrt(t) ;
+         y = .;
+         output;
+      end;
+   
+   proc model data=test1;
+      exogenous x1 ;
+      control a1 -1 b1 -29 c1 -4 ;
+      y = a1 * sqrt(y) + b1 * x1 * x1 + c1 * lag(x1);
+      solve y / out=sim forecast dynamic ;
+   run;
+</PRE>
+which produces the output shown in <A HREF="sect57.htm#modconver">Figure 14.70</A>.
+<P><A NAME="modconver">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Single-Equation Forecast</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Could not reduce norm of residuals in 10 subiterations.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">The solution failed because 1 equations are missing or have extreme values for observation 1 at NEWTON iteration 1.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Additional information on the values of the variables at this observation, which may be helpful in determining the cause of the failure of the solution process, is printed below.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.000000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Missing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Iteration Errors - Missing.</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><A NAME="IDX1"></A>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD bordercolor="#000000"><font  face="Courier New, Courier" size="2" color="#003399"><PRE>
+                                                                                
+                                                                                
+   _N_:               12     ACTUAL.x1:    1.41421     ACTUAL.y:           .    
+   ERROR.y:            .     PRED.y:             .     RESID.y:            .    
+   a1:                -1     b1:               -29     c1:                -4    
+   x1:           1.41421     y:           -0.00109                              
+   @PRED.y/@y:           .   @ERROR.y/@y:          .                            
+                                                                                
+</PRE>
+</font></TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+<P>
+</font></CENTER>
+</font><A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.000000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Missing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">1 execution errors for this observation </font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Check for missing input data or uninitialized lags.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>      (Note that the LAG and DIF functions return missing values for the initial lag starting observations. This is a change from the 1982 and earlier versions of SAS/ETS which returned zero for uninitialized lags.)</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Simulation aborted.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.70:</B> SOLVE Convergence Problems</SPAN><P>
+<P>At the first observation the following equation is attempted to be
+solved:
+
+<DL CLASS="equation"><DD><IMG WIDTH="111" HEIGHT="75"
+ SRC="images/modeq282.gif"
+ ALT="y = - \sqrt{y} - 62"></DL>
+There is no solution to this problem.
+The iterative
+solution process got as close as it could to 
+making Y negative while
+still being able to evaluate the model. 
+This problem can be avoided in this case by altering the equation.
+<P>In other models, the problem of missing values can be avoided
+by either altering the data
+set to provide better starting values for the solution variables or
+by altering the equations.
+<P>You should be aware that, in general, a nonlinear
+system can have any number of solutions, and the solution found may not
+be the one that you want. When multiple solutions exist, the solution
+that is found is usually determined by the starting values for the iterations.
+If the value from the input data set for a solution variable is missing, 
+the starting value for it is taken from the solution of the last period (if
+nonmissing) or else the solution estimate is started at 0.
+<P><H4><I>Iteration Output</I></H4>
+<P><A NAME="idxmod0569">&#13;</A>The iteration output, produced by the ITPRINT option,
+is useful in determining the cause of a 
+convergence problem. The ITPRINT option forces the printing of 
+the solution approximation and equation errors at each iteration for
+each observation. A portion of the ITPRINT output from
+<PRE>
+   proc model data=test1;
+      exogenous x1 ;
+      control a1 -1 b1 -29 c1 -4 ;
+      y = a1 * sqrt(abs(y)) + b1 * x1 * x1 + c1 * lag(x1);
+      solve y / out=sim forecast dynamic itprint;
+   run;
+</PRE>
+is shown in <A HREF="sect57.htm#moditprint">Figure 14.71</A>.
+<P><A NAME="moditprint">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Single-Equation Forecast</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">613961.39</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>ERROR.y</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-62.01010</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Predicted Values</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0001000</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration Errors</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-62.01010</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX3"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">50.902771</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>ERROR.y</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-61.88684</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX4"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Predicted Values</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.215784</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX5"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration Errors</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-61.88684</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX6"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.364806</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>ERROR.y</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">41.752112</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX7"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Predicted Values</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-114.4503</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX8"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration Errors</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">41.75211</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.71:</B> SOLVE, ITPRINT Output</SPAN><P>
+<P>For each iteration, the equation with the largest error is 
+listed in parentheses after
+the Newton convergence criteria measure. From this output
+you can determine which equation or equations in the system
+are not converging well.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect58.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

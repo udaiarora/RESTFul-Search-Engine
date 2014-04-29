@@ -1,0 +1,314 @@
+<HTML>
+<HEAD>
+<TITLE>Implementation of the X-11 Seasonal Adjustment Method</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect20.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect22.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The X11 Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Implementation of the X-11 Seasonal Adjustment Method  </H2>
+<P><A NAME="idxx110105">&#13;</A><A NAME="idxx110104">&#13;</A>The following steps describe the
+analysis of a monthly time series
+using multiplicative adjustments.
+Additional steps used by the X-11-ARIMA method
+are also indicated. Equivalent descriptions apply
+for an additive model
+by replacing <I>divide</I> by <I>subtract</I> where applicable.
+<P>In the multiplicative adjustment, the original
+series <SPAN CLASS="mathfont"><I>O</I><SUB><I>t</I></SUB></SPAN> is assumed to be of the form
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>O</I><SUB><I>t</I></SUB> = <I>C</I><SUB><I>t</I></SUB> <I>S</I><SUB><I>t</I></SUB> <I>I</I><SUB><I>t</I></SUB> <I>P</I><SUB><I>t</I></SUB> <I>D</I><SUB><I>t</I></SUB>,
+</SPAN>
+</DL>
+<P>where <SPAN CLASS="mathfont"><I>C</I><SUB><I>t</I></SUB></SPAN> is the trend cycle component,
+<SPAN CLASS="mathfont"><I>S</I><SUB><I>t</I></SUB></SPAN> is the seasonal component,
+<SPAN CLASS="mathfont"><I>I</I><SUB><I>t</I></SUB></SPAN> is the irregular component,
+<SPAN CLASS="mathfont"><I>P</I><SUB><I>t</I></SUB></SPAN> is the prior monthly factors component and
+<SPAN CLASS="mathfont"><I>D</I><SUB><I>t</I></SUB></SPAN> is the trading-day component.
+<P>The trading-day component can be further factored as
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>D</I><SUB><I>t</I></SUB> = <I>D</I><SUB><I>r</I>,<I>t</I></SUB> <I>D</I><SUB><I>tr</I>,<I>t</I></SUB>,
+</SPAN>
+</DL>
+<P>where <SPAN CLASS="mathfont"><I>D</I><SUB><I>tr</I>,<I>t</I></SUB></SPAN> are the trading-day factors derived
+from the prior daily weights, and
+<SPAN CLASS="mathfont"><I>D</I><SUB><I>r</I>,<I>t</I></SUB></SPAN> are the residual trading-day factors
+estimated from the trading-day regression.
+<P><H3><I>Additional steps when using the X-11-ARIMA method</I></H3>
+The X-11-ARIMA method consists of extending a
+given series by an ARIMA model and applying
+the usual X-11 seasonal adjustment method
+to this extended series. Thus in the simplest
+case in which there are no prior factors or calendar
+effects in the series, the ARIMA model selection,
+estimation and forecasting is first performed,
+and the resulting extended series goes through
+the standard X-11 steps described below.
+<P>If prior factor or calendar effects
+are present, they must be eliminated from the
+series before the ARIMA estimation is done
+because these effects are not stochastic.
+<P>Prior factors, if present, are removed first.
+Calendar effects represented by prior daily weights
+are then removed. If there are no further
+calendar effects, the adjusted series is
+extended by the ARIMA model, and this extended
+series goes through the standard X-11 steps
+without repeating the removal of prior factors and
+calendar effects from prior daily weights.
+<P>If further calendar effects are present, a
+trading-day regression must be performed.
+In this case it is necessary to go
+through an initial pass of the X-11 steps
+to obtain a final trading-day adjustment.
+In this initial pass, the series,
+adjusted for prior factors and prior
+daily weights, goes through
+the standard X-11 steps.
+At the conclusion of these
+steps, a final series adjusted for prior factors
+and all calendar effects is available.
+This adjusted series is then extended
+by the ARIMA model, and this extended
+series goes through the standard X-11
+steps again, without repeating the removal
+of prior factors and calendar effects
+from prior daily weights and trading
+day regression.
+<P><H3><I>The Standard X-11 Seasonal Adjustment Method</I></H3>
+<A NAME="idxx110107">&#13;</A><A NAME="idxx110106">&#13;</A>The following steps comprise the standard X-11
+seasonal adjustment method. These steps are applied to
+the original data or the original data extended by
+an ARIMA model.
+<P><OL>
+<LI> In step 1, the data are read, ignoring missing values 
+until the first nonmissing
+value is found. If prior monthly factors are present,
+the procedure reads prior monthly <SPAN CLASS="mathfont"><I>P</I><SUB><I>t</I></SUB></SPAN>
+factors and divides them into the original series to
+obtain <SPAN CLASS="mathfont"><I>O</I><SUB><I>t</I></SUB>/<I>P</I><SUB><I>t</I></SUB> =<I>C</I><SUB><I>t</I></SUB><I>S</I><SUB><I>t</I></SUB><I>I</I><SUB><I>t</I></SUB><I>D</I><SUB><I>tr</I>,<I>t</I></SUB><I>D</I><SUB><I>r</I>,<I>t</I></SUB></SPAN>.
+<P>Seven daily weights can be specified to develop
+monthly factors to adjust the series for
+trading-day variation, <SPAN CLASS="mathfont"><I>D</I><SUB><I>tr</I>,<I>t</I></SUB></SPAN>; these
+factors are then divided into the original or prior adjusted
+series to obtain
+<SPAN CLASS="mathfont"><I>C</I><SUB><I>t</I></SUB><I>S</I><SUB><I>t</I></SUB><I>I</I><SUB><I>t</I></SUB><I>D</I><SUB><I>r</I>,<I>t</I></SUB></SPAN>.
+<LI> In steps 2, 3, and 4,
+three iterations are performed, each of which provides
+estimates of the seasonal <SPAN CLASS="mathfont"><I>S</I><SUB><I>t</I></SUB></SPAN>, trading-day <SPAN CLASS="mathfont"><I>D</I><SUB><I>r</I>,<I>t</I></SUB></SPAN>,
+trend cycle <SPAN CLASS="mathfont"><I>C</I><SUB><I>t</I></SUB></SPAN>, and irregular components <SPAN CLASS="mathfont"><I>I</I><SUB><I>t</I></SUB></SPAN>.
+Each iteration refines estimates of the extreme values
+in the irregular components.
+After extreme values are identified and modified,
+final estimates of the seasonal component, seasonally
+adjusted series, trend cycle, and irregular components
+are produced.
+Step 2 consists of three substeps:
+<OL>
+<LI> During the first iteration, a centered, 12-term 
+moving average is applied to the original series <SPAN CLASS="mathfont"><I>O</I><SUB><I>t</I></SUB></SPAN>
+to provide a preliminary estimate <IMG WIDTH="22" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq3.gif"
+ ALT="{\hat{C}_{t}}"> of
+the trend cycle curve <SPAN CLASS="mathfont"><I>C</I><SUB><I>t</I></SUB></SPAN>. This moving average
+combines 13 (a 2 term moving average of a 12-term 
+moving average)  consecutive monthly values, removing the
+<SPAN CLASS="mathfont"><I>S</I><SUB><I>t</I></SUB></SPAN> and <SPAN CLASS="mathfont"><I>I</I><SUB><I>t</I></SUB></SPAN>.
+Next, it obtains a preliminary estimate
+<IMG WIDTH="34" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq4.gif"
+ ALT="{\hat{S_{t}I_{t}}}"> by
+
+<DL CLASS="equation"><DD><IMG WIDTH="76" HEIGHT="98"
+ SRC="images/x11eq5.gif"
+ ALT="\hat{S_{t}I_{t}} = \frac{O_{t}}{\hat{C}_{t}}"></DL>
+<LI> A moving average is then applied to the
+<IMG WIDTH="34" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq4.gif"
+ ALT="{\hat{S_{t}I_{t}}}">to obtain an estimate <IMG WIDTH="20" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq6.gif"
+ ALT="{\hat{S}_{t}}">of the seasonal factors.
+<IMG WIDTH="34" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq4.gif"
+ ALT="{\hat{S_{t}I_{t}}}"> is then divided
+by this estimate to obtain an estimate
+<IMG WIDTH="17" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq7.gif"
+ ALT="{\hat{I}_{t}}"> of the irregular component.
+Next, a moving standard deviation is calculated
+from the irregular component and is used in assigning
+a weight to each monthly value for measuring
+its degree of extremeness.
+These weights are used to modify extreme values in
+<IMG WIDTH="34" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq4.gif"
+ ALT="{\hat{S_{t}I_{t}}}">.New seasonal factors are estimated by applying
+a moving average to the modified value of
+<IMG WIDTH="34" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/x11eq4.gif"
+ ALT="{\hat{S_{t}I_{t}}}">.A preliminary seasonally adjusted series
+is obtained by dividing the original series
+by these new seasonal factors.
+A second estimate of the trend cycle is obtained
+by applying a weighted moving average to this
+seasonally adjusted series.
+<LI> The same process is used to obtain
+second estimates of the seasonally
+adjusted series and improved estimates
+of the irregular component. This irregular
+component is again modified for extreme values
+and then used to provide estimates of trading-day
+factors and refined weights for the identification
+of extreme values.
+</OL>
+<LI> Using the same computations, a second iteration is
+performed on the original series that has been
+adjusted by the trading-day factors and irregular
+weights developed in the first iteration.
+The second iteration produces final estimates of
+the trading-day factors and irregular weights.
+<LI> A third and final iteration is performed using
+the original series that has been adjusted for
+trading-day factors and irregular weights
+computed during the second iteration.
+During the third iteration, PROC X11 develops
+final estimates of seasonal factors,
+the seasonally adjusted series,
+the trend cycle, and the irregular components.
+The procedure computes summary measures of
+variation and produces a moving average of
+the final adjusted series.
+</OL>
+<P><H3><I>Sliding Spans Analysis</I></H3>
+<A NAME="idxx110108">&#13;</A>The motivation for sliding spans analysis is to answer
+the question &#34;When is a economic series unsuitable for
+seasonal adjustment ?&#34;. There are a number of past
+attempts to answer this question: stable seasonality
+F-test; moving seasonality F-test, Q-statistics and
+others.
+<P>Sliding spans analysis attempts to quantify the stability 
+of the seasonal adjustment process, and hence quantify the 
+suitability of seasonal adjustment for a given series.
+<P>It is based on a very simple idea: for a stable series,
+deleting a small number of observations should not result
+in greatly different component estimates compared with
+the original, full series. 
+Conversely, if deleting a small 
+number of observations results in drastically different 
+estimates, the series is unstable. For example,
+a drastic difference in the seasonal factors (Table D10)
+might result from a dominating irregular component, or sudden 
+changes in the seasonally component. When the seasonal component
+estimates of a series is unstable in this manner, they have little
+meaning and the series is likely to be unsuitable for seasonal 
+adjustment.
+<P>Sliding spans analysis, developed at the Statistical Research 
+Division of the U.S. Census Bureau (see Findley, et al., 1990, and
+Findley and Monsell, 1986 ), performs a repeated seasonal 
+adjustment on subsets or spans of the full series. In particular, an
+initial span of the data, typically eight years in length,
+is seasonally adjusted, and the tables C18, the trading day
+factors (if trading day regression performed), D10, the
+seasonal factors, and D11, the seasonally adjusted series
+are retained for further processing. Next, one year of data
+is deleted from the beginning of the initial span and one
+year of data is added. This new span is seasonally adjusted
+as before, with the same tables retained. This process continues
+until the end of the data is reached. The beginning and ending
+dates of the spans are such that the last observation in the
+original data is also the last observation in the last span.
+This is discussed in more detail below.
+<P>The following notation for the components or differences
+computed in the sliding spans analysis follows Findley 
+et al., 1990. The meaning for the symbol X<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>(k)
+is component X in month (or quarter) t, computed from
+data in the k-th span. These components are now defined.
+<P>Seasonal Factors (Table D10): S<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>(k)
+<P>Trading Day Factor (Table C18): TD<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>(k)
+<P>Seasonally Adjust Data (Table D11): SA<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>(k)
+<P>Month-to-month changes in the Seasonally Adjust Data: MM<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>(k)
+<P>Year-to-Year changes in the Seasonally Adjust Data: YY<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>(k)
+<P>The key measure is the maximum percent difference across spans. 
+For example, consider a series beginning in JAN72, 
+ending in DEC84, and having
+four spans, each of length 8 years (see Figure 1. in
+Findley et al., 1990, page 346). Consider S<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>(k)
+the seasonal factor (table D10) for month t for span k,
+and let N<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN> denote the number of spans containing
+month t, i.e.,
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>N</I><sub><I>t</I></sub> = {<I>k</I>: &#160;<I>span</I> &#160;<I>k</I> &#160;<I>contains</I> &#160;<I>month</I> &#160;<I>t</I> }</SPAN>
+</DL>
+<P>In the middle years of the series there is overlap
+of all four spans and N<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN> will be 4. The last
+year of the series will have but one span, while the beginning
+can have 1 or 0 spans depending on the original length.
+<P>Since we are interested in how much the seasonal factors
+vary for a given month across the spans, a natural quantity
+to consider is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="234" HEIGHT="74"
+ SRC="images/x11eq8.gif"
+ ALT="max_{k{\epsilon}N_{t}}S_{t}(k) - min_{k{\epsilon}N_{t}}S_{t}(k)"></DL>
+<P>In the case of the multiplicative model, it is useful to compute
+a percent difference; define the maximum percent difference (MPD)
+at time t as
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="317" HEIGHT="99"
+ SRC="images/x11eq9.gif"
+ ALT="MPD_{t} = \frac{max_{k{\epsilon}N_{t}}S_{t}(k) - 
+ min_{k{\epsilon}N_{t}}S_{t}(k)}{min_{k{\epsilon}N_{t}}S_{t}(k) }"></DL>
+<P>The seasonal factor for month t is then unreliable if MPD<SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>
+is large. While no exact significance level can be computed
+for this statistic, empirical levels have been established
+by considering over 500 economic series (see Findley, et al. 1990
+and Findley and Monsell, 1986). For these series it was found that
+for four spans, stable series typically had less than 15% of the 
+MPD values exceeding 3.0%, while in marginally stable series, 
+between 15% and 25% of the MPD values exceeded 3.0%.
+A series in which 25% or more of the MPD values exceeded
+3.0% is almost always unstable.
+<P>While these empirical values cannot be considered
+an exact significance level, they provide a useful empirical basis for
+deciding if a series is suitable for seasonal adjustment.
+These percentage values are shifted down when less than 
+four spans are used.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect20.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect22.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

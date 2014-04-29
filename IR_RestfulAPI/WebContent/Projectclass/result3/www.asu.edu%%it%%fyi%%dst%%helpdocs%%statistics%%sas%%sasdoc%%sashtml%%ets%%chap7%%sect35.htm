@@ -1,0 +1,358 @@
+<HTML>
+<HEAD>
+<TITLE>Estimation Details</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Estimation Details  </H2>
+<P>The ARIMA procedure primarily uses the computational methods
+outlined by Box and Jenkins.
+Marquardt's method is used for the nonlinear least-squares iterations.
+Numerical approximations of the derivatives of the sum-of-squares function
+are taken using a fixed delta (controlled by the DELTA= option).
+<P>The methods do not always converge successfully for a given set of data,
+particularly if the starting values for the parameters are not
+close to the least-squares estimates.
+<P><H3><I>Back-forecasting</I></H3>
+The unconditional sum of squares is computed exactly;
+thus, back-forecasting is not performed.
+Early versions of SAS/ETS software used the back-forecasting
+approximation and allowed a positive value of the BACKLIM= option
+to control the extent of the back-forecasting.
+In the current version, requesting a positive number of back-forecasting steps
+with the BACKLIM= option has no effect.
+<P><H3><I>Preliminary Estimation</I></H3>
+If an autoregressive or moving-average operator is specified with
+no missing lags, preliminary estimates of the parameters are computed
+using the autocorrelations computed in the IDENTIFY stage.
+Otherwise, the preliminary estimates are arbitrarily set
+to values that produce stable polynomials.
+<P>When preliminary estimation is not performed by PROC ARIMA,
+then initial values of the coefficients
+for any given autoregressive or moving average factor are set to
+0.1 if the degree of the polynomial associated with the factor is 9 or less.
+Otherwise, the coefficients are determined by
+expanding the polynomial (<SPAN CLASS="mathfont">1 - 0.1<I>B</I></SPAN>)
+to an appropriate power using a recursive algorithm.
+<P>These preliminary estimates are the starting values in an
+iterative algorithm to compute estimates of the parameters.
+<P><H3><I>Estimation Methods</I></H3>
+<H4><I>Maximum Likelihood</I></H4>
+<P>The METHOD= ML option produces maximum likelihood estimates.
+The likelihood function is maximized via nonlinear least squares
+using Marquardt's method.
+Maximum likelihood estimates are more expensive to
+compute than the conditional least-squares estimates,
+however, they may be preferable in some cases (Ansley and Newbold 1980;
+Davidson 1981).
+<P>The maximum likelihood estimates are computed as follows.
+Let the univariate ARMA model be
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="192" HEIGHT="74"
+ SRC="images/arieq91.gif"
+ ALT="{\phi}(B)(W_{t}-{\mu}_{t}) = {\theta}(B)a_{t}"></DL>
+<P>where <SPAN CLASS="mathfont"><I>a</I><SUB><I>t</I></SUB></SPAN> is
+an independent sequence of normally distributed
+innovations with mean 0 and variance <IMG WIDTH="22" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq92.gif"
+ ALT="{{\sigma}^2}">.
+Here <IMG WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq93.gif"
+ ALT="{{\mu}_{t}}"> is the mean parameter <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq3.gif"
+ ALT="{\mu}"> plus the
+transfer function inputs.
+The log likelihood function can be written as follows:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="279" HEIGHT="92"
+ SRC="images/arieq94.gif"
+ ALT="-\frac{1}{2{\sigma}^2}{x'}{{\Omega}}^{-1}x
+-\frac{1}2{\ln}({|{{\Omega}}|})
+-\frac{n}2{\ln}({\sigma}^2)"></DL>
+<P>In this equation,
+<I>n</I> is the number of observations,
+<IMG WIDTH="37" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq95.gif"
+ ALT="{{\sigma}^2{{\Omega}}}"> is the variance of <B>x</B>
+as a function of the <IMG WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq22.gif"
+ ALT="{\phi}"> and <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq23.gif"
+ ALT="{\theta}"> parameters,
+and <IMG WIDTH="23" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq96.gif"
+ ALT="{|{\bullet}|}"> denotes the determinant.
+The vector <B>x</B> is the time series <SPAN CLASS="mathfont"><I>W</I><SUB><I>t</I></SUB></SPAN>
+minus the structural part of the model <IMG WIDTH="20" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq93.gif"
+ ALT="{{\mu}_{t}}">,
+written as a column vector, as follows:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="157" HEIGHT="149"
+ SRC="images/arieq97.gif"
+ ALT="x = 
+[\matrix{ W_{1} \cr W_{2} \cr {\vdots} \cr W_{n} }] - 
+[\matrix{ {\mu}_{1} \cr {\mu}_{2} \cr {\vdots} \cr {\mu}_{n} }]"></DL>
+<P>The maximum likelihood estimate (MLE) of <IMG WIDTH="22" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq92.gif"
+ ALT="{{\sigma}^2}"> is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="114" HEIGHT="92"
+ SRC="images/arieq98.gif"
+ ALT="s^2 = \frac{1}n{x'}{{\Omega}}^{-1}x"></DL>
+<P>Note that the default estimator of the variance divides by
+<SPAN CLASS="mathfont"><I>n</I>-<I>r</I></SPAN>,
+where <I>r</I> is the number of parameters in the model,
+instead of by <I>n</I>.
+Specifying the NODF option causes a divisor of <I>n</I> to be used.
+<P>The log likelihood concentrated with respect to <IMG WIDTH="22" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq92.gif"
+ ALT="{{\sigma}^2}">
+can be taken up to additive constants as
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="206" HEIGHT="92"
+ SRC="images/arieq99.gif"
+ ALT="-\frac{n}2{\ln}({x'}{{\Omega}}^{-1}x)
+-\frac{1}2{\ln}({|{{\Omega}}|})"></DL>
+<P>Let <B>H</B> be the lower triangular matrix with positive elements
+on the diagonal such that <IMG WIDTH="80" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq100.gif"
+ ALT="{H{H'} = {{\Omega}}}">.
+Let <B>e</B> be the vector <SPAN CLASS="mathfont"><b>H</b><sup>-1</sup><b>x</b></SPAN>.
+The concentrated log likelihood with respect to <IMG WIDTH="22" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq92.gif"
+ ALT="{{\sigma}^2}">
+can now be written as
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="157" HEIGHT="88"
+ SRC="images/arieq101.gif"
+ ALT="-\frac{n}2{\ln}({e'}e) - {\ln}({|{H}|})"></DL>
+<P>or
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="179" HEIGHT="88"
+ SRC="images/arieq102.gif"
+ ALT="-\frac{n}2
+{\ln}({|{H}|}^{1/n}{e'}e{|{H}|}^{1/n})"></DL>
+<P><A NAME="idxari0188">&#13;</A><A NAME="idxari0187">&#13;</A><A NAME="idxari0190">&#13;</A><A NAME="idxari0189">&#13;</A>The MLE is produced by using a Marquardt algorithm
+to minimize the following sum of squares:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="119" HEIGHT="79"
+ SRC="images/arieq103.gif"
+ ALT="{|{H}|}^{1/n}{e'}e{|{H}|}^{1/n}"></DL>
+<P>The subsequent analysis of the residuals is done using <B>e</B> as the
+vector of residuals.
+<P><H4><I>Unconditional Least Squares</I></H4>
+<P>The METHOD=ULS option produces unconditional least-squares estimates.
+The ULS method is also referred to as the <I>exact least-squares</I>
+(ELS) method.
+For METHOD=ULS, the estimates minimize
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="322" HEIGHT="109"
+ SRC="images/arieq104.gif"
+ ALT="\sum_{t=1}^n{\tilde{a}^2_{t}}
+= \sum_{t=1}^n{(x_{t}-C_{t} V^{-1}_{t}
+ (x_{1},{ ... },x_{t-1})')^2 }"></DL>
+<P>where <SPAN CLASS="mathfont"><b>C</b><sub><I>t</I></sub></SPAN> is the covariance matrix of
+<SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN> and <SPAN CLASS="mathfont">(<I>x<SUb>1</SUb></I>, ... ,<I>x</I><sub><I>t</I>-1</sub>)</SPAN>, and
+<SPAN CLASS="mathfont"><b>V</b><sub><I>t</I></sub></SPAN> is the variance matrix of
+<SPAN CLASS="mathfont">(<I>x<SUb>1</SUb></I>, ... ,<I>x</I><sub><I>t</I>-1</sub>)</SPAN> .
+In fact, <IMG WIDTH="67" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq105.gif"
+ ALT="{\sum_{t=1}^n{\tilde{a}_{t}^2}}"> is the
+same as <IMG WIDTH="65" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq106.gif"
+ ALT="{{x'}{{\Omega}^{-1}}x}"> and, hence,
+<SPAN CLASS="mathfont"><b>e</b>'<b>e</b></SPAN>.
+Therefore, 
+the unconditional least-squares estimates are obtained by
+minimizing the sum of squared residuals
+rather than using the log likelihood as the criterion function.
+<P><H4><I>Conditional Least Squares</I></H4>
+<P>The METHOD=CLS option produces conditional least-squares estimates.
+The CLS estimates are conditional on the assumption that the
+past unobserved errors are equal to 0.
+The series <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN> can be represented in terms of the
+previous observations, as follows:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="154" HEIGHT="110"
+ SRC="images/arieq107.gif"
+ ALT="x_{t} = a_{t} + \sum_{i=1}^{{\infty}}{{\pi}_{i}x_{t-i}}"></DL>
+<P>The <IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq108.gif"
+ ALT="{\pi}"> weights are computed from the ratio of the <IMG WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq22.gif"
+ ALT="{\phi}"> and <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq23.gif"
+ ALT="{\theta}">
+polynomials, as follows:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="166" HEIGHT="110"
+ SRC="images/arieq109.gif"
+ ALT="{\frac{{\phi}(B)}{{\theta}(B)} = 1 - \sum_{i=1}^{{\infty}}{{\pi}_{i}B^i}}."></DL>
+<P>The CLS method produces estimates minimizing
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="234" HEIGHT="110"
+ SRC="images/arieq110.gif"
+ ALT="\sum_{t=1}^n{\hat{a}^2_{t} }
+= \sum_{t=1}^n{( x_{t}-\sum_{i=1}^{{\infty}}{\hat{{\pi}}_{i}x_{t-i}})^2 }"></DL>
+<P>where the unobserved past values of <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN> are set to 0 and
+<IMG WIDTH="19" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq111.gif"
+ ALT="{\hat{{\pi}}_{i}}"> are computed from the estimates
+of <IMG WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq22.gif"
+ ALT="{\phi}"> and <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq23.gif"
+ ALT="{\theta}"> at each iteration.
+<P>For METHOD=ULS and METHOD=ML, initial estimates are
+computed using the METHOD=CLS algorithm.
+<P><H3><I>Start-up for Transfer Functions</I></H3>
+When computing the noise series for transfer function and
+intervention models, the start-up for the transferred variable
+is done assuming that past values of the input series are equal
+to the first value of the series.  The estimates are then obtained
+by applying least squares or maximum likelihood to the noise series.
+Thus, for transfer function models, the ML option does not generate
+the full (multivariate ARMA) maximum likelihood estimates, but it uses
+only the univariate likelihood function applied to the noise series.
+<A NAME="idxari0192">&#13;</A><A NAME="idxari0191">&#13;</A>Because PROC ARIMA uses all of the available data for the input series
+to generate the noise series, other start-up options for the transferred
+series can be implemented by prefixing an observation to the beginning
+of the real data.
+For example, if you fit a transfer function model to
+the variable Y with the single input X, then you can employ a start-up
+using 0 for the past values by prefixing to the actual data an
+observation with a missing value for Y and a value of 0 for X.
+<P><H3><I>Information Criteria</I></H3>
+<A NAME="idxari0194">&#13;</A><A NAME="idxari0193">&#13;</A><A NAME="idxari0195">&#13;</A><A NAME="idxari0196">&#13;</A><A NAME="idxari0198">&#13;</A><A NAME="idxari0197">&#13;</A><A NAME="idxari0199">&#13;</A><A NAME="idxari0200">&#13;</A>PROC ARIMA computes and prints two information criteria, Akaike's
+information criterion (AIC) (Akaike 1974; Harvey 1981) and
+Schwarz's Bayesian criterion (SBC) (Schwarz 1978). 
+The AIC and SBC are used to compare competing models fit to
+the same series.  The model with the smaller information
+criteria is said to fit the data better.
+The AIC is computed as
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">-2 ln(<I>L</I>) + 2 <I>k</I></SPAN>
+</DL>
+<P>where <I>L</I> is the likelihood function and <I>k</I> is the number
+of free parameters.  The SBC is computed as
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">-2ln(<I>L</I>) + ln(<I>n</I>) <I>k</I></SPAN>
+</DL>
+<P>where <I>n</I> is the number of residuals that can be computed for
+the time series.  Sometimes Schwarz's Bayesian criterion is called
+the Bayesian Information criterion (BIC).
+<P>If METHOD=CLS is used to do the estimation, an
+approximation value of <I>L</I> is used, where <I>L</I> is based on the
+conditional sum of squares instead of the exact sum of squares,
+and a Jacobian factor is left out.
+<P><H3><I>Tests of Residuals</I></H3>
+A table of test statistics for the hypothesis that the model residuals
+are white noise is printed as part of the ESTIMATE statement output.
+The chi-square statistics used in the test for lack of fit are
+computed using the Ljung-Box formula
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="209" HEIGHT="110"
+ SRC="images/arieq112.gif"
+ ALT="{\chi}^2_{m} = n (n+2) \sum_{k=1}^m{\frac{r^2_{k}}{(n-k)}}"></DL>
+<P>where
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="144" HEIGHT="104"
+ SRC="images/arieq113.gif"
+ ALT="r_{k} = \frac{\sum_{t=1}^{n-k}{a_{t} a_{t+k}}}{\sum_{t=1}^n{a^2_{t}}}"></DL>
+<P>and <SPAN CLASS="mathfont"><I>a</I><SUB><I>t</I></SUB></SPAN> is the residual series.
+<P>This formula has been suggested by Ljung and Box (1978) as yielding
+a better fit to the asymptotic chi-square distribution
+than the Box-Pierce Q statistic.
+Some simulation studies of the finite sample
+properties of this statistic are given by Davies, Triggs, and Newbold
+(1977) and by Ljung and Box (1978).
+<P>Each chi-square statistic is computed for all lags up to the indicated lag
+value and is not independent of the preceding chi-square values.
+The null hypotheses tested is that the current set of 
+autocorrelations is white noise.
+<P><H3><I>t-values</I></H3>
+The <I>t</I> values reported in the table of parameter
+estimates are approximations whose accuracy depends on the validity
+of the model, the nature of the model, and the length of the
+observed series.  When the length of the observed series is
+short and the number of estimated parameters is large with
+respect to the series length, the <I>t</I> approximation
+is usually poor.  Probability values corresponding
+to a <I>t</I> distribution should be interpreted carefully
+as they may be misleading.
+<P><H3><I>Cautions During Estimation</I></H3>
+The ARIMA procedure uses a general nonlinear least-squares estimation
+method that can yield problematic results if your data do
+not fit the model.  Output should be examined carefully.
+The GRID option can be used to ensure the validity and
+quality of the results.
+Problems you may encounter include the following:
+<P><UL>
+<LI> Preliminary moving-average estimates may not converge.
+Should this occur, preliminary estimates are derived as described
+previously in &#34;Preliminary Estimation.&#34;
+You can supply your own preliminary
+estimates with the ESTIMATE statement options.
+<LI> The estimates can lead to an unstable time series process,
+which can cause extreme forecast values or overflows in the forecast.
+<LI> The Jacobian matrix of partial derivatives may be singular; usually,
+this happens because not all the parameters are identifiable.
+Removing some of the parameters or using a longer time series may help.
+<LI> The iterative process may not converge.
+PROC ARIMA's estimation method stops after <I>n</I> iterations,
+where <I>n</I> is the value of the MAXITER= option.
+If an iteration does not improve the SSE, the Marquardt parameter is
+increased by a factor of ten until parameters that have a smaller SSE
+are obtained or until the limit value of the Marquardt parameter is
+exceeded.
+<LI> For METHOD=CLS, the estimates may converge
+but not to least-squares estimates.
+The estimates may converge to a local minimum,
+the numerical calculations may be distorted by data
+whose sum-of-squares surface is not smooth,
+or the minimum may lie outside the region of invertibility or stationarity.
+<LI> If the data are differenced and a moving-average model is fit,
+the parameter estimates may try to converge exactly on the
+invertibility boundary.  In this case, the standard error estimates
+that are based on derivatives may be inaccurate.
+</UL><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,137 @@
+<HTML>
+<HEAD>
+<TITLE>OUTEST= Data Set</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The SYSLIN Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>OUTEST= Data Set  </H2>
+<P><A NAME="idxsys0160">&#13;</A><A NAME="idxsys0159">&#13;</A><A NAME="idxsys0161">&#13;</A>The OUTEST= option produces a TYPE=EST output SAS
+data set containing estimates from the regressions.
+The variables in the OUTEST= data set are as follows:
+<P><DL>
+<DT>BY variables
+<DD>the BY statement variables are included in the OUTEST= data set
+<BR><BR><DT>_TYPE_
+<DD>identifies the estimation type for the observations.
+The _TYPE_ value INST indicates first-stage regression estimates.
+Other values indicate the estimation method used:
+2SLS indicates two-stage least squares results,
+3SLS indicates three-stage least squares results,
+LIML indicates limited information maximum likelihood results,
+and so forth.
+Observations added by IDENTITY statements have the _TYPE_ value IDENTITY.
+<BR><BR><DT>_MODEL_
+<DD>the model label.
+The model label is the label specified on the MODEL statement
+or the dependent variable name if no label is specified.
+For first-stage regression estimates, _MODEL_ has the value FIRST.
+<BR><BR><DT>_DEPVAR_
+<DD>the name of the dependent variable for the model
+<BR><BR><DT>_NAME_
+<DD>the names of the regressors for the rows of the covariance matrix,
+if the COVOUT option is specified.
+_NAME_ has a blank value for the parameter estimates observations.
+The _NAME_ variable is not included in the OUTEST= data set
+unless the COVOUT option is used to output the covariance
+of parameter estimates matrix.
+<BR><BR><DT>_SIGMA_
+<DD>contains the root mean square error for the model,
+which is an estimate of the standard deviation of the error term.
+The _SIGMA_ variable contains the same values reported
+as Root MSE in the printed output.
+<BR><BR><DT>INTERCEPT
+<DD>the intercept parameter estimates
+<BR><BR><DT>regressors
+<DD>the regressor variables from all the MODEL statements
+are included in the OUTEST= data set.
+Variables used in IDENTIFY statements
+are also included in the OUTEST= data set.
+</DL>
+<P>The parameter estimates are stored under the names of the regressor variables.
+The intercept parameters are stored in the variable INTERCEP.
+The dependent variable of the model is given a coefficient of -1.
+Variables not in a model have missing values for the OUTEST= observations
+for that model.
+<P>Some estimation methods require computation of preliminary estimates.
+All estimates computed are output to the OUTEST= data set.
+For each BY group and each estimation,
+the OUTEST= data set contains one observation for each
+MODEL or IDENTITY statement.
+Results for different estimations are identified by the _TYPE_ variable.
+<P>For example, consider the following statements:
+<P><PRE>
+
+   proc syslin data=a outest=est 3sls;
+      by b;
+      endogenous y1 y2;
+      instruments x1-x4;
+      model y1 = y2 x1 x2;
+      model y2 = y1 x3 x4;
+      identity x1 = x3 + x4;
+   run;
+</PRE>
+<P>The 3SLS method requires both a preliminary 2SLS stage
+and preliminary first stage regressions for the endogenous variable.
+The OUTEST= data set thus contains 3 different kinds of estimates.
+The observations for the first-stage regression estimates have the
+_TYPE_ value INST.
+The observations for the 2SLS estimates have the _TYPE_ value 2SLS.
+The observations for the final 3SLS estimates have the _TYPE_ value 3SLS.
+<P>Since there are 2 endogenous variables in this example,
+there are 2 first-stage regressions
+and 2 _TYPE_=INST observations in the OUTEST= data set.
+Since there are 2 model statements, there are 2 OUTEST= observations
+with _TYPE_=2SLS and 2 observations with _TYPE_=3SLS.
+In addition, the OUTEST= data set contains an observation with the _TYPE_
+value IDENTITY containing the coefficients specified by the IDENTITY statement.
+All these observations are repeated for each BY-group in the input data set
+defined by the values of the BY variable B.
+<P>When the COVOUT option is specified,
+the estimated covariance matrix for the parameter estimates is
+included in the OUTEST= data set.
+Each observation for parameter estimates is followed by observations
+containing the rows of the parameter covariance matrix for that model.
+The row of the covariance matrix is identified by the variable _NAME_.
+For observations that contain parameter estimates, _NAME_ is blank.
+For covariance observations, _NAME_ contains the regressor name for the
+row of the covariance matrix,
+and the regressor variables contain the covariances.
+<P>See <A HREF="sect43.htm">Example 19.1</A> for an example of the OUTEST= data set.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,258 @@
+<HTML>
+<HEAD>
+<TITLE>Example 6.4: Selecting ODS Tables for Display</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="odsex04">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect8.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect10.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Using the Output Delivery System</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 6.4: Selecting ODS Tables for Display</H2>
+<P><A NAME="idxods0044">&#13;</A><A NAME="idxods0045">&#13;</A>You can use the ODS SELECT statement to deliver
+only certain tables to open ODS destinations.
+In the following example, the MODEL procedure is
+used to fit a model for new one-family home sales.
+<P><PRE>
+
+title 'Modeling One-Family Home Sales';
+    data homes;
+       input year q pop yn cpi @@;
+          y=yn/cpi;
+       label q='New One-Family Houses Sold in Thousands'
+          pop='U.S. Population in Millions'
+          y='Real Personal Income in Billions'
+          cpi='U.S. CPI 1982-1984 = 100';
+       datalines;
+    70 485 205.052  715.6  .388  71 656 207.661  776.8  .405
+    72 718 209.896  839.6  .418  73 634 211.909  949.8  .444
+    74 519 213.854 1038.4  .493  75 549 215.973 1142.8  .538
+    76 646 218.035 1252.6  .569  77 819 220.239 1379.3  .606
+    78 817 222.585 1551.2  .652  79 709 225.055 1729.3  .726
+    80 545 227.719 1918.0  .824  81 436 229.945 2127.6  .909
+    82 412 232.171 2261.4  .965  83 623 234.296 2428.1  .996
+    84 639 236.343 2668.6 1.039  85 688 238.466 2838.7 1.076
+    86 750 240.658 3013.3 1.096  87 671 242.820 3194.7 1.136
+    88 676 245.051 3479.2 1.183  89 650 247.350 3725.5 1.240
+    90 536 249.975 3945.8 1.307
+    ;
+
+   ods select ResidSummary ParameterEstimates;
+   ods trace on;
+   ods show;
+</PRE>
+<P>The ODS SELECT statement specifies that only the two tables
+&#34;ResidSummary&#34; and &#34;ParameterEstimates&#34; are to be delivered to
+the ODS destinations. In this example, no ODS destinations are
+explicitly opened. Therefore, only the SAS listing, which is
+open by default, receives the procedure output.
+The ODS SHOW statement displays the current
+overall selection list in the SAS log. The ODS TRACE statement writes the
+trace record of the ODS output objects to the SAS log.  In the
+following statements, the MODEL procedure is invoked to produce the
+output.
+<P><PRE>
+
+    proc model data=homes;
+       parms a b c d;
+          q = a + b*y + c*lag(y) + d*pop;
+       %ar(ar_q,1,q)
+       endo q;
+       exo y pop;
+       id year;
+       fit q / dw;
+    run;
+</PRE>
+<P><A HREF="sect9.htm#odsex04a">Output 6.4.1</A> displays
+the results of the ODS SHOW statement, which
+writes the current overall selection list to the SAS log.
+<A NAME="idxods0046">&#13;</A>As specified in the
+preceding ODS SELECT statement, only the two ODS
+tables &#34;ResidSummary&#34; and &#34;ParameterEstimates&#34; are selected for output.
+<P></P><A NAME="odsex04a"><SPAN CLASS="ssften"><B>Output 6.4.1:</B> Results of the ODS SHOW Statement</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><table border=0>
+<tr><td>
+<pre>
+     ods select ResidSummary ParameterEstimates;
+     ods trace on;
+     ods show;
+
+Current OVERALL select list is:
+1. ResidSummary
+2. ParameterEstimates
+</pre>
+</td></tr></table>
+</TD></TR></TABLE></CENTER><BR>Partial results of the ODS TRACE statement, which is written to the
+SAS log, are displayed in <A HREF="sect9.htm#odsex04b">Output 6.4.2</A>.
+<P></P><A NAME="odsex04b"><SPAN CLASS="ssften"><B>Output 6.4.2:</B> The ODS TRACE: Partial Contents of the SAS Log</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><table border=0>
+<tr><td>
+<pre>
+      proc model data=homes;
+         parms a b c d;
+            q = a + b*y + c*lag(y) + d*pop;
+         %ar(ar_q,1,q)
+         endo q;
+         exo y pop;
+         id year;
+
+         fit q / dw;
+      run;
+
+
+Output Added:
+-------------
+Name:       ModSummary
+Label:      Variable Counts
+Template:   ets.model.ModSummary
+Path:       Model.ModSum.ModSummary
+-------------
+
+              .
+              .
+              .
+
+Output Added:
+-------------
+Name:       ResidSummary
+Label:      Nonlinear OLS Summary of Residual Errors
+Template:   ets.model.ResidSummary
+Path:       Model.OLS.ResidSummary
+-------------
+
+Output Added:
+-------------
+Name:       ParameterEstimates
+Label:      Nonlinear OLS Parameter Estimates
+Template:   ets.model.ParameterEstimates
+Path:       Model.OLS.ParameterEstimates
+-------------
+</pre>
+</td></tr></table>
+</TD></TR></TABLE></CENTER><BR>In the following statements, the ODS SHOW statement writes
+the current overall selection list to the SAS log. The QUIT statement ends the
+MODEL procedure. The second ODS SHOW statement writes the selection
+list to the log after PROC MODEL terminates. The ODS selection list is
+reset to 'ALL,' by default, when a procedure terminates. For more information
+on ODS exclusion and selection lists, see the section <A HREF="sect3.htm#odslabel">&#34;Using the Output Delivery System&#34;</A>.
+<P><PRE>
+
+   ods show;
+   quit;
+   ods show;
+</PRE>
+<P>The results of the statements are displayed in <A HREF="sect9.htm#odsex04c">Output 6.4.3</A>. 
+Before the MODEL procedure terminates,
+the ODS selection list includes only the two tables, 
+&#34;ResidSummary&#34; and &#34;ParameterEstimates.&#34;
+<A NAME="idxods0047">&#13;</A><P></P><A NAME="odsex04c"><SPAN CLASS="ssften"><B>Output 6.4.3:</B> The ODS Selection List, Before and After PROC MODEL Terminates</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><table border=0>
+<tr><td>
+<pre>
+     ods show;
+
+Current OVERALL select list is:
+1. ResidSummary
+2. ParameterEstimates
+
+
+     quit;
+
+NOTE: PROCEDURE MODEL used:
+      real time           0.34 seconds
+      cpu time            0.19 seconds
+
+
+     ods show;
+
+Current OVERALL select list is: ALL
+</pre>
+</td></tr></table>
+</TD></TR></TABLE></CENTER><BR>The MODEL procedure supports run-group processing. Before the QUIT
+statement is executed, PROC MODEL is active and the ODS selection list
+remains at its previous setting before PROC MODEL was invoked.  After
+the QUIT statement, the selection list is reset to deliver all 
+output tables.
+<P>The entire displayed output consists of the two selected tables, 
+as displayed in <A HREF="sect9.htm#odsex04d">Output 6.4.4</A>.
+<P></P><A NAME="odsex04d"><SPAN CLASS="ssften"><B>Output 6.4.4:</B> The Listing Output of the ResidSummary and ParameterEstimates Tables from PROC MODEL</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><table border=0>
+<tr><td>
+<pre>
+                         Logistic Growth Curve Model of U.S. Population                   
+
+                                       The MODEL Procedure
+
+                           Nonlinear OLS Summary of Residual Errors
+
+                     DF       DF                                            Adj     Durbin
+  Equation        Model    Error         SSE         MSE    R-Square       R-Sq     Watson
+
+  q                   5       15     86388.2      5759.2      0.6201     0.5188     1.7410
+
+
+                               Nonlinear OLS Parameter Estimates
+
+                                    Approx                  Approx
+      Parameter       Estimate     Std Err    t Value     Pr > |t|    Label
+
+      a               2622.538      1196.5       2.19       0.0446
+      b               1.216858      0.3723       3.27       0.0052
+      c               -0.65809      0.3676      -1.79       0.0936
+      d               -14.8418      8.6435      -1.72       0.1065
+      ar_q_l1         0.478075      0.2480       1.93       0.0730    AR(ar_q) q lag1
+                                                                      parameter
+</pre>
+</td></tr></table>
+</TD></TR></TABLE></CENTER><BR>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect8.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect10.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

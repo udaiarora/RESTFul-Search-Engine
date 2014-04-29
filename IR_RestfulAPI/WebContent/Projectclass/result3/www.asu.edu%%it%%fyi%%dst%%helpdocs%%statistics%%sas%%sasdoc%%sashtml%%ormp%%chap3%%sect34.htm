@@ -1,0 +1,601 @@
+<HTML>
+<HEAD>
+<TITLE>Integer Programming</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="lp_4i00">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The LP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Integer Programming</H2>
+<A NAME="idxlp70402">&#13;</A><A NAME="idxlp70403">&#13;</A>Formulations of mathematical
+programs often require that some of the decision variables
+take only integer values.  Consider the formulation
+<P><DIV ALIGN="CENTER">
+<SPAN CLASS="mathfont">min&#160;<I>c</I><sup><I>T</I></sup><I>x</I></SPAN></DIV>subject to
+<DIV ALIGN="CENTER">
+<IMG WIDTH="104" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq1.gif"
+ ALT="A x \geq, =, \leq b"> <BR>
+   <IMG WIDTH="80" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq2.gif"
+ ALT="\ell \leq x \leq u"> <BR>
+   <IMG WIDTH="38" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq3.gif"
+ ALT="x_{i \in {\cal S}}"> is integer
+</DIV>
+
+<P>The set of indices <SPAN CLASS="mathfont"><I>S</I></SPAN> identifies those variables
+that must take only integer values.
+When <SPAN CLASS="mathfont"><I>S</I></SPAN> does not contain all of the integers between 1 and
+<SPAN CLASS="mathfont"><I>n</I></SPAN>, inclusive, problem <I>(mip)</I> is called a mixed-integer program.
+Otherwise, it is known as an integer program.
+Let <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(<I>mip</I>)</SPAN> denote an optimal solution to
+<I>(mip)</I> .  An integer variable with bounds between 0 and 1 is
+also called a binary variable.
+<P><H3><I><A NAME="lp_4ia0">Specifying the Problem</A></I></H3>
+An integer or mixed-integer problem can be
+solved with PROC LP.  To solve this problem, you must identify the
+integer variables.  You can do this with a row in the input data set
+that has the keyword <SPAN CLASS="ssiten"><I>INTEGER</I></SPAN> for the type variable.  Any variable that
+has a nonmissing and nonzero value for this row is interpreted as an
+integer variable.  It is important to note that integer variables must
+have upper bounds explicitly defined using the <SPAN CLASS="ssiten"><I>UPPERBD</I></SPAN> keyword.  The
+values in the <SPAN CLASS="ssiten"><I>INTEGER</I></SPAN> row not only identify those variables that must be
+integral, but they also give an ordering to the integer variables that
+can be used in the solution technique.
+<P>You can follow the same steps to identify binary variables.  For the binary
+variables, there is no need to supply any upper bounds.
+<P>Following the rules of sparse data input format, you can also identify 
+individual integer or binary variables.
+<P><H3><I><A NAME="lp_4ib0">The Branch and Bound Technique</A></I></H3>
+<A NAME="idxlp70404">&#13;</A><A NAME="idxlp70405">&#13;</A>The branch and bound approach is
+used to solve integer and mixed-integer problems.  
+The following discussion outlines the approach and explains how 
+to use several options to control the procedure.
+<P>The branch and bound technique solves an integer program by
+solving a sequence of linear programs.
+The sequence can be represented by a tree, with
+each node in the tree being identified with a linear program
+that is derived from the problems on the path
+leading to the root of the tree.
+The root of the tree is identified with a linear program
+that is identical to <SPAN CLASS="mathfont">(<I>mip</I>)</SPAN> except that <SPAN CLASS="mathfont"><I>S</I></SPAN> is empty.
+This relaxed version of <SPAN CLASS="mathfont">(<I>mip</I>)</SPAN>, <SPAN CLASS="mathfont"><I>lp</I>(0)</SPAN>,  can be written as:
+<P><DIV ALIGN="CENTER">
+<SPAN CLASS="mathfont"><I>x</I><sup><I>opt</I></sup>(0) = min&#160;<I>c</I><sup><I>T</I></sup><I>x</I></SPAN></DIV>subject to
+<DIV ALIGN="CENTER">
+<IMG WIDTH="104" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq1.gif"
+ ALT="A x \geq, =, \leq b"> <BR>
+   <IMG WIDTH="80" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq2.gif"
+ ALT="\ell \leq x \leq u"></DIV>
+
+<P>The branch and bound approach generates
+linear programs along the nodes of the tree using
+the following scheme.
+Consider <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(0)</SPAN>, the optimal solution
+to <SPAN CLASS="mathfont"><I>lp</I>(0)</SPAN>.
+If <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(0)<SUB><I>i</I></SUB></SPAN> is integer for all
+<IMG WIDTH="44" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq20.gif"
+ ALT="i\in{\cal S}"> , then <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(0)</SPAN>
+is optimal in <SPAN CLASS="mathfont">(<I>mip</I>)</SPAN>.  
+Suppose for some <IMG WIDTH="44" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq20.gif"
+ ALT="i\in{\cal S}"> , <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(0)<SUB><I>i</I></SUB></SPAN> is nonintegral. 
+In that case, define two new problems <SPAN CLASS="mathfont">(<I>lp</I>(1))</SPAN> and <SPAN CLASS="mathfont">(<I>lp</I>(2))</SPAN> ,
+descendents of the parent problem <SPAN CLASS="mathfont">(<I>lp</I>(0))</SPAN>. 
+The problem <SPAN CLASS="mathfont">(<I>lp</I>(1))</SPAN> is identical to <SPAN CLASS="mathfont">(<I>lp</I>(0))</SPAN> except for
+the additional constraint
+<DIV ALIGN="CENTER">
+<IMG WIDTH="119" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq21.gif"
+ ALT="x_i\leq \lfloor x^{opt}(0)_i \rfloor"></DIV>and the problem <SPAN CLASS="mathfont">(<I>lp</I>(2))</SPAN> is identical to <SPAN CLASS="mathfont">(<I>lp</I>(0))</SPAN> except for
+the additional constraint
+<DIV ALIGN="CENTER">
+<IMG WIDTH="119" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq22.gif"
+ ALT="x_i\geq \lceil x^{opt}(0)_i \rceil"></DIV>The notation <IMG WIDTH="29" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq23.gif"
+ ALT="\lceil y \rceil"> means the smallest integer
+greater than or equal to <SPAN CLASS="mathfont"><I>y</I></SPAN>, and the notation
+<IMG WIDTH="29" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq24.gif"
+ ALT="\lfloor y \rfloor"> means the largest integer less than or equal to <SPAN CLASS="mathfont"><I>y</I></SPAN>.
+Note that the two new problems
+do not have <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(0)</SPAN> as a feasible solution, but because
+the solution to <SPAN CLASS="mathfont">(<I>mip</I>)</SPAN> must satisfy one of
+the preceding constraints, <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(<I>mip</I>)<SUB><I>i</I></SUB></SPAN> must
+satisfy one of the new constraints.  
+The two problems thus defined are
+called active nodes  in the branch and bound tree, and the
+variable <SPAN CLASS="mathfont"><I>i</I></SPAN> is called the branching variable.
+<P>Next, the algorithm chooses one of the problems associated with an
+active node and attempts to solve it using the dual simplex algorithm.  
+The problem may be infeasible, in which case the problem is dropped.  
+If it can be solved, and it in turn does not have an integer solution
+(that is a solution for which <SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN> is
+integer for all <IMG WIDTH="44" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq20.gif"
+ ALT="i\in{\cal S}">), then it
+defines two new problems.  
+These new problems each contain all of the
+constraints of the parent problems plus the appropriate additional one.
+<P>Branching continues in this manner until either there are no
+active nodes or an integer solution is found.
+When an integer solution is found, its objective value
+provides a bound for the objective of <SPAN CLASS="mathfont">(<I>mip</I>)</SPAN>.
+In particular, if <SPAN CLASS="mathfont"><I>z</I></SPAN> is the objective value of
+the current best integer solution, then any active problems
+whose parent problem has objective value <IMG WIDTH="32" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq25.gif"
+ ALT="\geq z"> can
+be discarded (assuming that the problem is a minimization).
+This can be done because all problems that descend from
+this parent will also have objective value <IMG WIDTH="32" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq25.gif"
+ ALT="\geq z">.This technique is known as fathoming.
+When there are no active nodes remaining to be solved,
+the current integer solution is optimal in <I>(mip)</I>.
+If no integer solution has been found,
+then <SPAN CLASS="mathfont">(<I>mip</I>)</SPAN> is (integer) infeasible.
+<P>It is important to realize that integer programs are
+NP-complete. 
+Roughly speaking, this means that the effort required
+to solve them grows exponentially with the size of the problem.
+For example, a problem with 10 binary variables can, in the
+worst case, generate <SPAN CLASS="mathfont">2<SUP>10</SUP> =1024</SPAN> nodes in the branch and bound tree. 
+A problem with 20 binary variables can, in the
+worst case, generate <SPAN CLASS="mathfont">2<SUP>20</SUP> =1048576</SPAN> nodes in the branch and
+bound tree. 
+Although the algorithm is unlikely to have to
+generate every single possible node, the need to explore
+even a small fraction of
+the potential number of nodes for 
+a large problem can be resource intensive.
+<P><H3><I><A NAME="lp_4ic0">The Integer Iteration Log</A></I></H3>
+<A NAME="idxlp70406">&#13;</A><A NAME="idxlp70407">&#13;</A>To help monitor the growth of the branch and bound tree, the LP
+procedure reports on the status of each
+problem that is solved.  
+The report, displayed in the Integer Iteration
+Log, can be used to reconstruct the branch and bound tree.  
+Each row in
+the report describes the results of the attempted solution of the linear
+program at a node in the tree.  
+In the following discussion, a problem on
+a given line in the log is called the current problem.  
+The following columns are displayed in the report:
+<P><DL>
+<DT>Iter
+<DD>identifies the number of the branch and bound iteration.
+<BR><BR><DT>Problem
+<DD>identifies how the current problem fits in the branch and
+bound tree.
+<DT>Condition
+<DD>reports the result of the attempted solution of
+the current problem. Values for Condition are
+<DL>
+<DT><SPAN CLASS="ssiten"><I>ACTIVE</I></SPAN>
+<DD>The current problem was solved successfully.
+<DT><SPAN CLASS="ssiten"><I>INFEASIBLE</I></SPAN>
+<DD>The current problem is infeasible.
+<DT><SPAN CLASS="ssiten"><I>FATHOMED</I></SPAN>
+<DD>The current problem cannot lead  to an improved
+integer solution and therefore it is dropped.
+<DT><SPAN CLASS="ssiten"><I>SINGULAR</I></SPAN>
+<DD>A singular basis was encountered
+in attempting to solve the current problem.
+Solution of this relaxed problem is suspended
+and will be attempted later if necessary.
+<DT><SPAN CLASS="ssiten"><I>SUBOPTIMAL</I></SPAN>
+<DD>The current problem has an integer feasible solution.
+</DL>
+<DT>Objective
+<DD>reports the objective value of the current problem.
+<DT>Branched
+<DD>names the variable that is branched in
+subtrees defined by the descendents of this problem.
+<DT>Value
+<DD>gives the current value of the variable named in  the
+column labeled Branched.
+<DT>Sinfeas
+<DD>gives the sum of the integer infeasibilities in the
+optimal solution to the current problem.
+<DT>Active
+<DD>reports the total number of nodes currently active in
+the branch and bound tree.
+<DT>Proximity
+<DD>reports the gap between the best integer solution
+and the current lower (upper for  maximizations) 
+bound of all active nodes.
+</DL><BR>To reconstruct
+the branch and bound tree from this report, consider the interpretation
+of iteration <SPAN CLASS="mathfont"><I>j</I></SPAN>.  
+If Iter=<SPAN CLASS="mathfont"><I>j</I></SPAN> and Problem=<SPAN CLASS="mathfont"><I>k</I></SPAN>, then the
+problem solved on iteration <SPAN CLASS="mathfont"><I>j</I></SPAN> is identical to the problem solved
+on iteration <SPAN CLASS="mathfont">| <I>k</I> |</SPAN> with an additional constraint.  
+If <SPAN CLASS="mathfont"><I>k</I> &#62;0</SPAN>, then
+the constraint is an upper bound on the variable named in the Branched
+column on iteration <SPAN CLASS="mathfont">| <I>k</I> |</SPAN>.
+On the other hand, if <SPAN CLASS="mathfont"><I>k</I> &#60;0</SPAN> then the
+constraint is a lower bound on that variable.  
+The value of the bound
+can be obtained from the value of Value in iteration <SPAN CLASS="mathfont">| <I>k</I> |</SPAN> as
+described in the previous section.
+<BR><BR><A HREF="sect53.htm">Example 3.8</A> in the section <A HREF="sect44.htm#lp_5000">&#34;Examples&#34;</A> 
+shows an Integer Iteration Log in its output.
+<BR><BR><H3><I><A NAME="lp_4id0">Controlling the Branch and Bound Search</A></I></H3>
+<A NAME="idxlp70408">&#13;</A><A NAME="idxlp70409">&#13;</A>There are several options
+you can use to control branching.  This is accomplished by controlling
+the program's choice of the branching variable and of the next active
+node.   In the discussion that follows, let
+<DIV ALIGN="CENTER">
+<IMG WIDTH="225" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq26.gif"
+ ALT="f_i(k)= x^{opt}(k)_i-\lfloor x^{opt}(k)_i \rfloor"></DIV>where <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(<I>k</I>)</SPAN> is the optimal solution to the problem
+solved on iteration <SPAN CLASS="mathfont"><I>k</I></SPAN>.
+<BR><BR>The <A HREF="sect8.htm#lp_3beb">CANSELECT=</A> 
+option directs the choice of the next active node.
+Valid keywords for this option include <SPAN CLASS="ssiten"><I>LIFO, FIFO, OBJ,
+PROJECT, PSEUDOC</I></SPAN>, and <SPAN CLASS="ssiten"><I>ERROR</I></SPAN>. 
+The following list describes the action
+that each of these causes when the procedure must choose for solution a
+problem from the list of active nodes.
+<A NAME="idxlp70410">&#13;</A><A NAME="idxlp70411">&#13;</A><DL>
+<DT><SPAN CLASS="ssiten"><I>LIFO</I></SPAN>
+<DD>chooses the last problem added to the tree of active nodes. 
+This search has the effect of a depth first search
+of the branch and bound tree. 
+<BR><BR><DT><SPAN CLASS="ssiten"><I>FIFO</I></SPAN>
+<DD>chooses the first node added to the tree of active nodes.
+This search has the effect of a breadth first search of the
+branch and bound tree. 
+<DT><SPAN CLASS="ssiten"><I>OBJ</I></SPAN>
+<DD>chooses the problem whose parent has the least (largest
+if the problem is a maximization) objective value.
+<DT><SPAN CLASS="ssiten"><I>PROJECT</I></SPAN>
+<DD>chooses the problem with the largest (least if the
+problem is a maximization) projected objective value.
+The projected objective value is evaluated using
+the sum of integer infeasibilities, <SPAN CLASS="mathfont"><I>s</I>(<I>k</I>)</SPAN>,
+associated with an active node <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>))</SPAN>, defined by:
+<DIV ALIGN="CENTER">
+<IMG WIDTH="277" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq27.gif"
+ ALT="s(k) = \Sigma_{i\in{\cal S}}{\rm min} \{f_i(k), (1-f_i(k))\}">.</DIV>
+<BR><BR>An empirical measure of the rate of increase (decrease)
+in the objective value is defined as
+<DIV ALIGN="CENTER">
+<IMG WIDTH="165" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq28.gif"
+ ALT="\lambda = (z^*-z(0)) / s(0)"></DIV>where
+<DL>
+<DT><SPAN CLASS="mathfont"><I>z</I>(<I>k</I>)</SPAN>
+<DD>is the optimal objective value for <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>))</SPAN>.
+<DT><SPAN CLASS="mathfont"><I>z<SUP>*</SUP></I></SPAN>
+<DD>is the objective value of the current best
+integer solution.
+</DL><BR>The projected objective value for problems <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+1))</SPAN> and <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+2))</SPAN> 
+is defined as
+<DIV ALIGN="CENTER">
+<IMG WIDTH="102" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq29.gif"
+ ALT="z(k)+ \lambda s(k)"></DIV>
+<DT><SPAN CLASS="ssiten"><I>PSEUDOC</I></SPAN>
+<DD>chooses the problem with the largest 
+(least if the problem is a maximization) projected pseudocost.
+The projected pseudocost is evaluated using the weighted sum
+of infeasibilities <SPAN CLASS="mathfont"><I>s</I><SUB><I>w</I></SUB>(<I>k</I>)</SPAN> associated with an active problem
+<SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>))</SPAN>, defined by
+<DIV ALIGN="CENTER">
+<IMG WIDTH="368" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq30.gif"
+ ALT="s_w(k)=\Sigma_{i\in{\cal S}}{\rm min} \{d_i(k)f_i(k), u_i(k)(1-f_i(k))\}"></DIV>The weights <SPAN CLASS="mathfont"><I>u</I><SUB><I>i</I></SUB></SPAN> and <SPAN CLASS="mathfont"><I>d</I><SUB><I>i</I></SUB></SPAN> are initially equal to
+the absolute value of the <I>i</I>th objective coefficient and are
+updated at each integer iteration.
+They are modified by examining the empirical marginal change
+in the objective as additional constraints are placed on the variables
+in <SPAN CLASS="mathfont"><I>S</I></SPAN> along the path from
+<SPAN CLASS="mathfont">(<I>lp</I>(0))</SPAN> to a node associated
+with an integer feasible solution.
+In particular, if the definition of problems <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+1))</SPAN> and
+<SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+2))</SPAN> from
+parent <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>))</SPAN> involve the addition of constraints
+<IMG WIDTH="120" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq10.gif"
+ ALT="x_i \leq \lfloor x^{opt}(k)_i\rfloor"> and
+<IMG WIDTH="120" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq9.gif"
+ ALT="x_i \geq \lceil x^{opt}(k)_i\rceil">, respectively,
+and one of them is on a path to an integer feasible solution, then
+either
+<DIV ALIGN="CENTER">
+<SPAN CLASS="mathfont"><I>d</I><SUB><I>i</I></SUB>(<I>k</I>)=(<I>z</I>(<I>k</I>+1)-<I>z</I>(<I>k</I>))/<I>f</I><SUB><I>i</I></SUB>(<I>k</I>)</SPAN></DIV>or
+<DIV ALIGN="CENTER">
+<SPAN CLASS="mathfont"><I>u</I><SUB><I>i</I></SUB>(<I>k</I>)=(<I>z</I>(<I>k</I>+2)-<I>z</I>(<I>k</I>))/(1-<I>f</I><SUB><I>i</I></SUB>(<I>k</I>))</SPAN></DIV>
+<BR><BR>Note the similarity between <SPAN CLASS="mathfont"><I>s</I><SUB><I>w</I></SUB>(<I>k</I>)</SPAN> and <SPAN CLASS="mathfont"><I>s</I>(<I>k</I>)</SPAN>. 
+The weighted quantity <SPAN CLASS="mathfont"><I>s</I><SUB><I>w</I></SUB>(<I>k</I>)</SPAN> accounts to some extent
+for the influence of the objective function.
+The projected pseudocost for problems <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+1))</SPAN> and
+<SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+2))</SPAN> is defined as
+<DIV ALIGN="CENTER">
+<IMG WIDTH="171" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq31.gif"
+ ALT="z_w(k) \equiv z(k)+s_w(k)"></DIV>
+<DT><SPAN CLASS="ssiten"><I>ERROR</I></SPAN>
+<DD>chooses the problem with the largest error.
+The error associated with problems <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+1))</SPAN> and <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+2))</SPAN> 
+is defined as
+<DIV ALIGN="CENTER">
+<SPAN CLASS="mathfont">(<I>z<SUP>*</SUP></I>-<I>z</I><SUB><I>w</I></SUB>(<I>k</I>))/(<I>z<SUP>*</SUP></I>-<I>z</I>(<I>k</I>))</SPAN></DIV></DL><BR>The <A HREF="sect8.htm#lp_3bea">BACKTRACK=</A> 
+option controls the search for the next problem.
+This option can take the same values as the CANSELECT= option.
+In addition to the case outlined under the DELTAIT= option, backtracking 
+is required as follows based on the
+CANSELECT= option in effect:
+<A NAME="idxlp70412">&#13;</A><A NAME="idxlp70413">&#13;</A><UL>
+<LI>
+If CANSELECT=<SPAN CLASS="ssiten"><I>LIFO</I></SPAN> and there is no active node in the portion of the
+active tree currently under exploration with a bound better than the value
+of WOBJECTIVE=, then the procedure must backtrack.
+<LI>
+If CANSELECT=<SPAN CLASS="ssiten"><I>FIFO, PROJECT, PSEUDOC</I></SPAN>, and <SPAN CLASS="ssiten"><I>ERROR</I></SPAN> and the bound corresponding
+to the node under consideration is not better than the value of 
+WOBJECTIVE=, then the procedure must backtrack.
+</UL>
+The default value is <SPAN CLASS="ssiten"><I>OBJ</I></SPAN>.
+<BR><BR>The <A HREF="sect8.htm#lp_3bem">VARSELECT=</A> 
+option directs the choice of branching variable. 
+<A NAME="idxlp70414">&#13;</A><A NAME="idxlp70415">&#13;</A>Valid keywords for this option include <SPAN CLASS="ssiten"><I>CLOSE, FAR, PRIOR,
+PSEUDOC, PRICE</I></SPAN>, and <SPAN CLASS="ssiten"><I>PENALTY</I></SPAN>.
+The following list describes the action that each of
+these causes when <SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(<I>k</I>)</SPAN>, an optimal solution
+of problem <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>))</SPAN>, is used to define active
+problems <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+1))</SPAN> and  <SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>+2))</SPAN>.
+<BR><BR><DL>
+<DT><SPAN CLASS="ssiten"><I>CLOSE</I></SPAN>
+<DD>chooses as branching variable
+the variable <SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN> such that <SPAN CLASS="mathfont"><I>i</I></SPAN> minimizes
+<DIV ALIGN="CENTER">
+<IMG WIDTH="253" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq32.gif"
+ ALT="\{{\rm min} \{f_j(k),(1-f_j(k))\}| j \in{\cal S}"> and
+IEPSILON <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq33.gif"
+ ALT="\leq f_j(k)\leq1-"> IEPSILON <SPAN CLASS="mathfont">}</SPAN></DIV>
+<DT><SPAN CLASS="ssiten"><I>FAR</I></SPAN>
+<DD>chooses as branching variable the variable
+<SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(<I>k</I>)<SUB><I>i</I></SUB></SPAN> such that <SPAN CLASS="mathfont"><I>i</I></SPAN> maximizes
+<DIV ALIGN="CENTER">
+<IMG WIDTH="253" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq32.gif"
+ ALT="\{{\rm min} \{f_j(k),(1-f_j(k))\}| j \in{\cal S}"> and
+IEPSILON <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq33.gif"
+ ALT="\leq f_j(k)\leq1-"> IEPSILON <SPAN CLASS="mathfont">}</SPAN></DIV>
+<DT><SPAN CLASS="ssiten"><I>PRIOR</I></SPAN>
+<DD>chooses as branching variable <SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN> such that <IMG WIDTH="44" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq20.gif"
+ ALT="i\in{\cal S}">,<SPAN CLASS="mathfont"><I>x</I><SUP><I>opt</I></SUP>(<I>k</I>)<SUB><I>i</I></SUB></SPAN> is nonintegral, and variable <SPAN CLASS="mathfont"><I>i</I></SPAN>
+has the minimum value in the <SPAN CLASS="ssiten"><I>INTEGER</I></SPAN> row in the input data set.
+This choice for the VARSELECT= option is recommended when you
+have enough insight into the model to identify
+those integer variables that have the most significant
+effect on the objective value.
+<DT><SPAN CLASS="ssiten"><I>PENALTY</I></SPAN>
+<DD>chooses as branching variable <SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN>
+such that <IMG WIDTH="44" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq20.gif"
+ ALT="i\in{\cal S}">and a bound on the increase in the objective of
+<SPAN CLASS="mathfont">(<I>lp</I>(<I>k</I>))</SPAN> (penalty) resulting from adding the constraint
+<DIV ALIGN="CENTER">
+<IMG WIDTH="120" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq10.gif"
+ ALT="x_i \leq \lfloor x^{opt}(k)_i\rfloor"> or <BR>
+<IMG WIDTH="120" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq9.gif"
+ ALT="x_i \geq \lceil x^{opt}(k)_i\rceil"></DIV>is maximized.
+The bound is calculated without pivoting using techniques
+of sensitivity analysis (Garfinkel and Nemhauser 1972).
+Because the cost of calculating the maximum penalty can be
+large if <SPAN CLASS="mathfont"><I>S</I></SPAN> is large, you may want to limit the number of
+variables in <SPAN CLASS="mathfont"><I>S</I></SPAN> for which the penalty is calculated.
+The penalty is calculated for PENALTYDEPTH= variables in <SPAN CLASS="mathfont"><I>S</I></SPAN> .
+<DT><SPAN CLASS="ssiten"><I>PRICE</I></SPAN>
+<DD>chooses as branching variable
+<SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN> such that <IMG WIDTH="44" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq20.gif"
+ ALT="i\in{\cal S}">, <SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN> is nonintegral,
+and variable <SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN> has the minimum price coefficient (maximum for maximization).
+<DT><SPAN CLASS="ssiten"><I>PSEUDOC</I></SPAN>
+<DD>chooses as branching variable the variable
+<SPAN CLASS="mathfont"><I>x</I><SUB><I>i</I></SUB></SPAN> such that <SPAN CLASS="mathfont"><I>i</I></SPAN> maximizes
+<DIV ALIGN="CENTER">
+<IMG WIDTH="288" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq34.gif"
+ ALT="\{{\rm min} \{d_jf_j(k),u_j(1-f_j(k))\} | j\in {\cal S}"> and
+IEPSILON <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/lp7eq33.gif"
+ ALT="\leq f_j(k)\leq1-"> IEPSILON <SPAN CLASS="mathfont">}</SPAN></DIV>
+<BR><BR>The weights <SPAN CLASS="mathfont"><I>u</I><SUB><I>j</I></SUB></SPAN> and <SPAN CLASS="mathfont"><I>d</I><SUB><I>j</I></SUB></SPAN> are initially equal to
+the absolute value of the  <I>j</I>th objective coefficient and are
+updated whenever an integer feasible solution is encountered.
+See the discussion on the CANSELECT= option for details on the
+method of updating the weights.
+</DL>
+<P><H3><I><A NAME="lp_4ie0">Customizing Search Heuristics</A></I></H3>
+<A NAME="idxlp70416">&#13;</A><A NAME="idxlp70417">&#13;</A>Often a good heuristic for
+searching the branch and bound tree of a problem can be found.  
+You are
+tempted to continue using this heuristic when the problem data changes
+but the problem structure remains constant.  
+The ability to reset procedure options interactively enables you 
+to experiment with search techniques
+in an attempt to identify approaches that perform well.  
+Then you can easily reapply these techniques to subsequent problems.
+<P>For example, the PIP branch and bound strategy (Crowder,
+Johnson, and Padberg 1983) describes one such heuristic.
+The following program uses a similar strategy.
+Here, the <SPAN CLASS="ssiten"><I>OBJ</I></SPAN> rule (choose the active node with
+least parent objective function in the case of a minimization problem)
+is used for selecting the next active
+node to be solved until an integer feasible solution is found.
+Once such a solution is found, the search procedure is changed
+to the <SPAN CLASS="ssiten"><I>LIFO</I></SPAN> rule: choose the problem most recently placed in the
+list of active nodes.
+<P><PRE>
+   proc lp canselect=obj ifeasiblepause=1;
+   run;
+      reset canselect=lifo ifeasiblepause=9999999;
+   run;
+</PRE>
+
+<P><H3><I><A NAME="lp_4ie1">Further Discussions on AUTO and CONTROL= options</A></I></H3>
+<A NAME="idxlp70418">&#13;</A><A NAME="idxlp70419">&#13;</A>Let us consider a minimization problem.  At each integer
+iteration, PROC LP will select a node to solve from
+a pool of active nodes.  The best bound strategy (CANSELECT=OBJ)
+will pick the node with the smallest projected objective value.
+This strategy improves the lower bound of the integer program
+and usually takes less number of integer iterations.
+One disadvantage is that it needs to recalculate the inverse of
+the basis matrix almost every integer iteration, 
+which is relatively expensive.  
+Another disadvantage is this strategy does not pay attention to
+improving the upper bound of the integer program.  
+Thus the number of active nodes tends to grow rapidly 
+if PROC LP cannot find an optimal integer solution soon.
+<P>LIFO strategy is very efficient and does not need to calculate
+the inverse of the basis matrix unless the previous node is fathomed.
+It is a depth first strategy so it tends to find an integer
+feasible solution quickly. However, this strategy will pick nodes 
+locally and usually takes longer integer iterations 
+than the best bound strategy.
+<P>There is another strategy that most people have ignored.
+Here we called it <B>best upper bound</B> strategy.  With this
+strategy, when we select an active node each time, instead of
+picking the node with the smallest projected objective
+value we select the one with the largest projected objective 
+value.  This strategy is as efficient as the LIFO
+strategy.  Moreover, it selects active nodes globally.  
+This strategy tries to improve the upper bound of the integer
+program by search for new integer
+feasible solutions. It also fathomes active nodes quickly
+and keeps the total number of active nodes below 
+current level.  A disadvantage is that is may evaluate
+more nodes that do not have any potential in
+finding an optimal integer solution.
+<P>The best bound strategy has the advantage of improving the lower
+bound.  The LIFO strategy has the advantages of efficiency
+and finding a local integer feasible solution.  The best upper 
+bound strategy has the advantages of keeping the size of active 
+nodes under control and at the same time trying to identify any 
+potential integer feasible solution globally.
+<P>In general the best bound strategy is the prefer strategy by
+people.  In many situations, other strategies are doing better.
+For example, if we have found an integer optimal solution but we do
+not know that no solutions are better than it, we still have
+to enumerate all possible active nodes.  Then the three 
+strategies will take basically the same number of integer
+iterations after an optimal solution is found but not identified.  
+Since LIFO and best upper bound strategies are very efficient 
+per integer iteration, both of them will outperform the
+best bound strategy.
+<P>The CONTROL= option combines the above three strategies naturally 
+and provides a simple control parameter in <SPAN CLASS="mathfont">[0, 1]</SPAN>
+dealing with different
+integer programming problems and different solution situation.
+The AUTO option automatically sets and adjusts the CONTROL=
+parameter so that we do not need to know any problem structure 
+or deciding a node selection strategy in advance.
+<P>Since the LIFO strategy is so cheap, we shall try to use it
+as much as possible in the combinations.  
+We call the following process a 
+<B>diving process</B>.  Starting from an active node,
+we apply the LIFO strategy as much as we can until the
+current node becomes feasible or is fathomed, or exceed a
+preset limit.  During this process, there is no inverse
+matrix calculation involved except for the first node.
+When the diving process is over, we shall apply one
+of the above three strategies to select the next starting
+node.  We shall call the set of combinations a cycle.
+<P>The control parameter <SPAN CLASS="mathfont"><I>r</I></SPAN> controls the frequency of the three applying
+strategies and the depth of the diving process.  It starts with
+a pure best bound strategy at <SPAN CLASS="mathfont"><I>r</I>=0</SPAN>, then gradually increase 
+the frequency of the diving process and its depth in a 
+cycle as <SPAN CLASS="mathfont"><I>r</I></SPAN> increases.   At <SPAN CLASS="mathfont"><I>r</I>=0.5</SPAN>, the cycle contains a best
+bound strategy plus a full diving process.  After <SPAN CLASS="mathfont"><I>r</I>=0.5</SPAN>, 
+the number of the diving processes will gradually increase 
+in a cycle.  In addition, the best upper bound strategy will join the
+cycle.  As <SPAN CLASS="mathfont"><I>r</I></SPAN> continues to increase, the frequency of the best
+upper bound strategy will increase.  At <SPAN CLASS="mathfont"><I>r</I>=1</SPAN>, it becomes
+a pure best upper bound strategy.
+<P>The AUTO option will automatically adjust the value of
+the CONTROL= option.  At the start, it sets CONTROL=0.7, which
+emphasizes on finding an upper bound.  After an integer
+feasible solution is found, it sets CONTROL=0.5, which
+emphasizes on efficiency and lower bound improvement. 
+When the number of active nodes grows over
+the default or user defined limit <SPAN CLASS="mathfont"><I>m</I></SPAN>, it is an indication that
+a better upper bound is needed.  The AUTO option will start
+to increase the value of CONTROL= from 0.5.  If the
+size of active nodes continues to grow, so will be the value of 
+CONTROL= option.  When the size of active nodes reaches to the
+default or user defined crash point, CONTROL= will
+be set to one.  At this stage, the growth of active
+nodes is stopped.  When the size of active nodes 
+reduces, AUTO will decrease the value of CONTROL= option.
+<P><H3><I><A NAME="lp_4if0">Saving and Restoring the List of Active Nodes</A></I></H3>
+<A NAME="idxlp70420">&#13;</A><A NAME="idxlp70421">&#13;</A><A NAME="idxlp70422">&#13;</A><A NAME="idxlp70423">&#13;</A><A NAME="idxlp70424">&#13;</A><A NAME="idxlp70425">&#13;</A><A NAME="idxlp70426">&#13;</A><A NAME="idxlp70427">&#13;</A>The list of active nodes can be saved in a SAS data set
+for use at a subsequent invocation of PROC LP.
+The <A HREF="sect8.htm#lp_3bab">ACTIVEOUT=</A> option in the PROC LP statement
+names the data set into which the
+current list of active nodes is saved when the
+procedure terminates due to an error termination condition.
+Examples of such conditions are time limit exceeded,
+integer iterations exceeded, and phase&#160;3 iterations exceeded.
+The <A HREF="sect8.htm#lp_3baa">ACTIVEIN=</A> option in the PROC LP statement
+names a data set that can be used
+to initialize the list of active nodes.
+To achieve the greatest benefit when restarting PROC LP,
+use the <A HREF="sect8.htm#lp_3baf">PRIMALOUT=</A> and <A HREF="sect8.htm#lp_3bae">PRIMALIN=</A> 
+options in conjunction with the ACTIVEOUT=
+and ACTIVEIN= options. 
+See <A HREF="sect55.htm">Example 3.10</A> in the section <A HREF="sect44.htm#lp_5000">&#34;Examples&#34;</A> for an illustration.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

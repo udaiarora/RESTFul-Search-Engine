@@ -1,0 +1,122 @@
+<HTML>
+<HEAD>
+<TITLE>Example 5.2: Using the INQUAD= Option</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect43.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect45.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 5.2: Using the INQUAD= Option  </H2>
+<P><A NAME="idxnlp0538">&#13;</A>This example illustrates the INQUAD= option for specifying
+a quadratic programming problem:
+
+<DL CLASS="equation"><DD><IMG WIDTH="377" HEIGHT="92"
+ SRC="images/nlpeq186.gif"
+ ALT="\min f(x) = {1 \over 2} x^T G x + g^T x + c,
+  {with}  G^T = G ,"></DL>
+Suppose that <SPAN CLASS="mathfont"><I>c</I>=-100</SPAN>, <SPAN CLASS="mathfont"><I>G</I> =  <I>diag</I>(.4,4)</SPAN> 
+and that <IMG WIDTH="97" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq187.gif"
+ ALT="2 \leq x_1 \leq 50">, <IMG WIDTH="121" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq188.gif"
+ ALT="-50 \leq x_2 \leq 50">,and <IMG WIDTH="123" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq189.gif"
+ ALT="10 \leq 10x_1 - x_2">.<P>You specify the constant <SPAN CLASS="mathfont"><I>c</I></SPAN> and the Hessian <SPAN CLASS="mathfont"><I>G</I></SPAN>
+in the data set QUAD1.
+Notice that the _TYPE_ variable contains the keywords
+that identify how the procedure should interpret the
+observations.
+<P><PRE>
+data quad1;
+   input _type_ $ _name_ $ x1 x2;
+   datalines;
+    const   .   -100  -100
+    quad   x1    0.4     0
+    quad   x2      0     4
+;
+</PRE>
+<P>You specify the QUAD1 data set with the INQUAD= option.
+Notice that the names of the variables in the QUAD1 data set
+and the _NAME_ variable match the names of the parameters
+in the PARMS statement.
+<P><PRE>
+proc nlp inquad=quad1 all;
+   min ;
+   parms x1 x2 = -1;
+   bounds  2 &#60;= x1 &#60;= 50,
+         -50 &#60;= x2 &#60;= 50;
+   lincon 10 &#60;= 10 * x1 - x2;
+run;
+</PRE>
+<P>Alternatively, you can use a sparse format for
+specifying the <SPAN CLASS="mathfont"><I>c</I></SPAN> and <SPAN CLASS="mathfont"><I>G</I></SPAN> matrices eliminating
+the zeros.
+You use the special variables _ROW_, _COL_,
+and _VALUE_ to give the nonzero row and column
+names and value.
+<P><PRE>
+data quad2;
+   input _type_ $ _row_ $ _col_ $ _value_;
+   datalines;
+    const  .      .    -100
+    quad   x1    x1     0.4
+    quad   x2    x2       4
+   ;
+</PRE>
+<P>You can also include the constraints in the QUAD data set.
+Notice how the _TYPE_ variable contains keywords that
+identify how the procedure is to interpret the values
+in each observation.
+<P><PRE>
+data quad3;
+   input _type_ $ _name_ $ x1   x2   _rhs_;
+   datalines;
+         const      .     -100  -100   .
+         quad       x1    0.02     0   .
+         quad       x2    0.00     2   .
+         parms      .       -1    -1   .
+         lowerbd    .        2   -50   .
+         upperbd    .       50    50   .
+         ge         .       10    -1  10
+
+proc nlp inquad=quad3;
+   min ;
+   parms x1 x2;
+run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect43.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect45.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

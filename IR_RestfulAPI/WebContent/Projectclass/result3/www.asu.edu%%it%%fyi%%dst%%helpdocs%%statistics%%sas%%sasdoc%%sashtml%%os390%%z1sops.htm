@@ -1,0 +1,179 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Directing SAS Log and SAS Procedure Output : Directing Output to External Files with System Options </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0165871.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zprintto.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zut-file.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1sops">Directing Output to External Files with System Options</A></FONT></H1>
+
+
+<P><A name="z0552384">&#13;   You can use SAS system options to change the destination
+of the SAS log and procedure output. The options that you use depend on which
+of the following tasks you want to accomplish: </A>
+<P>
+<UL>
+
+<LI>directing your SAS log or procedure output to
+an external file instead of to their default destinations (see 
+<A href="#zut-send">Directing Output to an External File at SAS Invocation</A>)<P>
+
+<LI>directing the log or output both to their default
+destinations and to an external file (see <A href="#zut-copy">Copying Output to an External File</A>).<P>
+</UL>
+
+<P>Specify the
+system options in any of the following ways: 
+<P>
+<UL>
+
+<LI>when you invoke the SAS CLIST<P>
+
+<LI>in the JCL EXEC
+statement<P>
+
+<LI>in your SAS configuration file.<P>
+</UL>
+
+<P>See
+<A href="z-custom.htm#z-optchg">Specifying or Changing System Option Settings</A>
+for more information about specifying SAS system options.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zut-send">Directing Output to an External File at SAS Invocation</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552393">&#13;Use the LOG= and PRINT= system options to change the destination
+of your SAS log or procedure output. The log and procedure output are then
+not directed to their default destinations.</A>
+<P>When you invoke SAS, use the LOG= and PRINT= options
+to specify the DDnames or physical file names of the output data sets. See <A href="z0216968.htm">LOG=</A> and
+<A href="z0217019.htm">PRINT=</A> for option
+syntax and other host-specific details.
+<P>SAS automatically allocates a file when a system option
+is specified with an physical file name. The following example illustrates
+a SAS invocation in noninteractive mode using the SAS CLIST with internal
+allocation of output files.
+
+
+
+<PRE>sas options ('log=myid.output.logdata
+   print=myid.output.ptrdata')
+   input('''myid.sas.program''')</PRE>
+<P>This example illustrates the same SAS invocation using
+external allocation.
+
+
+
+<PRE>alloc fi(logout) 
+   da('myid.output.logdata') old
+alloc fi(printout) 
+   da('myid.output.prtdata') old
+sas options('log=logout print=printout')
+   input('''myid.sas.program''')</PRE>
+<P>This example illustrates a SAS invocation in batch mode,
+using a JCL EXEC statement and internal allocation of output files.
+
+
+
+<PRE>//SASSTEP EXEC SAS,
+//   OPTIONS='LOG=&lt;file> PRINT=&lt;file> ALTLOG=&lt;file>'</PRE>
+<P>This example illustrates the same SAS invocation with
+external allocation.
+
+
+
+<PRE>//SASSTEP  EXEC SAS,
+//              OPTIONS='LOG=LOGOUT PRINT=PRINTOUT'
+//LOGOUT   DD   DSN=MYID.OUTPUT.LOGDATA,DISP=OLD
+//PRINTOUT DD   DSN=MYID.OUTPUT.PRTDATA,DISP=OLD
+//SYSIN    DD   DSN=MYID.SAS.PROGRAM,DISP=SHR</PRE>
+<P>The LOG= and PRINT= system options are normally used
+in batch, noninteractive, and interactive line modes.  These options have
+no effect in the windowing environment, which will continue to display SAS
+log and procedure output data in the LOG and OUTPUT windows. To capture and
+print data in the LOG and OUTPUT windows, use the ALTLOG= and ALTPRINT= options,
+as described in the next section.
+<P>See <A href="z0216787.htm">ALTLOG=</A>
+and <A href="z0216789.htm">ALTPRINT=</A>
+for option syntax and other host-specific details.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zut-copy">Copying Output to an External File</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552399">&#13; Use the ALTLOG= and
+ALTPRINT= system options to send a copy
+of your SAS log or procedure output to an external file. After specifying
+ALTLOG= and ALTPRINT=, the log and procedure output will continue to be displayed
+in the LOG and OUTPUT windows as usual. The log and procedure output will
+also continue to be directed to their default SAS file destinations, or to
+the nondefault destinations specified by the LOG= and PRINT= system options,
+as described in the preceding section.</A>
+<P>When you invoke SAS, use the ALTLOG= and ALTPRINT= options
+as shown to specify the DDnames or physical file names of the allocated data
+sets:
+
+
+
+<PRE>sas options('altprint=myid.output.prtdata
+   altlog=myid.output.logdata')</PRE>
+<P>See the previous section for complete examples of SAS
+invocations in various modes.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Directing Output to External Files Using the Configuration File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1097138">&#13;This example illustrates how to direct output to external files
+using the SAS configuration file.
+
+
+</A>
+<PRE>log=myid.output.logdata
+* logout DDname must be allocated
+log=logout
+
+print=myid.output.prtdata
+* printout DDname must be allocated
+print=printout
+
+altlog=myid.output.altlog
+* altlogx DDname must be allocated
+altlog=altlogx</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0165871.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zprintto.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zut-file.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1sops">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

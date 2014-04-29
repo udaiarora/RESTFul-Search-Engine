@@ -1,0 +1,569 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>OS/390: TCP/IP Access Method : System Configuration for the TCP/IP Access Method </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0382161.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0140816.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381349.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="mvstcp">System Configuration for the TCP/IP Access Method</A></FONT></H1>
+
+
+<P>
+<DL>
+<DT><B>System Administrator, SAS Site Representative, Applications Programmer,
+or User</B></DT>
+<DD>The TCP/IP access method for the OS/390 host uses routines
+in the SAS/C Transient Library for
+communications services. This library relies on an underlying layer of TCP/IP
+communications software such as IBM TCP/IP Version 2, Release 2.1 or a subsequent
+release for OS/390.
+<P>You must perform the following tasks or have knowledge of the following
+issues to configure the TCP/IP access method for SAS/CONNECT and SAS/SHARE: 
+<P>
+<UL>
+
+<LI>Install
+the
+SAS/C Transient
+Library.<P>
+
+<LI>Understand the function of network configuration files.<P>
+
+<LI>Understand the search order for locating network configuration
+files.<P>
+
+<LI>Understand the search order for locating host names and Internet
+addresses.<P>
+
+<LI>Know about configuration file-naming conventions.<P>
+
+<LI>Redirect error output with the SASCTCPE
+DDname.<P>
+</UL>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zap">Installing the SAS/C Transient Library</A></FONT></B></TD></TR></TABLE>
+
+<P>You should have already installed the SAS/C Transient
+Library. If you have not, the installation steps are provided in this section.
+<P>The TCP/IP access method requires the SAS/C Transient
+Library, which is included with both SAS/CONNECT and SAS/SHARE.
+<P>If your site is running Release 5.50 of
+the
+SAS/C Transient
+Library, either you must re-install it, thereby replacing it with a later
+version, or you must apply zap Z5500974 to your installed library. The zap
+is included on the install tape and is described in usage notes.
+<P>Steps for installing the SAS/C Transient
+Library follow: 
+<OL START="1" type="1">
+<LI>With the install tape mounted, install the SAS/C Transient
+Library.
+<P>The CNTL data set member ULCTRANL contains JCL that is updated with
+job, &amp;<B>prefix</B>, and allocation information that you supplied
+in the SASEDITP member.  If you run this job as supplied, it unloads the SAS/C Transient
+Library Release 5.50 or a subsequent release from your install tape to a data
+set named  <B>&amp;prefix</B>.SASC.TRANSLIB.<P>
+
+<LI>If you want to change the library name (for compatibility with
+a particular SAS release), you can do so by setting library name DSN= in the
+SASCTRAN DD statement in the IEFBR14 step, and in the DDOT0 DD statement in
+the IEBCOPY step.<P>
+
+<LI>Submit the job and verify successful completion.<P>
+
+<LI>To allocate the SAS/C Transient
+Library for SAS execution, you may use either of the following options: 
+<P>
+<UL>
+
+<LI>Change your SAS CLIST to add a CTRANS allocation as follows:  
+
+
+
+<PRE>ALLOC F(CTRANS) DA('<I>&amp;prefix</I>.SASC.TRANSLIB') 
+      SHR &amp;SU11</PRE><P>
+
+<LI>Change your SAS cataloged procedure to allocate the SAS/C Transient
+Library as follows:  
+
+
+
+<PRE>// CTRANS DD DSN=<I>&amp;prefix</I>.SASC.TRANSLIB,
+          DISP=SHR</PRE><P>
+</UL>
+<P>
+
+<LI>For SAS/SHARE only, change
+the started task JCL for your server.<P>
+</OL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If you choose to install your SAS/C Transient
+Library to a link-list data set, you do not need to allocate it in your CLIST
+and in your cataloged procedure.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Understanding the Function of Network Configuration Files</FONT></B></TD></TR></TABLE>
+
+<P>The
+operation of the TCP/IP access method depends on its ability
+to access network configuration information from particular site-specific
+files. The specific filenames are based on the particular vendor TCP/IP product.
+<BR><H3>IBM TCP/IP Network Configuration Files</H3>
+
+
+<P>SAS software uses the IBM 
+TCPIP.DATA  file or  TCPPARMS  file
+to determine resolver configuration and IBM defaults. SAS searches the following
+locations for configuration data sets in this order: 
+<OL START="1" type="1">
+<LI>Data set identified by the DDname
+SYSTCPD<P>
+
+<LI><B>tsoprefix</B>.TCPIP.DATA<P>
+
+<LI>SYS1.TCPPARMS
+(TCPDATA)<P>
+
+<LI>TCPIP.TCPIP.DATA<P>
+</OL>
+
+<P>If your configuration file is not in one of the default locations, you
+may specify its location by setting the TCPIPPRF SAS option to the TCP/IP
+prefix of your IBM files. For example, if your TCPIP.DATA file is installed
+in SYS2.VER2.TCP.TCPIP.DATA, you should set the TCPIPPRF option to SYS2.VER2.TCP.
+<P>If you do not use IBM defaults for resolver configuration or you do
+not maintain a name server, see <A href="#zchorder">Understanding the Search Order for Locating Network Configuration Files</A>
+for information about the rules for searching for configuration files. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The  SAS/C  Transient Library
+does not support the IBM TCP/IP files HOSTS.LOCAL and HOSTS.SITEINFO. The
+previous SAS TCP/IP access method used these files through the Pascal Transient
+Library Services (Release 6.07 and 6.08 TS404).&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3><A name="z0235492">Setting SAS/C Environment Variables with the SASCTCPV DDname</A></H3>
+
+
+<P>You can set the
+SAS/C environment
+variables that are used in the configuration data set selection by including
+a data set with the special ddname SASCTCPV. If a data set with this ddname
+is allocated to the SAS session, then its contents are read during the TCP
+access method initialization. Each logical record is assumed to contain an
+environment variable assignment of the form:
+
+
+
+<PRE><I>environment_variable_name</I>=<I>value</I></PRE>
+<P>For example, if all your configuration files existed under the TCPIP_PREFIX
+names, you could include the following in your SASCTCPV data set:
+
+
+
+<PRE>//SASCTCPV DD *
+TCPIP_PREFIX=TCPCURR
+/*</PRE>
+<P>If any of the SAS options controlling configuration data sets are specified,
+they will override the values that are set in the SASCTCPV data set. For example,
+the SAS option TCPIPPRF will take precedence over a TCPIP_PREFIX assignment
+in the SASCTCPV data set.
+<BR><H3>Interlink TCP/IP Network Configuration Files</H3>
+
+
+<P>Interlink
+provides an LSCNCOM interface to the  SAS/C 
+Transient Library. You should place the LSCNCOM routine and its alias L$CNCOM,
+ in the link-list search order before the module that is supplied by SAS.
+The routine is dynamically loaded when the first call to the SAS socket library
+function is made. SAS searches the following locations for configuration data
+sets in this order: 
+<OL START="1" type="1">
+<LI>STEPLIB<P>
+
+<LI>LLA<P>
+
+<LI>LPA<P>
+
+<LI>link
+list.<P>
+</OL>
+
+<P>SAS uses the Interlink name resolver and the ICSRSLV option to determine
+the order in which the Interlink name resolver (DNR) and the SAS/C resolver
+are used.
+<P>For details about the LSCNCOM interface, see the Interlink documentation.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zchorder">Understanding the Search Order for Locating Network Configuration Files</A></FONT></B></TD></TR></TABLE>
+
+<P>An explanation of the search logic that is used by the  SAS/C 
+Transient Library is contained in the following sections.
+<P>The file that contains configuration information usually has a name
+that is derived from the equivalent UNIX filename; for example, the OS/390
+data set name  ETC.HOSTS  is derived from the UNIX filename 
+
+
+<CODE><B>/etc/hosts</B></CODE>.
+<P>The SAS/C Transient Library uses
+the following search logic to locate the file that contains configuration
+information: 
+<OL START="1" type="1">
+<LI>Under TSO, it searches for a data set name that is composed of
+the user userid prefix and the name that is derived from the UNIX filename.<P>
+
+<LI>It searches for a data set name that is derived from the UNIX
+filename, 
+
+
+<CODE><B>hosts</B></CODE>.<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="dummy">Understanding the Search Order for Locating Host Names and Internet Addresses</A></FONT></B></TD></TR></TABLE>
+
+<P>The SAS/C Transient
+Library uses the following search logic to locate host names and Internet
+addresses: 
+<OL START="1" type="1">
+<LI>RESOLV.CONF file using the rules given in <A href="#zolvconf">RESOLV.CONF File Search Order</A>. If the
+SAS/C Transient
+Library finds the RESOLV.CONF file, it performs the requested queries through
+the SAS/C resolver, and it returns
+any answer it receives. If attempts to connect to name servers are refused,
+it uses the logic in step 3.<P>
+
+<LI>Data set in the format of the IBM TCP/IP file TCPIP.DATA. The
+search rules for this data set are the same as the search rules used by IBM
+TCP/IP. 
+<P>
+<UL>
+
+<LI>Data set identified by the DDname SYSTCPD. If found, the filename
+is passed to FOPEN.<P>
+
+<LI><B>tso-prefix</B>.TCPIP.DATA under TSO.<P>
+
+<LI>SYS1.TCPPARMS (TCPDATA) data
+set.<P>
+
+<LI>TCPIP.TCPIP.DATA.<P>
+
+<LI>Default value of TCPIPPRF and searches for 
+<B>default-value.</B>TCPIP.DATA.<P>
+</UL>
+<P>
+
+<LI>If attempts to connect to name servers that are defined in TCPIP.DATA
+are refused, the library looks for a HOSTS file by using the rules given in <A href="#zostfile">HOSTS File Search Order</A>. If the library finds
+a HOSTS file, it returns the result, including failure.<P>
+</OL>
+
+<P>Determining the domain name in name-server queries follows the same
+logic as the UNIX operating system follows when it uses the domain statement
+of the  RESOLV.CONF  file.  Name-server addresses are also determined from
+the RESOLV.CONF file.
+<P>The SAS/C Transient Library recognizes
+only the first three name servers specified in this file. Both the UNIX operating
+system and the SAS/C environment have
+a limit of three name servers.
+<BR><H3>Knowing about the HOSTS File</H3>
+
+
+<P>The HOSTS
+file contains Internet address and host-name pairs with an optional alias.
+<P>You use either the HOSTS file or the resolver program to locate host
+name and Internet address equivalents.
+<P>Use the following format to create a HOSTS file:  
+
+
+
+<PRE><I>Internet-address</I> <I>host-name</I> <I>optional-alias</I></PRE>
+<P>Example:  
+
+
+
+<PRE>127.0.0.1       localhost                 loopback
+151.174.130.8   bigserver.yourcompany.com bigserver
+151.174.130.27  copland.yourcompany.com   copland
+151.174.130.28  ives.yourcompany.com      ives
+151.174.130.29  byrd.yourcompany.com      byrd</PRE>
+<P>If you have access to a UNIX system, see the 
+
+
+<CODE><B>hosts</B></CODE>(4) manual page for
+more information.
+<P>If you have access to a UNIX system, you are advised to copy the 
+
+
+<CODE><B>hosts</B></CODE> file from the UNIX system to the OS/390 system and customize
+it as necessary. Doing this prevents typographical errors that may occur if
+you create a new file.
+<BR><H3><A name="zostfile">HOSTS File Search Order</A></H3>
+
+
+<P>The SAS/C
+Transient
+Library searches for the HOSTS file, in the following order: 
+<P>
+<UL>
+
+<LI>value of ETC_HOSTS environment variable, if defined in the SASCTCPV
+file<P>
+
+<LI><B>tso-prefix</B>.ETC.HOSTS under TSO or <B>userid</B>.ETC.HOSTS
+under batch execution<P>
+
+<LI>ETC.HOSTS<P>
+
+<LI>TCPIP.ETC.HOSTS<P>
+
+<LI><B>tcpip-prefix</B>.ETC.HOSTS, if TCPIPPRF is set to a
+value.<P>
+</UL>
+
+<BR><H3>Knowing about the SERVICES File</H3>
+
+
+<P>The SERVICES
+file contains a service name, port number, protocol group with an optional
+alias. For SAS/SHARE, you must specify
+server names and port assignments in the SERVICES file. For SAS/CONNECT,
+the default TELNET port number is used.
+<P>If you have access to a UNIX system, see the  
+
+
+<CODE><B>services</B></CODE>(4)  manual page for more information.
+<P>If you have access to a UNIX system, you are advised to copy the 
+
+
+<CODE><B>services</B></CODE> file from the UNIX system to the OS/390 system and customize
+it as necessary. Doing this prevents typographical errors that may occur if
+you create a new file.
+<P>See <A href="z0140816.htm#zservice">Configuring the Server in the SERVICES File</A>
+for details about the SERVICES file.
+<BR><H3>SERVICES File Search Order</H3>
+
+
+<P>The SAS/C
+Transient
+Library searches for the SERVICES file, in the following order: 
+<P>
+<UL>
+
+<LI>value of ETC_SERVICES environment variable, if defined in the
+SASCTCPV file<P>
+
+<LI><B>tso-prefix</B>.ETC.SERVICES under TSO or <B>userid</B>.ETC.SERVICES under batch
+execution<P>
+
+<LI>ETC.SERVICES<P>
+
+<LI>TCPIP.ETC.SERVICES<P>
+
+<LI><B>tcpip-prefix</B>.ETC.SERVICES, if TCPIPPRF is set to
+a value.<P>
+</UL>
+
+<BR><H3>Knowing about the RESOLV.CONF File</H3>
+
+
+<P>The
+RESOLV.CONF file contains Internet address and corresponding host-name pairs
+within the domain. This file is used by the resolver program to find addresses
+of name servers that are used to locate host-name and Internet address equivalents.
+<P>You will use either the HOSTS file or the resolver program to locate
+host name and Internet address equivalents.
+<P>Use the following format to create a RESOLV.CONF file:  
+
+
+
+<PRE><I>host-name</I> <I>Internet-address</I></PRE>
+<P>Example:  
+
+
+
+<PRE>domain     yourcompany.com
+nameserver 151.174.166.251
+nameserver 151.174.52.151
+nameserver 151.174.52.113</PRE>
+<P>If you have access to a UNIX system, see the  
+
+
+<CODE><B>resolver</B></CODE>(4)  manual page for more information.
+<P>If you have access to a UNIX system, you are advised to copy the RESOLV.CONF
+file from the UNIX system to the OS/390 system, and customize it as necessary.
+Doing so prevents typographical errors that may occur if you create a new
+file.
+<BR><H3><A name="zolvconf">RESOLV.CONF File Search Order</A></H3>
+
+
+<P>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If you are using the IBM
+TCP/IP, you do not need to create this
+file.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The SAS/C Transient Library searches
+for the OS/390 configuration file that is equivalent to the UNIX  RESOLV.CONF
+ file, in the following order: 
+<P>
+<UL>
+
+<LI>value of ETC_RESOLV_CONF environment variable, if defined in the
+SASCTCPV file<P>
+
+<LI><B>tso-prefix</B>.ETC.RESOLV.CONF under TSO or <B>userid</B>.ETC.RESOLV.CONF under batch
+execution<P>
+
+<LI>ETC.RESOLV.CONF<P>
+
+<LI>TCPIP.ETC.RESOLV.CONF<P>
+
+<LI><B>tcpip-prefix</B>.ETC.RESOLV.CONF, if TCPIPPRF is set
+to a value.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Knowing about Configuration File Naming Conventions</FONT></B></TD></TR></TABLE>
+
+<P>SAS searches for configuration files by the common default prefix
+TCPIP. It is stored in a 26-character string array in L$CNDBA in the SAS/C Transient
+Library. The SERVICES file, for example, is named TCPIP.ETC.SERVICES.  You
+may override this default using one of the following methods: 
+<P>
+<UL>
+
+<LI>Designate the default high-level qualifier ETC.<P>
+
+<LI>Designate the default prefix
+TCPIP.<P>
+
+<LI>Substitute an alternate prefix for the default TCPIP prefix by
+using a zap.<P>
+
+<LI>Set the TCPIPPRF option.<P>
+</UL>
+
+<P>All but one of these methods sets a prefix in the system. However, setting
+the TCPIPPRF option, affects only the invoking user's current session. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Most sites already have these files available for existing TCP/IP applications.
+ If your site already has TCP/IP applications running under the SAS/C library,
+this step was probably completed when the SAS/C Transient
+Library was installed.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Using the ETC High-Level Qualifier</H3>
+
+
+<P>The
+ETC high-level qualifier prepends a configuration file name with the ETC prefix;
+for example, ETC.HOSTS and ETC.SERVICES. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;When using the ETC prefix,
+do not set the  TCPIPPRF  option to override the ETC high-level qualifier
+and do not apply the zap to change the default value of the TCPIP prefix in
+the SAS/C Transient Library. See <A href="#zapper">Applying a Zap to Change the Default TCPIP Prefix</A> for more information.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Using the TCPIP Default Prefix</H3>
+
+
+<P>If
+you cannot use ETC at your site and if DS names do not conflict with the ETC
+high-level qualifier, you may use the default prefix to produce names such
+as TCPIP.ETC.HOSTS. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;When using the TCPIP prefix, do not set the
+TCPIPPRF option to override the TCPIP prefix, and do not apply the zap to
+change the default value of the TCPIP prefix in the SAS/C Transient
+Library. See the next section for details about the default TCPIP prefix.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3><A name="zapper">Applying a Zap to Change the Default TCPIP Prefix</A></H3>
+
+
+<P>To change the default TCPIP prefix, you may apply zap number Z5504151,
+which is included on the SAS software install tape and is documented in usage
+notes.
+<P>For example, to produce this SERVICES file
+
+
+
+<PRE>SYS.PROD.CONFIG.ETC.SERVICES</PRE>
+<P>specify a TCPIP prefix of  SYS.PROD.CONFIG  by using the zap.
+<BR><H3>Setting the TCPIPPRF Option to the TCPIP Prefix Value</H3>
+
+
+<P>The
+TCPIPPRF option initializes a filename prefix for the current
+SAS session. Each session that uses the TCP/IP access method (SAS/CONNECT local
+and remote hosts and SAS/SHARE server
+and clients) must set this option at initialization time. For example, to
+produce this configuration file  
+
+
+
+<PRE>SYS2.VER2.TCP.ETC.HOSTS</PRE>
+<P>set the TCPIPPRF option to SYS2.VER2.TCP as follows:  
+
+
+
+<PRE>sas ... options ('TCPIPPRF=SYS2.VER2.TCP')</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Redirecting Error Output with the SASCTCPE DDname</FONT></B></TD></TR></TABLE>
+
+<P>To document
+the operating behavior of the SAS/C Transient
+Library, the SAS/C libraries write
+all messages (error and informational) to the SAS log, the terminal screen,
+or the SASCTCPE DDname to SYSOUT. The DDname of SASCTCPE is reserved to contain
+the redirection of library error messages.
+<P>To prevent the writing of informational and error messages to your terminal
+screen, you can direct SASCTCPE to DUMMY.
+<P>If you have trouble making a TCP/IP connection, you may want to direct
+SASCTCPE to a SYSOUT data set or to a permanent file in the local or the remote
+SAS execution as a troubleshooting aid.
+<P>You have completed the TCP/IP configuration process.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Reference</FONT></B></TD></TR></TABLE>
+
+<P>For complete details
+about the SAS/C Socket
+Library for TCP/IP, see <B>SAS/C Library
+Reference, Third Edition, Volume 2, Release 6.00</B>.
+<P>The TCP/IP access method for OS/390 is implemented with SAS/C Socket
+Library functions.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0382161.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0140816.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381349.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#mvstcp">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

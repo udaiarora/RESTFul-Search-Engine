@@ -1,0 +1,165 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Advanced User Topics : Missing Values (Nulls) </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004461.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010961.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1011013.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1010975">Missing Values (Nulls)</A></FONT></H1>
+
+
+<P>SYSTEM 2000 software and the SAS System handle missing
+values (nulls) differently. The interface view engine that stands between
+the two systems must handle the differences in a predictable, useful way.
+The following topics discuss how missing values and empty records are handled
+in retrieval, update, and where-clause processing.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Retrieving Nulls</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042258">&#13; When the interface view engine is reading database
+records and
+constructing an observation, it could find missing data in the path of the
+data records that represent the observation. In a SYSTEM 2000 database, </A>
+<P>
+<UL>
+
+<LI>missing structure means the data record at the
+top of the view exists, but some or all of its descendant records do not exist. <P>
+
+<LI>missing values means that the value for one or
+more items in a data record is null. Nulls for all item types consist of all
+binary zeros in the database.<P>
+</UL>
+
+<P><A name="z1042261">&#13; 
+In the SAS System, missing values in character variables are represented by
+all blanks. Missing numeric values are represented by a special floating point
+number.</A>
+<P>When the interface view engine retrieves a null from
+the database, it sets it to be a missing value in the corresponding SAS observation.
+Because SYSTEM 2000 software preserves all blanks for TEXT and UNDEFINED values,
+a value containing all blanks for one of these item types would be interpreted
+as a missing value by a SAS procedure.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Updating Nulls</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042263">&#13; The interface view engine supports four kinds of
+updates: ADD,
+UPDATE, DUP, and DELETE.</A>
+<P>ADD means adding an observation, which can have missing
+values. The interface view engine converts the SAS observation into a set
+of one or more SYSTEM 2000 data records, comprising the path defined by the
+view descriptor. Each variable in each record is converted from the SAS internal
+format to the SYSTEM 2000 format. Note that even if all variables in a SYSTEM
+2000 record have missing values, the record will still be inserted into the
+database. That is, the complete path of data records is always inserted; lower
+level data records might contain all missing values.
+<P>UPDATE means updating an observation with a set of values,
+which can have missing values. If the observation being updated has no missing
+structure, each variable is converted from its SAS form into a SYSTEM 2000
+form.
+<P>If the observation being updated has a missing structure
+in the database, the records that exist in the path will be updated with whatever
+values have changed since the path was retrieved. Missing structures will
+be inserted only if the values are not null.
+<P>DUP means duplicating the selected observation in the
+database, which could mean duplication of more than one database record.
+<P>DELETE means deleting an observation, which could mean
+deletion of more than one database record. For more information about deletions,
+see <A href="z1010946.htm">Deleting Data Records</A>.
+Because SYSTEM 2000 software preserves all blanks for TEXT and UNDEFINED values,
+a value containing all blanks for one of these item types would be interpreted
+as a missing value by a SAS procedure.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Missing Values in Selection Criteria</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042269">&#13; SYSTEM 2000 software
+and the SAS System treat missing values
+(nulls) differently when processing where-clause conditions. SYSTEM 2000 software
+assumes that a null is outside the domain of values for an item. Therefore,
+the only way to qualify a null is by using the FAILS operator; the NE (not
+equal) operator will not qualify nulls. Also, a null will never satisfy a
+condition containing the LT (less than) or LE (less than or equal) operator.
+For example, if item C2 is null in some data records, the following item-to-item
+condition will never qualify those records, regardless of the respective values:
+
+
+</A>
+<PRE>  WHERE C1* > C2*</PRE>
+<P>In fact, for any relational operator in an item-to-item
+condition, SYSTEM 2000 software never qualifies a record in which either of
+the items is null. Even if the condition is C1* = C2* and both items are null,
+the record will not qualify. In contrast, the SAS System assumes null fields
+(missing values) are equal to each other. Missing values have the following
+attributes in the SAS System:
+<P>
+<UL>
+
+<LI>For numeric variables, a missing value is the
+lowest (most negative) possible value. It is lower than every other value
+that is not null.<P>
+
+<LI>For character variables, a value of all blanks
+is considered to be a missing value.<P>
+</UL>
+
+<P>When the SAS System processes a condition such as C1
+>= C2, the qualified records would include every record in which C2 is missing,
+regardless of the value of C1. Also, the condition C1 = C2 would qualify records
+that have missing values for both C1 and C2, along with records where C1 and
+C2 have equal values that are not null.
+<P>Because of these different treatments, it can be important
+to know whether the SAS System or SYSTEM 2000 software is processing a particular
+portion of a where-clause. Where-clause processing is discussed in <A href="z1011013.htm">Using a SAS WHERE Clause for Selection Criteria</A>. Briefly, the where-clause
+in a view descriptor is never seen by the SAS System and will be processed
+by SYSTEM 2000 software. However, the WHERE clause associated with the SAS
+procedure, the DATA step, or a SELECT statement in the SQL procedure can be
+processed partly by both the SAS System and SYSTEM 2000 software, depending
+upon whether individual conditions are meaningful to SYSTEM 2000 software.
+<P>Since missing values are different, a condition in a
+SAS WHERE clause that explicitly uses the dot (.) notation will never be seen
+by SYSTEM 2000 software. The SAS System will perform the qualification for
+such conditions. For more information about where-clause processing, read
+the next sections.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004461.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010961.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1011013.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1010975">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

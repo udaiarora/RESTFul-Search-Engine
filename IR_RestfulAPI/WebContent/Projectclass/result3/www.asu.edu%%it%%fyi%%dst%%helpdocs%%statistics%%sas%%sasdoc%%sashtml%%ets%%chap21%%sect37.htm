@@ -1,0 +1,135 @@
+<HTML>
+<HEAD>
+<TITLE>Example 21.1: Component Estimation - Monthly Data</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="x11ex1">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect38.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The X11 Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 21.1: Component Estimation - Monthly Data</H2>
+<P>This example computes and plots the final
+estimates of the
+individual components for a monthly series.
+In the first plot, <A HREF="sect37.htm#x11ex01a">Output 21.1.1</A> an overlaid plot of
+the original and seasonally
+adjusted data is produced. The trend in
+the data is more evident in the seasonally
+adjusted data than in the original data.
+This trend is even more clear in
+<A HREF="sect37.htm#x11ex01c">Output 21.1.3</A>, the plot of Table D12,
+the trend cycle.
+Note that both the seasonal factors and the
+irregular factors vary around 100, while the
+trend cycle and the seasonally adjusted data
+are in the scale of the original data.
+<P>From <A HREF="sect37.htm#x11ex01b">Output 21.1.2</A> the seasonal component
+appears to be slowly increasing, while no
+apparent pattern exists for the irregular
+series in <A HREF="sect37.htm#x11ex01d">Output 21.1.4</A>.
+<P><PRE>
+   data sales;
+      input sales @@;
+      date = intnx( 'month', '01sep1978'd, _n_-1 );
+      format date monyy7.;
+      datalines;
+   112 118 132 129 121 135 148 148 136 119 104 118
+   115 126 141 135 125 149 170 170 158 133 114 140
+   145 150 178 163 172 178 199 199 184 162 146 166
+   171 180 193 181 183 218 230 242 209 191 172 194
+   196 196 236 235 229 243 264 272 237 211 180 201
+   204 188 235 227 234 264 302 293 259 229 203 229
+   242 233 267 269 270 315 364 347 312 274 237 278
+   284 277 317 313 318 374 413 405 355 306 271 306
+   315 301 356 348 355 422 465 467 404 347 305 336
+   340 318 362 348 363 435 491 505 404 359 310 337
+   360 342 406 396 420 472 548 559 463 407 362 405
+   417 391 419 461 472 535 622 606 508 461 390 432
+   run;
+   
+   proc x11 data=sales noprint;
+      monthly date=date;
+      var sales;
+      tables b1 d11;
+      output out=out b1=series d10=d10 d11=d11
+                     d12=d12 d13=d13;
+   run;
+   
+   symbol1 i=join v='star';
+   symbol2 i=join v='circle';
+   legend1 label=none value=('original' 'adjusted');
+   
+   proc gplot data=out;
+      plot series * date = 1 d11 * date = 2 / overlay legend=lengend1;
+   run;
+   
+   symbol1 i=join v=dot;
+   
+   proc gplot data=out;
+      plot ( d10 d12 d13 ) * date;
+   run;
+</PRE>
+<P></P><A NAME="x11ex01a"><SPAN CLASS="ssften"><B>Output 21.1.1:</B> Plot of Original and Seasonally Adjusted Data</SPAN></A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/x11ex01a.gif" ALT="x11ex01a.gif (6065 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P></P><A NAME="x11ex01b"><SPAN CLASS="ssften"><B>Output 21.1.2:</B> Plot of D10, the Final Seasonal Factors</SPAN></A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/x11ex01b.gif" ALT="x11ex01b.gif (8978 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P></P><A NAME="x11ex01c"><SPAN CLASS="ssften"><B>Output 21.1.3:</B> Plot of D12, the Final Trend Cycle</SPAN></A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/x11ex01c.gif" ALT="x11ex01c.gif (3294 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P></P><A NAME="x11ex01d"><SPAN CLASS="ssften"><B>Output 21.1.4:</B> Plot of D13, the Final Irregular Series</SPAN></A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/x11ex01d.gif" ALT="x11ex01d.gif (7908 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect38.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

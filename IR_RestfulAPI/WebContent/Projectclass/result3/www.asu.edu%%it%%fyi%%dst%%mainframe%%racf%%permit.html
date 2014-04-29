@@ -1,0 +1,265 @@
+<html>
+
+<head>
+<title>PERMIT</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h3>PERMIT</h3>
+
+<PRE>
+HELP PERMIT
+
+FUNCTION
+          5740-XXH  (c) Copyright IBM Corp. 1987
+
+  The PERMIT command authorizes specific users or groups to a resource
+  profile.  It also has the capability of copying authorization
+  information from one profile to another.
+
+  In order to change the authorization to a profile:
+        - You must be the owner of the resource, have the SPECIAL
+          attribute, or for data sets only, your userid must match the
+          first-level qualifier of the data set, or
+        - You must have group-SPECIAL authority in the group and (1)
+          the resource must be owned by the group or by a user owned
+          by the group or (2) the resource's high-level qualifier must
+          be the group name or a userid owned by the group, or
+    (for discrete profiles only)
+        - If you are explicitly authorized to the resource you must
+          have ALTER authority, or
+        - If your current connect group is explicitly authorized to
+          the resource, the authority must be ALTER, or
+        - The universal access must be ALTER.
+
+  If the from keyword is specified, the same authorization rules apply
+  to that resource.
+
+
+SYNTAX
+
+          PERMIT   profile-name-1
+                   CLASS(profile-name-1-class)
+                   VOLUME(volume-serial)
+                   GENERIC
+                   ID(name...)
+                   ACCESS(ALTER | CONTROL | UPDATE | READ | NONE)
+                      | DELETE
+                   WHEN(program(program-name...|*))
+                   RESET(STANDARD | WHEN | ALL)
+                   FROM(profile-name-2)
+                   FCLASS(profile-name-2-class)
+                   FVOLUME(volume-serial)
+                   FGENERIC
+
+   REQUIRED - profile-name-1
+   DEFAULTS - ACCESS(READ) CLASS(DATASET) FCLASS(value from class
+              keyword)
+   ALIAS    - PE
+   NOTES    - The ACCESS and DELETE keywords are ignored if the ID
+              keyword is not specified.
+
+
+OPERANDS
+
+  profile-name-1 - The name of the profile whose access list is to be
+                         modified.
+
+  CLASS(profile-name-1-class)
+      The name of the class to which profile-name-1 belongs (e.g.,
+      DATASET, DASDVOL, TAPEVOL, TERMINAL).
+
+  VOLUME(volume-serial)
+      The volume serial on which the data set to be changed (or its
+      VSAM catalog) resides.  This operand is required only if more
+      than one data set with the same name has been defined to RACF,
+      and is ignored if class is not data set, or if profile-name-1 is
+      a generic name.
+
+  GENERIC
+      Indicates that profile-name-1 should be treated as a generic
+      name, even if it does not contain any generic characters.
+
+  ID(name...)
+      The list of ids which have their authorizations added to,
+      altered in, or deleted from the access list.
+
+  ACCESS(ALTER | CONTROL | UPDATE | READ | NONE)
+      Specifies the access to be associated with the names specified
+      in the ID keyword.
+
+      The valid subfields are:
+
+            ALTER   - ALTER access authority
+            CONTROL - CONTROL access authority
+            UPDATE  - UPDATE access authority
+            READ    - READ access authority
+            NONE    - No access authority
+
+  DELETE
+      The names specified in the ID keyword will no longer be
+      authorized to the data set.  If WHEN is also specified, the
+      names specified on the ID keyword will be deleted from the
+      conditional access list, rather than the normal access list.  An
+      asterisk (*) may be only specified together with DELETE (above).
+
+  RESET(STANDARD | WHEN | ALL)
+      Specifies that RACF is to delete one or if program-name (below)
+      is specified as *, all program entries will be deleted.
+
+  WHEN(PROGRAM(program-name...|*))
+      Specifies that the indicated access authority should only apply
+      to the given users or groups, when executing one of the
+      specified programs.  When specified together with delete, this
+      operand indicates that entries are to be deleted from the access
+      list.  An asterisk may only be specified together with DELETE
+      (above).
+
+  RESET(STANDARD/WHEN/ALL)
+      Specifies that RACF is to delete one or both of the profile's
+      access lists.  If RESET or RESET(ALL) is specified, both the
+      standard and the conditional access lists are deleted.  If
+      RESET(STANDARD) is specified, only the STANDARD access list is
+      deleted.  If RESET(WHEN) is specified, only the conditional
+      access list is deleted.
+
+  FROM(profile-name-2)
+      The name of a profile whose access list is to be copied to
+      profile-name-1.
+
+  FCLASS(profile-name-2-class)
+      The class to which profile-name-2 belongs (e.g., DATASET,
+      DASDVOL, TAPEVOL, TERMINAL).
+
+  FVOLUME(volume-serial)
+      The volume serial on which the data set specified in the from
+      keyword (or its VSAM catalog) resides.  This operand is required
+      only if more than one data set with the same name has been
+      defined to RACF, and it is ignored if FCLASS is not DATASET, or
+      if profile-name-2 is a generic name.
+
+  FGENERIC
+      Indicates that profile-name-2 should be treated as a generic
+      name, even if it does not contain any generic characters.
+
+  ICH06001I name ALREADY AUTHORIZED TO RESOURCE - ACCESS UNCHANGED
+
+            Explanation:  The indicated name (userid or group name) in
+            the FROM resource's access list is already on the access
+            list of the TO resource.
+
+            System Action:  Command processing continues with the next
+            name in the FROM resource's access list.
+
+  ICH06002I name NOT AUTHORIZED, DELETE IGNORED
+
+            Explanation:  The indicated name (userid or group name) is
+            not on the access list of the specified resource and the
+            delete is ignored.
+
+            System Action:  Command processing continues with the next
+            option.
+
+  ICH06003I NOT AUTHORIZED TO ISSUE PERMIT
+
+            Explanation:  You are not defined to RACF and cannot issue
+            the PERMIT command, or RACF is not active.
+
+            System Action:  RACF terminates the command.
+
+  ICH06004I entity-name NOT DEFINED TO RACF
+
+            Explanation:  The specified resource name (entity-name) is
+            not defined to RACF.
+
+  ICH06005I COMMAND ENDED DUE TO ERROR
+
+            Explanation:  A RACF manager error occurred.  This message
+            is accompanied by a message explaining the error.
+
+  ICH06006I NOT AUTHORIZED TO entity-name
+
+            Explanation:  You are not authorized to alter or copy the
+            access list of the resource indicated by entity-name.
+
+  ICH06007I name NOT DEFINED TO RACF
+
+            Explanation:  The indicated name (userid or group name) is
+            not defined to RACF and cannot be authorized access to the
+            resource.
+
+            System Action:  Command processing continues with the next
+            name specified on the command.
+
+  ICH06008I INSTALLATION EXIT FAILED PERMIT REQUEST FOR data-set-name
+
+            Explanation:  The command preprocessing exit routine
+            ICHCNX00 issued a return code of 4, indicating that RACF
+            should fail the PERMIT request for the data set indicated
+            in the message.
+
+            System Action:  If the command attempted to modify the
+            access list of the data set, the command terminates.
+
+            If the command attempted to copy the access list of the
+            data set (whose profile is specified on the FROM operand),
+            only processing of the PERMIT command associated with the
+            ID operand is performed.
+
+            User Response:  Report this message to the system
+            programmer.
+
+  ICH06009I RESET OPTION IGNORED, CONFLICTS WITH DELETE REQUEST
+
+            Explanation:  Both the DELETE and the RESET options were
+            specified.
+
+            System Action:  RACF accepts the DELETE option and ignores
+            the RESET option.
+
+  ICH06010I (GENERIC | FGENERIC) INVALID, GENERIC COMMAND PROCESSING
+            IS INACTIVE&gt;
+
+            Explanation:  Because the generic command processing
+            facility is inactive, the GENERIC and FGENERIC operands
+            are invalid.
+
+            System Action:  RACF terminates command processing.
+
+  ICH06011I RACLISTED PROFILES FOR class-name WILL NOT REFLECT THE
+            UPDATE(S) UNTIL A SETROPTS REFRESH IS ISSUED
+
+            Explanation:  The changes to the profiles will not become
+            effective until the SETROPTS command is issued with the
+            REFRESH and RACLIST operands.
+</PRE>
+
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

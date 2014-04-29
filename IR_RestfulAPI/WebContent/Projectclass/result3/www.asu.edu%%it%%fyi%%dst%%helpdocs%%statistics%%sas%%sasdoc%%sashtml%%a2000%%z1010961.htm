@@ -1,0 +1,180 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Advanced User Topics : Using a BY Key to Resolve Ambiguous Inserts </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004461.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010948.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1010975.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1010961">Using a BY Key to Resolve Ambiguous Inserts</A></FONT></H1>
+
+
+<P><A name="z1042233">&#13;
+ Each time the interface view engine is called to add an observation,
+it inspects the changes you made from observation to observation, in order
+to determine how many data records to insert into the database. The purpose
+is to reduce data redundancy.</A>
+<P>If none of the data changed, or if the changes were
+only at the bottom level of the view, the engine needs to insert only a single
+new data record at the bottom level. Since the engine inserts at least one
+record for any add, and since only one record is called for here, there is
+no question about how many records to insert for this kind of add. That is,
+the insert is not ambiguous.
+<P>However, if any data values changed in records above
+the bottom record in the path, an ambiguous situation develops. A certain
+number of new records seem to be required by your changes, but some of the
+new data may already be present in existing database records. That is, the
+actual number of new records to be added to the database may be different.
+<P>In optimized load mode, the engine ignores the ambiguity;
+it inserts all of the new data that are at or below the highest level record
+that changed. Therefore, when you specify optimized load mode, be sure that
+your incoming data are always sorted by major-to-minor sort keys at every
+level (from level 0 down to the bottom level in the view). If the data are
+not sorted correctly, redundancy will not be eliminated.
+<P>On the other hand, in insert mode, the engine can determine
+whether some of the new data are already present in an existing record. If
+so, the engine needs to insert records only for those data not already present
+in the database. If not, the engine needs to insert a record at every level
+that changed. Use the optional BY key capability to eliminate redundancy and
+to help the interface view engine find an existing path for inserting the
+new records.
+<P>A BY key is similar to a BY group in the SAS System,
+which groups observations based on one or more fields. Many SAS procedures
+process records in BY groups. Also, some updates in the DATA step are performed
+by matching specified BY variables in different data sets. A similar matching
+process occurs with BY key items in the SAS/ACCESS interface
+to SYSTEM 2000 software.
+<P>If you specify a BY key, it should contain one or more
+database items at each level above the bottom level in your view descriptor.
+<P>BY keys do cause extra processing time because the engine
+issues one or more where-clauses to look for already-existing records.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Examples of Using a BY Key</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042241">&#13;  Suppose you have a view with C1 and C11 in the BY key and three
+observations.</A>
+<P>
+<P><IMG border="0" src="./images/01321399.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Suppose you are in the FSEDIT procedure on observation
+1. You enter the DUP command and values A, CCC, and 4. This is not an ambiguous
+insert; a BY key is not required. The changes in values from observation 1
+to your new input are confined to the bottom of the view. Here is the result.
+<P>
+<P><IMG border="0" src="./images/01321400.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Now suppose you are in the FSEDIT
+procedure on observation
+1. You enter an ADD or a DUP command and the values B, DDD, and 5 for C1,
+C11, and C21, respectively. The insert is ambiguous because all the fields
+in the new observation are different from observation 1. Without a BY key,
+the result is
+<P>
+<P><IMG border="0" src="./images/01321401.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>With a BY key, the engine finds the BY key values C1=B
+and C11=DDD in the database. The result then is
+<P>
+<P><IMG border="0" src="./images/01321402.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">BY Key Considerations</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042245">&#13;  The recommended way to use BY keys is as follows:</A>
+<P>
+<UL>
+
+<LI>include an item from each level above the
+bottom
+of the view<P>
+
+<LI>standardize all database updates through the same
+view or consistent views.<P>
+</UL>
+
+<P>Consider the following caution areas when you do not
+use BY keys in this way:
+<P>
+<UL>
+
+<LI><B>Potentially inadequate BY keys.</B> The
+engine does not enforce the important suggestion that a BY key must contain
+at least one item at every level above the bottom level in the view descriptor.
+However, if the BY key does not contain enough unique items, it may be inadequate
+to help the engine; the engine may behave as though there were no BY key at
+all.<P>
+
+<LI><B>Inconsistent use of a BY key.</B> The
+engine does not enforce consistent use of BY keys; one view descriptor might
+have a BY key and another might not. In this case, redundant data could be
+added to the database through the view descriptor that does not have a BY
+key. Also, some applications could enter redundant data through the QUEST
+procedure, which does not call the engine for database updates.
+<P>If data are added in any way other than through a view
+descriptor using a BY key, the engine might find several qualified database
+records that match the incoming data. The engine would simply pick one record
+that works and use it when inserting the new records. Thus, the incoming data
+might be attached beneath a different existing record than the one you expect.
+<P>To avoid this situation, make sure that all users who
+update the database follow the same rules. That is, ensure that all data entry
+is done through the interface view engine and that all users use the same
+view descriptor (or at least consistent view descriptors).<P>
+</UL>
+
+<P>In addition, the notion of a prior observation is important
+during inserts, because the engine compares your new data to it. The prior
+observation is obvious for SAS procedures that pass through a file sequentially,
+for example, the DBLOAD procedure. However, other SAS procedures can jump
+around within a file at random, for example, the FSEDIT procedure. 
+<P>When you add observations through procedures that do
+not use sequential processing, remember that the prior observation is the
+last observation that the procedure showed you. For example, in the FSVIEW
+procedure, the prior observation is the last observation that the procedure
+showed you at the bottom of your display before your first update.
+<P>In some cases, there is no prior observation, such as
+when you enter the DBLOAD procedure. That is, the procedure calls the engine
+to add an observation without any prior retrieval. If this situation occurs,
+the engine issues a GET1 ... LAST command for the record at the top of the
+view and retrieves the last record that was inserted in the database.
+<P>These details are not very important if you are using
+a BY key consistently. 
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004461.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010948.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1010975.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1010961">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

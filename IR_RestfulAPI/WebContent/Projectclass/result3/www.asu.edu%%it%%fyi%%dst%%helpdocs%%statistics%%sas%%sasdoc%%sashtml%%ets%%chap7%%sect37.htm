@@ -1,0 +1,141 @@
+<HTML>
+<HEAD>
+<TITLE>Initial Values</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect38.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Initial Values  </H2>
+<P>The syntax for giving initial values to transfer function parameters
+in the the INITVAL= option parallels the syntax of the INPUT= option.
+For each transfer function in the INPUT= option,
+the INITVAL= option should give
+an initialization specification followed by the input series name.
+The initialization specification for each transfer function has the form
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>C</I> &#160;$&#160; (<I>V<SUb>1,1</SUb></I>,<I>V<SUb>1,2</SUb></I>,  ... ) (<I>V<SUb>2,1</SUb></I>,  ... )  ...  / (<I>V</I><sub><I>i</I>,1</sub>,  ... )  ...</SPAN>
+</DL>
+<P>where <I>C</I> is the lag 0 term in the first numerator factor of the transfer
+function (or the overall scale factor if the ALTPARM option is specified),
+and <SPAN CLASS="mathfont"><I>V</I><SUB><I>i</I>,<I>j</I></SUB></SPAN> is the coefficient of the <SPAN CLASS="mathfont"><I>L</I><SUB><I>i</I>,<I>j</I></SUB></SPAN>
+element in the transfer function.
+<P>To illustrate, suppose you want to fit the model
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="497" HEIGHT="100"
+ SRC="images/arieq120.gif"
+ ALT="Y_{t}={\mu}+\frac{({\omega}_{0}- {\omega}_{1}B-{\omega}_{2}B^2)}{(1-{\delta}_{1}...
+ ..._{2}B^2-{\delta}_{3}B^3)}X_{t-3}
++\frac{1}{(1-{\phi}_{1}B-{\phi}_{2}B^3)}a_{t}"></DL>
+<P>and start the estimation process with the initial values
+<IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq3.gif"
+ ALT="{\mu}">=10, <IMG WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq115.gif"
+ ALT="{{\omega}_{0}}">=1, <IMG WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq121.gif"
+ ALT="{\omega}_{1}">=.5, <IMG WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq122.gif"
+ ALT="{\omega}_{2}">=.03,
+<IMG WIDTH="19" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq123.gif"
+ ALT="{\delta}_{1}">=.8, <IMG WIDTH="19" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq124.gif"
+ ALT="{\delta}_{2}">=-.1, 
+<IMG WIDTH="19" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq125.gif"
+ ALT="{\delta}_{3}">=.002, <IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq126.gif"
+ ALT="{\phi}_{1}">=.1, <IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq127.gif"
+ ALT="{\phi}_{2}">=.01.
+(These are arbitrary values for illustration only.)
+You would use the following statements:
+<P><PRE>
+
+   identify var=y crosscorr=x;
+   estimate p=(1,3) input=(3$(1,2)/(1,2,3)x)
+            mu=10 ar=.1 .01 initval=(1$(.5,.03)/(.8,-.1,.002)x);
+</PRE>
+<P>Note that the lags specified for a particular factor will be sorted,
+so initial values should be given in sorted order.
+For example, if the P= option had been entered as P=(3,1)
+instead of P=(1,3), the model would be the same and so would the
+AR= option.
+Sorting is done within all factors, including transfer function factors,
+so initial values should always be given in order of increasing lags.
+<P>Here is another illustration, showing initialization for a
+factored model with multiple inputs.  The model is
+<P><DL CLASS="equation"><DD><IMG WIDTH="384" HEIGHT="156" ALIGN="left"
+ SRC="images/arieq128.gif"
+ ALT="Y_{t} = {\mu} 
+&+& \frac{{\omega}_{1,0}}{(1-{\delta}_{1,1}B)}W_{t} 
++ ({\omega...
+ ...t-3}  \
+&+& \frac{1}{(1-{\phi}_{1}B)(1-{\phi}_{2}B^6-{\phi}_{3}B^{12})}a_{t}
+"><BR CLEAR="ALL">
+</DL>
+<P>and the initial values are
+<IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq3.gif"
+ ALT="{\mu}">=10, <IMG WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq129.gif"
+ ALT="{{\omega}_{1,0}}">=5, <IMG WIDTH="30" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq130.gif"
+ ALT="{{\delta}_{1,1}}">=.8,
+<IMG WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq131.gif"
+ ALT="{{\omega}_{2,0}}">=1, <IMG WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq132.gif"
+ ALT="{{\omega}_{2,1}}">=.5,
+<IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq126.gif"
+ ALT="{\phi}_{1}">=.1, <IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq127.gif"
+ ALT="{\phi}_{2}">=.05, and <IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq133.gif"
+ ALT="{{\phi}_{3}}">=.01.
+You would use the following statements:
+<P><PRE>
+
+   identify var=y crosscorr=(w x);
+   estimate p=(1)(6,12) input=(/(1)w, 3$(1)x)
+            mu=10 ar=.1 .05 .01 initval=(5$/(.8)w 1$(.5)x);
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect38.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

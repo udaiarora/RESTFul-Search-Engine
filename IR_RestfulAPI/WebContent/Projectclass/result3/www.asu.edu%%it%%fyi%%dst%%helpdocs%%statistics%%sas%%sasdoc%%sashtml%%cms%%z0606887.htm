@@ -1,0 +1,147 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Allocating External Files : Using CMS Pipelines </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425866.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0545901.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0425937.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the CMS Environment                                                                                     </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0606887">Using CMS Pipelines</A></FONT></H1>
+
+
+<P><A name="z0976149">&#13;
+  
+ You
+can use a standard CMS pipeline specification in place of the external file
+specification in the FILE, FILENAME, and INFILE statements, and in the FILENAME
+function. This enables you to receive input from any CP or CMS command or
+pipeline device driver, or to route output to any pipeline device driver.</A>
+<P>For the FILENAME statement and FILENAME function, specify
+PIPE as the device type. For the FILE and INFILE statements, specify PIPE
+as an option. If you specify PIPE as an option in a FILE or INFILE statement,
+you cannot specify any other options in that statement.
+<P>SAS supports inline comments as an extension of the
+standard CMS pipeline interface, as shown:  
+
+<PRE>filename adata pipe
+   '(name adata)    /* name pipeline */
+   &lt; archive data a /* read in file  */
+   | unpack         /* unpack        */
+   ';</PRE>
+<P> Data transfer between SAS and the CMS pipeline takes
+place in the pipeline's FITTING stage. By default, SAS inserts a FITTING stage
+at the beginning of pipeline specifications that are used for output and at
+the end of pipeline specifications that are used for input. For example, when
+this ADATA fileref is referenced in an INFILE statement, the pipeline specification
+is internally coded as  
+
+<PRE>'(name adata) &lt; archive data a | unpack | fitting sasio'</PRE>
+<P>You can override the default insertion of the FITTING
+stage by explicitly inserting the stage into your pipeline specification.
+This is allowed as long as the FITTING stage is always either the first or
+last stage of a stream. For example, the FANIN stage in the middle of this
+pipeline delivers data to the FITTING stage:  
+
+<PRE>filename twostrm pipe
+   '(endchar %) &lt; jan data a
+   | a: fanin
+   |    fitting sasio
+   %
+    &lt; feb data a
+   | a:
+   ';</PRE>
+<P>You may prefer to write complex pipelines as REXX pipeline
+stages, then to specify the REXX stage name in your SAS program. For the unpack
+example above, you could write a file called UNPKDATA REXX:  
+
+<PRE>/* UNPKDATA REXX */
+parse arg fileid
+'callpipe &lt;' fileid,
+    '| unpack',
+    '| *:'
+exit</PRE>
+<P>Then you could write your FILENAME statement as  
+
+<PRE>filename mydata pipe
+   '(name mydata)    /* name pipeline */
+   rexx unpkdata archive data a 
+     /* read and unpack a file        */
+   ';</PRE>
+<P>Macro variables are resolved within a pipeline specification
+that is enclosed in double quotes.
+<P>This example illustrates the use of pipelines with INFILE,
+FILENAME, and FILE statements, and with macro variables.  
+
+<PRE>/* Data step to get spoolid. Only accept files        */
+/* sent by a specified userid                         */
+data _NULL_;
+   infile                    /* define the pipeline   */
+      'cp query rdr          /* query all rdr files   */
+         |strfind /USERABC / /* from this userid only */
+         |take 1             /* only process one file */
+         |specs word 2 1'    /* keep only the spoolid */
+      PIPE;
+   input spid $;     /* read spoolid as char variable */
+                    /* save spoolid as macro variable */
+   call symput('SPOOLID',spid);
+run;
+
+/* define fileref for reading netdata rdr file        */
+filename nd pipe
+   "reader file &amp;spoolid  /* read the file            */
+       |drop 1            /* skip TAG                 */
+       |specs 2-* 1       /* skip CC byte             */
+       |deblock netdata   /* interpret netdata format */
+       |strfind xC0       /* keep only data records   */
+       |specs 2-* 1       /* skip control byte        */
+       ";
+
+/* data step to read input from rdr file              */
+/* write data to USERABC DATA in packed format        */
+data abc;
+   file                   /* pipe for PUT processing  */
+      '  strip            /* strip blanks             */
+         | pack V 80      /* write packed format      */
+         | > userabc data a fixed' pipe; /* this file */
+   infile nd;             /* read from ND fileref     */
+   input x;               /* read var x from each rec */
+   put x;   /* write to USERABC DATA in packed format */
+run;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425866.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0545901.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0425937.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0606887">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

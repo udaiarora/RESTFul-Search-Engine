@@ -1,0 +1,287 @@
+<HTML>
+<HEAD>
+<TITLE>Pricing Strategies</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="netflowpricstrategies">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect46.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NETFLOW Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Pricing Strategies</H2>
+<A NAME="idxnet1350">&#13;</A><A NAME="idxnet1351">&#13;</A>The pricing strategy is the part of the Simplex iteration that selects
+the nonbasic arc, constraint slack, surplus, or nonarc variable that
+should have a flow or value change, and
+perhaps enter the basis so that the total cost incurred is improved.
+<P>The pricing mechanism takes a large amount of computational effort,
+so
+it is important to use the appropriate pricing strategy for the problem
+under study.  As in other large scale mathematical programming software,
+network codes can spend more than half of their execution time
+performing Simplex iterations in the pricing step.  
+Some compromise must
+be made between using a fast strategy and improving the quality of the
+flow or value change candidate selection,
+although more Simplex iterations may need to be executed.
+<P>The configuration of the problem to
+be optimized has a great effect on
+the choice of strategy. If
+a problem is to be run repeatedly, experimentation on that problem to
+determine which scheme is best may prove worthwhile.  The best pricing
+strategy to use when there is a large amount of
+work to do (for example,
+when a cold start is used) may not be appropriate when there is little
+work required to reach the optimum (such as when a warm start is used).
+<A NAME="idxnet1352">&#13;</A><A NAME="idxnet1353">&#13;</A>If paging is necessary, then a pricing strategy that reduces the
+number of Simplex iterations performed
+might have the advantage.
+The proportion of time spent doing the pricing step during stage 1
+optimization is usually less than the same proportion when doing
+stage 2 optimization.
+<A NAME="idxnet1354">&#13;</A><A NAME="idxnet1355">&#13;</A>Therefore, it is more important to choose a stage 2 pricing strategy
+that causes fewer, but not necessarily the fewest, iterations to be executed.
+<P>There are many similarities between
+the pricing strategies for optimizing
+an unconstrained problem (or when constraints are temporarily
+ignored) and the pricing mechanisms for optimizing considering
+constraints.
+To prevent repetition, options have a suffix or
+embedded <SPAN CLASS="mathfont"><I>x</I></SPAN> .
+Replace <SPAN CLASS="mathfont"><I>x</I></SPAN> with 1 for optimization without
+constraint consideration and 2 for optimization with constraint
+consideration.
+<P>There are three main types of pricing strategy:
+<UL>
+<LI> PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=NOQ
+<LI> PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=BLAND
+<LI> PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=Q
+</UL>
+<A NAME="idxnet1356">&#13;</A><A NAME="idxnet1357">&#13;</A>The pricing strategy that usually performs better than the others is
+PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=Q. For this reason, PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=Q
+is the default.
+<P><H3><I>PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=NOQ </I></H3>
+<A NAME="idxnet1358">&#13;</A><A NAME="idxnet1359">&#13;</A>PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=NOQ is the least complex
+pricing strategy, but it is
+nevertheless quite efficient.
+In contrast to the specification of PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=Q,
+a candidate queue is not set up.
+<P>The P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN= option controls the amount of additional 
+candidate selection work
+done to find a better
+candidate after an eligible candidate has been found .
+<A NAME="idxnet1360">&#13;</A><A NAME="idxnet1361">&#13;</A>If P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=FIRST is specified, 
+the search for candidates finishes when the
+first eligible candidate is found, with this exception:
+if a node has more than one 
+eligible arc directed toward it, the best such arc is chosen.
+<P>If P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=BEST is specified, everything that is nonbasic is 
+examined, and the best candidate of all is chosen.
+<P>If P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=PARTIAL is specified,
+once an eligible candidate is found, the scan continues 
+for another P<SPAN CLASS="mathfont"><I>x</I></SPAN>NPARTIAL=
+<A NAME="idxnet1362">&#13;</A><A NAME="idxnet1363">&#13;</A>cycles in the hope that during the additional scan, a better candidate
+is found.
+Examining all nonbasic arcs directed toward a single
+node is counted as only one cycle.
+<P>If P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=FIRST or P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=PARTIAL is specified,
+the scan for entering candidates starts where the last iteration's
+search left off.  For example, if the last
+iteration's scan terminated after examining arcs that are directed toward
+the node with internal number <SPAN CLASS="mathfont"><I>i</I></SPAN>, next iterations scan starts by
+examining arcs directed toward the node with internal
+number <SPAN CLASS="mathfont"><I>i</I> + 1</SPAN>.
+If <SPAN CLASS="mathfont"><I>i</I></SPAN> is the largest node number, next iterations scan begins by scanning arcs
+directed toward node <SPAN CLASS="mathfont">1</SPAN> (during stage 1) or scanning constraint slack or surplus
+variables, if any, or nonarc variables, if any, (during stage 2).
+During stage 2, if the scan terminated after examining the 
+slack or surplus of constraint <SPAN CLASS="mathfont"><I>i</I></SPAN>, next iterations scan starts by examining the 
+slack or surplus of the
+constraint with the internal number greater than <SPAN CLASS="mathfont"><I>i</I></SPAN> that has such
+a logical variable.
+If the scan terminated after examining the 
+nonarc variable <SPAN CLASS="mathfont"><I>i</I></SPAN>, the next iterations scan starts by examining the 
+nonarc variable with internal number <SPAN CLASS="mathfont"><I>i</I>+1</SPAN>, (or arcs directed to the node
+with the smallest internal number if the nonarc variable with the
+greatest number has been examined).
+This is termed a <I>wraparound search</I> .
+<P><H3><I>PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=Q </I></H3>
+<A NAME="idxnet1364">&#13;</A><A NAME="idxnet1365">&#13;</A>If PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=Q, a queue is set up.
+Candidates currently on the queue are tested at
+each iteration and either enter the basis or are
+removed from the queue. 
+The size of the queue can be specified by using
+the option QSIZE<SPAN CLASS="mathfont"><I>x</I></SPAN>=.
+<A NAME="idxnet1366">&#13;</A><A NAME="idxnet1367">&#13;</A>The default value for QSIZE1= is
+<PRE>
+   QSIZE1=number of arcs/200
+   if (QSIZE1&#60;24) QSIZE1=24
+   else if (QSIZE1&#62;100) QSIZE1=100
+</PRE>
+
+<P>The default value for QSIZE2= is
+<PRE>
+   QSIZE2=(number of arcs+number of nonarc variables)/200
+   if (QSIZE2&#60;24) QSIZE2=24
+   else if (QSIZE2&#62;100) QSIZE2=100
+</PRE>
+
+<P>The P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN= option controls the amount of additional 
+candidate selection work
+done to find a better
+candidate after an eligible candidate has been found <EM>in the queue</EM>.
+<A NAME="idxnet1368">&#13;</A><A NAME="idxnet1369">&#13;</A>If you specify P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=BEST,
+the best eligible candidate found is removed from the queue.
+It can sustain a flow or value change and possibly enter the basis.
+<P>If you specify P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=FIRST,
+the first eligible candidate found is removed from the queue,
+and possibly sustains a flow or value change and enters the basis.
+<P>If you specify P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=PARTIAL,
+P<SPAN CLASS="mathfont"><I>x</I></SPAN>NPARTIAL= can then be specified as well.
+After an eligible candidate has been found in the 
+P<SPAN CLASS="mathfont"><I>x</I></SPAN>NPARTIAL= more queue members are examined and the best of the eligible candidates
+found is chosen.
+<A NAME="idxnet1370">&#13;</A><A NAME="idxnet1371">&#13;</A>When P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=FIRST or P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=PARTIAL,
+the scan of the queue is wraparound.
+When the member last added to the queue has been examined,
+the scan continues from the member that was first added to the queue.
+<P>When the queue is empty,
+or after QSIZE<SPAN CLASS="mathfont"><I>x</I></SPAN>= times REFRESHQ<SPAN CLASS="mathfont"><I>x</I></SPAN>= iterations have been
+executed since the queue was last refreshed, new candidates are
+found and put onto the queue.
+<A NAME="idxnet1372">&#13;</A><A NAME="idxnet1373">&#13;</A>Valid values for the REFRESHQ<SPAN CLASS="mathfont"><I>x</I></SPAN>= options are greater than 0.0
+and less than or equal to 1.0.
+The default for REFRESHQ<SPAN CLASS="mathfont"><I>x</I></SPAN> is 0.75.
+If the scan cannot find enough candidates to fill the queue, the
+procedure
+reduces the value of QSIZE<SPAN CLASS="mathfont"><I>x</I></SPAN>=.
+If <I>qfound</I>  is the number of candidates found,
+the new QSIZE<SPAN CLASS="mathfont"><I>x</I></SPAN>= value is
+<SPAN CLASS="mathfont"><I>qfound</I> + (( <I>old QSIZEx</I>= - <I>qfound</I> ) * <I>REDUCEQSIZEx</I>= )</SPAN>.
+Valid values of the REDUCEQSIZE<SPAN CLASS="mathfont"><I>x</I></SPAN>= option are between 0.0 and 1.0, inclusive.
+<A NAME="idxnet1374">&#13;</A><A NAME="idxnet1375">&#13;</A>The default for REDUCEQSIZE<SPAN CLASS="mathfont"><I>x</I></SPAN>= is 1.0.
+<P>The Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLSCAN= option controls the amount of additional 
+candidate selection work performed to 
+find better candidates to put into the queue after the queue has been 
+filled.
+<A NAME="idxnet1376">&#13;</A><A NAME="idxnet1377">&#13;</A>If you specify Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLSCAN=FIRST, the nonbasic arcs, and during stage 2
+optimization, nonbasic constraint
+slack and surplus variables, and nonbasic nonarc variables are scanned; 
+the scan stops when the queue is filled.
+If a node has more than one 
+eligible arc directed toward it, the best such arc is put onto the queue.
+Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLSCAN=FIRST is the default.
+<P>If Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLSCAN=BEST is specified, everything that is nonbasic is scanned
+and the best eligible candidates are used to fill the queue.
+<P>If Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLSCAN=PARTIAL is specified,
+after the queue is fill, the scan continues 
+for another Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLNPARTIAL=
+<A NAME="idxnet1378">&#13;</A><A NAME="idxnet1379">&#13;</A>cycles in the hope that during the additional scan, better candidates
+are found to replace other candidates previously put onto the queue.
+Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLNPARTIAL=10 is the default.
+If Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLSCAN=FIRST or Q<SPAN CLASS="mathfont"><I>x</I></SPAN>FILLSCAN=PARTIAL ,
+the scan starts where the previous iteration ended; that is, 
+it is wrap-around.
+<P>In the following section, dual variables and reduced costs are explained.
+These help PROC NETFLOW determine whether an arc, constraint slack, surplus,
+or nonarc variable should have a flow or value change.
+P2SCAN=ANY and the DUALFREQ= option can be specified to control stage 2 pricing,
+and how often dual variables and reduced costs are calculated.
+<A NAME="idxnet1380">&#13;</A><A NAME="idxnet1381">&#13;</A><A NAME="idxnet1382">&#13;</A><A NAME="idxnet1383">&#13;</A><A NAME="idxnet1384">&#13;</A><A NAME="idxnet1385">&#13;</A><A NAME="idxnet1386">&#13;</A><A NAME="idxnet1387">&#13;</A>What usually happens when PRICETYPE2=Q is specified is
+that before the first iteration,
+the queue is filled
+with nonbasic variables that are eligible to enter the basis.
+At the start of each iteration, a candidate on the queue is examined
+and its reduced cost is calculated to ensure that it is still 
+eligible to enter the basis. 
+If it is ineligible to enter the basis, it is removed from the queue
+and another candidate on the queue is examined, until
+a candidate on the queue is found that can enter the basis.
+When this happens, a <EM>minor</EM> iteration occurs.
+If there are no candidates left on the queue, or several iterations
+have been performed since the queue was refreshed,
+new nonbasic variables that are eligible to enter the basis are
+found and are placed on the queue.
+When this occurs, the iteration is termed a <EM>major</EM> iteration.
+Dual variables are calculated or maintained every iteration.
+<P>During most optimizations, if a variable
+is put onto the queue during a major iteration, it usually remains
+eligible to enter the basis in later minor iterations.
+Specifying P2SCAN=ANY indicates that PROC NETFLOW should choose
+<EM>any</EM> candidate on the queue and use that as the entering variable.
+Reduced costs are not calculated. It is simply hoped that
+the chosen candidate is eligible.
+Sometimes, a candidate on the queue is chosen that has become 
+ineligible and the optimization takes &#34;a step backward&#34;
+rather than &#34;a step forward&#34; toward the optimum.
+However, the disadvantages of incurring an occasional step backwards
+and the possible danger of never converging to the optimum, 
+are offset by not having to calculate reduced costs and, more 
+importantly, not having to maintain dual variable values.
+The calculation of dual variables is one of two large linear equation 
+systems that must be solved each iteration in the Simplex 
+iteration.
+<P>If P2SCAN=ANY is specified, dual variables are
+calculated after DUALFREQ= iterations have been performed
+since they were last calculated.
+These are used to calculate the reduced costs of all the candidates 
+currently on the queue. Any candidate found to be ineligible
+to enter the basis is removed from the queue.
+DUALFREQ=4 is the default.
+<P>Once again, the practice of not maintaining correct dual variable
+values is dangerous because backward steps are allowed, so
+the optimization is not guaranteed to converge
+to the optimum.
+However, if PROC NETFLOW does not run forever, it can find the optimum
+much more quickly than when the P2SCAN= option is not ANY.
+Before concluding that any solution is optimal, PROC NETFLOW
+calculates true dual variable values and reduced costs and uses these to verify
+that the optimum is really at hand.
+<P>Whether P2SCAN=ANY is specified or not, dual variables are 
+always calculated at the start of major iterations.
+<P><H3><I>PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=BLAND </I></H3>
+<A NAME="idxnet1388">&#13;</A><A NAME="idxnet1389">&#13;</A>PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=BLAND
+is equivalent to specifying in the PROC NETFLOW or a <A HREF="sect30.htm#netflowreset">RESET</A> statement
+all three options PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=NOQ, 
+P<SPAN CLASS="mathfont"><I>x</I></SPAN>SCAN=FIRST, and
+LRATIO<SPAN CLASS="mathfont"><I>x</I></SPAN> , and the scans are not wraparound.
+Bland 1977 proved that this
+pivot rule prevents the Simplex algorithm from cycling.
+However, because the pivots concentrate on the lower indexed arcs,
+constraint slack, surplus, and nonarc variables,
+optimization with PRICETYPE<SPAN CLASS="mathfont"><I>x</I></SPAN>=BLAND can make the optimization
+execute slowly.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect46.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

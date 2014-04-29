@@ -1,0 +1,279 @@
+<HTML>
+<HEAD>
+<TITLE>Error Covariance Structure Specification</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect40.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Error Covariance Structure Specification  </H2>
+<P>One of the key assumptions of regression is that the variance of the errors
+is constant across observations. Correcting for heteroscedasticity
+improves the efficiency of the estimates.
+<P>Consider the following general form for models:
+<DL CLASS="equation"><DD><IMG WIDTH="372" HEIGHT="253" ALIGN="left"
+ SRC="images/modeq164.gif"
+ ALT="q(y_t, x_t, \theta) &=& {\varepsilon_t} \{\varepsilon_t } &=& H_t * {\epsilon_t}...
+ ... & & \ddots & \ 0 & 0 &  ...  & \sqrt{h_{t,g}}
+ ] \{h_t} &=& g( y_t, x_t, \phi )"><BR CLEAR="ALL">
+</DL>
+where <IMG WIDTH="103" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq165.gif"
+ ALT="{\epsilon_t} \sim N(0,\Sigma)">.<P>For models which are homoscedastic
+<DL CLASS="equation"><DD>
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD></TD><TD ALIGN="CENTER" NOWRAP>
+<SPAN CLASS="mathfont"><I>h</I><SUB><I>t</I></SUB> = 1.
+</SPAN>
+</TD>
+<TD ALIGN="CENTER">(14.1)</TD></TR>
+</TABLE></DL>
+If you had a model which was heteroscedastic with
+known form you can improve the efficiency of the estimates by performing
+a weighted regression. The weight variable, using this
+notation, would be <IMG WIDTH="53" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq166.gif"
+ ALT="1/\sqrt{h_t}">.<P>If the errors for a model are
+heteroscedastic and the functional form of the variance is known,
+the model for the variance can now be estimated along with the
+regression function.
+<P>To specify a functional form for the variance, assign the function
+to an H.<EM>var</EM> variable where <EM>var</EM> is the equation variable.
+For example, if you wanted to estimate the scale parameter for
+the variance of a simple regression model
+<DL CLASS="equation"><DD>
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD></TD><TD ALIGN="CENTER" NOWRAP>
+<SPAN CLASS="mathfont"><I>y</I> = <I>a</I> *<I>x</I> + <I>b</I>
+</SPAN>
+</TD>
+<TD ALIGN="CENTER">(14.2)</TD></TR>
+</TABLE></DL>
+<P>you can specify
+<P><PRE>
+   proc model data=s;
+      y = a * x + b;
+      h.y = sigma**2;
+   fit y;
+</PRE>
+<P>Consider the same model with the following functional form for
+the variance:
+
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD></TD><TD ALIGN="CENTER" NOWRAP><IMG WIDTH="107" HEIGHT="74"
+ SRC="images/modeq167.gif"
+ ALT="h_t = \sigma^2 * x ^{2*\alpha}"></TD>
+<TD ALIGN="CENTER">(14.3)</TD></TR>
+</TABLE>
+<P>this would be written as:
+<PRE>
+   proc model data=s;
+      y = a * x + b;
+      h.y = sigma**2 * x**(2*alpha);
+   fit y;
+</PRE>
+<P>There are three ways to model the variance in the MODEL procedure;
+Feasable generalized least squares; Generalized method of moments;
+and Full information maximum likelihood.
+<P><H3><I>Feasable GLS</I></H3>
+A simple approach to estimating a variance function is to estimate
+the mean parameters <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq28.gif"
+ ALT="{\theta}"> using some auxilary method, such as OLS,
+and then use the residuals of that estimation to estimate the parameters
+<IMG WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq168.gif"
+ ALT="\phi"> of the variance function. This scheme is called <EM>feasable
+GLS</EM>. It is posible to use the residuals from an auxilary method for
+the purpose of
+estimating <IMG WIDTH="14" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq168.gif"
+ ALT="\phi"> because in many cases the residuals consistently
+estimate the error terms.
+<P>This scheme can be done by hand by performing OLS estimation of
+<IMG WIDTH="88" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq169.gif"
+ ALT="q(y_t, x_t, \theta)">, the mean function, then by
+regressing the residuals squared on <SPAN CLASS="mathfont"><I>h</I><SUB><I>t</I></SUB></SPAN>, and finally by re-estimating the
+the mean function using a weight of <IMG WIDTH="53" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq166.gif"
+ ALT="1/\sqrt{h_t}">.<P>For all estimation methods except GMM and FIML, using the H.var syntax
+specifies that feasable GLS will be used in the estimation. For
+feasable GLS the mean function is estimated by the usual method. The
+variance function is then estimated using pseudolikelihood (PL) function of
+the generated residuals. The objective function for the PL estimation is
+<P>
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD></TD><TD ALIGN="CENTER" NOWRAP><IMG WIDTH="392" HEIGHT="111"
+ SRC="images/modeq170.gif"
+ ALT="p_n( \sigma, \theta ) = \sum_{i=1}^n (
+ \frac{ (y_i-f(x_i,\hat{\beta}))^2}{\sigma^2 h( z_i, \theta) }
++ \log[ \sigma^2 h( z_i, \theta) ] )"></TD>
+<TD ALIGN="CENTER">(14.4)</TD></TR>
+</TABLE>
+<P>Once the variance function has been estimated the mean function is
+re-estimated using the variance function as weights. If an S-iterated
+method is selected, this process is repeated until convergence
+(iterated feasable GLS).
+<P>Note, feasable GLS will not yield consistent estimates when
+one of the following is true:
+<UL>
+<LI>
+The variance is unbounded.
+<LI>
+There is too much serial dependence in the errors 
+(the dependence does not fade with time).
+<LI>
+A combination of serial dependence and lag dependent variables.
+</UL>
+<P>The first two cases are unusual but the third is much more common.
+Whether iterated feasable GLS avoids consistency problems with the
+last case is an unanswered research question. For more information see
+(Davidson and MacKinnon 1993) pages 298-301 or (Gallant 1987) pages
+124-125 and (Amemiya 1985) pages 202-203.
+<P>One limitation is that parameters can not be shared between the
+mean equation and the variance equation. This implies that certian
+GARCH models, cross equation restrictions of parameters, or testing
+of combinations of parameters in the mean and variance component
+are not allowed.
+<P><H3><I>Generalized Method of Moments</I></H3>
+In GMM, normally the first moment of the mean function is used in the
+objective function.
+<DL CLASS="equation"><DD><IMG WIDTH="142" HEIGHT="122" ALIGN="left"
+ SRC="images/modeq171.gif"
+ ALT="q(y_t, x_t, \theta) &=& \epsilon_t  \E (\epsilon_t) &=& 0 "><BR CLEAR="ALL">
+</DL>
+<P>To add the second moment conditions to the estimation, add
+the equation
+
+<TABLE WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD></TD><TD ALIGN="CENTER" NOWRAP><IMG WIDTH="144" HEIGHT="74"
+ SRC="images/modeq172.gif"
+ ALT="E(\varepsilon_t * \varepsilon_t - h_t ) = 0 "></TD>
+<TD ALIGN="CENTER">&#160;&#160;</TD></TR>
+</TABLE>
+to the model. For example if you wanted to estimate <IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq93.gif"
+ ALT="{{\sigma}}"> for linear
+example above, you can write
+<P><PRE>
+   proc model data=s;
+      y = a * x + b;
+      eq.two = resid.y**2 - sigma**2;
+   fit y two/ gmm;
+   instruments x;
+   run;
+</PRE>
+<P>This is a popular way to estimate a continuous-time interest rate processes
+(see (Chan, et al 1992)).  The H.var syntax will automatically generate this
+system of equations.
+<P>To further take advantage of the information obtained about the variance,
+the moment equations can be modified to
+<DL CLASS="equation"><DD><IMG WIDTH="167" HEIGHT="122" ALIGN="left"
+ SRC="images/modeq173.gif"
+ ALT="E( \varepsilon_t / \sqrt{ h_t}) &=& 0  \E( \varepsilon_t * \varepsilon_t - h_t ) &=& 0 "><BR CLEAR="ALL">
+</DL>
+<P>For the above example, this can be written as
+<P><PRE>
+   proc model data=s;
+      y = a * x + b;
+      eq.two = resid.y**2 - sigma**2;
+      resid.y = resid.y / sigma;
+   fit y two/ gmm;
+   instruments x;
+   run;
+</PRE>
+<P>Note, if the error model is misspecified in this form of the GMM model
+the parameter estimates may be inconsistent.
+<P><H3><I>Full Information Maximum Likelihood</I></H3>
+For FIML estimation of variance functions, the concentrated likelihood below is
+used as the objective function. That is, the mean function will be
+coupled with the variance function and the system will be solved
+simultaneously.
+<DL CLASS="equation"><DD><IMG WIDTH="408" HEIGHT="185" ALIGN="left"
+ SRC="images/modeq174.gif"
+ ALT="l_n(\phi) &=& \frac{ng}2(1+\ln(2\pi)) - \sum_{t=1}^n \ln ( |
+\frac{\partial q(y_...
+ ...\sum_{t=1}^n \sum_{i=1}^g ( \ln( h_{t,i}) +
+ q_i(y_t, x_t, \theta)^2 / h_{t,i} )"><BR CLEAR="ALL">
+</DL>
+where <SPAN CLASS="mathfont"><I>g</I></SPAN> is the number of equations in the system.
+<P>The HESSIAN=GLS option is not available for FIML estimation involving
+variance functions. The matrix used when HESSIAN=CROSS is specified is a cross
+products matrix which has been enhanced by the dual quasi-newton
+approximation.
+<P><H3><I>Examples</I></H3>
+You can specify a GARCH(1,1) model as follows:
+<PRE>
+   proc model data=modloc.usd_jpy;
+   
+                /* Mean model --------*/
+      jpyret = intercept ;
+   
+                /* Variance model ----------------*/
+      h.jpyret = arch0 + arch1 * zlag( resid.jpyret * resid.jpyret ) +
+                 garch1 * zlag(h.jpyret) ;
+   
+      bounds arch0 arch1 garch1 &#62;= 0;
+   
+   fit jpyret/method=marquardt fiml;
+   run;
+</PRE>
+<P>Note that the BOUNDS statement was used to ensure that the parameters
+were positive, a requirement for GARCH models.
+<P>EGARCH models are used because there is no restrictions on the parameters.
+You can specify a EGARCH(1,1) model as follows:
+<PRE>
+   proc model data=sasuser.usd_dem ;
+   
+             /* Mean model ----------*/
+     demret = intercept ;
+   
+                /* Variance model ----------------*/
+     if ( _OBS_ =1 )  then
+       h.demret = exp( earch0/ (1. - egarch1)  );
+     else
+       h.demret = exp( earch0 + earch1 * zlag( g)
+                            + egarch1 * log(zlag(h.demret)));
+     g = theta * nresid.demret + abs( nresid.demret ) - sqrt(2/3.1415);
+   
+                        /* Fit and save the model */
+   fit demret/method=marquardt fiml  maxiter=100
+   run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect40.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

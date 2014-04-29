@@ -1,0 +1,354 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using SYSTEM 2000 Data in SAS Programs : Selecting and Combining Data with the SQL Procedure </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003232.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1004813.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1004856.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1004824">Selecting and Combining Data with the SQL Procedure</A></FONT></H1>
+
+
+<P><A name="z1043152">&#13;  The next three examples show you how to select and combine data
+using the SAS System SQL procedure.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the WHERE Clause</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043153">&#13; 
+Suppose you have two view descriptors, VLIB.EMPPOS and VLIB.EMPEDUC, that
+access employee positions and employee education, respectively.  You could
+use the SQL procedure to combine these files into a single SAS data file.
+ The WHERE clause specifies that you want a data file containing information
+on employees who do not have a degree (that is, the value is missing) and
+who are in the CORPORATION department. </A>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The SQL
+procedure displays the variable labels as stored in the view. However, because
+you are referencing a view descriptor, you must use the SAS variable names
+in the WHERE clause, not the SYSTEM 2000 item names. &nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+
+
+
+<PRE>  proc sql;
+    title 'Corporation Positions With No Degrees';
+    select emppos.lastname, position, degree, 
+       departme
+       from vlib.emppos, vlib.empeduc
+       where emppos.lastname=empeduc.lastname and
+             empeduc.degree is missing and
+             emppos.departme='CORPORATION'
+       order by lastname;</PRE>
+<P><A href="#z1017576">SQL Procedure Output Using a WHERE Clause</A>
+shows the result of this example. (Notice that Waterhouse appears twice in
+the output.  This is because he has two values for schema item C411 SCHOOL,
+but neither value has an associated value for C412 DEGREE/CERTIFICATE.)
+
+<P>
+<B><I><A name="z1017576">SQL Procedure Output Using a WHERE Clause</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                    Corporation Positions With No Degrees                  1
+ 
+       LAST NAME   POSITION TITLE    DEGREE/CERTIFICATE  DEPARTMENT
+       ----------------------------------------------------------------
+       FAULKNER    SECRETARY                             CORPORATION
+       KNIGHT      SECRETARY                             CORPORATION
+       WATERHOUSE  PRESIDENT                             CORPORATION
+       WATERHOUSE  PRESIDENT                             CORPORATION</PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Combining Data from Various Sources</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043156">&#13; Suppose along with view
+descriptors VLIB.EMPPOS and VLIB.EMPEDUC,
+you have a SAS data file, MYDATA.CLASSES, that contains in-house continuing
+education classes taken by employees. You can use the SQL procedure to join
+these sources of data to form a single  output table of employees, their departments,
+their degrees, and the  in-house classes they have taken. For example:
+
+
+</A>
+<PRE>    proc print data=vlib.emppos;
+       title2 'Data Described by VLIB.EMPPOS';
+    run; 
+
+    proc print data=vlib.empeduc;
+       title2 'Data Described by VLIB.EMPEDUC';
+    run; 
+
+    proc print data=mydata.classes;
+       title2 'SAS Data File MYDATA.CLASSES';
+    run; </PRE>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If you have many PROC SQL views as well as view
+descriptors, you may want to store your PROC SQL views in a separate SAS data
+library  from your view descriptors. They both have a member type of VIEW,
+so you cannot tell a view descriptor from a PROC SQL view.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><A href="#z1017584">Data Described by the View Descriptor VLIB.EMPPOS</A>,
+<A href="#z1017587">Data Described by the View Descriptor VLIB.EMPEDUC</A>, and <A href="#z1017590">SAS Data File MYDATA.CLASSES</A> show the
+results of the PRINT procedure performed on the data described by VLIB.EMPPOS,
+VLIB.EMPEDUC, and MYDATA.CLASSES.
+
+<P>
+<B><I><A name="z1017584">Data Described by the View Descriptor VLIB.EMPPOS</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                      Data Described by VLIB.EMPPOS                        1
+ 
+ OBS  LASTNAME    FIRSTNME      POSITION            DEPARTME        MANAGER
+ 
+   1                            PROGRAMMER          INFORMATION SY    MYJ
+   2  AMEER       DAVID         SR SALES REPRESE    MARKETING         VPB
+   3  AMEER       DAVID         JR SALES REPRESE    MARKETING         VPB
+   4  BOWMAN      HUGH E.       EXECUTIVE VICE-P    CORPORATION       CPW
+   5  BROOKS      RUBEN R.      JR SALES REPRESE    MARKETING         MAS
+   6  BROWN       VIRGINA P.    MANAGER WESTERN     MARKETING         OMG
+   7  CAHILL      JACOB         MANAGER SYSTEMS     INFORMATION SY    JBM
+   8  CANADY      FRANK A.      MANAGER PERSONNE    ADMINISTRATION    PRK
+   9  CHAN        TAI           SR SALES REPRESE    MARKETING         TZR
+  10  COLLINS     LILLIAN       MAIL CLERK          ADMINISTRATION    SQT
+  11  FAULKNER    CARRIE ANN    SECRETARY           CORPORATION       JBM
+  12  FERNANDEZ   SOPHIA        STANDARDS &amp; PROC    INFORMATION SY    JLH
+  13  FREEMAN     LEOPOLD       SR SYSTEMS PROGR    INFORMATION SY    JLH</PRE></TD></TR></TABLE>
+
+<P>
+<P>
+<B><I><A name="z1017587">Data Described by the View Descriptor VLIB.EMPEDUC</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                   Data Described by VLIB.EMPEDUC                         1
+ 
+       OBS    LASTNAME       FIRSTNME       SEX       DEGREE
+ 
+         1
+         2    AMEER          DAVID          MALE      BS
+         3    BOWMAN         HUGH E.        MALE      MS
+         4    BOWMAN         HUGH E.        MALE      BS
+         5    BOWMAN         HUGH E.        MALE      PHD
+         6    BROOKS         RUBEN R.       MALE      BS
+         7    BROWN          VIRGINA P      FEMALE    BA
+         8    CAHILL         JACOB          MALE      BS
+         9    CAHILL         JACOB          MALE      BS
+        10    CANADY         FRANK A.       MALE      MA
+        11    CANADY         FRANK A.       MALE      BS
+        12    CHAN           TAI            MALE      PHD
+        13    CHAN           TAI            MALE      BA</PRE></TD></TR></TABLE>
+
+<P>
+<P>
+<B><I><A name="z1017590">SAS Data File MYDATA.CLASSES</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                   SAS Data File MYDATA.CLASSES                          1
+ 
+       OBS    LASTNAME      FIRSTNME      CLASS
+ 
+         1    AMEER         DAVID         PRESENTING IDEAS
+         2    CANADY        FRANK A.      PRESENTING IDEAS
+         3    GIBSON        MOLLY I.      SUPERVISOR SKILLS
+         4    GIBSON        MOLLY I.      STRESS MGMT
+         5    RICHARDSON    TRAVIS Z.     SUPERVISOR SKILLS</PRE></TD></TR></TABLE>
+
+<P>
+<P>The following SAS code selects and combines data from
+these three sources (the two view descriptors and the SAS data file) to create
+a view, SQL.EDUC. This view retrieves employee names, their departments, their
+degrees, and the in-house classes they've taken.
+
+
+
+<PRE> proc sql;
+  create view sql.educ as
+    select emppos.lastname, emppos.firstnme, 
+      emppos.departme,empeduc.degree,
+      classes.class as course
+      from vlib.emppos
+           vlib.empeduc, 
+           mydata.classes
+      where (emppos.lastname=empeduc.lastname 
+             and emppos.firstnme=empeduc.firstnme) 
+             and
+            (empeduc.lastname=classes.lastname 
+             and empeduc.firstnme=classes.firstnme)
+      order by emppos.lastname, course;
+ 
+    title 'Data Described by SQL.EDUC';
+    select * from sql.educ;</PRE>
+<P>The CREATE VIEW statement incorporates a WHERE clause
+as part of the SELECT statement. The last SELECT statement retrieves and displays
+the PROC SQL view, SQL.EDUC. To select all items from the view, an asterisk
+(*) is used in place of item names. The order of the items displayed matches
+the order of the items as specified in the first SELECT clause.
+<P><A href="#z1017596">Data Described by the PROC SQL View SQL.EDUC</A>
+shows the data described by the SQL.EDUC view. Note that the SQL procedure
+uses the variable labels in the output by default.
+
+<P>
+<B><I><A name="z1017596">Data Described by the PROC SQL View SQL.EDUC</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                         Data Described by SQL.EDUC                         1
+ 
+        LAST NAME   FORENAME      DEPARTMENT      DEGREE/CERTIFICATE
+        COURSE
+        ------------------------------------------------------------
+        AMEER       DAVID         MARKETING       BS
+        PRESENTING IDEAS
+ 
+        AMEER       DAVID         MARKETING       BS
+        PRESENTING IDEAS
+ 
+        CANADY      FRANK A.      ADMINISTRATION  MA
+        PRESENTING IDEAS
+ 
+        CANADY      FRANK A.      ADMINISTRATION  BS
+        PRESENTING IDEAS
+ 
+        GIBSON      MOLLY I.      INFORMATION SY  BA
+        STRESS MGMT
+ 
+        GIBSON      MOLLY I.      INFORMATION SY  BA
+        SUPERVISOR SKILLS
+ 
+        RICHARDSON  TRAVIS Z.     MARKETING       BS
+        SUPERVISOR SKILLS</PRE></TD></TR></TABLE>
+
+<P>
+<P>The view SQL.EDUC lists entries for employees, their
+departments, and their degrees that have taken in-house classes. However,
+it contains duplicate observations because some employees have more than one
+degree and have taken more than one in-house class.  To make the data more
+readable, you can create a final SAS data file, MYDATA.UPDATE, using the SET
+statement and the special variable FIRST.  This variable identifies which
+observation is the first in a particular BY group.  You only need an employee's
+name associated once with his or her degrees and in-house education classes,
+regardless of the number of degrees or the number of classes taken.
+
+
+
+<PRE>    data mydata.update;
+       set sql.educ;
+       by lastname course;
+       if first.lastname then output;
+    run; 
+ 
+    proc print;
+       title2 'MYDATA.UPDATE Data File';
+    run; </PRE>
+<P>The data file MYDATA.UPDATE contains an observation
+for each unique combination of employee, degree, and in-house class. <A href="#z1017599">SAS Data File MYDATA.UPDATE</A> displays
+this data file.
+
+<P>
+<B><I><A name="z1017599">SAS Data File MYDATA.UPDATE</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                              MYDATA.UPDATE Data File                        1
+ 
+  OBS    LASTNAME      FIRSTNME     DEPARTME        DEGREE    COURSE
+ 
+    1    AMEER         DAVID        MARKETING       BS        PRESENTING IDEAS
+    2    CANADY        FRANK A.     ADMINISTRATION  MA        PRESENTING IDEAS
+    3    GIBSON        MOLLY I.     INFORMATION SY  BA        STRESS MGMT
+    4    RICHARDSON    TRAVIS Z.    MARKETING       BS        SUPERVISOR SKILLS</PRE></TD></TR></TABLE>
+
+<P>
+<P>For more information on the special variable FIRST.,
+see <B>SAS Language Reference: Dictionary</B>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Creating a New Item with the PROC SQL GROUP BY Clause</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043165">&#13;
+    
+It is often useful to create new items with summary or aggregate functions
+such as AVG or SUM.  Although you cannot use the ACCESS procedure to create
+new items, you can easily use the SQL procedure with data described by a view
+descriptor to display output that contains new items.</A>
+<P>This example uses the SQL procedure to retrieve and
+manipulate data from the view descriptor VLIB.EMPVAC. When this query (as
+a SELECT statement is often called) is submitted, it calculates and displays
+the average vacation time (in hours) for each department.
+
+
+
+<PRE>    proc sql;
+       title 'Average Vacation Per Department';
+       select distinct departme,
+             avg(accruedv) label='Avg Vac'
+          from vlib.empvac
+          where departme is not missing
+          group by departme;</PRE>
+<P>The order of the items displayed matches the order of
+the items as specified in the SELECT clause of the query. <A href="#z1017603">Data Retrieved by a PROC SQL Query</A> shows the SELECT statement's
+result.
+
+<P>
+<B><I><A name="z1017603">Data Retrieved by a PROC SQL Query</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>             Average Vacation Per Department         
+ 
+                   DEPARTMENT       Avg 
+                ------------------------
+                ADMINISTRATION        43
+                CORPORATION     40.72727
+                INFORMATION SY     61.75
+                MARKETING       47.61905</PRE></TD></TR></TABLE>
+
+<P>
+<P>For more information on the SQL procedure, refer to
+the <B>SAS Procedures Guide</B>.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003232.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1004813.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1004856.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1004824">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

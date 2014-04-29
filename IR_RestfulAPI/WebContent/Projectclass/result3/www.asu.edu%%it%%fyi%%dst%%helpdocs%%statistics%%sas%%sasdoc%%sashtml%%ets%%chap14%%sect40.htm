@@ -1,0 +1,252 @@
+<HTML>
+<HEAD>
+<TITLE>Transformation of Error Terms</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect41.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Transformation of Error Terms  </H2>
+<P>In PROC MODEL you can control the form of the error term. By default
+the error term is assumed to be additive. This section demonstrates
+how to specify nonadditive error terms and discusses the
+effects of these transformations.
+<P><H3><I>Models with Nonadditive Errors</I></H3>
+<A NAME="idxmod0357">&#13;</A><A NAME="idxmod0356">&#13;</A><A NAME="idxmod0358">&#13;</A><A NAME="idxmod0359">&#13;</A>The estimation methods used by PROC MODEL assume that the 
+error terms of the equations
+are independently and identically distributed with zero means and finite 
+variances.
+Furthermore, the methods assume that the RESID.<I>name </I> equation variable
+for normalized form equations
+or the EQ.<I>name</I> equation variable for general form equations
+contains an estimate of the error term of the true stochastic model
+whose parameters are being estimated. Details on RESID.<I>name </I>
+and EQ.<I>name</I> equation variables are in the section &#34;Model Translations.&#34;
+<P>To illustrate these points, consider the common loglinear model
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL ALIGN=JUSTIFY><COL ALIGN=RIGHT>
+<TR VALIGN="TOP"><TD>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<IMG WIDTH="69" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq155.gif"
+ ALT="y={\alpha}x^{{\beta}}"></TD><TD ALIGN=RIGHT NOWRAP>(1)</TD></TR>
+</TABLE>
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL ALIGN=JUSTIFY><COL ALIGN=RIGHT>
+<TR VALIGN="TOP"><TD>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<SPAN CLASS="mathfont"><I>ln y</I> = <I>a</I>+<I>b ln</I> (<I>x</I>)</SPAN></TD><TD ALIGN=RIGHT NOWRAP>(2)</TD></TR>
+</TABLE>
+<P>where <I>a</I>=log(<IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq156.gif"
+ ALT="{\alpha}">) and <I>b</I>=<IMG WIDTH="15" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq139.gif"
+ ALT="{{\beta}}">.Equation (2) is called the <I>log form</I> of the equation in contrast to
+equation (1), which is called the <I>level form</I> of the equation.
+Using the SYSLIN procedure, you can estimate equation (2) by specifying
+<P><PRE>
+   proc syslin data=in;
+      model logy=logx;
+   run;
+</PRE>
+<P>where LOGY and LOGX are the logs of Y and X computed in a preceding DATA step. 
+The resulting values for INTERCEPT and LOGX correspond to <I>a</I> and <I>b</I> in 
+equation (2).
+<P>Using the MODEL procedure, you can try to estimate the
+parameters in the level form (and avoid the DATA step) by specifying
+<P><PRE>
+   proc model data=in;
+      parms alpha beta;
+      y = alpha * x ** beta;
+      fit y;
+   run;
+</PRE>
+<P>where ALPHA and BETA are the parameters in equation (1).
+<P>Unfortunately, at least one of the preceding is wrong; an ambiguity results
+because equations (1) and (2) contain no explicit error term. 
+The SYSLIN and MODEL procedures both deal with additive errors; 
+the residual used (the estimate of the error term in the equation) 
+is the difference between the predicted and actual values 
+(of LOGY for PROC SYSLIN and of Y for PROC MODEL in this example). 
+If you perform the regressions discussed previously, 
+PROC SYSLIN estimates equation (3) while PROC MODEL estimates equation (4).
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL ALIGN=JUSTIFY><COL ALIGN=RIGHT>
+<TR VALIGN="TOP"><TD>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<IMG WIDTH="161" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq157.gif"
+ ALT="{\ln} y=a+b {\ln} (x)+{\epsilon}"></TD><TD ALIGN=RIGHT NOWRAP>(3)</TD></TR>
+</TABLE>
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL ALIGN=JUSTIFY><COL ALIGN=RIGHT>
+<TR VALIGN="TOP"><TD>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<IMG WIDTH="100" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq158.gif"
+ ALT="y={\alpha}x^{{\beta}}+{\xi}"></TD><TD ALIGN=RIGHT NOWRAP>(4)</TD></TR>
+</TABLE>
+<P>These are different statistical models. 
+Equation (3) is the log form of equation (5)
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL ALIGN=JUSTIFY><COL ALIGN=RIGHT>
+<TR VALIGN="TOP"><TD>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<IMG WIDTH="80" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq159.gif"
+ ALT="y={\alpha}x^{{\beta}}{\mu}"></TD><TD ALIGN=RIGHT NOWRAP>(5)</TD></TR>
+</TABLE>
+<P>where <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq160.gif"
+ ALT="{\mu}">=e<IMG WIDTH="10" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq161.gif"
+ ALT="^{{\epsilon}}">. 
+Equation (4), on the other hand, cannot be linearized because 
+the error term <IMG WIDTH="12" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq162.gif"
+ ALT="{\xi}"> (different from <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq160.gif"
+ ALT="{\mu}">) is additive in the level form.
+<P>You must decide whether your model is equation (4) or (5).
+If the model is equation (4), you should use PROC MODEL. 
+If you linearize equation (1) without considering the error term 
+and apply SYSLIN to MODEL LOGY=LOGX, the results will be wrong. 
+On the other hand, if your model is equation (5)
+(in practice it usually is), and you want to use PROC MODEL to estimate 
+the parameters in the <I>level</I> form, you must do something to account 
+for the multiplicative error.
+<P>PROC MODEL estimates parameters by minimizing an objective function.
+The objective function is computed using either the RESID.-prefixed equation variable or the EQ.-prefixed equation variable.
+You must make sure that these prefixed equation variables
+are assigned an appropriate error term. 
+If the model has additive errors that satisfy the assumptions, nothing
+needs to be done.
+In the case of equation (5), the error is nonadditive and the equation
+is in normalized form, so you must alter the value of RESID.Y.
+<P>The following assigns a valid estimate of <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq160.gif"
+ ALT="{\mu}"> to RESID.Y:
+<P><PRE>
+   y = alpha * x ** beta;
+   resid.y = actual.y / pred.y;
+</PRE>
+<P>However, <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq160.gif"
+ ALT="{\mu}">=e<IMG WIDTH="10" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq161.gif"
+ ALT="^{{\epsilon}}"> and, therefore, <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq160.gif"
+ ALT="{\mu}"> cannot have a mean of zero
+and you cannot consistently estimate <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq156.gif"
+ ALT="{\alpha}"> and <IMG WIDTH="15" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq139.gif"
+ ALT="{{\beta}}"> by minimizing
+the sum of squares of an estimate of <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq160.gif"
+ ALT="{\mu}">.Instead, you use <IMG WIDTH="61" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq163.gif"
+ ALT="{{\epsilon}={\ln} {\mu}}">.<P><PRE>
+   proc model data=in;
+      parms alpha beta;
+      y = alpha * x ** beta;
+      resid.y = log( actual.y / pred.y );
+      fit y;
+   run;
+</PRE>
+<P>If the model was expressed in general form, this transformation becomes
+<PRE>
+   proc model data=in;
+      parms alpha beta;
+      EQ.trans = log( y / (alpha * x ** beta));
+      fit trans;
+   run;
+</PRE>
+<P>Both examples produce estimates of <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq156.gif"
+ ALT="{\alpha}"> and <IMG WIDTH="15" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq139.gif"
+ ALT="{{\beta}}"> of the level form that
+match the estimates of <I>a</I> and <I>b</I> of the log form.
+That is, ALPHA=exp(INTERCEPT) and BETA=LOGX,
+where INTERCEPT and LOGX are the PROC SYSLIN parameter estimates
+from the MODEL LOGY=LOGX.
+The standard error reported for ALPHA is different from that for the
+INTERCEPT in the log form.
+<P>The preceding example is not intended to suggest that loglinear models
+should be estimated in level form but, rather, to make the following points:
+<P><UL>
+<LI> Nonlinear transformations of equations involve the error term of the
+equation, and this should be taken into account when transforming models.
+<LI> The RESID.-prefixed and the EQ.-prefixed equation variables
+for models estimated by the MODEL procedure
+must represent additive errors with zero means.
+<LI> You can use assignments to RESID.-prefixed and EQ.-prefixed equation variables
+to transform error terms.
+<LI> Some models do not have additive errors or zero means, and many such
+models can be estimated using the MODEL procedure. 
+The preceding approach applies not only to multiplicative models but 
+to any model that can be manipulated to isolate the error term.
+</UL>
+<P><H3><I>Predicted Values of Transformed Models</I></H3>
+<A NAME="idxmod0361">&#13;</A><A NAME="idxmod0360">&#13;</A><A NAME="idxmod0363">&#13;</A><A NAME="idxmod0362">&#13;</A>Nonadditive or transformed errors affect the distribution of the
+predicted values, as well as the estimates. 
+For the preceding loglinear example, 
+the MODEL procedure produces consistent parameter estimates. 
+However, the predicted values for Y computed by PROC MODEL are not unbiased
+estimates of the expected values of Y, although they do estimate the
+conditional median Y values.
+<P>In general, the predicted values produced for a model with nonadditive
+errors are not unbiased estimates of the conditional means of the
+endogenous value. 
+If the model can be transformed to a model with additive errors by using a
+<I>monotonic</I> transformation, the predicted values estimate the conditional 
+medians  of the endogenous variable.
+<P>For transformed models in which the biasing factor is known, you can
+use programming statements to correct for the bias in the predicted
+values as estimates of the endogenous means. In the preceding loglinear case,
+the predicted values will be biased by the factor exp(<IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq93.gif"
+ ALT="{{\sigma}}"><SPAN CLASS="mathfont"><SUP>2</SUP></SPAN>/2).
+You can produce approximately unbiased predicted
+values in this case by writing the model as
+<P><PRE>
+   proc model data=in;
+      parms alpha beta;
+      y=alpha * x ** beta;
+      resid.y = log( actual.y / pred.y );
+   
+      fit y;
+   run;
+</PRE>
+<P>Refer to Miller (1984) for a discussion of bias factors for
+predicted values of transformed models.
+<P>Note that models with transformed errors are not appropriate for Monte
+Carlo simulation using the SDATA= option.
+PROC MODEL computes the OUTS= matrix from the transformed
+RESID.-prefixed equation variables,
+while it uses the SDATA= matrix to generate multivariate normal
+errors, which are added to the predicted values.
+This method of computing errors is inconsistent when the
+equation variables have been transformed.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect41.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,145 @@
+<HTML>
+<HEAD>
+<TITLE>The OBSERVED= Option</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The EXPAND Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>The OBSERVED= Option  </H2>
+<P><A NAME="idxexp0095">&#13;</A>The values of the CONVERT statement OBSERVED= option are as follows:
+<P><DL>
+<DT>BEGINNING
+<DD>indicates that the data are beginning-of-period values.
+OBSERVED=BEGINNING is the default.
+<BR><BR><DT>MIDDLE
+<DD>indicates that the data are period midpoint values.
+<BR><BR><DT>ENDING
+<DD>indicates that the data represent end-of-period values.
+<BR><BR><DT>TOTAL
+<DD>indicates that the data values represent period totals for the time interval
+corresponding to the observation.
+<BR><BR><DT>AVERAGE
+<DD>indicates that the data values represent period averages.
+<BR><BR><DT>DERIVATIVE
+<DD>requests that the output series be the derivatives of the
+cubic spline curve fit to the input data by the SPLINE method.
+</DL>
+<P>If only one value is specified in the OBSERVED= option, 
+that value applies to both the input and the output series.
+For example, OBSERVED=TOTAL is the same as OBSERVED=(TOTAL,TOTAL),
+which indicates both that the input values represent totals over the
+time intervals corresponding to the input observations
+and that the converted output values also represent period totals.
+The value DERIVATIVE can be used only as the second OBSERVED= option value,
+and it can be used only when METHOD=SPLINE is specified 
+or is the default method.
+<P>Since the TOTAL, AVERAGE, MIDDLE, and END cases require that the
+width of each input interval be known,
+both the FROM= option and an ID statement are normally required if one of these
+observation characteristics is specified for any series.
+However, if the FROM= option is not specified,
+each input interval is assumed to extend from the ID value for the observation 
+to the ID value of the next observation,
+and the width of the interval for the last observation is assumed to be
+the same as the width for the next to last observation.
+<P><H3><I>Scale of OBSERVED=AVERAGE Values</I></H3>
+The average values are assumed to be expressed in the time units defined by 
+the FROM= or TO= option.
+That is, the product of the average value for an interval and the width of
+the interval is assumed to equal the total value for the interval.
+For purposes of interpolation, OBSERVED=AVERAGE values are first converted to
+OBSERVED=TOTAL values using this assumption, and then the interpolated
+totals are converted back to averages by dividing by the widths of the
+output intervals.
+For example, 
+suppose the options FROM=MONTH, TO=HOUR, and OBSERVED=AVERAGE are specified.
+<P>Since FROM=MONTH in this example,
+each input value is assumed to represent an average rate
+per day such that the product of the value and the number of days
+in the month is equal to the total for the month.
+The input values are assumed to represent a per-day rate 
+because FROM=MONTH implies SAS date ID values that measure time in days,
+and therefore the widths of MONTH intervals are measured in days.
+If FROM=DTMONTH is used instead, 
+the values are assumed to represent a per-second rate,
+because the widths of DTMONTH intervals are measured in seconds.
+<P>Since TO=HOUR in this example,
+the output values are scaled as an average rate per second such
+that the product of each output value and the number of seconds in an
+hour (3600) is equal to the interpolated hourly total.
+A per-second rate is used because TO=HOUR implies SAS datetime ID values
+that measure time in seconds, 
+and therefore the widths of HOUR intervals are measured in seconds.
+<P>Note that the scale assumed for OBSERVED=AVERAGE data is  
+important only when converting between AVERAGE and another OBSERVED= option,
+or when converting between SAS date and SAS datetime ID values.
+When both the input and the output series are AVERAGE values,
+and the units for the ID values are not changed,
+the scale assumed does not matter.
+<P>For example, suppose you are converting a series
+gross domestic product (GDP) from quarterly to monthly.
+The GDP values are quarterly averages measured at annual rates.
+If you want the interpolated monthly values to also 
+be measured at annual rates, 
+then the option OBSERVED=AVERAGE works fine.
+Since there is no change of scale involved in this problem,
+it makes no difference that PROC EXPAND assumes 
+daily rates instead of annual rates.
+<P>However, suppose you want to convert GDP from quarterly to monthly
+and also convert from annual rates to monthly rates, so that the
+result is total gross domestic product for the month.
+Using the option OBSERVED=(AVERAGE,TOTAL) would fail, 
+because PROC EXPAND assumes the average is scaled 
+to daily, not annual, rates.
+<P>One solution is to rescale to quarterly totals
+and treat the data as totals.
+You could use the options TRANSFORMIN=( / 4 ) OBSERVED=TOTAL.
+Alternatively, you could treat the data as averages 
+but first convert to daily rates.
+In this case you would use the options
+TRANSFORMIN=( / 365.25 ) OBSERVED=AVERAGE.
+<P><H3><I>Results of the OBSERVED=DERIVATIVE Option</I></H3>
+If the first value of the OBSERVED= option is BEGINNING, TOTAL, or AVERAGE,
+the result is the derivative of the spline curve evaluated
+at first-of-period ID values for the output observation.
+For OBSERVED=(MIDDLE,DERIVATIVE), the derivative of the function
+is evaluated at output interval midpoints.
+For OBSERVED=(END,DERIVATIVE), the derivative is evaluated
+at end-of-period ID values.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

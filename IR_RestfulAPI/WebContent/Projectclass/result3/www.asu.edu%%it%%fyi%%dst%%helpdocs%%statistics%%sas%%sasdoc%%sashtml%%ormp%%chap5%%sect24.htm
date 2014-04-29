@@ -1,0 +1,322 @@
+<HTML>
+<HEAD>
+<TITLE>Program Statements</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="nlps">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Program Statements</H2>
+<A NAME="idxnlp0372">&#13;</A><A NAME="idxnlp0373">&#13;</A>This section lists the program statements used to code the
+objective function and nonlinear constraints and their
+derivatives, and it documents
+the differences between program statements in the NLP procedure
+and program statements in the DATA step. 
+The syntax of program statements used in PROC NLP is
+identical to those used in the CALIS, <A NAME="idxnlp0374">&#13;</A>GENMOD, <A NAME="idxnlp0375">&#13;</A>and MODEL
+<A NAME="idxnlp0376">&#13;</A>procedures (refer to the <EM>SAS ETS User's Guide</EM>).
+<P>Most of the program statements which can be used in the SAS DATA
+step can also be used in the NLP procedure. 
+See the <EM>SAS Language Guide</EM> or
+the SAS Base documentation for a description of the SAS program
+statements.
+<P><PRE CLASS="tabbing"><TT>
+<TT>ABORT;</TT>  
+<TT>CALL</TT> <I>name [ ( expression [, expression ... ] ) ]</I>; 
+<TT>DELETE;</TT> 
+<TT>DO</TT> <I>[</I> <I>variable</I> <TT>=</TT> <I>expression</I>
+		 		 <I>[</I> <TT>TO</TT> <I>expression ] [</I>                <TT>BY</TT> <I>expression ]</I>
+		 		 <I>[, expression [</I> <TT>TO</TT> <I>expression ] [</I>                <TT>BY</TT> <I>expression ] ... ]</I>
+		 <I>]</I>
+		 <I>[</I> <TT>WHILE</TT> <I>expression ] [</I>                <TT>UNTIL</TT> <I>expression ]</I>; 
+<TT>END;</TT>  
+<TT>GOTO</TT> <I>statement_label</I>; 
+<TT>IF</TT> <I>expression</I>; 
+<TT>IF</TT> <I>expression</I> <TT>THEN</TT> <I>program_statement</I>;
+		 <TT>ELSE</TT> <I>program_statement</I>; 
+<I>variable</I> <TT>=</TT> <I>expression</I>; 
+<I>variable</I> <TT>+</TT> <I>expression</I>; 
+<TT>LINK</TT> <I>statement_label</I>; 
+<TT>PUT</TT> <I>[ variable] [<B>=</B>] [...] </I>; 
+<TT>RETURN</TT>; 
+<TT>SELECT [(</TT> <I>expression</I> <TT>)]</TT>; 
+<TT>STOP</TT>; 
+<TT>SUBSTR(</TT> <I>variable, index, length</I>             <TT>) =</TT> <I>expression</I>; 
+<TT>WHEN (</TT> <I>expression</I><TT>)</TT> <I>program_statement</I>;
+		 <TT>OTHERWISE</TT> <I>program_statement</I>; 
+</TT></PRE>
+<P>For the most part, the SAS program statements work as they
+do in the SAS DATA step as documented in the <EM>SAS Language Guide</EM>.
+However, there are several differences that should be noted.
+<P><UL>
+<LI> The ABORT statement does not allow any arguments.
+<LI> The DO statement does not allow a character
+  index variable. Thus
+<P>  <TT>do i = 1,2,3; </TT> 
+<P>
+<P>is supported; however,
+<P>  <TT>do i = 'A','B','C'; </TT> 
+<P>
+<P>is not.
+<LI> The PUT statement, used mostly for program debugging in PROC NLP,
+  supports only some of the features of the DATA step PUT statement, and
+  has some new features that the DATA step PUT statement does not:
+  <UL>
+<LI> The PROC NLP PUT statement does not support line pointers,
+          factored lists, iteration factors, overprinting, _INFILE_,
+          the colon (:) format modifier, or &#34;$&#34;.
+<LI> The PROC NLP PUT statement does support expressions, but
+          the expression must be enclosed inside of parentheses. For
+          example, the following statement diplays the square root of x
+             <TT>put (sqrt(x)); </TT>
+<LI> The PROC NLP PUT statement supports the print item _PDV_
+          to print a formatted listing of all variables in the program.
+          For example, the following statement displays a more readable 
+          listing of the variables than the _all_ print item
+             <TT>put _pdv_; </TT>      
+  </UL>
+<LI> The WHEN and OTHERWISE statements allow more than one target
+  statement. That is, DO/END groups are not necessary for multiple
+  statement WHENs. For example, the following syntax is valid:
+   <PRE CLASS="tabbing"><TT>
+<TT>SELECT;</TT>
+		 <TT>WHEN (</TT> <I>exp1</I> <TT>)</TT> <I>stmt1</I>;
+		 		 <I>stmt2</I>;
+		 <TT>WHEN (</TT> <I>exp2</I> <TT>)</TT> 		 <I>stmt3</I>;
+		 		 <I>stmt4</I>;
+		 <TT>END;</TT> 
+</TT></PRE></UL>
+<P>It is recommended to keep some kind of order
+in the input of NLP, that is, between the statements that
+define decision variables and constraints and the program code
+used to specify objective functions and derivatives.
+<P><H3><I>Use of Special Variables in Program Code</I></H3>
+Except for the quadratic programming techniques (QUADAS and
+LICOMP) that do not execute program statements during the
+iteration process, several special variables in
+the  program code can be used to communicate with PROC NLP in special
+situations:
+<A NAME="idxnlp0363">&#13;</A><UL><LI> <B>_OBS_</B> 
+      If a DATA= input data sets used, it is possible to
+      access a variable _OBS_ which contains the number of the
+      observation processed from the data set. You should not change 
+      the content of the _OBS_ variable. This   
+      variable enables you to modify the programming statements
+      depending on the observation number processed in the DATA=
+      input data set. For example, to set variable A to 1 when
+      observation 10 is processed, and otherwise to 2, it is possible to 
+      specify <BR>
+<PRE>
+       IF _OBS_ = 10 THEN A=1; ELSE A=2;
+</PRE>
+<P><A NAME="idxnlp0364">&#13;</A><LI> <B>_ITER_</B> 
+      This variable is set by PROC NLP, and it
+      contains the number of the current iteration
+      of the optimization technique as it is displayed in the
+      optimization history. You should not change the
+      content of the _ITER_ variable. 
+It is possible to read the value of this variable in order to modify
+      the programming statements depending on the iteration number
+      processed. For example, to display the content of the variables
+      A, B, and C when there are more than 100 iterations processed,
+      it is possible to use <BR>
+<PRE>
+      IF _ITER_ &#62; 100 THEN PUT A B C;
+</PRE>
+<P><A NAME="idxnlp0365">&#13;</A><LI> <B>_DPROC_</B> 
+      This variable is set by PROC NLP to indicate
+      whether the code is called only to obtain the values of the
+      <SPAN CLASS="mathfont"><I>m</I></SPAN> objective functions <SPAN CLASS="mathfont"><I>f</I><SUB><I>i</I></SUB></SPAN> (_DPROC_=0) or whether specified
+      derivatives (defined by the GRADIENT, JACOBIAN, CRPJAC,
+      or HESSIAN statement) also have to be computed (_DPROC_=1).
+      Checking the _DPROC_ variable makes it possible to save computer
+      time by not performing derivative code that is not needed
+      by the current call. In particular, when a DATA=
+      input data set is used, the code is processed many times to
+      compute only the function values. If the programming statements in the program
+      contain the specification of computationally expensive first-
+      and second-order derivatives, you can put the derivative code
+      in an IF statement that is processed only if _DPROC_ is
+      not zero. You should not change the content of the _DPROC_ variable.
+<P><A NAME="idxnlp0366">&#13;</A><LI> <B>_INDF_</B> 
+      The _INDF_ variable is set by PROC NLP
+      to inform you of the source of calls to the function or 
+      derivative programming.
+      <DL>
+<DT><STRONG>_INDF_=0</STRONG>
+<DD>indicates the first function call
+in a grid search. This is also the first call
+           evaluating the programming statements if there
+           is a grid search defined by grid values in the
+           PARMS or VAR statement.
+      <DT><STRONG>_INDF_=1</STRONG>
+<DD>indicates further function calls in a grid search.
+      <DT><STRONG>_INDF_=2</STRONG>
+<DD>indicates the call for the feasible
+           starting point. This is also the first call
+           evaluating the programming statements if there
+           is no grid search defined.
+      <DT><STRONG>_INDF_=3</STRONG>
+<DD>indicates calls from a gradient checking algorithm.
+      <DT><STRONG>_INDF_=4</STRONG>
+<DD>indicates calls from the minimization algorithm. 
+           The _ITER_ variable contains the iteration number.
+      <DT><STRONG>_INDF_=5</STRONG>
+<DD>if the active set algorithm leaves
+           the feasible region (due to rounding errors), an
+           algorithm tries to return it into the feasible
+           region; _INDF_=5 indicates a call that is done
+           when such a step is successful.
+      <DT><STRONG>_INDF_=6</STRONG>
+<DD>indicates calls from a factorial
+           test subroutine that tests the neighborhood
+           of a point <SPAN CLASS="mathfont"><I>x</I></SPAN> for optimality.
+      <DT><STRONG>_INDF_=7,8</STRONG>
+<DD>indicates calls from subroutines needed
+           to compute finite difference derivatives using
+           only values of the objective function. No nonlinear
+           constraints are evaluated.
+      <DT><STRONG>_INDF_=9</STRONG>
+<DD>indicates calls from subroutines needed
+           to compute second-order finite difference derivatives
+           using analytic (specified) first-order derivatives.
+           No nonlinear constraints are evaluated.
+      <DT><STRONG>_INDF_=10</STRONG>
+<DD>indicates calls where only the nonlinear
+            constraints but no objective function are needed.
+            The analytic derivatives of the nonlinear constraints
+            are computed.
+      <DT><STRONG>_INDF_=11</STRONG>
+<DD>indicates calls where only the nonlinear
+            constraints but no objective function are needed.
+            The analytic derivatives of the nonlinear constraints
+            are not computed.
+      <DT><STRONG>_INDF_=-1</STRONG>
+<DD>indicates the last call at the final solution.
+      </DL>
+      You should not change the content of the _INDF_ variable.
+<BR><BR><A NAME="idxnlp0367">&#13;</A><LI> <B>_LIST_</B>: 
+       You can set the _LIST_ variable to
+       control the output during the iteration process:
+      <DL>
+<DT><STRONG>_LIST_=0</STRONG>
+<DD>is equivalent to the NOPRINT option. It suppresses all output.
+<DT><STRONG>_LIST_=1</STRONG>
+<DD>is equivalent to the PSUM but not the PHIST option.
+            The optimization start and termination
+            messages are displayed. However, the PSUM option
+            suppresses the output of the iteration history.
+      <DT><STRONG>_LIST_=2</STRONG>
+<DD>is equivalent to the PSHORT option or to a 
+            combination of the PSUM and PHIST options.
+            The optimization start information, the iteration
+            history, and termination message are displayed.
+      <DT><STRONG>_LIST_=3</STRONG>
+<DD>Equivalent to: Not PSUM, not PSHORT, and not PALL:
+            The optimization start information, the iteration
+            history, and the termination message are displayed.
+      <DT><STRONG>_LIST_=4</STRONG>
+<DD>is equivalent to the PALL option.  The extended
+            optimization start information (also containing
+            settings of termination criteria and other control
+            parameters) is displayed.
+      <DT><STRONG>_LIST_=5</STRONG>
+<DD>In addition to the iteration history, the vector
+            <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> of parameter estimates is displayed for
+            each iteration <SPAN CLASS="mathfont"><I>k</I></SPAN>.
+      <DT><STRONG>_LIST_=6</STRONG>
+<DD>In addition to the iteration history, the vector
+            <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> of parameter estimates and the gradient
+            <SPAN CLASS="mathfont"><I>g</I><SUP>(<I>k</I>)</SUP></SPAN> (if available) of the objective function
+            are displayed for each iteration <SPAN CLASS="mathfont"><I>k</I></SPAN>.
+      </DL>
+      It is possible to set the _LIST_ variable in the program code
+      to obtain more or less output in each iteration
+      of the optimization process. For example,
+<P><PRE>
+      IF _ITER_ = 11      THEN _LIST_=5;
+      ELSE IF _ITER_ &#62; 11 THEN _LIST_=1;
+                          ELSE _LIST_=3;
+</PRE>
+<P><A NAME="idxnlp0368">&#13;</A><LI> <B>_TOOBIG_</B> 
+       The value of _TOOBIG_ is initialized to
+      zero by PROC NLP, but you can set it to one during the iteration, 
+      indicating problems evaluating the program statements.
+      The objective function and derivatives must be computable
+      at the starting point. However, during the iteration it is possible to 
+      set the _TOOBIG_ variable to 1, indicating that the
+      programming statements (computing the value of the objective
+      function or the specified derivatives) cannot be performed
+      for the current value of <SPAN CLASS="mathfont"><I>x</I><SUB><I>k</I></SUB></SPAN>. Some of the
+      optimization techniques check the value of _TOOBIG_ and
+      try to modify the parameter estimates so that the objective
+      function (or derivatives) can be computed in a following
+      trial.
+<P><A NAME="idxnlp0369">&#13;</A><LI> <B>_NOBS_</B> 
+       The value of the _NOBS_ variable is
+      initialized by PROC NLP to the
+      product of the number of functions
+      <SPAN CLASS="mathfont"><I>mfun</I></SPAN> specified in the MIN, MAX  or LSQ statement and the
+      number of valid observations <SPAN CLASS="mathfont"><I>nobs</I></SPAN> in the current BY group
+      of the DATA= input data set. The value of the _NOBS_ variable
+      is used for computing the scalar factor of the covariance matrix
+      (see options COV=, VARDEF=, nmd SIGSQ= in the section <A HREF="sect6.htm#nlppns">&#34;PROC NLP Statement&#34;</A>). 
+      If you reset the
+      value of the _NOBS_ variable, the value that is available at
+      the end of the iteration is used by PROC NLP to compute the
+      scalar factor of the covariance matrix.
+<P><A NAME="idxnlp0370">&#13;</A><LI> <B>_DF_</B> 
+       The value of the _DF_ variable is initialized
+      by PROC NLP to the number <SPAN CLASS="mathfont"><I>n</I></SPAN> of
+      parameters specified in the
+      DECVAR statement. The value of the _DF_ variable is used for
+      computing the scalar factor <SPAN CLASS="mathfont"><I>d</I></SPAN> of the covariance matrix.
+      See the options COV=, VARDEF=, and SIGSQ= in the section <A HREF="sect6.htm#nlppns">&#34;PROC NLP Statement&#34;</A>.  
+      If you reset the
+      value of the _DF_ variable, the value that is available at
+      the end of the iteration is used by PROC NLP to compute the
+      scalar factor of the covariance matrix.
+<P><A NAME="idxnlp0371">&#13;</A><LI> <B>_LASTF_</B> 
+       In each iteration (except the first one), the
+      value of the _LASTF_ variable is set by PROC NLP to the final
+      value of the objective function that was achieved during the
+      last iteration. This value should agree with the value that is
+      displayed in the iteration history and that is written in the
+      OUTEST= data set when the OUTITER option is specified.
+</UL><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,239 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Bringing SAS/GRAPH Output to the Web : Example 3: Using a Web Driver to Generate a Drill-down Graph </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1025109.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1025699.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1038660">Example 3: Using a Web Driver to Generate a Drill-down Graph</A></FONT></H1>
+
+
+<P><A name="z1081868">&#13;   This example shows how to use a SAS/GRAPH Web driver to generate
+a drill-down graph (see </A><A href="z1025181.htm">About Drill-down Graphs</A>).
+The example uses the HTML driver, but the principles would be the same for
+using the WEBFRAME driver.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The SAS/GRAPH Web drivers
+do not assign anchor names to the output that they generate. Thus, the Web
+drivers are best used to generate drill-down graphs that link to GIF files
+that are stored or referenced in separate files. To link to HTML files that
+store multiple pieces of output, or to link to both graphics and non-graphics
+output, it is easier to use  ODS to generate drill-down graphs.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>To generate a drill-down graph with the HTML or WEBFRAME
+device driver, all you have to do is specify the IMAGEMAP= option on the graphics
+procedure that generates the graph and supply the linking information that
+identifies the location of the target output.  SAS/GRAPH produces the GIF
+files and the image map needed for the drill-down graph and creates the HTML
+files needed to display the output and implement the drill-down capability.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Planning the Web Page</FONT></B></TD></TR></TABLE>
+
+<P>To plan the Web page, you must determine what output
+you need, which Web driver you will use, and what links you need to implement
+the drill-down capability. This example generates a simple drill-down bar
+chart showing the regional sales figures for three sales
+regions.
+<P>
+<P>
+<P><IMG border="0" src="./images/01329089.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>When the bar chart is
+displayed in a
+browser, you can
+select any one of the bars to drill down to a pie chart that shows the sales
+figures for the corresponding region. For example, you can click on the bar
+that represents sales for the Western region to drill down to a pie chart
+that shows the Western region's sales
+figures.
+<P>
+<P>
+<P><IMG border="0" src="./images/01329090.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To create this
+drill-down
+graph, you need the following:
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>output</TD>
+<TD align="left">The output requires a 3-D vertical
+bar chart to show the drill-down chart. The output also requires three pie
+charts to show the state sales figures for each region.</TD></TR>
+
+<TR align=left valign="top">
+<TD>drivers</TD>
+<TD align="left">The drill-down chart is a single
+bar chart, so the HTML driver is preferable to the WEBFRAME driver, which
+is designed for linking to multiple graphs. For the pie charts, the GIF driver
+can generate the required GIF files.
+<P>For naming the GIF files, you can let SAS/GRAPH assign
+default names, or you can use the NAME= option to control the names. This
+example will use the NAME= option to ensure that the GIF files are named salereg1.gif,
+salereg2.gif, and salereg3.gif.</TD></TR>
+
+<TR align=left valign="top">
+<TD>links</TD>
+<TD align="left">Each bar in the bar chart requires
+a link to the corresponding region's pie chart. Because the example will direct
+each pie chart to its own GIF file, the links do not need anchor names.
+<P>The drill-down capability for this design requires only
+one drill-down level: from the bar chart to the pie charts. There is no legend
+and, therefore, there are no links from the legend. Thus, only one HTML variable
+is required to store link information for the chart. This example will create
+a variable named LINKS.
+<P>Each pie chart will be directed to its own GIF file.
+Thus, the links do not need anchor names. The example assumes that users will
+access all output through a file system, so a file specification will suffice
+for the linking information.</TD></TR>
+</TABLE>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Output Needed for the Drill-down Graph</FONT></B></TD></TR></TABLE>
+
+<P>To generate this example drill-down bar chart, you must
+run the GCHART procedure with the VBAR3D statement. The PROC GCHART statement
+must use the IMAGEMAP= option to create an Imagemap data set, and the VBAR3D
+statement must use the HTML= option to specify the HTML variable that contains
+the linking information--in this case, the variable LINKS. To generate
+the pie charts, you can use PROC GCHART to generate all three pie charts in
+a single procedure run by using  BY-group processing (see <A href="bychap.htm">BY Statement</A>) .
+<P>In this example code, note the
+following:
+<P>
+<UL>
+
+<LI>The graphics options specify the HTML device driver
+and set the display area to 450x400 pixels. The HTML driver always creates
+a file named index.html to reference the graphics output. File index.html
+is the file you must view in the browser.<P>
+
+<LI>The DATA step creates the variable LINKS and assigns
+to it the values needed for the links in the drill-down graph.<P>
+
+<LI>The PROC GCHART statement uses the IMAGEMAP= option
+to create an Imagemap data set named SALEMAP.<P>
+
+<LI>The VBAR3D statement uses the HTML= option to
+specify the variable LINKS, thus associating the linking information with
+the bar chart.<P>
+
+<LI>The presence of both IMAGEMAP= and HTML= causes
+the HTML device driver to write the image map information to the file index.html,
+which contains the &lt;IMG> tag that references the bar chart. In the image
+map, the linking information is derived from the values of the variable LINKS.<P>
+
+<LI> Because the HTML driver writes over the contents
+of file index.html each time a graphics procedure is run, the example switches
+to the GIF driver to generate new files for the pie charts. <P>
+
+<LI>For the pie charts, the example specifies a second
+GCHART procedure, which does not use the IMAGEMAP= option. This second GCHART
+uses the PIE3D statement and uses BY-group processing to generate a separate
+pie chart for each region in the data. On the PIE3D statement, the NAME= option
+specifies the name SALEREG1 for the first pie chart. SAS/GRAPH automatically
+increments that name for the next two pie charts, which are assigned the names
+SALEREG2 and SALEREG3.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Code for the Example</FONT></B></TD></TR></TABLE>
+
+<P>
+<PRE>/* This is the only line you have to change to run the */
+/* program. Specify a location in your file system. */
+filename webout '<I>path-to-Web-server</I>';
+
+/* set general graphic options */
+goptions reset=global gunit=pct
+         htitle=6 htext=4
+         ftitle=zapfb ftext=swiss border;
+
+/* assign graphics options for ODS output */
+goptions transparency noborder
+  xpixels=450 ypixels=400
+  gsfname=webout device=html;
+
+/* create data set REGSALES */
+data regsales;
+    length Region State $ 8;
+    format Sales dollar8.;
+    input Region State Sales;
+    length links $40; /* the HTML variable */
+
+/* add the HTML variable and assign its values */
+if Region='Central' then links='href="salereg1.gif"';
+  else if Region='South' then links='href="salereg2.gif"';
+  else if Region='West' then links='href="salereg3.gif"';
+
+datalines;
+ West    CA  13636
+ West    OR  18988
+ West    WA  14523
+ Central IL  18038
+ Central IN  13611
+ Central OH  11084
+ Central MI  19660
+ South   FL  14541
+ South   GA  19022
+ ;
+
+title1 'Company Sales';
+proc gchart data=regsales imagemap=salemap;
+ vbar3d region / sumvar=sales
+  patternid=midpoint
+  html=links name='htmldril';
+run;
+
+/* change to GIF driver for pie charts */
+goptions dev=gif;
+
+proc sort data=regsales out=regsales;
+by region;
+
+/* Create three charts that use the HTML variable */
+proc gchart data=regsales;
+  pie3d state / sumvar=sales
+   noheading name='salereg1';
+by region;
+run;
+quit;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1025109.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1025699.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1038660">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

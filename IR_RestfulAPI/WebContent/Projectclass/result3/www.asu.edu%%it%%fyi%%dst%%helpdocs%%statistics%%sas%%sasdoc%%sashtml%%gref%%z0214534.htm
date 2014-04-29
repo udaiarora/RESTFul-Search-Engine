@@ -1,0 +1,205 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The Annotate Data Set : Processing Details </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zatachap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z-output.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zdata-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0214534">Processing Details</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Order in Which Graphics Elements Are Drawn</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0689876">&#13;   When a procedure uses an Annotate data set, it reads and interprets
+the observations one at a time, starting with the first observation and proceeding
+to the last.  The order of the observations in the data set determines the
+order in which the graphics elements are generated. If the coordinates of
+two graphics elements overlap, the graphics element produced by an earlier
+observation can be overwritten by any graphics elements that are produced
+by subsequent observations.  As a result, graphics elements can overlay each
+other and they can also overlay or be overlaid by procedure output. </A><DL>
+<DT><B><FONT color="FF00007">CAUTION:</FONT></B></DT><DD><B>Overlay behavior is device-dependent.</B>
+Most terminals, cameras, and some
+printers demonstrate overlay behavior because
+the process of drawing updates pixels as each graphics element is drawn. 
+Plotters do not overlay the graphics elements internally before plotting;
+they draw graphics elements on top of each other on the paper. The area where
+graphics elements overlap shows one color bleeding through the color that
+overlays it. To ensure that one graphics element overlays another, use the
+WHEN variable.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"></DD></DL>
+<P> 
+<BR><H3>Controlling the Processing with the WHEN Variable</H3>
+
+
+<P> The WHEN variable determines the order
+in which observations in an Annotate data set are processed.  It determines
+if observations are processed <B>before</B> or <B>after</B> other
+observations and before or after output that is produced by a  SAS/GRAPH 
+procedure. This means that Annotate graphics can be overlaid by procedure
+output or can overlay procedure output. By default, Annotate graphics are
+drawn before the procedure output.
+<P>In effect, you can have two sets of Annotate graphics
+elements that are generated for the same output: 
+<P>
+<UL>
+
+<LI>Annotate graphics drawn before procedure output
+(the default, WHEN='B').<P>
+
+<LI>Annotate graphics drawn after procedure output
+(WHEN='A').<P>
+</UL>
+
+<P>Within each set, graphics elements are drawn in the
+order that they appear in the Annotate data set and overlay each other as
+appropriate (on devices that demonstrate overlay behavior). For details, see
+the description of the WHEN variable on <A href="zhen-var.htm">WHEN Variable</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using BY-Group Processing with the Annotate Facility</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0689884">&#13;
+ You can use the Annotate facility with procedures that use BY
+statements to annotate each graph that is generated with a BY statement. 
+The Annotate graphics for each graph are generated depending on the value
+of the BY variable.  To use BY-group processing with the Annotate facility,
+your program must meet the following conditions: </A>
+<P>
+<UL>
+
+<LI>Both the input data set for the procedure and
+the Annotate data set must contain the same BY variable.<P>
+
+<LI>The BY variable must be defined as the same type
+(character or numeric) and length in both data sets.<P>
+
+<LI>If a label or format is associated with a BY variable
+in one data set, the same label or format has to be associated with it in
+the other data set.<P>
+
+<LI>Both data sets must be sorted by the BY variable.<P>
+
+<LI> The ANNOTATE= option must be specified in an
+action statement in the procedure.  If you specify the ANNOTATE= option in
+the PROC statement, the Annotate graphics are used for all graphs that are
+generated by the procedure rather than for unique values of the BY variable.<P>
+</UL>
+
+<P>See
+<A href="bychap.htm">BY Statement</A>
+for details.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zta-lifo">Using the LIFO Stack</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0689892">&#13;  The FUNCTION variable supports several programming functions
+that manipulate the internal coordinates and provide other utility operations.
+Several of these functions use the LIFO stack to track and set variable values.</A>
+<P>The <B>LIFO</B> (last-in-first-out) <B>stack</B> is a storage area where you can
+keep internal coordinate values for
+later use. It is useful when you want to save the current values of (XLAST,YLAST)
+and (XLSTT,YLSTT) and use them with functions later in the DATA step.
+<P> You store and retrieve values from the stack using
+the PUSH and POP functions.  The PUSH function copies the current values of
+XLAST, YLAST, XLSTT, and YLSTT onto the stack.  The POP function copies values
+from the stack into XLAST, YLAST, XLSTT, and YLSTT.
+<P>LIFO stacks manage the stored data so that the last
+data stored in the stack is the first data removed from the stack. This means
+that a POP function retrieves the values <B>most recently</B> stored
+with a PUSH function.  <A href="#zpushfig">Using PUSH and POP to Store and Retrieve Coordinate Values</A>
+illustrates how PUSH and POP functions work together. 
+<P>
+<P>
+<B><I><A name="zpushfig">Using PUSH and POP to Store and Retrieve Coordinate Values</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329202.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>See also
+<A href="z-grelem.htm#znternal">Internal Coordinates</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="za-debug">Debugging</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0689898">&#13; You can print your Annotate data set with the PRINT procedure.
+This is an easy way to examine the Annotation that you have specified or to
+debug your program. For example, a listing such as the one in </A><A href="zaboutds.htm#zboxdata">Listing of the Annotate Data Set TRIANGLE</A> provides complete
+information about the value that you specify for each variable in every observation.
+<P>For more complex problems, the DEBUG function enables
+you to display the values of Annotate variables and internal coordinates before
+and after a function is submitted.  The values are written to the SAS log.
+<P> If there is an error in your Annotate data set, one
+or more diagnostic messages are printed in the SAS log: 
+<P>
+<UL>
+
+<LI>If an error is found in preprocessing, this message
+appears:  
+
+
+
+<PRE>NOTE: ERROR DETECTED IN ANNOTATE= <I>libref.dataset</I></PRE><P>
+
+<LI>If an error is found as an observation is being
+read, this message appears:  
+
+
+
+<PRE>PROBLEM IN OBSERVATION <I>number</I>-<I>message</I></PRE>
+<P>where <B>message</B> is the text of the error
+message.<P>
+
+<LI>If the error limit of 20 errors is reached at
+any point during processing of the data set, a termination message similar
+to this one appears:  
+
+
+
+<PRE>ERROR LIMIT REACHED IN ANNOTATE PROCESS
+
+              20 TOTAL ERRORS</PRE><P>
+</UL>
+
+<P>For an explanation of common diagnostic messages, refer
+to the Help facility.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zatachap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z-output.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zdata-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0214534">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,284 @@
+<HTML>
+<HEAD>
+<TITLE>Specifying the State Space Model</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The STATESPACE Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Specifying the State Space Model  </H2>
+<P>Instead of allowing the STATESPACE procedure
+to select the model automatically,
+you can use FORM and RESTRICT statements to specify a state space model.
+<A NAME="idxsta0044">&#13;</A><A NAME="idxsta0043">&#13;</A><H3><I>Specifying the State Vector</I></H3>
+Use the FORM statement to control the form of the state vector.
+You can use this feature to force PROC STATESPACE to estimate and
+forecast a model different from the model it would select automatically.
+You can also use this feature to reestimate
+the automatically selected model (possibly with restrictions)
+without repeating the canonical correlation analysis.
+<P>The FORM statement specifies the number of lags of each variable
+to include in the state vector.
+For example, the statement FORM X 3; forces the state vector to
+include <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I>|<I>t</I></SUB></SPAN>, <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I>+1|<I>t</I></SUB></SPAN>, and <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I>+2|<I>t</I></SUB></SPAN>.
+The following statement specifies the state vector
+ <SPAN CLASS="mathfont">( <I>x</I><SUB><I>t</I>|<I>t</I></SUB>, <I>y</I><SUB><I>t</I>|<I>t</I></SUB>, <I>x</I><SUB><I>t</I>+1|<I>t</I></SUB> )</SPAN>,
+which is the same state vector selected
+in the preceding example:
+<P><PRE>
+   form x 2 y 1;
+</PRE>
+<P>You can specify the form for only some of the variables and
+allow PROC STATESPACE to select the form for the other variables.
+If only some of the variables are specified in the FORM statement,
+canonical correlation analysis is used to determine the
+number of lags included in the state vector
+for the remaining variables not specified by the FORM statement.
+If the FORM statement includes specifications for all the variables
+listed in the VAR statement,
+the state vector is completely defined and
+the canonical correlation analysis is not performed.
+<P><H3><I>Restricting the F and G matrices</I></H3>
+After you know the form of the state vector,
+you can use the RESTRICT statement to fix some parameters
+in the <SPAN CLASS="mathfont"><b>F</b></SPAN> and <SPAN CLASS="mathfont"><b>G</b></SPAN> matrices to specified values.
+One use of this feature is to remove insignificant
+parameters by restricting them to 0.
+<P>In the introductory example shown in the preceding section,
+the F[2,3] parameter is not significant.
+(The parameters estimation output shown in <A HREF="sect3.htm#staf1_5">Figure 18.6</A>
+gives the <I>t</I> statistic for F[2,3] as -0.06.
+F[3,3] and F[3,1] also have low significance with <SPAN CLASS="mathfont"><I>t</I> &#60; 2</SPAN>.)
+<P>The following statements reestimate this model with
+F[2,3] restricted to 0.
+The FORM statement is used to specify the state vector
+and thus bypass the canonical correlation analysis.
+<P><PRE>
+   proc statespace data=in out=out lead=10;
+      var x(1) y(1);
+      id t;
+      form x 2 y 1;
+      restrict f(2,3)=0;
+   run;
+</PRE>
+<P>The final estimates produced by these statements are shown in <A HREF="sect4.htm#staf2_1">Figure 18.9</A>.
+<P><A NAME="staf2_1">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>The STATESPACE Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Selected Statespace Form and Fitted Model</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE1--></CENTER>
+<P>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>State Vector</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">x(T;T)</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">y(T;T)</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">x(T+1;T)</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+<A NAME="IDX1">&nbsp;</A>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Estimate of Transition Matrix</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.290051</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.467468</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.227051</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.226139</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.26436</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+<A NAME="IDX2">&nbsp;</A>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Input Matrix for Innovation</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.256826</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.202022</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+<A NAME="IDX3">&nbsp;</A>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Variance Matrix for Innovation</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.945175</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.100696</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.100696</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1.014733</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+</TD></TR></TABLE></CENTER><BR><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>The STATESPACE Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE1--></CENTER>
+<P>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+<TR>
+ <TD COLSPAN=4 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Parameter Estimates</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Standard Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>F(2,1)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.290051</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.063904</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">4.54</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>F(2,2)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.467468</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.060430</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">7.74</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>F(3,1)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.227051</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.125221</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1.81</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>F(3,2)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.226139</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.111711</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">2.02</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>F(3,3)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.264360</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.299537</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.88</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>G(3,1)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.256826</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.070994</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">3.62</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>G(3,2)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.202022</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.068507</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">2.95</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<!--ENDTABLE--></CENTER>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 18.9:</B> Results using RESTRICT Statement</SPAN><P>
+<P>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<TITLE>Polynomial Distributed Lag Estimation</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect11.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The PDLREG Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Polynomial Distributed Lag Estimation  </H2>
+<P>The simple finite distributed lag model is expressed in the form
+
+<DL CLASS="equation"><DD><IMG WIDTH="184" HEIGHT="111"
+ SRC="images/pdleq13.gif"
+ ALT="y_{t} = {\alpha} + \sum_{i=0}^p{{\beta}_{i}x_{t-i}}
++ {\epsilon}_{t}"></DL>
+When the lag length (<I>p</I>) is long, severe
+multicollinearity can occur. Use the Almon or
+<I>polynomial distributed lag</I> model to avoid this problem,
+since the relatively low
+degree <I>d</I> (<IMG WIDTH="27" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/pdleq14.gif"
+ ALT="{{\le} p}">) polynomials can capture the true lag
+distribution. The lag coefficient can be written in the Almon
+polynomial lag
+
+<DL CLASS="equation"><DD><IMG WIDTH="143" HEIGHT="116"
+ SRC="images/pdleq15.gif"
+ ALT="{\beta}_{i} = {\alpha}_{0}^{*} + \sum_{j=1}^d{{\alpha}_{j}^{*} i^j}"></DL>
+<P>Emerson (1968) proposed an efficient method of constructing orthogonal
+polynomials from the preceding polynomial equation as
+
+<DL CLASS="equation"><DD><IMG WIDTH="164" HEIGHT="116"
+ SRC="images/pdleq16.gif"
+ ALT="{\beta}_{i} = {\alpha}_{0} +
+\sum_{j=1}^d{{\alpha}_{j} f_{j}(i)}"></DL>
+where <SPAN CLASS="mathfont"><I>f</I><SUB><I>j</I></SUB>(<I>i</I>)</SPAN> is a polynomial of degree <I>j</I>
+in the lag length <I>i</I>.
+The polynomials <SPAN CLASS="mathfont"><I>f</I><SUB><I>j</I></SUB>(<I>i</I>)</SPAN> are chosen so that they
+are orthogonal:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="265" HEIGHT="110"
+ SRC="images/pdleq17.gif"
+ ALT="\sum_{i=1}^n{w_{i}f_{j}(i)f_{k}(i)} =
+ \cases{
+ 1 & \hspace*{1em}\rm{if} j = k\space \cr
+ 0 & \hspace*{1em}\rm{if} j {\neq} k\space }"></DL>
+<P>where <SPAN CLASS="mathfont"><I>w</I><sub><I>i</I></sub></SPAN> is the weighting factor, and <SPAN CLASS="mathfont"><I>n</I> = <I>p</I>+1 </SPAN>.
+PROC PDLREG uses the equal weights (<SPAN CLASS="mathfont"><I>w</I><sub><I>i</I></sub> = 1</SPAN>) for
+all <I>i</I>.
+To construct the orthogonal polynomials, the following recursive
+relation is used:
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>f</I><sub><I>j</I></sub>(<I>i</I>) = (<I>A</I><sub><I>j</I></sub><I>i</I> + <I>B</I><sub><I>j</I></sub>)<I>f</I><sub><I>j</I>-1</sub>(<I>i</I>) - <I>C</I><sub><I>j</I></sub><I>f</I><sub><I>j</I>-2</sub>(<I>i</I>)  <I>j</I> = 1, ... , <I>d</I></SPAN>
+</DL>
+<P>The constants <SPAN CLASS="mathfont"><I>A</I><SUB><I>j</I></SUB>, <I>B</I><SUB><I>j</I></SUB></SPAN>, and <SPAN CLASS="mathfont"><I>C</I><SUB><I>j</I></SUB></SPAN> are
+determined as follows:
+<P><DL CLASS="equation"><DD><IMG WIDTH="384" HEIGHT="334"
+ SRC="images/pdleq18.gif"
+ ALT="A_{j} &=& \{ \sum_{i=1}^n{w_{i}i^2f_{j-1}^2(i)} 
+\hspace*{1em}-(\sum_{i=1}^n{w_{...
+ ...{w_{i}i f_{j-1}^2(i)}
+\ C_{j} &=& A_{j}\sum_{i=1}^n{w_{i}i
+f_{j-1}(i)f_{j-2}(i)}"></DL>
+<P>where <SPAN CLASS="mathfont"><I>f<SUB>-1</SUB></I>(<I>i</I>)=0</SPAN> and <IMG WIDTH="166" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/pdleq19.gif"
+ ALT="{f_{0}(i)=1/\sqrt{\sum_{i=1}^n{w_{i}}} }">.<P>PROC PDLREG estimates the orthogonal polynomial coefficients,
+<IMG WIDTH="80" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/pdleq20.gif"
+ ALT="{{\alpha}_{0},{ ... },{\alpha}_{d}}">,to compute the coefficient estimate of each independent variable (X)
+with distributed lags.
+For example, if an independent variable is specified as X(9,3),
+a third-degree polynomial is used to specify the distributed lag coefficients.
+The third-degree polynomial is fit as a constant term,
+a linear term, a quadratic term, and a cubic term.
+The four terms are constructed to be orthogonal.
+In the output produced by the PDLREG procedure for this case,
+parameter estimates with names X**0, X**1, X**2, and X**3 correspond to
+<IMG WIDTH="78" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/pdleq21.gif"
+ ALT="{\hat{{\alpha}}_{0}, \hat{{\alpha}}_{1}, \hat{{\alpha}}_{2}}">, and
+<IMG WIDTH="23" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/pdleq22.gif"
+ ALT="{\hat{{\alpha}}_{3}}">, respectively.
+A test using the <I>t</I> statistic and the approximate <I>p</I>-value
+(&#34;Approx Pr <SPAN CLASS="mathfont">&#62; |<I>t</I>|</SPAN>&#34;) associated with X**3
+can determine whether a second-degree polynomial rather
+than a third-degree polynomial is appropriate.
+The estimates of the ten lag coefficients associated
+with the specification X(9,3) are labeled X(0), X(1), X(2), X(3), X(4), X(5),
+X(6), X(7), X(8), and X(9).
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect11.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

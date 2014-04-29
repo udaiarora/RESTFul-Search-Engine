@@ -1,0 +1,130 @@
+<HTML>
+<HEAD>
+<TITLE>Specifying Seasonality</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect15.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The FORECAST Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Specifying Seasonality  </H2>
+<P><A NAME="idxfor0101">&#13;</A><A NAME="idxfor0100">&#13;</A><I>Seasonality</I> of a time series is a regular fluctuation about a trend.
+This is called seasonality because the time of year is the most common
+source of periodic variation.
+For example, sales of home heating oil are regularly greater
+in winter than during other times of the year.
+<P>Seasonality can be caused by many things other than weather.
+In the United States, sales of nondurable goods are greater in
+December than in other months because of the Christmas shopping season.
+The term seasonality is also used for cyclical fluctuation at
+periods other than a year.
+Often, certain days of the week cause regular fluctuation in daily
+time series, such as increased spending on leisure activities during weekends.
+<P>Three kinds of seasonality are supported in PROC FORECAST:
+time-of-year, day-of-week, and time-of-day.
+The seasonal part of the model is specified using the SEASONS= option.
+The values for the SEASONS= option are listed in <A HREF="sect14.htm#forseasons">Table 12.1</A>.
+<P></P><A NAME="forseasons"><SPAN CLASS="ssften"><B>Table 12.1:</B> The SEASONS= Option</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>SEASONS= Value</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Cycle Length</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Type of Seasonality</B></FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>QTR</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yearly</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>time of year</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>MONTH</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yearly</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>time of year</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>DAY</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>weekly</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>day of week</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>HOUR</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>daily</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>time of day</TD></TR></TBODY>
+</TABLE>
+<P>The three kinds of seasonality can be combined.
+For example, SEASONS=(MONTH DAY HOUR) specifies that
+24 hour-of-day seasons are nested within
+7 day-of-week seasons, which in turn are nested within
+12 month-of-year seasons.
+The different kinds of intervals can be listed in the SEASONS=
+option in any order.
+Thus, SEASONS=(HOUR DAY MONTH) is the same as SEASONS=(MONTH DAY HOUR).
+Note that the Winters method smoothing equations may be less stable
+when multiple seasonal factors are used.
+<P>Multiple period seasons can also be used.
+For example, SEASONS=QTR2 specifies two semiannual time-of-year seasons.
+The grouping of observations into multiple period seasons
+starts with the first interval in the seasonal cycle.
+Thus, MONTH2 seasons are January-February, March-April, and so on.
+(There is no provision for shifting seasonal intervals;
+thus, there is no way to specify December-January,
+February-March, April-May, and so on seasons.)
+<P>For multiple period seasons, the number of intervals combined to
+form the seasons must evenly divide and be less than the basic cycle length.
+For example, with SEASONS=MONTH<I>n</I>,
+the basic cycle length is 12,
+so MONTH2, MONTH3, MONTH4, and MONTH6 are valid SEASONS= values
+(since 2, 3, 4, and 6 evenly divide 12 and are less than 12),
+but MONTH5 and MONTH12 are not valid SEASONS= values.
+<P>The frequency of the seasons must not be greater than the
+frequency of the input data.
+For example, you cannot specify SEASONS=MONTH if INTERVAL=QTR
+or SEASONS=MONTH if INTERVAL=MONTH2.
+You also cannot specify two seasons of the same basic cycle.
+For example, SEASONS=(MONTH QTR) or SEASONS=(MONTH2 MONTH4) is not allowed.
+<P>Alternatively, the seasonality can be specified by giving the
+number of seasons in the SEASONS= option.
+SEASONS=<I>n</I> specifies that there are <I>n</I> seasons,
+with observations 1, <I>n</I>+1, 2<I>n</I>+1, and so on
+in the first season,
+observations 2, <I>n</I>+2, 2<I>n</I>+2, and so on
+in the second season, and so forth.
+<P>The options SEASONS=<I>n</I> and SINTPER=<I>m</I> cause PROC FORECAST to
+group the input observations into <I>n</I> seasons,
+with <I>m</I> observations to a season,
+which repeat every <I>nm</I> observations.
+The options SEASONS=(<I>n</I><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> <I>n</I><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN>) and
+SINTPER=(<I>m</I><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> <I>m</I><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN>) produce <I>n</I><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> seasons
+with <I>m</I><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> observations to a season nested within <I>n</I><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> seasons
+with <I>n</I><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN><I>m</I><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN><I>m</I><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> observations to a season.
+<P>If the SINTPER=<I>m</I> option is used with the SEASONS= option, the
+SEASONS= interval is multiplied by the SINTPER= value.
+For example, specifying both SEASONS=(QTR HOUR) and SINTPER=(2 3)
+is the same as specifying SEASONS=(QTR2 HOUR3)
+and also the same as specifying SEASONS=(HOUR3 QTR2).
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect15.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

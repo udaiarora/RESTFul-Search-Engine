@@ -1,0 +1,101 @@
+<html>
+<head>
+<title>
+Starting a Shell from Inside a Program
+</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h2><center>
+Starting a Shell from Inside a Program
+</center></h2>
+<p>
+Q. Please explain how to control the execution of a (compiled)
+program - named 'a.out' - from within a FORTRAN program. In other words, 
+how can one gain access to the UNIX shell from a FORTRAN program.
+My intention is to write a FORTRAN program - called after compilation
+'fort.out' - which will launch the execution of 'a.out' and resume its
+own execution only after 'a.out' will finish.
+<p> 
+The enclosed programs may answer your question. There are two programs, 
+one called 'CALLER' and the second named 'CALLEE'. The first program 
+requests that the second (CALLEE) be executed - by using the 'system' 
+subroutine. Actually, a subshell is spawned, the CALLEE program executes, 
+and control is returned to the requester 'CALLER'. The example is 
+intended to illustrate that caution must be used since control is given 
+back to the original (CALLER) program. If the two programs use the same 
+data, strange results could result! User beware! 
+<pre>  
+113 research1 [directory: ~/tmp ]
+=> cat caller.f
+      Program CALLER
+      print *, ' Beginning of caller program'
+      open (unit=10, file='marker')
+      read (10,'(I1)') ID
+      rewind (10)
+      write(10,'(I1)') ID+1
+      close (10)
+      print *, ' --- program ID = ', ID
+      call system("./callee")
+      print *, ' --- End of caller program: ID = ', ID
+      end
+________________________________________________________________________
+114 research1 [directory: ~/tmp ]
+=> cat callee.f
+      Program CALLEE
+      print *, ' + Beginning of callee program'
+      open (unit=10, file='marker')
+      read (10,'(I1)') ID
+      print *, ' + --- program ID = ', ID
+      print *, ' + --- End of callee program: ID = ', ID
+      call system("ps -f -u `whoami`")
+      end
+________________________________________________________________________
+115 research1 [directory: ~/tmp ]
+=> cat marker
+1
+________________________________________________________________________
+116 research1 [directory: ~/tmp ]
+=> caller
+  Beginning of caller program
+  --- program ID =           1
+  + Beginning of callee program
+  + --- program ID =           2
+  + --- End of callee program: ID =           2
+    USER   PID  PPID   C    STIME    TTY  TIME CMD
+ tachoir 10824 22343   1 16:10:53 pts/46  0:00 ./callee
+ tachoir 22343 31302   1 16:10:53 pts/46  0:00 bsh bsh bsh
+ tachoir 31302 36432   2 16:10:53 pts/46  0:00 caller
+ tachoir 31561 10824   4 16:10:53 pts/46  0:00 bsh bsh bsh
+ tachoir 36432 41807   1 17:54:56 pts/46  0:04 -ksh
+ tachoir 39243 31561   7 16:10:53 pts/46  0:00 ps -f -u tachoir
+  --- End of caller program: ID =           1
+________________________________________________________________________
+</pre> 
+
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3"><BR>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A> | <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:unix-q@asu.edu">unix-q@asu.edu</A></FONT><br>
+ <FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+ Page Last Updated: Tuesday September  7, 1999</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</body>
+
+</html>

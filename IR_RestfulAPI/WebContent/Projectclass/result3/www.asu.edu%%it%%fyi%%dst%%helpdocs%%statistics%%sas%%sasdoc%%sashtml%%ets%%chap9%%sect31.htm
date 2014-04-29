@@ -1,0 +1,375 @@
+<HTML>
+<HEAD>
+<TITLE>Example 9.2: Enhancing a Report</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="comex2">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect30.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect32.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 9.2: Enhancing a Report</H2>
+<P>The following example shows how a report can be enhanced from a simple
+listing to a complex report.
+The simplest COMPUTAB report is a transposed listing of
+the data in the SAS data set INCOMREP shown in <A HREF="sect31.htm#comex02a">Output 9.2.1</A>.
+To produce this output, nothing is specified
+except the PROC COMPUTAB statement and a TITLE statement.
+<P><PRE>
+   data incomrep;
+      input type :$8. date :monyy7.
+            sales retdis tcos selling randd
+            general admin deprec other taxes;
+      format date monyy7.;
+   datalines;
+   BUDGET JAN1989 4600 300 2200 480 110 500 210 14 -8 510
+   BUDGET FEB1989 4700 330 2300 500 110 500 200 14  0 480
+   BUDGET MAR1989 4800 360 2600 500 120 600 250 15  2 520
+   ACTUAL JAN1989 4900 505 2100 430 130 410 200 14 -8 500
+   ACTUAL FEB1989 5100 480 2400 510 110 390 230 15  2 490
+   ;
+   title 'Computab Report without Any Specifications';
+   proc computab data=incomrep;
+   run;
+</PRE>
+<P></P><A NAME="comex02a"><SPAN CLASS="ssften"><B>Output 9.2.1:</B> Simple Report</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Computab Report without Any Specifications</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                      COL1       COL2       COL3       COL4       COL5          
+                                                                                
+        type        BUDGET     BUDGET     BUDGET     ACTUAL     ACTUAL          
+        date       JAN1989    FEB1989    MAR1989    JAN1989    FEB1989          
+        sales      4600.00    4700.00    4800.00    4900.00    5100.00          
+        retdis      300.00     330.00     360.00     505.00     480.00          
+        tcos       2200.00    2300.00    2600.00    2100.00    2400.00          
+        selling     480.00     500.00     500.00     430.00     510.00          
+        randd       110.00     110.00     120.00     130.00     110.00          
+        general     500.00     500.00     600.00     410.00     390.00          
+        admin       210.00     200.00     250.00     200.00     230.00          
+        deprec       14.00      14.00      15.00      14.00      15.00          
+        other        -8.00       0.00       2.00      -8.00       2.00          
+        taxes       510.00     480.00     520.00     500.00     490.00          
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><BR>To exclude the budgeted values from your report, select columns for ACTUAL
+observations only. To remove unwanted variables, specify
+the variables you want in a ROWS statement.
+<P><PRE>
+   title 'Column Selection by Month';
+   
+   proc computab data=incomrep;
+      rows sales--other;
+      columns jana feba mara;
+      mnth = month(date);
+      if type = 'ACTUAL';
+         jana = mnth = 1;
+         feba = mnth = 2;
+         mara = mnth = 3;
+   run;
+</PRE>
+<P>The report is shown in <A HREF="sect31.htm#comex02b">Output 9.2.2</A>.
+<P></P><A NAME="comex02b"><SPAN CLASS="ssften"><B>Output 9.2.2:</B> Report Using Column Selection Techniques</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Column Selection by Month</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                                 JANA       FEBA       MARA                     
+                                                                                
+                   sales      4900.00    5100.00       0.00                     
+                   retdis      505.00     480.00       0.00                     
+                   tcos       2100.00    2400.00       0.00                     
+                   selling     430.00     510.00       0.00                     
+                   randd       130.00     110.00       0.00                     
+                   general     410.00     390.00       0.00                     
+                   admin       200.00     230.00       0.00                     
+                   deprec       14.00      15.00       0.00                     
+                   other        -8.00       2.00       0.00                     
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><BR>To complete the report, compute new rows from existing rows.
+This is done in a row block (although it can also be done in the input
+block).  Add a new column (QTR1) that accumulates
+all the actual data. The NOZERO option suppresses the zero column for March.
+The output produced by these statements is shown in <A HREF="sect31.htm#comex02c">Output 9.2.3</A>.
+<P><PRE>
+   proc computab data=incomrep;
+   
+      /* add a new column to be selected */
+      /* qtr1 column will be selected several times */
+      columns actual1-actual3 qtr1 / nozero;
+      array collist[3] actual1-actual3;
+      rows sales retdis netsales tcos grosspft selling randd general
+           admin deprec operexp operinc other taxblinc taxes netincom;
+   
+      if type='ACTUAL';
+      i = month(date);
+      if i &#60;= 3 then qtr1 = 1;
+      collist[i]=1;
+   
+      rowcalc:
+         if sales = . then return;
+         netsales = sales - retdis;
+         grosspft = netsales - tcos;
+         operexp  = selling + randd + general + admin + deprec;
+         operinc  = grosspft - operexp;
+         taxblinc = operinc + other;
+         netincom = taxblinc - taxes;
+   run;
+</PRE>
+<P></P><A NAME="comex02c"><SPAN CLASS="ssften"><B>Output 9.2.3:</B> Report Using Techniques to Compute New Rows</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Column Selection by Month</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                               ACTUAL1    ACTUAL2       QTR1                    
+                                                                                
+                   SALES       4900.00    5100.00   10000.00                    
+                   RETDIS       505.00     480.00     985.00                    
+                   NETSALES    4395.00    4620.00    9015.00                    
+                   TCOS        2100.00    2400.00    4500.00                    
+                   GROSSPFT    2295.00    2220.00    4515.00                    
+                   SELLING      430.00     510.00     940.00                    
+                   RANDD        130.00     110.00     240.00                    
+                   GENERAL      410.00     390.00     800.00                    
+                   ADMIN        200.00     230.00     430.00                    
+                   DEPREC        14.00      15.00      29.00                    
+                   OPEREXP     1184.00    1255.00    2439.00                    
+                   OPERINC     1111.00     965.00    2076.00                    
+                   OTHER         -8.00       2.00      -6.00                    
+                   TAXBLINC    1103.00     967.00    2070.00                    
+                   TAXES        500.00     490.00     990.00                    
+                   NETINCOM     603.00     477.00    1080.00                    
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><BR>Now that you have all the numbers calculated, add specifications to improve
+the report's appearance. Specify titles, row and column labels, and formats.
+The report produced by these statements is shown in <A HREF="sect31.htm#comex02d">Output 9.2.4</A>.
+<P><PRE>
+   /* now get the report to look the way we want it */
+   title  'Pro Forma Income Statement';
+   title2 'XYZ Computer Services, Inc.';
+   title3 'Period to Date Actual';
+   title4 'Amounts in Thousands';
+   
+   proc computab data=incomrep;
+   
+      columns actual1-actual3 qtr1 / nozero f=comma7. +3 ' ';
+      array collist[3] actual1-actual3;
+      columns actual1 / 'Jan';
+      columns actual2 / 'Feb';
+      columns actual3 / 'Mar';
+      columns qtr1 / 'Total' 'Qtr 1';
+      rows sales    / ' '
+                      'Gross Sales ';
+      rows retdis   / 'Less Returns &#38; Discounts';
+      rows netsales / 'Net Sales'                   +3 ol;
+      rows tcos     / ' '
+                      'Total Cost of Sales';
+      rows grosspft / ' '
+                      'Gross Profit';
+      rows selling  / ' '
+                      'Operating Expenses:'
+                      '   Selling';
+      rows randd    / '   R &#38; D';
+      rows general  / +3;
+      rows admin    / '   Administrative';
+      rows deprec   / '   Depreciation'             ul;
+      rows operexp  / ' '                         skip;
+      rows operinc  / 'Operating Income';
+      rows other    / 'Other Income/-Expense'       ul;
+      rows taxblinc / 'Taxable Income';
+      rows taxes    / 'Income Taxes'                ul;
+      rows netincom / '   Net Income'              dul;
+   
+      if type = 'ACTUAL';
+      i = month( date );
+      collist[i] = 1;
+   
+      colcalc:
+         qtr1 = actual1 + actual2 + actual3;
+   
+      rowcalc:
+         if sales = . then return;
+         netsales = sales - retdis;
+         grosspft = netsales - tcos;
+         operexp = selling + randd + general + admin + deprec;
+         operinc = grosspft - operexp;
+         taxblinc = operinc + other;
+         netincom = taxblinc - taxes;
+   run;
+</PRE>
+<P></P><A NAME="comex02d"><SPAN CLASS="ssften"><B>Output 9.2.4:</B> Specifying Titles, Row and Column Labels, and Formats</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Pro Forma Income Statement</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>XYZ Computer Services, Inc.</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Period to Date Actual</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Amounts in Thousands</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                                                                                
+                                                                Total           
+                                          Jan         Feb       Qtr 1           
+                                                                                
+         Gross Sales                    4,900       5,100      10,000           
+         Less Returns & Discounts         505         480         985           
+                                    ---------   ---------   ---------           
+            Net Sales                   4,395       4,620       9,015           
+                                                                                
+         Total Cost of Sales            2,100       2,400       4,500           
+                                                                                
+         Gross Profit                   2,295       2,220       4,515           
+                                                                                
+         Operating Expenses:                                                    
+            Selling                       430         510         940           
+            R & D                         130         110         240           
+            GENERAL                       410         390         800           
+            Administrative                200         230         430           
+            Depreciation                   14          15          29           
+                                    ---------   ---------   ---------           
+                                        1,184       1,255       2,439           
+                                                                                
+         Operating Income               1,111         965       2,076           
+         Other Income/-Expense             -8           2          -6           
+                                    ---------   ---------   ---------           
+         Taxable Income                 1,103         967       2,070           
+         Income Taxes                     500         490         990           
+                                    ---------   ---------   ---------           
+            Net Income                    603         477       1,080           
+                                    =========   =========   =========           
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect30.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect32.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

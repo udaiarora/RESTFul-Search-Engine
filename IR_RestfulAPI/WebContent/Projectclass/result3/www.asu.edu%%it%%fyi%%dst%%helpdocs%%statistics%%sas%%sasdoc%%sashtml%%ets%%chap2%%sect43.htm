@@ -1,0 +1,108 @@
+<HTML>
+<HEAD>
+<TITLE>Filling in Omitted Observations in a Time Series Data Set</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect44.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Working with Time Series Data</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Filling in Omitted Observations in a Time Series Data Set  </H2>
+<P><A NAME="idxtsd0353">&#13;</A><A NAME="idxtsd0352">&#13;</A>Recall that most SAS/ETS procedures expect input data
+to be in the standard form,
+with no omitted observations in the sequence of time periods.
+When data are missing for a time period,
+the data set should contain a missing observation,
+in which all variables except the ID variables have missing values.
+<P>You can replace omitted observations in a time series data set
+with missing observations by merging the data set with a
+data set containing a complete sequence of dates.
+<P>The following statements create a monthly data set, OMITTED,
+from data lines containing records for an intermittent sample of months.
+(Data values are not shown.)
+This data set is converted to a standard form time series data set
+in four steps.
+<P>First, the OMITTED data set is sorted to make sure it is in time order.
+Second, the first and last date in the data set are determined
+and stored in the data set RANGE.
+Third, the data set DATES is created containing only the variable DATE
+and containing monthly observations for the needed time span.
+Finally, the data sets OMITTED and DATES are merged
+to produce a standard form time series data set with
+missing observations inserted for the omitted records.
+<P><PRE>
+   data omitted;
+      input date monyy7. x y z;
+      format date monyy7.;
+   datalines;
+   jan1991  ...
+   mar1991  ...
+   apr1991  ...
+   jun1991  ...
+    ... etc. ...
+   ;
+   
+   proc sort data=omitted;
+      by date;
+   run;
+   
+   data range;
+      retain from to;
+      set omitted end=lastobs;
+      if _n_ = 1 then from = date;
+      if lastobs then do;
+         to = date;
+         output;
+         end;
+   run;
+   
+   data dates;
+      set range;
+      date = from;
+      do while( date &#60;= to );
+         output;
+         date = intnx( 'month', date, 1 );
+         end;
+      keep date;
+   run;
+   
+   data standard;
+      merge omitted dates;
+      by date;
+   run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect44.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,218 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>VSE: APPC Access Method : System Configuration for the APPC Access Method </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381659.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381672.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381794.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zcconfig">System Configuration for the APPC Access Method</A></FONT></H1>
+
+
+<P>
+<DL>
+<DT><B>VTAM Systems Personnel</B></DT>
+<DD>To configure resources for the VSE system that enable it
+to behave as either a local or a remote host in a  SAS/CONNECT 
+session or as a SAS/SHARE client and
+server with the APPC access method, perform the following tasks:
+<OL START="1" type="1">
+<LI>Configure the VSE APPC environment with an application (APPL)
+definition statement.<P>
+
+<LI>Add entries to the logon mode table.<P>
+</OL>
+
+<P>This section highlights the general tasks that you must perform to
+configure
+the VSE system for use with the APPC access method. For full details about
+configuring the APPC subsystem, see <A href="#zedocref">References</A> for a list of related documents.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using an APPL Definition Statement to Configure the VSE Environment</FONT></B></TD></TR></TABLE>
+
+<P>Specify an APPL definition statement to configure the VSE environment.
+Use a comma to separate each entry. Here is an example. This APPL statement
+allows for 32,767 sessions (16,384 contention winners and 16,383 contention
+losers) per LU/MODE pair.
+
+
+
+<PRE>SASAPPC  APPL   APPC=YES,
+ACBNAME=SASAPPC,
+AUTH=(ACQ,NOCNM),
+AUTOSES=1,
+DDRAINL=NALLOW,
+DMINWNL=16384,
+DMINWNR=16383,
+DRESPL=NALLOW,
+DSESLIM=32767,
+MODETAB=SASAPPC,
+PARSESS=YES,
+SECACPT=CONV</PRE>
+<P>
+<P>An explanation of each entry follows: 
+<DL>
+<DT>APPL</DT>
+<DD>declares an APPL definition statement.<P></DD>
+
+<DT>APPC=YES</DT>
+<DD>tells APPC that the application program can issue APPCCMD
+macros.<P></DD>
+
+<DT>ACBNAME=SASAPPC</DT>
+<DD>is the application name, which must be identical to the
+value assigned to the APPCAPPL option.  See <A href="z0381660.htm#z1csec">SAS/CONNECT and SAS/SHARE Options</A> for information about the APPCAPPL
+option.<P></DD>
+
+<DT>AUTH=(ACQ,NOCNM)</DT>
+<DD>specifies that the program can use the OPNDST macro instruction
+with the ACQUIRE option. The NOCNM argument means that the program cannot
+use (NO) the Communication Network Management (CNM) interface.<P></DD>
+
+<DT>AUTOSES=1</DT>
+<DD>tells the APPC subsystem how many sessions to start automatically
+after CNOS (Change Number of Sessions) negotiation.<P></DD>
+
+<DT>DDRAINL=NALLOW</DT>
+<DD>does not allow the application to drain its allocation requests
+during shutdown.<P></DD>
+
+<DT>DMINWNL=16384</DT>
+<DD>specifies the minimum number of parallel sessions of which
+the local LU is guaranteed to be the contention winner.<P></DD>
+
+<DT>DMINWNR=16383</DT>
+<DD>specifies the minimum number of parallel sessions of which
+the remote LU is guaranteed to be the contention winner.<P></DD>
+
+<DT>DRESPL=NALLOW</DT>
+<DD>requires the remote partner to deactivate sessions.<P></DD>
+
+<DT>DSESLIM=32767</DT>
+<DD>defines the maximum session limits.<P></DD>
+
+<DT>MODETAB=SASAPPC</DT>
+<DD>defines the session logon mode table.<P></DD>
+
+<DT>PARSESS=YES</DT>
+<DD>indicates support for parallel session capability.<P></DD>
+
+<DT>SECACPT=CONV</DT>
+<DD>indicates that FMH5 security subfield information is accepted.<P></DD>
+</DL>
+
+<P>See <B>VTAM Installation and Resource Definition (SC23-0111)</B>
+for more information about these parameters.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1eent">Defining the Logon Mode Table Entries</A></FONT></B></TD></TR></TABLE>
+
+<P>A logon
+mode table contains one or more sets of session properties,
+which contain session protocols that describe how the session will be conducted.
+These entries support session binding to a secondary LU that resides within
+the local VTAM domain.
+<P>Refer to the BIND LU description in <B>Technical Reference 3, SNA
+Formats</B> and the MODEENT discussion in <B>Technical Reference 5,
+VTAM Customization</B> for complete information. Contact IBM for information
+about this documentation.
+<P>The following example shows a typical logon mode table that contains
+two sets of entries.
+<P>The first entry is a reserved mode name that is used by VTAM for control
+operator functions.
+<P>The second entry is the mode that defines the parameters for sessions
+between VSE and its partner LUs. The value for the mode name (SASAPPC in this
+example) must be identical to the value assigned to the APPCLOGM option. See <A href="z0381660.htm#z1csec">SAS/CONNECT and SAS/SHARE Options</A> for information
+about the APPCLOGM option.  
+
+
+
+<PRE>SNASVCMG MODEENT LOGMODE=SNASVCMG,
+                 FMPROF=X'13',
+                 TSPROF=X'07',
+                 PRIPROT=X'B0',
+                 SECPROT=X'B0',
+                 COMPROT=X'50B3',
+                 PSERVIC=X'060200000000000000000300',
+                 TYPE=X'00'
+
+SASAPPC MODEENT  LOGMODE=SASAPPC,
+                 FMPROF=X'13',
+                 TSPROF=X'07',
+                 PRIPROT=X'B0',
+                 SECPROT=X'B0',
+                 COMPROT=X'50B1',
+                 PSERVIC=X'060200000000000000100F00',
+                 TYPE=X'00'</PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The SNASVCMG entry is required
+to support SNA services that are initiated through a boundary NCP.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>SNASVCMG is a reserved mode name that is used by VTAM for control operator
+functions. SASAPPC is the mode name that defines the session parameters that
+exist between the local and remote applications.
+<P>After you add these entries to the logon mode table, you must re-assemble
+and link edit the table so that it resides in the VSE librarian sublibrary
+that contains the VTAM configuration definitions. This sublibrary is usually
+named PRD2.CONFIG.
+<P>You have completed the VSE host configuration process.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zedocref">References</A></FONT></B></TD></TR></TABLE>
+
+<P>For complete details about how to install
+and configure the APPC
+system, see the following documents: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>SNA Technical Overview (GC30-3073)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SNA Formats (GA27-3136)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>VTAM Programming for LU6.2
+(SC31-6410)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>VTAM Installation and Resource Definition (SC23-0111)</B></TD></TR></TABLE>
+<P>Contact IBM for information about obtaining this
+documentation.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381659.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381672.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381794.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zcconfig">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

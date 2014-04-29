@@ -1,0 +1,184 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using SAS Files : Estimating the Size of a SAS Data Set </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0380583.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zengines.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the CMS Environment                                                                                     </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zas-size">Estimating the Size of a SAS Data Set</A></FONT></H1>
+
+
+<P><A name="z0592747">&#13;To obtain a rough estimate
+of how much space you need for a disk-format
+SAS data set that was created by a V6, V7, or V8 engine, follow these steps: </A>
+<P>
+<OL START="1" type="1">
+<LI>Use PROC CONTENTS to determine the size of
+each
+observation. (See <A href="#zontents">Using the CONTENTS Procedure to Determine Observation Length</A>.)<P>
+
+<LI>Multiply the size of each observation by the number
+of observations.<P>
+
+<LI>For V6 engines, add 10% for overhead. For V7 and
+V8 engines, add 1K (or 1,024 bytes) for overhead.<P>
+
+<LI>The result of this calculation will be in bytes.
+You can convert this value to blocks based on the capacity of your data storage
+device.<P>
+</OL>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;This procedure is valid only for <B>uncompressed</B> native SAS data files that were created with a V6, V7,
+or V8 engine.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>Here is an example of a calculation for a V6 system
+that assumes a 2048-byte page size.
+<OL START="1" type="1">
+<LI>PROC CONTENTS reveals an observation size of 484
+blocks.<P>
+
+<LI>484 blocks-per-observation * 16 observations =
+7744 bytes. Round up 7744 to the next multiple of 2048, which is 10240 bytes.<P>
+
+<LI>(10240 * 1.10 ) + 10240 =  11264
+bytes.<P>
+
+<LI>11264/4096 = 2.75, which rounds up to 3 blocks<P>
+</OL>
+
+<P>Here is an example of a calculation for a V8
+system.
+<P>This example assumes an 8192-byte page size. 
+<OL START="1" type="1">
+<LI>PROC CONTENTS reveals an observation size of 484
+blocks.<P>
+
+<LI>484 blocks-per-observation * 16 observations =
+7744 bytes. Round up 7744 to the next multiple of 8192, which is 16384 bytes.<P>
+
+<LI>16384  + 1024 =  17408 bytes.<P>
+
+<LI>17408/4096 =
+4.25 , which rounds up to 5 blocks.<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zontents">Using the CONTENTS Procedure to Determine Observation Length</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592754">&#13;  
+To determine the length of each observation in a Version 8 SAS
+data set, create a SAS data set that contains one observation. Then run the
+CONTENTS procedure to determine the observation length. The CONTENTS procedure
+displays engine and host-dependent information, including page size, as well
+as the number of observations per page for uncompressed SAS data sets.  For
+example, the following input produces a SAS data set plus PROC CONTENTS output:
+   
+</A>
+<PRE>data oranges;
+   input variety $ flavor texture looks;
+   cards;
+navel 9 8 6
+;
+proc contents data=oranges;
+run;</PRE>
+<P>The output is shown in <A href="#zas-out1">CONTENTS Procedure Output</A> 
+
+
+
+. 
+
+<P>
+<B><I><A name="zas-out1">CONTENTS Procedure Output</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                                  The SAS System                              1
+                                CONTENTS PROCEDURE
+
+   Data Set Name: WORK.ORANGES                        Observations:         1
+   Member Type:   DATA                                Variables:            4
+   Engine:        V8                                  Indexes:              0
+   Created:       14:27 Monday, June 1, 1999          Observation Length:   32
+   Last Modified: 14:27 Monday, June 1, 1999          Deleted Observations: 0
+   Protection:                                        Compressed:           NO
+   Data Set Type:                                     Sorted:               NO
+   Label:
+
+                   -----Engine/Host Dependent Information-----
+
+         Data Set Page Size:         8192
+         Number of Data Set Pages:   1
+         First Data Page:            1
+         Max Obs per Page:           254
+         Obs in First Data Page:     1
+         Number of Data Set Repairs: 0
+         File Name:                  ORANGES WORK A1
+         Release Created             7.00.00
+         Host Created                VM/ESA
+         Owner Name                  USERID
+              -----Alphabetic List of Variables and Attributes-----
+
+                       #    Variable    Type    Len    Pos
+                       -----------------------------------
+                       2    FLAVOR      Num       8      8
+                       4    LOOKS       Num       8     24
+                       3    TEXTURE     Num       8     16
+                       1    VARIETY     Char      8      0</PRE></TD></TR></TABLE>
+
+<P> The only values that you need to pay attention to are   
+<CODE><B>Observation
+Length</B></CODE> and   
+<CODE><B>Compressed</B></CODE>: 
+<DL>
+<DT>Observation Length</DT>
+<DD>is the record size in bytes.<P></DD>
+
+<DT>Compressed</DT>
+<DD>has the value NO if records are not compressed;
+it has the value YES if records are compressed.  (If the records are compressed,
+do not use the procedure given in <A href="#zas-size">Estimating the Size of a SAS Data Set</A> 
+
+
+
+.)<P></DD>
+</DL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0380583.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zengines.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zas-size">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

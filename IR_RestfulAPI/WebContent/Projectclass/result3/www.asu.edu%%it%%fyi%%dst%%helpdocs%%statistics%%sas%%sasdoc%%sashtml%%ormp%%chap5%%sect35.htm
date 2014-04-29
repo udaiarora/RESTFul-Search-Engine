@@ -1,0 +1,167 @@
+<HTML>
+<HEAD>
+<TITLE>Restricting the Step Length</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="nlprtsl">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Restricting the Step Length</H2>
+<P><A NAME="idxnlp0489">&#13;</A><A NAME="idxnlp0490">&#13;</A><A NAME="idxnlp0491">&#13;</A>Almost all line-search algorithms use iterative extrapolation
+techniques which can easily lead them to (feasible) points
+where the objective function <SPAN CLASS="mathfont"><I>f</I></SPAN> is no longer defined
+(For example, resulting in indefinite matrices for ML estimation)
+or difficult to compute (For example, resulting in floating point
+overflows). Therefore, PROC NLP provides options
+restricting the step length <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> or trust region radius
+<IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq103.gif"
+ ALT="\Delta">, especially during the first main iterations.
+<P>The inner product <SPAN CLASS="mathfont"><I>g</I><SUP><I>T</I></SUP><I>s</I></SPAN> of the gradient <SPAN CLASS="mathfont"><I>g</I></SPAN> and the search
+direction <SPAN CLASS="mathfont"><I>s</I></SPAN> is the slope of <IMG WIDTH="142" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq145.gif"
+ ALT="f(\alpha) = f(x + \alpha s)">along the search direction <SPAN CLASS="mathfont"><I>s</I></SPAN>. The default starting value
+<IMG WIDTH="100" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq146.gif"
+ ALT="\alpha^{(0)} = \alpha^{(k,0)}"> in each line-search
+algorithm (<IMG WIDTH="142" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq147.gif"
+ ALT=" \min_{\alpha \gt 0} f(x + \alpha s) ">)during the main iteration <SPAN CLASS="mathfont"><I>k</I></SPAN> is computed in three steps:
+<OL>
+<LI> The first step uses either the difference <SPAN CLASS="mathfont"><I>df</I>=|<I>f</I><SUP>(<I>k</I>)</SUP> - <I>f</I><SUP>(<I>k</I>-1)</SUP>|</SPAN>
+      of the function values during the last two consecutive
+      iterations or the final stepsize value <IMG WIDTH="27" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq148.gif"
+ ALT="\alpha^{\_}"> of
+      the last iteration <SPAN CLASS="mathfont"><I>k</I>-1</SPAN> to compute a first value of
+      <IMG WIDTH="34" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq149.gif"
+ ALT="\alpha_1^{(0)}">.<UL>
+<LI> Not using the DAMPSTEP<A NAME="idxnlp0487">&#13;</A>option:
+       
+<DL CLASS="equation"><DD><IMG WIDTH="268" HEIGHT="123"
+ SRC="images/nlpeq150.gif"
+ ALT="\alpha_1^{(0)} = \{ step & { if 0.1 \le step \le 10} \ 10 & { if step \gt 10 } \ 0.1 & { if step \lt 0.1}
+ . "></DL>
+       with
+       
+<DL CLASS="equation"><DD><IMG WIDTH="356" HEIGHT="101"
+ SRC="images/nlpeq151.gif"
+ ALT="step = \{ df / | g^Ts| & {if  | g^Ts| \ge \epsilon \max(100 df,1)} \ 1 & {otherwise}
+ . "></DL>
+       This value of <IMG WIDTH="34" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq149.gif"
+ ALT="\alpha_1^{(0)}"> can be too large and lead
+       to a difficult or impossible function evaluation, especially
+       for highly nonlinear functions such as the EXP function.
+<LI> Using the DAMPSTEP[=<SPAN CLASS="mathfont"><I>r</I></SPAN>] option:
+       
+<DL CLASS="equation"><DD><IMG WIDTH="145" HEIGHT="80"
+ SRC="images/nlpeq152.gif"
+ ALT="\alpha_1^{(0)} = \min (1,r \alpha^{\_}) "></DL>
+       The initial value for the new step length can be no
+       larger than <SPAN CLASS="mathfont"><I>r</I></SPAN> times the final step length <IMG WIDTH="27" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq148.gif"
+ ALT="\alpha^{\_}">       of the former iteration. The default value is <SPAN CLASS="mathfont"><I>r</I>=2</SPAN>.
+</UL>
+<LI> During the first five iterations, the second step
+      enables you to reduce <IMG WIDTH="34" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq149.gif"
+ ALT="\alpha_1^{(0)}"> to a
+      smaller starting value <IMG WIDTH="34" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq153.gif"
+ ALT="\alpha_2^{(0)}"> using
+      the INSTEP=<SPAN CLASS="mathfont"><I>r</I></SPAN> <A NAME="idxnlp0488">&#13;</A>option:
+        
+<DL CLASS="equation"><DD><IMG WIDTH="144" HEIGHT="80"
+ SRC="images/nlpeq154.gif"
+ ALT="\alpha_2^{(0)} = \min (\alpha_1^{(0)},r) "></DL>
+      After more than five iterations, <IMG WIDTH="34" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq153.gif"
+ ALT="\alpha_2^{(0)}">      is set to <IMG WIDTH="34" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq149.gif"
+ ALT="\alpha_1^{(0)}">.<LI> The third step can further reduce the step
+      length by
+        
+<DL CLASS="equation"><DD><IMG WIDTH="215" HEIGHT="80"
+ SRC="images/nlpeq155.gif"
+ ALT="\alpha_3^{(0)} = \min (\alpha_2^{(0)},\min(10,u)) "></DL>
+      where <SPAN CLASS="mathfont"><I>u</I></SPAN> is the maximum length of a step inside the
+      feasible region.
+</OL>
+<P>The INSTEP=<SPAN CLASS="mathfont"><I>r</I></SPAN> <A NAME="idxnlp0492">&#13;</A>option lets you specify
+a smaller or larger radius <IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq103.gif"
+ ALT="\Delta"> of the
+trust region used in the first iteration of the trust-region, double
+dogleg, and the Levenberg-Marquardt algorithm. The default
+initial trust region radius <IMG WIDTH="37" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq41.gif"
+ ALT="\Delta^{(0)}"> is the length of the
+scaled gradient (Mor<IMG WIDTH="11" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq36.gif"
+ ALT="\acute{e}"> 1978). This step corresponds to the
+default radius factor of <SPAN CLASS="mathfont"><I>r</I>=1</SPAN>. In most practical applications of
+the TRUREG, DBLDOG, and LEVMAR algorithms, this choice is
+successful. However, for
+bad initial values and highly nonlinear objective functions
+(such as the EXP function), the default start radius can result
+in arithmetic overflows. If this happens, you may try decreasing
+values of INSTEP=<SPAN CLASS="mathfont"><I>r</I></SPAN>, <SPAN CLASS="mathfont">0 &#60; <I>r</I> &#60; 1</SPAN>, until the iteration starts
+successfully. A small factor <SPAN CLASS="mathfont"><I>r</I></SPAN> also affects the trust region
+radius <IMG WIDTH="56" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq156.gif"
+ ALT="\Delta^{(k+1)}"> of the next steps because the radius is
+changed in each iteration by a factor <IMG WIDTH="78" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq157.gif"
+ ALT="0 \lt c \le 4">, depending
+on the ratio <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq106.gif"
+ ALT="\rho"> expressing the goodness of quadratic function
+approximation.
+Reducing the radius <IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq103.gif"
+ ALT="\Delta"> corresponds to increasing the ridge
+parameter <IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq86.gif"
+ ALT="\lambda">, producing smaller steps directed more closely
+toward the (negative) gradient direction.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

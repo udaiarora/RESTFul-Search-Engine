@@ -1,0 +1,141 @@
+<HTML>
+<HEAD>
+<TITLE>Rational Transfer Functions and Distributed Lag Models</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect15.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Rational Transfer Functions and Distributed Lag Models  </H2>
+<P>How an input series enters the model is called its <I>transfer function</I>.
+<A NAME="idxari0078">&#13;</A><A NAME="idxari0077">&#13;</A>Thus, ARIMA models with input series are sometimes referred to as
+transfer function models.
+<P>In the preceding regression and intervention model examples,
+the transfer function is a single scale parameter.
+However, you can also specify complex transfer functions
+composed of numerator and denominator polynomials in the backshift operator.
+These transfer functions operate on the input series in the same way that
+the ARMA specification operates on the error term.
+<P><H3><I>Numerator Factors</I></H3>
+For example, suppose you want to model the effect of PRICE
+on SALES as taking place gradually with the impact
+distributed over several past lags of PRICE.
+This is illustrated by the following statements:
+<P><PRE>
+
+   proc arima data=a;
+     identify var=sales crosscorr=price;
+     estimate input=( (1 2 3) price );
+     run;
+</PRE>
+<P>These statements estimate the model
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="349" HEIGHT="76"
+ SRC="images/arieq36.gif"
+ ALT="Y_{t} = {\mu} +
+({\omega}_{0}-{\omega}_{1}B-{\omega}_{2}B^2-{\omega}_{3}B^3)X_{t}
++ a_{t}"></DL>
+<P>This example models the effect of PRICE on SALES as a linear function of
+the current and three most recent values of PRICE.
+It is equivalent to a multiple linear regression of SALES on PRICE, LAG(PRICE),
+LAG2(PRICE), and LAG3(PRICE).
+<P><A NAME="idxari0080">&#13;</A><A NAME="idxari0079">&#13;</A>This is an example of a transfer function with one <I>numerator factor</I>.
+The numerator factors for a transfer function for an input series
+are like the MA part of the ARMA model for the noise series.
+<P><H3><I>Denominator Factors</I></H3>
+You can also use transfer functions with <I>denominator factors</I>.
+<A NAME="idxari0082">&#13;</A><A NAME="idxari0081">&#13;</A>The denominator factors for a transfer function for an input series
+are like the AR part of the ARMA model for the noise series.
+Denominator factors introduce exponentially weighted, infinite distributed lags
+into the transfer function.
+<P>To specify transfer functions with denominator factors,
+place the denominator factors after a slash (/) in the INPUT= option.
+For example, the following statements estimate the PRICE effect as
+an infinite distributed lag model with exponentially declining weights:
+<P><PRE>
+
+   proc arima data=a;
+     identify var=sales crosscorr=price;
+     estimate input=( / (1) price );
+     run;
+</PRE>
+<P>The transfer function specified by these statements is as follows:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="97" HEIGHT="93"
+ SRC="images/arieq37.gif"
+ ALT="\frac{{\omega}_{0}}{(1 - {\delta}_{1}B)}X_{t}"></DL>
+<P>This transfer function also can be written in the following equivalent form:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="170" HEIGHT="111"
+ SRC="images/arieq38.gif"
+ ALT="{\omega}_{0}(1 + \sum_{i=1}^{{\infty}}{{\delta}^i_{1}B^i})X_{t}"></DL>
+<P><A NAME="idxari0084">&#13;</A><A NAME="idxari0083">&#13;</A>This transfer function can be used with intervention inputs.
+When it is used with a pulse function input, the result is an intervention
+effect that dies out gradually over time.
+When it is used with a step function input, the result is an intervention
+effect that increases gradually to a limiting value.
+<P><H3><I>Rational Transfer Functions</I></H3>
+By combining various numerator and denominator factors in the INPUT= option,
+you can specify <I>rational transfer functions</I> of any complexity.
+<A NAME="idxari0086">&#13;</A><A NAME="idxari0085">&#13;</A>To specify an input with a general rational transfer function of the form
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="85" HEIGHT="99"
+ SRC="images/arieq39.gif"
+ ALT="\frac{{\omega}(B)}{{\delta}(B)}B^kX_{t}"></DL>
+<P>use an INPUT= option in the ESTIMATE statement of the form
+<P><TT>input=( <I>k</I> $ ( <I><IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq18.gif"
+ ALT="{\omega}">-lags</I> ) / ( <I><IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq19.gif"
+ ALT="{\delta}">-lags</I>) x) </TT>
+<P>See the section &#34;Specifying Inputs and Transfer Functions&#34;
+later in this chapter for more information.
+<P><H3><I>Identifying Transfer Function Models</I></H3>
+The CROSSCORR= option of the IDENTIFY statement prints
+sample cross-correlation functions showing the correlations
+between the response series and the input series at different lags.
+The sample cross-correlation function can be used to help identify
+the form of the transfer function appropriate for an input series.
+See textbooks on time series analysis for information on using
+cross-correlation functions to identify transfer function models.
+<P>For the cross-correlation function to be meaningful,
+the input and response series must be filtered with a prewhitening
+model for the input series.
+See the section &#34;Prewhitening&#34; later in this chapter
+for more information on this issue.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect15.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

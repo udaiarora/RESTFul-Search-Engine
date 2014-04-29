@@ -1,0 +1,336 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>OS/390: VTAM LU 0 Access Method : System Configuration for the VTAM LU 0 Access Method </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381348.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381350.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381397.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zmvsvtam">System Configuration for the VTAM LU 0 Access Method</A></FONT></H1>
+
+
+<DL>
+<DT><B>Applications Programmer,
+Network Administrator, or Systems Installation Staff</B></DT>
+<DD>Configure resources for the VTAM LU 0 access method by defining
+the server and the connecting clients in their respective domains.<P></DD>
+</DL>
+
+<P>To configure the OS/390 system for VTAM LU 0, perform the following
+tasks: 
+<OL START="1" type="1">
+<LI>Define the server LU in the server's VTAM domain.<P>
+
+<LI>Define the client LUs in the clients' VTAM
+domain.<P>
+
+<LI>Optionally, define cross-domain resources.<P>
+
+<LI>Optionally, define resources in the same domain.<P>
+</OL>
+
+<P>File
+these definitions in members of your installation's VTAMLST data
+set. Add the member names to the configuration startup list (member ATCONN<B>xx</B>), where <B>xx</B> represents each member in the list.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining a Server</FONT></B></TD></TR></TABLE>
+
+<P>You must define each server
+with an APPL
+statement in the VTAM domain in which the server will run. Use the following
+syntax:  
+
+
+
+<PRE>VBUILD TYPE=APPL
+<I>server-id</I>  APPL AUTH=(ACQ), EAS=<I>n</I>, PARSESS=YES</PRE>
+<P>All APPL statements must follow a VBUILD TYPE=APPL statement.
+<P>An explanation of each entry follows: 
+<DL>
+<DT>VBUILD TYPE=APPL</DT>
+<DD>specifies that this VBUILD statement defines an application
+major node.<P></DD>
+
+<DT><B>server-id</B></DT>
+<DD>specifies a unique name for the server in the network. The
+name may contain up to a maximum of eight characters and is used as the value
+for the SERVER= option in the PROC SERVER, the PROC OPERATE, and the LIBNAME
+statements.<P></DD>
+
+<DT>AUTH=(ACQ)</DT>
+<DD>specifies that this APPL can initiate a session.<P></DD>
+
+<DT>EAS=<B>n</B></DT>
+<DD>specifies the estimated number of concurrent sessions that
+the server can have with clients in the network. To determine a value for
+this entry, estimate the number of users that you expect to be connected to
+the server simultaneously and multiply by three.<P></DD>
+
+<DT>PARSESS=YES</DT>
+<DD>indicates support for parallel session capability.<P></DD>
+</DL>
+
+<P>Example:  
+
+
+
+<PRE>Domain 1 VTAMLST member C01ASAS:
+
+*************************************************
+* Application major node for SAS/SHARE software *
+* Server name is C01SHARE                       *
+*                                               *
+*************************************************
+  VBUILD TYPE=APPL
+*-----------------------------------------------*
+* SAS Server application running in domain 1    *
+*-----------------------------------------------*
+C01SHARE APPL AUTH=(ACQ),EAS=30,PARSESS=YES</PRE>
+<P>A server is defined in Domain 1. The <B>server-id</B> is C01SHARE.
+The value for <B>server-id</B> is used in the SERVER option in the PROC
+SERVER, the PROC OPERATE, and the LIBNAME statements.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining Each Client</FONT></B></TD></TR></TABLE>
+
+<P>You must define each
+client application
+with an APPL statement in the VTAM domain in which the client will run. Separate
+each entry with a comma. Use the following syntax:  
+
+
+
+<PRE>VBUILD TYPE=APPL
+<I>client-name</I>  APPL ACBNAME=<I>acbname</I> AUTH=(ACQ), 
+                EAS=<I>n</I>, PARSESS=YES</PRE>
+<P>An explanation of each entry follows: 
+<DL>
+<DT>VBUILD TYPE=APPL</DT>
+<DD>specifies that this VBUILD statement defines an application
+major node.<P></DD>
+
+<DT><B>client-name</B></DT>
+<DD>specifies a unique name for the client across all networks.
+The name may contain up to a maximum of eight characters.<P></DD>
+
+<DT>ACBNAME=<B>acbname</B></DT>
+<DD>identifies an LU pool member, whose name is formed by combining
+the value of LUPREFIX with a value that is between the values of the LUFIRST
+and LULAST options. See <A href="z0381350.htm#zvtamvar">Setting SAS Options</A>
+for information about forming ACBNAMEs.<P></DD>
+
+<DT>AUTH=(ACQ)</DT>
+<DD>specifies that this APPL can initiate a session.<P></DD>
+
+<DT>EAS=<B>n</B></DT>
+<DD>specifies the number of concurrent sessions that the user
+can have at one time. To determine a value for this entry, estimate the number
+of users that you expect to be connected to the server simultaneously and
+multiply by three.<P></DD>
+
+<DT>PARSESS=YES</DT>
+<DD>indicates support for parallel session capability.<P></DD>
+</DL>
+
+<P>Example:  
+
+
+
+<PRE>Domain 2 VTAMLST member C02ASAS:
+
+****************************************************
+*   Application major node for SAS/SHARE software  *
+*   LUPREFIX = SASCON, LUFIRST = 1, LULAST = 5     *
+****************************************************
+    VBUILD TYPE=APPL
+*--------------------------------------------------*
+*   SAS User applications running in domain 2      *
+*   and communicating with server C01SHARE in      *
+*   domain 1                                       *
+*--------------------------------------------------*
+C02SI001 APPL ACBNAME=SASCON1,AUTH=(ACQ),EAS=3,PARSESS=YES
+C02SI002 APPL ACBNAME=SASCON2,AUTH=(ACQ),EAS=3,PARSESS=YES
+C02SI003 APPL ACBNAME=SASCON3,AUTH=(ACQ),EAS=3,PARSESS=YES
+C02SI004 APPL ACBNAME=SASCON4,AUTH=(ACQ),EAS=3,PARSESS=YES
+C02SI005 APPL ACBNAME=SASCON5,AUTH=(ACQ),EAS=3,PARSESS=YES</PRE>
+<P>The APPL statements in Domain 2 define a pool of LUs for clients on
+Domain 2 that will communicate with the server in Domain 1. The first field
+shows a unique eight-character client name, and the ACBNAME field shows the
+name of each LU in the pool,  which is formed by combining the value of LUPREFIX
+with a value that is in the range between the values of the LUFIRST and LULAST
+options.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining Cross-Domain Resources</FONT></B></TD></TR></TABLE>
+
+<P>A multiple-domain network
+is a set of connected domains, each controlled by an ACF/VTAM with a cross-domain
+resource manager (CDRM).  In a multiple-domain network, information about
+other domains must be provided to each ACF/VTAM.
+<P>In each domain from which a client will attempt to access a SAS/SHARE server,
+you must define that server as a cross-domain resource by using a VBUILD statement
+and a CDRSC statement.
+<P>If your site does not support the use of dynamic CDRSC definitions,
+then you must define each connecting client from other domains as a cross-domain
+resource in the server's domain.
+<P>The VBUILD and CDRSC statement formats follow. Separate each entry with
+a comma.
+
+
+
+<PRE>VBUILD TYPE=CDRSC
+<I>name</I> CDRSC CDRM=<I>cdrm-name</I>,ISTATUS=ACTIVE</PRE>
+<P>An explanation of each entry follows: 
+<DL>
+<DT>VBUILD TYPE=CDRSC</DT>
+<DD>specifies that this VBUILD statement defines a cross-domain
+resource major node.<P></DD>
+
+<DT><B>name</B></DT>
+<DD>specifies the name of a server or a client from another
+domain. This name may contain up to a maximum of eight characters,  and it
+must be identical to that in the name field of the APPL statement for the
+server or the client in the controlling domain.<P></DD>
+
+<DT>CDRM=<B>cdrm-name</B></DT>
+<DD>specifies the name of the CDRM in the domain in which the
+server or the client is defined as an APPL.<P></DD>
+
+<DT>ISTATUS=ACTIVE</DT>
+<DD>specifies that the CDRSC should be initialized as active.<P></DD>
+</DL>
+
+<P>Example:  
+
+
+
+<PRE>Domain 1 VTAMLST member C01CSAS:
+
+******************************************************
+* CDRSC major node for SAS/SHARE software            *
+******************************************************
+*----------------------------------------------------*
+* CDRSCs for the SAS users in domain 2               *
+*                                                    *
+* The following statements are needed only if your   *
+* installation is not using dynamic CDRSC definition *
+*----------------------------------------------------*
+    VBUILD TYPE=CDRSC
+C02SI001 CDRSC CDRM=C02CDRM,ISTATUS=ACTIVE
+C02SI002 CDRSC CDRM=C02CDRM,ISTATUS=ACTIVE
+C02SI003 CDRSC CDRM=C02CDRM,ISTATUS=ACTIVE
+C02SI004 CDRSC CDRM=C02CDRM,ISTATUS=ACTIVE
+C02SI005 CDRSC CDRM=C02CDRM,ISTATUS=ACTIVE</PRE>
+<P>Domain 1 contains CDRSC statements that define a corresponding pool
+of cross-domain resources for its clients.
+<P>The first field shows a unique eight-character client name, and the
+ACBNAME field shows the name of each LU in the pool, which is formed by combining
+the value of LUPREFIX with a value in the range between the values of the
+LUFIRST and LULAST options.
+<P>Domain 2 also requires a CDRSC statement to define the Domain 1 server
+as a cross-domain resource.   
+
+
+
+<PRE>Domain 2 VTAMLST member C02CSAS:
+
+***********************************************
+*   CDRSC major node for SAS/SHARE software   *
+***********************************************
+*---------------------------------------------*
+*   CDRSC for the SAS server in domain 1      *
+*---------------------------------------------*
+   VBUILD TYPE=CDRSC
+C01SHARE CDRSC CDRM=C01CDRM,ISTATUS=ACTIVE</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining Resources within the Same Domain</FONT></B></TD></TR></TABLE>
+
+<P>Cross-memory resources
+are not needed for clients to access a server in the same domain. Instead,
+a client will access  a server with the VTAM LU 0 access method.
+<P>To define resources for a server and clients within the same domain,
+you have two options: 
+<P>
+<UL>
+
+<LI>Create new APPL statements that define the LU pool in a new VTAMLST
+member.<P>
+
+<LI>Add new APPL statements that define the LU pool to the Domain
+1 server's VTAMLST member CO1ASAS.<P>
+</UL>
+
+<P>An example of the second option follows:  
+
+
+
+<PRE>Domain 1 VTAMLST member C01ASAS:
+
+*****************************************************
+*   Application major node for SAS/SHARE software   *
+*   Server name is C01SHARE                         *
+*****************************************************
+    VBUILD TYPE=APPL
+*---------------------------------------------------*
+*   SAS Server application running in domain 1      *
+*---------------------------------------------------*
+C01SHARE APPL AUTH=(ACQ),EAS=30,PARSESS=YES
+*---------------------------------------------------*
+*   SAS User applications running in domain 1       *
+*---------------------------------------------------*
+C01SI001 APPL ACBNAME=SASCON1,AUTH=(ACQ),EAS=3,PARSESS=YES
+C01SI002 APPL ACBNAME=SASCON2,AUTH=(ACQ),EAS=3,PARSESS=YES
+C01SI003 APPL ACBNAME=SASCON3,AUTH=(ACQ),EAS=3,PARSESS=YES
+C01SI004 APPL ACBNAME=SASCON4,AUTH=(ACQ),EAS=3,PARSESS=YES
+C01SI005 APPL ACBNAME=SASCON5,AUTH=(ACQ),EAS=3,PARSESS=YES</PRE>
+<P>You have completed the configuration of the  VTAM LU 0  access method.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">References</FONT></B></TD></TR></TABLE>
+
+<P>For complete details about
+configuring the
+VTAM LU 0 subsystem, see <B>VTAM Installation and Resource Definition (SC27-0610
+for ACF/VTAM Version 2) and VTAM Installation and Resource Definition (SC23-0111
+for  ACF/VTAM  Version 3)</B>.
+<P>Contact IBM for information about obtaining this documentation.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381348.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381350.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381397.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zmvsvtam">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,168 @@
+<head>
+<title>
+How to Setup PPP with Linux
+</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h2><center>
+How to Setup PPP with Linux
+</center></h2>
+<p><b>		
+Question:</b><br>
+I set up my ppp connection at home in linux and it worked fine using the
+old 965-0500 number, but it doesn't work with the new number and now the
+old number isn't working either...did you change the net mask or something?
+<p><b>
+Response:</b><br>
+Enclosed are the files you will need to create for using PPP with Linux.
+<p><pre> 
+/etc/ppp/options
+----------------
+ 
+defaultroute
+noipdefault
+debug
+/dev/modem
+ 
+
+/etc/ppp/pap-secrets
+--------------------
+ 
+* * yourpassword_goes_here
+
+ 
+/usr/local/bin/ppp-asu  (make this script executable via chmod 755)
+-------------------------------------------------------------------
+ 
+#!/bin/sh
+#
+# Script to initiate a ppp connection. This is the first part of the
+# pair of scripts. This is not a secure pair of scripts as the codes
+# are visible with the 'ps' command.  However, it is simple.
+#
+# These are the parameters. Change as needed.
+TELEPHONE=727-0030      # The telephone number for the connection
+ACCOUNT=                # Your ASURITE user-id goes here
+PASSWORD=               # Your password goes here
+LOCAL_IP=0.0.0.0        # Local IP address if known. Dynamic = 0.0.0.0
+REMOTE_IP=0.0.0.0       # Remote IP address if desired. Normally 0.0.0.0
+NETMASK=255.255.255.192 # The proper netmask if needed
+#
+# Export them so that they will be available at 'ppp-on-dialer' time.
+export TELEPHONE ACCOUNT PASSWORD
+#
+# This is the location of the script which dials the phone and logs
+# in.  Please use the absolute file name as the $PATH variable is not
+# used on the connect option.  (To do so on a 'root' account would be
+# a security hole so don't ask.)
+#
+DIALER_SCRIPT=/usr/local/bin/ppp-asu-dial
+#
+# Initiate the connection
+#
+# I put most of the common options on this command. Please, don't
+# forget the 'lock' option or some programs such as mgetty will not
+# work. The asyncmap and escape will permit the PPP link to work with
+# a telnet or rlogin connection. You are welcome to make any changes
+# as desired. Don't use the 'defaultroute' option if you currently
+# have a default route to an ethernet gateway.
+#
+exec /usr/sbin/pppd debug lock modem /dev/modem 38400 \
+        asyncmap 0xa0000 name $ACCOUNT \
+        $LOCAL_IP:$REMOTE_IP \
+        noipdefault netmask $NETMASK defaultroute connect $DIALER_SCRIPT
+
+ 
+/usr/local/bin/ppp-asu-dial
+---------------------------
+ 
+#!/bin/sh
+#
+# This is part 2 of the ppp-on script. It will perform the connection
+# protocol for the desired connection.
+#
+exec chat -v                                            \
+        TIMEOUT         3                               \
+        ABORT           '\nBUSY\r'                      \
+        ABORT           '\nNO ANSWER\r'                 \
+        ABORT           '\nRINGING\r\n\r\nRINGING\r'    \
+        ''              \rAT                            \
+        'OK-+++\c-OK'   ATH0                            \
+        TIMEOUT         30                              \
+        OK              ATDT$TELEPHONE                  \
+        BIS             '\d\d\d\d \r\n'         \
+        sername:        $ACCOUNT                \
+        assword:        $PASSWORD                       \
+        '>'             'ppp /compress negotiate'
+ 
+
+/usr/local/bin/ppp-off   (make this script executable via chmod 755)
+--------------------------------------------------------------------
+ 
+#!/bin/sh
+######################################################################
+#
+# Determine the device to be terminated.
+#
+if [ "$1" = "" ]; then
+        DEVICE=ppp0
+else
+        DEVICE=$1
+fi
+ 
+######################################################################
+#
+# If the ppp0 pid file is present then the program is running. Stop it.
+if [ -r /var/run/$DEVICE.pid ]; then
+        kill -INT `cat /var/run/$DEVICE.pid`
+#
+# If the kill did not work then there is no process running for this
+# pid. It may also mean that the lock file will be left. You may wish
+# to delete the lock file at the same time.
+        if [ ! "$?" = "0" ]; then
+                rm -f /var/run/$DEVICE.pid
+                echo "ERROR: Removed stale pid file"
+                exit 1
+        fi
+#
+# Success. Let pppd clean up its own junk.
+        echo "PPP link to $DEVICE terminated."
+        exit 0
+fi
+#
+# The ppp process is not running for ppp0
+echo "ERROR: PPP link is not active on $DEVICE"
+exit 1
+</pre> 
+<p> 
+Please let me know if you have any questions.
+<p> 
+Robin Manke-Cassidy<br>
+Comm-q@asu.edu 
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3"><BR>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A> | <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:unix-q@asu.edu">unix-q@asu.edu</A></FONT><br>
+ <FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+ Page Last Updated: Wednesday September  8, 1999</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</body>
+
+</html>

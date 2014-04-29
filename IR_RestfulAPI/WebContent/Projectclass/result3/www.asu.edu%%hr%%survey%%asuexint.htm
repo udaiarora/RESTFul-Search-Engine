@@ -1,0 +1,951 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0103)file://C:\Documents and Settings\faherty\Local Settings\Temporary Internet Files\OLK2\ExitInterview.HTM -->
+<HTML><HEAD><TITLE>Exit Interview</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<SCRIPT language=javascript>
+<!--
+function SGSelectAdjacentRadioButton ( objElement, blnCheckForValue ) {
+
+   // Purpose: Selects the radio button adjacent to the text element by looping through all elements
+   //          in form looking for a radio button element that matches the name of the text element with a value
+   //          of "SGOTHR".
+	  //          If a radio button matching this description is found, then it selected only if the 
+   //          objElement value is not "".
+   // Accepts: objElement - a text element
+   //          blnCheckForValue - a boolean when true only sets the radio button to checked if
+   //                             the objElement has a value
+
+   if (objElement.type == "text") {
+      for (intCount = 0; intCount < objElement.form.length; intCount++) {
+         var e = objElement.form.elements[intCount];
+         if ((e.type == "radio") && (e.name == objElement.name) && (e.value == "SGOTHR")) {
+            if ( blnCheckForValue == true ) {
+               e.checked = ( objElement.value != "");
+            }
+            else {
+               e.checked = true;
+            }
+         }
+      }
+	  }
+}
+
+
+function SGClearRadioButtonText ( objElement ) {
+
+   // Purpose: Clears the text value adjacent to the last radio button by looping through all elements
+   //          in form looking for a text element that matches the name of the radio button element passed in.
+   //          If a text element matching this description is found, then its value is cleared.
+   // Accepts: objElement - a radio button element
+
+   if (objElement.type == "radio") {
+      for (intCount = 0; intCount < objElement.form.length; intCount++) {
+         var e = objElement.form.elements[intCount];
+         if ((e.type == "text") && (e.name == objElement.name)) {
+            e.value = "";
+         }
+      }
+   }
+}
+
+
+function SGSetFocusOnRadioButtonText ( objElement ) {
+
+   // Purpose: Sets focus in the text element adjacent to the last radio button by looping through all elements
+   //          in form looking for a text element that matches the name of the radio button element passed in.
+   //          If a text element matching this description is found, then focus is set to it.
+   // Accepts: objElement - a radio button element
+   if (objElement.type == "radio") {
+      for (intCount = 0; intCount < objElement.form.length; intCount++) {
+         var e = objElement.form.elements[intCount];
+         if ((e.type == "text") && (e.name == objElement.name)) {
+            e.focus();
+         }
+      }
+   }
+}
+
+
+function SGSetFocusOnCheckBoxText ( objElement ) {
+
+   // Purpose: Sets focus in the text element adjacent to the last checkbox by looping through all elements
+   //          in form looking for a text element that matches the name of the checkbox element passed in.
+   //          If a text element matching this description is found, then focus is set to it.
+   // Accepts: objElement - a checkbox element
+
+   if (objElement.type == "checkbox") {
+      for (intCount = 0; intCount < objElement.form.length; intCount++) {
+         var e = objElement.form.elements[intCount];
+         if ((e.type == "text") && (e.name == objElement.name)) {
+            if ( objElement.checked == true ) {
+               e.focus();
+            }
+            else {
+               e.value = ""
+            }
+         }
+      }
+   }
+}
+
+
+function SGSelectAdjacentCheckBox ( objElement, blnCheckForValue ) {
+
+   // Purpose: Selects the checkbox adjacent to the text element by looping through all elements
+   //          in form looking for a checkbox element that matches the name of the text element.
+   //          If a checkbox matching this description is found, then it selected only if the 
+   //          objElement value is not "".
+   // Accepts: objElement - a text element
+   //          blnCheckForValue - a boolean when true only sets the checkbox to checked if
+   //                             the objElement has a value
+
+   if (objElement.type == "text") {
+      for (intCount = 0; intCount < objElement.form.length; intCount++) {
+         var e = objElement.form.elements[intCount];
+         if ((e.type == "checkbox") && (e.name == objElement.name)) {
+            if ( blnCheckForValue == true ) {
+               e.checked = ( objElement.value != "");
+            }
+            else {
+               e.checked = true;
+            }
+         }
+      }
+   }
+}
+
+
+function SGEnforceUniqueRank( objElement ) {
+
+   // Purpose: Determines if the selected dropdownmenu response value is already selected in 
+   //          dropdownmenu value in the same question. If so, it clears the dropdown response
+   //          value of the other matching response. In this way, ranking question responses
+   //          are guaranteed to be unique.
+   // Accepts: objElement - a dropdownmenu element
+
+   if (objElement.type == "select-one") {
+      // Determine the survey ID and question ID.
+      // This is used to locate the form elements in the set of ranked responses.
+      var strSQID = SGParseSurveyIDQuestionID(objElement.name);
+      for (intCount = 0; intCount < objElement.form.length; intCount++) {
+         var e = objElement.form.elements[intCount];
+         // Only examine other dropdownmenu elements.
+         if (e.type == "select-one") {
+            if (e.name != objElement.name ) {
+               var strSQIDCompare = SGParseSurveyIDQuestionID(e.name);
+               if (strSQID == strSQIDCompare ) {
+                  // If question numbers then look for a matching ranked response value to reset.
+                  if (e.value == objElement.value) {
+                     e.value = "";
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+
+function SGParseSurveyIDQuestionID( strElementName ) {
+
+   // Purpose: Returns the survey ID and question ID portion of the element name.
+   // Accepts: strElementName - a string containing a form element name in following format
+   //          SURVEYID*@^/QUESTIONID*@^/RANKORDER
+   // Example: 35*@^/558*@^/2 returns 35*@^/558
+
+   var strSurveyQuestion = "";
+
+   // Parse off survey and question ID from name
+   // Example: 35*@^/558
+
+   var intSlashPos = strElementName.indexOf("/");
+   if ( intSlashPos > 0 ) {
+      var intSplatPos = strElementName.indexOf("*",intSlashPos);
+      if ( intSplatPos > 0 ) {
+         strSurveyQuestion = strElementName.substring(0,intSplatPos);
+      }
+      else {
+         strSurveyQuestion = "";
+      }
+   }
+   else {
+      strSurveyQuestion = "";
+   }
+
+   return strSurveyQuestion;
+}
+
+-->
+</SCRIPT>
+
+<STYLE>.SGHeader {
+	FONT-WEIGHT: bold; FONT-SIZE: 24pt; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: left
+}
+.SGInstructions {
+	FONT-WEIGHT: bold; FONT-SIZE: 12pt; MARGIN-BOTTOM: -12px; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: left
+}
+.SGSection {
+	FONT-WEIGHT: bold; FONT-SIZE: 14pt; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: left
+}
+.SGQuestion {
+	FONT-WEIGHT: bold; FONT-SIZE: 12pt; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: left
+}
+.SGQuestionCenter {
+	FONT-WEIGHT: bold; FONT-SIZE: 12pt; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: center
+}
+.SGResponse {
+	FONT-WEIGHT: normal; FONT-SIZE: 12pt; COLOR: #000000; FONT-FAMILY: Arial; BACKGROUND-COLOR: #ffffff; TEXT-ALIGN: left
+}
+.SGResponseInstructions {
+	FONT-WEIGHT: bold; FONT-SIZE: 10pt; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: left
+}
+.SGNormalText {
+	FONT-WEIGHT: normal; FONT-SIZE: 12pt; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: left
+}
+.SGWatermark {
+	FONT-WEIGHT: normal; FONT-SIZE: 8pt; COLOR: #000000; FONT-FAMILY: Arial; TEXT-ALIGN: left
+}
+.SGHorizontalLine {
+	COLOR: #808080
+}
+</STYLE>
+
+<META content="MSHTML 6.00.2900.2963" name=GENERATOR></HEAD>
+<BODY bgColor=#ffffff>
+<H1 class=SGHeader>Exit Interview</H1>
+<P class=SGInstructions>Instructions</P>
+<P class=SGNormalText>Answer questions as they relate to you. For most answers, 
+check the boxes most applicable to you or fill in the blanks.</P>
+<FORM 
+action=https://secure21.softcomca.com/surveygold_com/cgi-bin/appendresults.asp 
+method=post><INPUT type=hidden value=M name=DlmOption> <INPUT type=hidden 
+value="Exit Interview" name=Survey> <INPUT type=hidden 
+value=%h%r%p%a%r%t%n%e%r%s%TA%a%s%u%TD%e%d%u% name=SGEMT> <INPUT type=hidden 
+value=EF4C514295294B0E9DF1C61CCA3DF9F0 name=ID> <INPUT type=hidden value=T 
+name=Notify> <INPUT type=hidden name=ConfirmationURL> <INPUT type=hidden 
+value=#FFFFFF name=SGBGCOLOR> <INPUT type=hidden 
+value="<STYLE><!--.SGSection { font-family: Arial; font-size: 14pt; color: #315C8F; font-weight: bold; text-align: Left }.SGNormalText { font-family: Arial; font-size: 12pt; color: #000000; font-weight: normal; text-align: Left }.SGHorizontalLine { color: #808080 }--></STYLE>" 
+name=SGSTYLE> <INPUT type=hidden value=17 name=SID> <INPUT type=hidden value=T 
+name=BBS> 
+<HR class=SGHorizontalLine width="100%" noShade SIZE=10>
+
+<H3 class=SGSection>Introduction and Instructions</H3>
+<P class=SGNormalText>As an employer, Arizona State University is committed to 
+its employees and is interested in identifying opportunities to improve the work 
+environment. The Exit Interview provides a valuable source of information to 
+measure the overall quality of worklife at ASU. Your responses are confidential 
+to the Office of Human Resources and will not be shared with the department 
+without your permission and will not become a part of your official personnel 
+file. When appropriate, cumulative data in a tabulated format such as through 
+statistics and/or graphs may be shared with Deans, Directors, and other 
+Administrative Officials. Your re-employment with ASU will not be affected by 
+your responses. <BR><BR>While the University does not require you to provide any 
+of the following information, we value your responses and hope that your 
+suggestions, comments and observations will help ASU in it's continued effort to 
+make the best possible work environment for its staff. Your feedback is greatly 
+appreciated.<BR><BR></P><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq1></A>1.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Current Title </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><INPUT class=SGResponse size=80 name=17*@^/229*@^/1> 
+  </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq2></A>2.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Department </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><INPUT class=SGResponse size=80 name=17*@^/230*@^/1> 
+  </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq3></A>3.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Campus Location: </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Downtown 
+      name=17*@^/231*@^/1>Downtown </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Polytechnic 
+      name=17*@^/231*@^/1>Polytechnic </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Tempe 
+      name=17*@^/231*@^/1>Tempe </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=West 
+      name=17*@^/231*@^/1>West </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq4></A>4.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Length of Service (Number of Years and Number of 
+      Months, for example: 2 years and 4 months): </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><INPUT class=SGResponse size=80 name=17*@^/232*@^/1> 
+  </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq5></A>5.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Employment Classification </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="Classified Staff" name=17*@^/233*@^/1>Classified Staff 
+      </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="Service Professional" name=17*@^/233*@^/1>Service 
+      Professional </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGSetFocusOnRadioButtonText(this); 
+      type=radio value=SGOTHR name=17*@^/233*@^/1>Other:<INPUT 
+      onfocus=SGSelectAdjacentRadioButton(this,false); 
+      onchange=SGSelectAdjacentRadioButton(this,true); size=30 
+      name=17*@^/233*@^/1> </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq6></A>6.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Primary reason for leaving ASU: (if more than one 
+      applies, rate 1-5, 1 being primary choice, 2 being secondary, etc.) 
+  </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGResponseInstructions>(Rank responses from 1 to 5.)</P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><STRONG>1</STRONG> <SELECT class=SGResponse 
+      onchange=SGEnforceUniqueRank(this); size=1 name=17*@^/234*@^/1> <OPTION 
+        value="" selected></OPTION> <OPTION value="Career Change">Career 
+        Change</OPTION> <OPTION value="Health Issues">Health Issues</OPTION> 
+        <OPTION value="Lack of Recognition for Work">Lack of Recognition for 
+        Work</OPTION> <OPTION value="Lack of Career Opportunities">Lack of 
+        Career Opportunities</OPTION> <OPTION value=Workload>Workload</OPTION> 
+        <OPTION value=Self-employment>Self-employment</OPTION> <OPTION 
+        value="Family Needs">Family Needs</OPTION> <OPTION 
+        value="Moving from Area">Moving from Area</OPTION> <OPTION 
+        value="Work Environment">Work Environment</OPTION> <OPTION 
+        value="Return to School">Return to School</OPTION> <OPTION 
+        value=Commute>Commute</OPTION> <OPTION 
+        value=Retirement>Retirement</OPTION> <OPTION 
+        value=Salary>Salary</OPTION> <OPTION 
+        value="Quality of Supervision">Quality of Supervision</OPTION> <OPTION 
+        value="Work Schedule/Work Hours">Work Schedule/Work Hours</OPTION> 
+        <OPTION value=Coworkers>Coworkers</OPTION> <OPTION 
+        value=Other>Other</OPTION></SELECT> </TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><STRONG>2</STRONG> <SELECT class=SGResponse 
+      onchange=SGEnforceUniqueRank(this); size=1 name=17*@^/234*@^/2> <OPTION 
+        value="" selected></OPTION> <OPTION value="Career Change">Career 
+        Change</OPTION> <OPTION value="Health Issues">Health Issues</OPTION> 
+        <OPTION value="Lack of Recognition for Work">Lack of Recognition for 
+        Work</OPTION> <OPTION value="Lack of Career Opportunities">Lack of 
+        Career Opportunities</OPTION> <OPTION value=Workload>Workload</OPTION> 
+        <OPTION value=Self-employment>Self-employment</OPTION> <OPTION 
+        value="Family Needs">Family Needs</OPTION> <OPTION 
+        value="Moving from Area">Moving from Area</OPTION> <OPTION 
+        value="Work Environment">Work Environment</OPTION> <OPTION 
+        value="Return to School">Return to School</OPTION> <OPTION 
+        value=Commute>Commute</OPTION> <OPTION 
+        value=Retirement>Retirement</OPTION> <OPTION 
+        value=Salary>Salary</OPTION> <OPTION 
+        value="Quality of Supervision">Quality of Supervision</OPTION> <OPTION 
+        value="Work Schedule/Work Hours">Work Schedule/Work Hours</OPTION> 
+        <OPTION value=Coworkers>Coworkers</OPTION> <OPTION 
+        value=Other>Other</OPTION></SELECT> </TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><STRONG>3</STRONG> <SELECT class=SGResponse 
+      onchange=SGEnforceUniqueRank(this); size=1 name=17*@^/234*@^/3> <OPTION 
+        value="" selected></OPTION> <OPTION value="Career Change">Career 
+        Change</OPTION> <OPTION value="Health Issues">Health Issues</OPTION> 
+        <OPTION value="Lack of Recognition for Work">Lack of Recognition for 
+        Work</OPTION> <OPTION value="Lack of Career Opportunities">Lack of 
+        Career Opportunities</OPTION> <OPTION value=Workload>Workload</OPTION> 
+        <OPTION value=Self-employment>Self-employment</OPTION> <OPTION 
+        value="Family Needs">Family Needs</OPTION> <OPTION 
+        value="Moving from Area">Moving from Area</OPTION> <OPTION 
+        value="Work Environment">Work Environment</OPTION> <OPTION 
+        value="Return to School">Return to School</OPTION> <OPTION 
+        value=Commute>Commute</OPTION> <OPTION 
+        value=Retirement>Retirement</OPTION> <OPTION 
+        value=Salary>Salary</OPTION> <OPTION 
+        value="Quality of Supervision">Quality of Supervision</OPTION> <OPTION 
+        value="Work Schedule/Work Hours">Work Schedule/Work Hours</OPTION> 
+        <OPTION value=Coworkers>Coworkers</OPTION> <OPTION 
+        value=Other>Other</OPTION></SELECT> </TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><STRONG>4</STRONG> <SELECT class=SGResponse 
+      onchange=SGEnforceUniqueRank(this); size=1 name=17*@^/234*@^/4> <OPTION 
+        value="" selected></OPTION> <OPTION value="Career Change">Career 
+        Change</OPTION> <OPTION value="Health Issues">Health Issues</OPTION> 
+        <OPTION value="Lack of Recognition for Work">Lack of Recognition for 
+        Work</OPTION> <OPTION value="Lack of Career Opportunities">Lack of 
+        Career Opportunities</OPTION> <OPTION value=Workload>Workload</OPTION> 
+        <OPTION value=Self-employment>Self-employment</OPTION> <OPTION 
+        value="Family Needs">Family Needs</OPTION> <OPTION 
+        value="Moving from Area">Moving from Area</OPTION> <OPTION 
+        value="Work Environment">Work Environment</OPTION> <OPTION 
+        value="Return to School">Return to School</OPTION> <OPTION 
+        value=Commute>Commute</OPTION> <OPTION 
+        value=Retirement>Retirement</OPTION> <OPTION 
+        value=Salary>Salary</OPTION> <OPTION 
+        value="Quality of Supervision">Quality of Supervision</OPTION> <OPTION 
+        value="Work Schedule/Work Hours">Work Schedule/Work Hours</OPTION> 
+        <OPTION value=Coworkers>Coworkers</OPTION> <OPTION 
+        value=Other>Other</OPTION></SELECT> </TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><STRONG>5</STRONG> <SELECT class=SGResponse 
+      onchange=SGEnforceUniqueRank(this); size=1 name=17*@^/234*@^/5> <OPTION 
+        value="" selected></OPTION> <OPTION value="Career Change">Career 
+        Change</OPTION> <OPTION value="Health Issues">Health Issues</OPTION> 
+        <OPTION value="Lack of Recognition for Work">Lack of Recognition for 
+        Work</OPTION> <OPTION value="Lack of Career Opportunities">Lack of 
+        Career Opportunities</OPTION> <OPTION value=Workload>Workload</OPTION> 
+        <OPTION value=Self-employment>Self-employment</OPTION> <OPTION 
+        value="Family Needs">Family Needs</OPTION> <OPTION 
+        value="Moving from Area">Moving from Area</OPTION> <OPTION 
+        value="Work Environment">Work Environment</OPTION> <OPTION 
+        value="Return to School">Return to School</OPTION> <OPTION 
+        value=Commute>Commute</OPTION> <OPTION 
+        value=Retirement>Retirement</OPTION> <OPTION 
+        value=Salary>Salary</OPTION> <OPTION 
+        value="Quality of Supervision">Quality of Supervision</OPTION> <OPTION 
+        value="Work Schedule/Work Hours">Work Schedule/Work Hours</OPTION> 
+        <OPTION value=Coworkers>Coworkers</OPTION> <OPTION 
+        value=Other>Other</OPTION></SELECT> </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq7></A>7.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>I had adequate opportunity for advancement at ASU. 
+    </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Disagree" 
+      name=17*@^/235*@^/1>Strongly Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Disagree 
+      name=17*@^/235*@^/1>Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Neither Agree or Disagree" 
+      name=17*@^/235*@^/1>Neither Agree or Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Agree 
+      name=17*@^/235*@^/1>Agree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Agree" 
+      name=17*@^/235*@^/1>Strongly Agree </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq8></A>8.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>My training and development needs were met. 
+  </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Disagree" 
+      name=17*@^/236*@^/1>Strongly Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Disagree 
+      name=17*@^/236*@^/1>Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Neither Agree or Disagree" 
+      name=17*@^/236*@^/1>Neither Agree or Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Agree 
+      name=17*@^/236*@^/1>Agree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Agree" 
+      name=17*@^/236*@^/1>Strongly Agree </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq9></A>9.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>I received quality supervision (for example; valuable, 
+      supportive, meaningful, useful). </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Disagree" 
+      name=17*@^/237*@^/1>Strongly Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Disagree 
+      name=17*@^/237*@^/1>Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Neither Agree or Disagree" 
+      name=17*@^/237*@^/1>Neither Agree or Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Agree 
+      name=17*@^/237*@^/1>Agree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Agree" 
+      name=17*@^/237*@^/1>Strongly Agree </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq10></A>10.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Compensation and advancement were provided at the 
+      appropriate levels for my job. </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Disagree" 
+      name=17*@^/238*@^/1>Strongly Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Disagree 
+      name=17*@^/238*@^/1>Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Neither Agree or Disagree" 
+      name=17*@^/238*@^/1>Neither Agree or Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Agree 
+      name=17*@^/238*@^/1>Agree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Agree" 
+      name=17*@^/238*@^/1>Strongly Agree </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq11></A>11.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>I received sufficient feedback about my performance 
+      between evaluation reviews. </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Disagree" 
+      name=17*@^/239*@^/1>Strongly Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Disagree 
+      name=17*@^/239*@^/1>Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Neither Agree or Disagree" 
+      name=17*@^/239*@^/1>Neither Agree or Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Agree 
+      name=17*@^/239*@^/1>Agree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Agree" 
+      name=17*@^/239*@^/1>Strongly Agree </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq12></A>12.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>My job duties turned out to be as I expected. 
+  </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Disagree" 
+      name=17*@^/240*@^/1>Strongly Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Disagree 
+      name=17*@^/240*@^/1>Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Neither Agree or Disagree" 
+      name=17*@^/240*@^/1>Neither Agree or Disagree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Agree 
+      name=17*@^/240*@^/1>Agree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value="Strongly Agree" 
+      name=17*@^/240*@^/1>Strongly Agree </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq13></A>13.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>What motivated you to begin looking for another job? 
+      </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><TEXTAREA class=SGResponse name=17*@^/241*@^/1 rows=10 cols=80></TEXTAREA> 
+    </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq14></A>14.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>If you are leaving for another job, what does your new 
+      position or company offer that your old position and/or ASU doesn't. 
+    </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><TEXTAREA class=SGResponse name=17*@^/242*@^/1 rows=10 cols=80></TEXTAREA> 
+    </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq15></A>15.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>What could have been done differently to retain you as 
+      an employee? </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><TEXTAREA class=SGResponse name=17*@^/243*@^/1 rows=10 cols=80></TEXTAREA> 
+    </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq16></A>16.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>If you could change anything about how your department 
+      and/or ASU operates, what would you change and why? 
+</P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><TEXTAREA class=SGResponse name=17*@^/244*@^/1 rows=10 cols=80></TEXTAREA> 
+    </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq17></A>17.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Is there anything else you want to comment on that we 
+      have not already addressed? </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><TEXTAREA class=SGResponse name=17*@^/245*@^/1 rows=10 cols=80></TEXTAREA> 
+    </TD></TR></TBODY></TABLE>
+<HR class=SGHorizontalLine width="100%" noShade SIZE=10>
+
+<H3 class=SGSection>Demographic Information</H3>
+<P class=SGNormalText>As a reminder, providing this information is voluntary, 
+however, the more information provided, the better we can analyze the processes 
+throughout the University and take the appropriate action. Your responses will 
+not be shared with your department without your permission. When appropriate, 
+cumulative data will be shared with appropriate leadership. The information you 
+provide will not become part of your personnel file.</P><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq18></A>18.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Date of Separation (MM/DD/YYYY): 
+</P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><INPUT class=SGResponse size=10 name=17*@^/246*@^/1> 
+  </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq19></A>19.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Gender: </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Female 
+      name=17*@^/247*@^/1>Female </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Male 
+      name=17*@^/247*@^/1>Male </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq20></A>20.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Race: </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value=White name=17*@^/248*@^/1>White </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value=Black name=17*@^/248*@^/1>Black </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="Asian/Pacific Islander" 
+      name=17*@^/248*@^/1>Asian/Pacific Islander </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value=Hispanic name=17*@^/248*@^/1>Hispanic </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="American Indian/Alaskan Native" 
+      name=17*@^/248*@^/1>American Indian/Alaskan Native </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGSetFocusOnRadioButtonText(this); 
+      type=radio value=SGOTHR name=17*@^/248*@^/1>Other:<INPUT 
+      onfocus=SGSelectAdjacentRadioButton(this,false); 
+      onchange=SGSelectAdjacentRadioButton(this,true); size=30 
+      name=17*@^/248*@^/1> </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq21></A>21.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Education: </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="Less than High School" name=17*@^/249*@^/1>Less than 
+      High School </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="High School Diploma or equivalent" 
+      name=17*@^/249*@^/1>High School Diploma or equivalent </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="Associate's Degree" name=17*@^/249*@^/1>Associate's 
+      Degree </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="Bachelor's Degree" name=17*@^/249*@^/1>Bachelor's Degree 
+      </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value="Master's Degree" name=17*@^/249*@^/1>Master's Degree 
+    </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGClearRadioButtonText(this); 
+      type=radio value=Doctorate name=17*@^/249*@^/1>Doctorate </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT onclick=SGSetFocusOnRadioButtonText(this); 
+      type=radio value=SGOTHR name=17*@^/249*@^/1>Other:<INPUT 
+      onfocus=SGSelectAdjacentRadioButton(this,false); 
+      onchange=SGSelectAdjacentRadioButton(this,true); size=30 
+      name=17*@^/249*@^/1> </P></TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq22></A>22.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Immediate Supervisor's Name: </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><INPUT class=SGResponse size=40 name=17*@^/250*@^/1> 
+  </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq23></A>23.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Employee (Your) Name: </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%"><INPUT class=SGResponse size=40 name=17*@^/251*@^/1> 
+  </TD></TR></TBODY></TABLE><BR>
+<TABLE width="100%" bgColor=#c0c0c0 border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%">
+      <P class=SGQuestion><A name=skiptoq24></A>24.</P></TD>
+    <TD width="94%">
+      <P class=SGQuestion>Do we have your permission to share your responses: 
+      </P></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=Yes name=17*@^/252*@^/1>Yes 
+      </P></TD></TR>
+  <TR>
+    <TD width="6%"></TD>
+    <TD width="94%">
+      <P class=SGNormalText><INPUT type=radio value=No name=17*@^/252*@^/1>No 
+      </P></TD></TR></TBODY></TABLE>
+<HR class=SGHorizontalLine width="100%" noShade SIZE=10>
+
+<H3 class=SGSection>Thank you for your employment at ASU and for completing this 
+survey. Good Luck with your future endeavors.</H3></TABLE><INPUT type=hidden 
+value=1*@^/2*@^/3*@^/4*@^/5*@^/6*@^/7*@^/8*@^/9*@^/10*@^/11*@^/12*@^/24 
+name=SGRQQNO> <INPUT type=hidden 
+value=229*@^/230*@^/231*@^/232*@^/233*@^/234*@^/235*@^/236*@^/237*@^/238*@^/239*@^/240*@^/252 
+name=SGRQQID> <INPUT type=hidden 
+value="Current Title*@^/Department*@^/Campus Location:*@^/Length of Service (Number of Years and Number of Months, for example: 2 years and 4 months):*@^/Employment Classification*@^/Primary reason for leaving ASU:  (if more than one applies, rate 1-5, 1 being primary choice, 2 being secondary, etc.)*@^/I had adequate opportunity for advancement at ASU.*@^/My training and development needs were met.*@^/I received quality supervision (for example; valuable, supportive, meaningful, useful).*@^/Compensation and advancement were provided at the appropriate levels for my job.*@^/I received sufficient feedback about my performance between evaluation reviews.*@^/My job duties turned out to be as I expected.*@^/Do we have your permission to share your responses:" 
+name=SGRQQST> <INPUT type=hidden 
+value=1*@^/1*@^/1*@^/1*@^/1*@^/5*@^/1*@^/1*@^/1*@^/1*@^/1*@^/1*@^/1 
+name=SGRQQRA> 
+<HR class=SGHorizontalLine width="100%" noShade SIZE=10>
+
+<P align=center><INPUT type=submit value="Submit Your Responses"> </P></FORM>
+<HR class=SGHorizontalLine width="100%" noShade SIZE=10>
+
+<P class=SGWatermark>Created with SurveyGold <A style="TEXT-DECORATION: none" 
+href="http://surveygold.com/"><FONT color=#000000>survey software</FONT></A> - 
+©2004 Golden Hills Software, Inc. - <A 
+href="http://surveygold.com/">http://surveygold.com/</A></P></BODY></HTML>

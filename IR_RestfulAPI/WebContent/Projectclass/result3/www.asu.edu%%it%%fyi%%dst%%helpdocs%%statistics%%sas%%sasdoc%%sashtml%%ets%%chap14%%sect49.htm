@@ -1,0 +1,1032 @@
+<HTML>
+<HEAD>
+<TITLE>Autoregressive Moving Average Error Processes</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Autoregressive Moving Average Error Processes  </H2>
+<P><A NAME="idxmod0436">&#13;</A><A NAME="idxmod0435">&#13;</A><A NAME="idxmod0438">&#13;</A><A NAME="idxmod0437">&#13;</A><A NAME="idxmod0440">&#13;</A><A NAME="idxmod0439">&#13;</A>Autoregressive moving average error processes (ARMA errors) and other
+models involving lags of error terms can be estimated using FIT statements
+and simulated or forecast using SOLVE statements. 
+ARMA models for the error process are often used for models with autocorrelated residuals.
+The %AR macro can be used to specify models with autoregressive error processes.
+The %MA macro can be used to specify models with moving average error processes.
+<P><H3><I>Autoregressive Errors</I></H3>
+A model with first-order autoregressive errors, AR(1), has the form
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="135" HEIGHT="74"
+ SRC="images/modeq232.gif"
+ ALT="y_{t}=f(x_{t}, {\theta})+{\mu}_{t}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="120" HEIGHT="72"
+ SRC="images/modeq233.gif"
+ ALT="{\mu}_{t}={\phi}{\mu}_{t-1}+{\epsilon}_{t}"></DL>
+<P>while an AR(2) error process has the form
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="204" HEIGHT="72"
+ SRC="images/modeq234.gif"
+ ALT="{\mu}_{t}={\phi}_{1}{\mu}_{t-1}+{\phi}_{2}{\mu}_{t-2}+{\epsilon}_{t}"></DL>
+<P>and so forth for higher-order processes. Note that the <IMG WIDTH="17" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq235.gif"
+ ALT="{{\epsilon}_{t}}">'s
+are independent and identically distributed and have an expected value
+of 0.
+<P>An example of a model with an AR(2) component is
+
+<DL CLASS="equation"><DD><IMG WIDTH="135" HEIGHT="72"
+ SRC="images/modeq236.gif"
+ ALT="y = {\alpha} + {\beta} x_{1} + {\mu}_{t}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="204" HEIGHT="72"
+ SRC="images/modeq234.gif"
+ ALT="{\mu}_{t}={\phi}_{1}{\mu}_{t-1}+{\phi}_{2}{\mu}_{t-2}+{\epsilon}_{t}"></DL>
+You would write this model as follows:
+<P><PRE>
+   proc model data=in;
+      parms a b p1 p2;
+      y = a + b * x1 + p1 * zlag1(y - (a + b * x1)) + 
+            p2 * zlag2(y - (a + b * x1));
+      fit y;
+   run;
+</PRE>
+<P>or equivalently using the %AR macro as
+<PRE>
+   proc model data=in;
+      parms a b;
+      y = a + b * x1;
+      %ar( y, 2 );
+      fit y;
+   run;
+</PRE>
+<P><H3><I>Moving Average Models</I></H3>
+<A NAME="idxmod0441">&#13;</A>A model with first-order moving average errors, MA(1), has the form
+
+<DL CLASS="equation"><DD><IMG WIDTH="118" HEIGHT="74"
+ SRC="images/modeq237.gif"
+ ALT="y_{t}=f(x_{t})+{\mu}_{t}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="121" HEIGHT="72"
+ SRC="images/modeq238.gif"
+ ALT="{\mu}_{t}={\epsilon}_{t}-{\theta}_{1}{\epsilon}_{t-1}"></DL>
+<P>where <IMG WIDTH="17" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq235.gif"
+ ALT="{{\epsilon}_{t}}"> is identically and independently distributed with
+mean zero. An MA(2) error process has the form
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="191" HEIGHT="72"
+ SRC="images/modeq239.gif"
+ ALT="{\mu}_{t}={\epsilon}_{t}-{\theta}_{1}{\epsilon}_{t-1}-{\theta}_{2}{\epsilon}_{t-2}"></DL>
+<P>and so forth for higher-order processes.
+<P>For example, you can write a simple linear regression model with MA(2) 
+moving average errors as
+<P><PRE>
+   proc model data=inma2;
+      parms a b ma1 ma2;
+      y = a + b * x + ma1 * zlag1( resid.y ) + 
+          ma2 * zlag2( resid.y );
+      fit;
+   run;
+</PRE>
+<P>where MA1 and MA2 are the moving average parameters.
+<P>Note that RESID.Y is automatically defined by PROC MODEL as
+<PRE>
+   pred.y = a + b * x + ma1 * zlag1( resid.y ) +
+          ma2 * zlag2( resid.y );
+   resid.y = actual.y - pred.y;
+</PRE>
+Note that RESID.Y is <IMG WIDTH="17" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq235.gif"
+ ALT="{{\epsilon}_{t}}">.<P>The ZLAG function 
+must be used for MA models to
+truncate the recursion of the lags. This
+ensures that the lagged errors start at zero
+in the lag-priming phase and do not propagate missing values
+when lag-priming period variables are missing, and 
+ensures that the future errors are zero rather than missing during
+simulation or forecasting.
+For details
+on the lag functions, see the section &#34;Lag Logic.&#34;
+<P>This model written using the %MA macro is
+<PRE>
+   proc model data=inma2;
+      parms a b;
+      y =  a + b * x;
+      %ma(y, 2);
+      fit;
+   run;
+</PRE>
+<P><H3><I>General Form for ARMA Models</I></H3>
+The general ARMA(<I>p,q</I>) process has the following form
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="429" HEIGHT="74"
+ SRC="images/modeq240.gif"
+ ALT="{\mu}_{t}={\phi}_{1}{\mu}_{t-1}+{ ... }+{\phi}_{p}{\mu}_{t-p}+{\epsilon}_{t}
+-{\theta}_{1}{\epsilon}_{t-1}-{ ... }-{\theta}_{q}{\epsilon}_{t-q}"></DL>
+<P>An ARMA(<I>p</I>,<I>q</I>) model can be specified as follows
+<P><PRE>
+   yhat =  ... compute structural predicted value here ... ;
+   yarma = ar1 * zlag1( y - yhat ) + ...  /* ar part */
+                                   + ar(p) * zlag(p)( y - yhat )
+        + ma1 * zlag1( resid.y )   + ...  /* ma part */
+                                   + ma(q) * zlag(q)( resid.y );
+   y = yhat + yarma;
+</PRE>
+<P>where AR<I>i</I> and MA<I>j</I> represent the autoregressive and
+moving average parameters for the various lags.
+You can use any names you want for these variables, and there
+are many equivalent ways that the specification could be written.
+<P>Vector ARMA processes can also be estimated with PROC MODEL. 
+For example, a two-variable AR(1) process for the errors of the two endogenous
+variables Y1 and Y2 can be specified as follows
+<P><PRE>
+   y1hat =  ... compute structural predicted value here ... ;
+   
+   y1    = y1hat + ar1_1 * zlag1( y1 - y1hat )   /* ar part y1,y1 */
+                 + ar1_2 * zlag1( y2 - y2hat );  /* ar part y1,y2 */
+   
+   y21hat =  ... compute structural predicted value here ... ;
+   
+   y2     = y2hat + ar2_2 * zlag1( y2 - y2hat )   /* ar part y2,y2 */
+                  + ar2_1 * zlag1( y1 - y1hat );  /* ar part y2,y1 */
+</PRE>
+<P><H3><I>Convergence Problems with ARMA Models</I></H3>
+ARMA models can be difficult to estimate.
+If the parameter estimates are not within the appropriate
+range, a moving average model's residual terms will grow exponentially. 
+The calculated
+residuals for later observations can be very large or can overflow. 
+This can happen either because improper starting values were used or because
+the iterations moved away from reasonable values.
+<P>Care should be used in choosing starting values for ARMA parameters.
+Starting values of .001 for ARMA parameters usually work if the model
+fits the data well and the problem is well-conditioned. 
+Note that an MA model can often be approximated by a 
+high order AR model, and vice versa. 
+This may result in high collinearity in mixed ARMA models, which in turn
+can cause serious ill-conditioning in the calculations and
+instability of the parameter estimates.
+<P>If you have convergence problems while estimating a model with ARMA
+error processes, try to estimate in steps. 
+First, use a FIT statement to estimate only the structural parameters with the ARMA
+parameters held to zero 
+(or to reasonable prior estimates if available). 
+Next, use another FIT statement to estimate the ARMA parameters only, 
+using the structural parameter values from the first run. 
+Since the values of the structural parameters are likely to be close to their
+final estimates, the ARMA parameter estimates may now converge.
+Finally, 
+use another FIT statement to produce simultaneous estimates of all the parameters. 
+Since the initial values of the parameters are now likely to be quite close 
+to their final joint estimates, the estimates should converge quickly 
+if the model is appropriate for the data.
+<P><H3><I>AR Initial Conditions</I></H3>
+<A NAME="idxmod0443">&#13;</A><A NAME="idxmod0442">&#13;</A><A NAME="idxmod0445">&#13;</A><A NAME="idxmod0444">&#13;</A><A NAME="idxmod0447">&#13;</A><A NAME="idxmod0446">&#13;</A><A NAME="idxmod0449">&#13;</A><A NAME="idxmod0448">&#13;</A><A NAME="idxmod0451">&#13;</A><A NAME="idxmod0450">&#13;</A>The initial lags of the error terms of AR(<I>p</I>) models 
+can be modeled in different ways.
+The autoregressive error startup methods
+supported by SAS/ETS procedures are the following:
+<P><DL>
+<DT>CLS
+<DD>conditional least squares (ARIMA and MODEL procedures)
+<BR><BR><DT>ULS
+<DD>unconditional least squares
+(AUTOREG, ARIMA, and MODEL procedures)
+<BR><BR><DT>ML
+<DD>maximum likelihood (AUTOREG, ARIMA, and MODEL procedures)
+<BR><BR><DT>YW
+<DD>Yule-Walker (AUTOREG procedure only)
+<BR><BR><DT>HL
+<DD>Hildreth-Lu, which deletes the first <I>p</I> observations
+(MODEL procedure only)
+</DL><BR>See <A HREF="../chap8/index.htm">Chapter 8</A>,
+for an explanation and discussion of the merits of various AR(p) 
+startup methods.
+<BR><BR>The CLS, ULS, ML, and HL initializations can be performed by PROC MODEL.
+For AR(1) errors, these initializations can be produced as shown in <A HREF="sect49.htm#modt1">Table 14.2</A>.
+These methods are equivalent in large samples.
+<BR><BR></P><A NAME="modt1"><SPAN CLASS="ssften"><B>Table 14.2:</B> Initializations Performed by PROC MODEL: AR(1) ERRORS</SPAN></A><TABLE COLS=2 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL ALIGN=JUSTIFY><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB" ><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Method</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Formula</B></FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">conditional least</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>Y=YHAT+AR1*ZLAG1(Y-YHAT);</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">squares</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">unconditional least</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>Y=YHAT+AR1*ZLAG1(Y-YHAT);</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">squares</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>IF _OBS_=1 THEN</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>RESID.Y=SQRT(1-AR1**2)*RESID.Y;</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">maximum likelihood</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>Y=YHAT+AR1*ZLAG1(Y-YHAT);</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>W=(1-AR1**2)**(-1/(2*_NUSED_));</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>IF _OBS_=1 THEN W=W*SQRT(1-AR1**2);</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>RESID.Y=W*RESID.Y;</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD">Hildreth-Lu</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>Y=YHAT+AR1*LAG1(Y-YHAT);</TD></TR></TBODY>
+</TABLE>
+<BR><BR><H3><I>MA Initial Conditions</I></H3>
+<A NAME="idxmod0453">&#13;</A><A NAME="idxmod0452">&#13;</A><A NAME="idxmod0455">&#13;</A><A NAME="idxmod0454">&#13;</A><A NAME="idxmod0457">&#13;</A><A NAME="idxmod0456">&#13;</A>The initial lags of the error terms of MA(<I>q</I>) models
+can also be modeled in different ways.
+The following moving average error startup paradigms are
+supported by the ARIMA and MODEL procedures:
+<BR><BR><DL>
+<DT>ULS
+<DD>unconditional least squares
+<BR><BR><DT>CLS
+<DD>conditional least squares
+<BR><BR><DT>ML
+<DD>maximum likelihood 
+</DL><BR>The conditional least-squares method of estimating moving average
+error terms is not optimal because it ignores the startup problem. This
+reduces the efficiency of the estimates, although they remain unbiased.
+The initial lagged residuals, extending before the start of the data,
+are assumed to be 0, their unconditional expected value. This
+introduces a difference between these residuals and the generalized
+least-squares residuals for the moving average covariance, which, unlike
+the autoregressive model, persists through the data set. Usually this
+difference converges quickly to 0, but for nearly noninvertible
+moving average processes the convergence is quite slow. To minimize
+this problem, you should have plenty of data, and the moving average
+parameter estimates should be well within the invertible range.
+<BR><BR>This problem can be corrected at the expense of writing a more
+complex program. 
+Unconditional least-squares estimates for the MA(1) process can be produced 
+by specifying the model as follows:
+<BR><BR><PRE>
+   yhat =  ... compute structural predicted value here ... ;
+   if _obs_ = 1 then do;
+      h = sqrt( 1 + ma1 ** 2 );
+      y = yhat;
+      resid.y = ( y - yhat ) / h;
+      end;
+   else do;
+      g = ma1 / zlag1( h );
+      h = sqrt( 1 + ma1 ** 2 - g ** 2 );
+      y = yhat + g * zlag1( resid.y );
+      resid.y = ( ( y - yhat) - g * zlag1( resid.y ) ) / h;
+      end;
+</PRE>
+<BR><BR>Moving-average errors can be difficult to estimate. 
+You should consider using an AR(<I>p</I>) approximation to the moving average process. 
+A moving average process can usually be well-approximated by an
+autoregressive process if the data have not been smoothed or differenced.
+<BR><BR><H3><I>The %AR Macro</I></H3>
+The SAS macro %AR generates programming statements for PROC MODEL 
+for autoregressive models.
+The %AR macro is part of SAS/ETS software and no special options need 
+to be set to use the macro.
+The autoregressive process can be applied to the structural
+equation errors or to the endogenous series themselves.
+<BR><BR>The %AR macro can be used for
+<BR><BR><UL>
+<LI> univariate autoregression
+<LI> unrestricted vector autoregression
+<LI> restricted vector autoregression.
+</UL>
+<BR><BR><H3><I>Univariate Autoregression</I></H3>
+<A NAME="idxmod0458">&#13;</A>To model the error term of an equation as an autoregressive process,
+use the following statement after the equation:
+<BR><BR><PRE>
+   %ar( varname, nlags )
+</PRE>
+<BR><BR>For example, suppose that Y is a linear function of X1 and X2, and an AR(2) error. 
+You would write this model as follows:
+<BR><BR><PRE>
+   proc model data=in;
+      parms a b c;
+      y = a + b * x1 + c * x2;
+      %ar( y, 2 )
+      fit y / list;
+   run;
+</PRE>
+The calls to %AR must come <I>after</I> all of the
+equations that the process applies to.
+<BR><BR>The proceding macro invocation, %AR(y,2), produces the statements 
+shown in the LIST output in <A HREF="sect49.htm#modarlist">Figure 14.49</A>.
+<BR><BR><A NAME="modarlist">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Listing of Compiled Program Code</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Stmt</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Line:Col</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Statement as Parsed</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">24514:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PRED.y = a + b * x1 + c * x2;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">24514:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">RESID.y = PRED.y - ACTUAL.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">24514:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">ERROR.y = PRED.y - y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26763:23</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">_PRED__y = PRED.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26779:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">#OLD_PRED.y = PRED.y + y_l1 * ZLAG1( y - _PRED__y ) + y_l2 * ZLAG2( y - _PRED__y );</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26779:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PRED.y = #OLD_PRED.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26779:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">RESID.y = PRED.y - ACTUAL.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26779:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">ERROR.y = PRED.y - y;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.49:</B> LIST Option Output for an AR(2) Model</SPAN><BR><BR>The _PRED__ prefixed variables are temporary program variables 
+used so that the lags of the residuals
+are the correct residuals and not the ones redefined by this equation.
+Note that this is equivalent to the statements explicitly written in the 
+&#34;General Form for ARMA Models&#34; earlier in this section.
+<BR><BR>You can also restrict the autoregressive parameters to zero at selected lags. 
+For example, if you wanted autoregressive parameters at lags 1, 12, and 13, you
+can use the following statements:
+<BR><BR><PRE>
+   proc model data=in;
+      parms a b c;
+      y = a + b * x1 + c * x2;
+      %ar( y, 13, , 1 12 13 )
+      fit y / list;
+   run;
+</PRE>
+These statements generate the output shown in <A HREF="sect49.htm#modarlist2">Figure 14.50</A>.
+<BR><BR><A NAME="modarlist2">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Listing of Compiled Program Code</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Stmt</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Line:Col</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Statement as Parsed</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26958:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PRED.y = a + b * x1 + c * x2;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26958:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">RESID.y = PRED.y - ACTUAL.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">26958:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">ERROR.y = PRED.y - y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27407:23</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">_PRED__y = PRED.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27423:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">#OLD_PRED.y = PRED.y + y_l1 * ZLAG1( y - _PRED__y ) + y_l12 * ZLAG12( y - _PRED__y ) + y_l13 * ZLAG13( y - _PRED__y );</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27423:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PRED.y = #OLD_PRED.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27423:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">RESID.y = PRED.y - ACTUAL.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27423:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">ERROR.y = PRED.y - y;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.50:</B> LIST Option Output for an AR Model with Lags at 1, 12, and 13</SPAN><BR><BR>There are variations on the conditional least-squares method, depending
+on whether observations at the start of the series are used to
+&#34;warm up&#34; the AR process. 
+By default, the %AR conditional least-squares method uses all the observations 
+and assumes zeros for the initial lags of autoregressive terms.
+By using the M= option, you can request that %AR use 
+the unconditional least-squares (ULS) or maximum-likelihood (ML) method instead.
+For example:
+<BR><BR><PRE>
+   proc model data=in;
+      y = a + b * x1 + c * x2;
+      %ar( y, 2, m=uls )
+      fit y;
+   run;
+</PRE>
+Discussions of these methods is provided in the &#34;AR Initial Conditions&#34; 
+earlier in this section.
+<BR><BR>By using the M=CLS<I>n</I> option, 
+you can request that the first <I>n</I> observations be used to compute estimates 
+of the initial autoregressive lags. 
+In this case, the analysis starts with observation <I>n</I>+1. 
+For example:
+<BR><BR><PRE>
+   proc model data=in;
+      y = a + b * x1 + c * x2;
+      %ar( y, 2, m=cls2 )
+      fit y;
+   run;
+</PRE>
+<BR><BR>You can use the %AR macro to apply an autoregressive model to the endogenous
+variable, instead of to the error term, by using the TYPE=V option.
+For example, 
+if you want to add the five past lags of Y to the equation in the previous
+example,
+you could use %AR to generate the parameters and lags using the following
+statements:
+<BR><BR><PRE>
+   proc model data=in;
+      parms a b c;
+      y = a + b * x1 + c * x2;
+      %ar( y, 5, type=v )
+      fit y / list;
+   run;
+</PRE>
+The preceding statements generate the output shown in <A HREF="sect49.htm#modarlist3">Figure 14.51</A>.
+<BR><BR><A NAME="modarlist3">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Listing of Compiled Program Code</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Stmt</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Line:Col</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Statement as Parsed</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27668:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PRED.y = a + b * x1 + c * x2;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27668:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">RESID.y = PRED.y - ACTUAL.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">27668:50</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">ERROR.y = PRED.y - y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">28077:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">#OLD_PRED.y = PRED.y + y_l1 * ZLAG1( y ) + y_l2 * ZLAG2( y ) + y_l3 * ZLAG3( y ) + y_l4 * ZLAG4( y ) + y_l5 * ZLAG5( y );</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">28077:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PRED.y = #OLD_PRED.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">28077:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">RESID.y = PRED.y - ACTUAL.y;</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">28077:15</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">ERROR.y = PRED.y - y;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.51:</B> LIST Option Output for an AR model of Y</SPAN><BR><BR>This model predicts Y as a linear combination of X1, X2, an intercept,
+and the values of Y in the most recent  five periods.
+<BR><BR><H3><I>Unrestricted Vector Autoregression</I></H3>
+<A NAME="idxmod0459">&#13;</A>To model the error terms of a set of equations as a vector autoregressive
+process, use the following form of the %AR macro after the equations:
+<BR><BR><PRE>
+   %ar( process_name, nlags, variable_list )
+</PRE>
+<BR><BR>The <I>process_name</I> value is any name that you  supply for %AR to use in 
+making names for the autoregressive parameters. You can use the 
+%AR macro to model several different AR processes for different sets
+of equations by using different process names for each set. 
+The process name ensures that the variable names used are
+unique.
+Use a short <I>process_name</I> value for the process if parameter
+estimates are to be written to an output data set.
+The %AR macro tries to construct parameter names less than or equal to
+eight characters, but this is limited by the length of <I>name</I>, which
+is used as a prefix for the AR parameter names.
+<BR><BR>The <I>variable_list</I> value is the list of endogenous variables 
+for the equations.
+<BR><BR>For example, suppose that errors for equations Y1, Y2, and Y3 are generated
+by a second-order vector autoregressive process. 
+You can use the following statements:
+<BR><BR><PRE>
+   proc model data=in;
+      y1 = ... equation for y1 ...;
+      y2 = ... equation for y2 ...;
+      y3 = ... equation for y3 ...;
+      %ar( name, 2, y1 y2 y3 )
+      fit y1 y2 y3;
+   run;
+</PRE>
+which generates the following for Y1 and similar code for Y2 and Y3:
+<PRE>
+   y1 = pred.y1 + name1_1_1*zlag1(y1-name_y1) +
+        name1_1_2*zlag1(y2-name_y2) + 
+        name1_1_3*zlag1(y3-name_y3) +
+        name2_1_1*zlag2(y1-name_y1) + 
+        name2_1_2*zlag2(y2-name_y2) +
+        name2_1_3*zlag2(y3-name_y3) ;
+</PRE>
+<BR><BR>Only the conditional least-squares (M=CLS or M=CLS<I>n</I>) method
+can be used for vector processes.
+<BR><BR>You can also use the same
+form with restrictions that the coefficient matrix be 0 at selected lags. 
+For example, the statements
+<BR><BR><PRE>
+   proc model data=in;
+      y1 = ... equation for y1 ...;
+      y2 = ... equation for y2 ...;
+      y3 = ... equation for y3 ...;
+      %ar( name, 3, y1 y2 y3, 1 3 )
+      fit y1 y2 y3;
+</PRE>
+<BR><BR>apply a third-order vector process to the equation errors with all the
+coefficients at lag 2 restricted to 0 and with the coefficients at 
+lags 1 and 3 unrestricted.
+<BR><BR>You can model the three series Y1-Y3 as a vector autoregressive process 
+in the variables instead of in the errors by using the TYPE=V option.
+If you want to model Y1-Y3 as a function of past values of Y1-Y3 and
+some exogenous variables or constants, you can use %AR to generate
+the statements for the lag terms. 
+Write an equation for each variable for the nonautoregressive part of the model, 
+and then call %AR with the TYPE=V option.
+For example,
+<BR><BR><PRE>
+   proc model data=in;
+      parms a1-a3 b1-b3;
+      y1 = a1 + b1 * x;
+      y2 = a2 + b2 * x;
+      y3 = a3 + b3 * x;
+      %ar( name, 2, y1 y2 y3, type=v )
+      fit y1 y2 y3;
+   run;
+</PRE>
+<BR><BR>The nonautoregressive part of the model can be a function
+of exogenous variables, or it may be intercept parameters.
+If there are no exogenous components to the vector autoregression model, 
+including no intercepts, then assign zero to each of the variables. 
+There must be an assignment to each of the variables before %AR is called.
+<BR><BR><PRE>
+   proc model data=in;
+      y1=0;
+      y2=0;
+      y3=0;
+      %ar( name, 2, y1 y2 y3, type=v )
+      fit y1 y2 y3;
+</PRE>
+<BR><BR>This example models the vector Y=(Y1 Y2 Y3)<SPAN CLASS="mathfont">'</SPAN> as a linear function
+only of its value in the previous two periods and a white noise error vector. 
+The model has 18=(3 <SPAN CLASS="mathfont">&times;</SPAN> 3 + 3 <SPAN CLASS="mathfont">&times;</SPAN> 3) parameters.
+<BR><BR><H3><I>Syntax of the %AR Macro</I></H3>
+There are two cases of the syntax of the %AR macro.
+The first has the general form
+<BR><BR><DL><DD><B CLASS="ssbeleven">%AR</B> <I CLASS="ssieleven">  (<I>name</I>, <I>nlag</I> [,<I>endolist</I> [<SPAN CLASS="ssbeleven"><B>,</B></SPAN><I>laglist</I>]] [<SPAN CLASS="ssbeleven"><B>,M=</B></SPAN><I>method</I>] [<SPAN CLASS="ssbeleven"><B>,TYPE=</B></SPAN>V])</I></DL>
+<A NAME="idxmod0460">&#13;</A>where
+<BR><BR><DL>
+<DT><I>name</I>
+<DD>specifies a prefix for %AR to use in constructing names
+of variables needed to define the AR process.
+If the <I>endolist</I> is not specified, the endogenous list defaults to <I>name</I>,
+which must be the name of the equation to which the AR error process is to be applied.
+The <I>name</I> value cannot exceed eight characters.
+<BR><BR><DT><I>nlag</I>
+<DD>is the order of the AR process.
+<BR><BR><DT><I>endolist</I>
+<DD>specifies the list of equations to which the AR process is to be applied.
+If more than one name is given, an unrestricted vector process is created with 
+the structural residuals of all the equations included as 
+regressors in each of the equations.
+If not specified, <I>endolist</I> defaults to <I>name</I>.
+<BR><BR><DT><I>laglist</I>
+<DD>specifies the list of lags at which the AR terms are to be
+added. The coefficients of the terms at lags not listed are set to 0.
+All of the listed lags must be less than or equal to <I>nlag</I>, 
+and there must be no duplicates. 
+If not specified, the <I>laglist</I> defaults to all lags 1 through <I>nlag</I>.
+<BR><BR><DT>M=<I>method</I>
+<DD>specifies the estimation method to implement.
+Valid values of M= are CLS (conditional least-squares estimates),
+ULS (unconditional least-squares estimates), and ML (maximum-likelihood estimates).
+M=CLS is the default.
+Only M=CLS is allowed when more than one equation is specified. 
+The ULS and ML methods are not supported for vector AR models by %AR.
+<BR><BR><DT>TYPE=V
+<DD>specifies that the AR process is to be applied
+to the endogenous variables themselves instead
+of to the structural residuals of the equations.
+</DL><BR><H3><I>Restricted Vector Autoregression</I></H3>
+<A NAME="idxmod0461">&#13;</A><A NAME="idxmod0462">&#13;</A><A NAME="idxmod0464">&#13;</A><A NAME="idxmod0463">&#13;</A>You can control which parameters are included in the process,
+restricting those parameters that you do not include to 0.
+First, use %AR with the DEFER option to declare the variable list
+and define the dimension of the process. 
+Then, use additional %AR calls to generate terms for selected equations 
+with selected variables at selected lags.
+For example,
+<BR><BR><PRE>
+   proc model data=d;
+      y1 = ... equation for y1 ...;
+      y2 = ... equation for y2 ...;
+      y3 = ... equation for y3 ...;
+      %ar( name, 2, y1 y2 y3, defer )
+      %ar( name, y1, y1 y2 )
+      %ar( name, y2 y3, , 1 )
+      fit y1 y2 y3;
+   run;
+</PRE>
+The error equations produced are
+<PRE>
+   y1 = pred.y1 + name1_1_1*zlag1(y1-name_y1) +
+        name1_1_2*zlag1(y2-name_y2) + name2_1_1*zlag2(y1-name_y1) +
+        name2_1_2*zlag2(y2-name_y2) ;
+   y2 = pred.y2 + name1_2_1*zlag1(y1-name_y1) +
+        name1_2_2*zlag1(y2-name_y2) + name1_2_3*zlag1(y3-name_y3) ;
+   y3 = pred.y3 + name1_3_1*zlag1(y1-name_y1) +
+        name1_3_2*zlag1(y2-name_y2) + name1_3_3*zlag1(y3-name_y3) ;
+</PRE>
+<BR><BR>This model states that the errors for Y1 depend on the errors of
+both Y1 and Y2 (but not Y3) 
+at both lags 1 and 2, and that the errors for Y2 and Y3 depend on the 
+previous errors for all three variables, but only at lag 1.
+<BR><BR><H3><I>%AR Macro Syntax for Restricted Vector AR</I></H3>
+An alternative use of %AR is allowed to impose restrictions on a vector AR 
+process by calling %AR several times to specify different AR terms and lags
+for different equations.
+<BR><BR>The first call has the general form
+<BR><BR><DL><DD><B CLASS="ssbeleven">%AR(</B> <I CLASS="ssieleven">  <I>name</I>, <I>nlag</I>, <I>endolist</I>, DEFER )</I></DL>
+<A NAME="idxmod0465">&#13;</A>where
+<BR><BR><DL>
+<DT><I>name</I>
+<DD>specifies a prefix for %AR to use in constructing names
+of variables needed to define the vector AR process.
+<BR><BR><DT><I>nlag</I>
+<DD>specifies the order of the AR process.
+<BR><BR><DT><I>endolist</I>
+<DD>specifies the list of equations to which the AR process is to be applied.
+<BR><BR><DT>DEFER
+<DD>specifies that %AR is not to generate
+the AR process but is to wait for further information
+specified in later %AR calls for the same <I>name</I> value.
+</DL><BR>The subsequent calls have the general form
+<BR><BR><PRE>
+   %AR( name, eqlist, varlist, laglist,TYPE= )
+</PRE>
+<BR><BR>where
+<BR><BR><DL>
+<DT><I>name</I>
+<DD>is the same as in the first call.
+<BR><BR><DT><I>eqlist</I>
+<DD>specifies the list of equations to which the specifications
+in this %AR call are to be applied.
+Only names specified in the <I>endolist</I> value of the
+first call for the <I>name</I> value can appear in
+the list of equations in <I>eqlist</I>.
+<BR><BR><DT><I>varlist</I>
+<DD>specifies the list of equations whose lagged structural
+residuals are to be included as regressors in the equations in <I>eqlist</I>.
+Only names in the <I>endolist</I> of the first call for the <I>name</I> value
+can appear in <I>varlist</I>.
+If not specified, <I>varlist</I> defaults to <I>endolist</I>.
+<BR><BR><DT><I>laglist</I>
+<DD>specifies the list of lags at which the AR terms are to be added. 
+The coefficients of the terms at lags not listed are set to 0.
+All of the listed lags must be less than or equal to the value of <I>nlag</I>, 
+and there must be no duplicates. 
+If not specified, <I>laglist</I> defaults to all lags 1 through <I>nlag</I>.
+</DL><BR><H3><I>The %MA Macro</I></H3>
+<A NAME="idxmod0466">&#13;</A>The SAS macro %MA generates programming statements for PROC MODEL
+for moving average models.
+The %MA macro is part of SAS/ETS software and no special options are needed to
+use the macro.
+The moving average error process can be applied to the structural
+equation errors. The syntax of the %MA macro is the same as the %AR
+macro except there is no TYPE= argument.
+<BR><BR><A NAME="idxmod0467">&#13;</A>When you are using the %MA and %AR macros combined, the %MA macro must follow
+the %AR macro. The following SAS/IML statements produce an ARMA(1, (1 3))
+error process and save it in the data set MADAT2.
+<BR><BR><PRE>
+    /* use IML module to simulate a MA process  */
+   proc iml;
+      phi={1 .2};
+      theta={ 1 .3 0 .5};
+      y=armasim(phi, theta, 0,.1, 200,32565);
+      create madat2 from y[colname='y'];
+      append;
+   quit;
+</PRE>
+The following PROC MODEL statements are used to estimate 
+the parameters of this model using maximum likelihood 
+error structure:
+<PRE>
+   title1 'Maximum Likelihood ARMA(1, (1 3))';
+   proc model data=madat2;
+      y=0;
+      %ar(y,1,,  M=ml)
+      %ma(y,3,,1 3,  M=ml)  /* %MA always after %AR */
+      fit y;
+   run;
+</PRE>
+The estimates of the parameters produced by this run are 
+shown in <A HREF="sect49.htm#modarma">Figure 14.52</A>.
+<BR><BR><A NAME="modarma">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Maximum Likelihood ARMA(1, (1 3))</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=8 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear&nbsp;OLS&nbsp;Summary&nbsp;of&nbsp;Residual&nbsp;Errors&nbsp;</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Equation</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF Model</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Root MSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>R-Square</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Adj R-Sq</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">197</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2.6383</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0134</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1157</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.0067</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.0169</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>RESID.y</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">197</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.9957</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0101</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1007</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear OLS Parameter Estimates </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx Std Err</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br> Pr &gt; |t|</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Label</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y_l1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.10067</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1187</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.85</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.3973</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">AR(y) y lag1 parameter</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y_m1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.1934</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0939</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.06</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0408</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">MA(y) y lag1 parameter</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y_m3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.59384</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0601</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-9.88</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">MA(y) y lag3 parameter</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.52:</B> Estimates from an ARMA(1, (1 3)) Process</SPAN><BR><BR><H3><I>Syntax of the %MA Macro</I></H3>
+There are two cases of the syntax for the %MA macro.
+The first has the general form
+<BR><BR><DL><DD><B CLASS="ssbeleven">%MA</B> <I CLASS="ssieleven">  ( <I>name</I>, <I>nlag</I> [<SPAN CLASS="ssbeleven"><B>,</B></SPAN><I>endolist</I> [<SPAN CLASS="ssbeleven"><B>,</B></SPAN><I>laglist</I>]] [<SPAN CLASS="ssbeleven"><B>,M=</B></SPAN><I>method</I>] )</I></DL>
+<A NAME="idxmod0468">&#13;</A>where
+<BR><BR><DL>
+<DT><I>name</I>
+<DD>specifies a prefix for %MA to use in constructing names
+of variables needed to define the MA process and is the default
+<I>endolist</I>.
+<BR><BR><DT><I>nlag</I>
+<DD>is the order of the MA process.
+<BR><BR><DT><I>endolist</I>
+<DD>specifies the equations to which the MA process is to be applied.
+If more than one name is given, CLS estimation is used for the
+vector process.
+<BR><BR><DT><I>laglist</I>
+<DD>specifies the lags at which the MA terms are to be
+added. All of the listed lags must be less than or equal to <I>nlag</I>, 
+and there must be no duplicates. 
+If not specified, the <I>laglist</I> defaults to all lags 1 through <I>nlag</I>.
+<BR><BR><DT>M=<I>method</I>
+<DD>specifies the estimation method to implement.
+Valid values of M= are CLS (conditional least-squares estimates),
+ULS (unconditional least-squares estimates), and ML (maximum-likelihood estimates).
+M=CLS is the default.
+Only M=CLS is allowed when more than one equation is specified on the 
+<I>endolist</I>.
+</DL><BR><H3><I>%MA Macro Syntax for Restricted Vector Moving Average</I></H3>
+<A NAME="idxmod0469">&#13;</A>An alternative use of %MA is allowed to impose restrictions on a vector MA 
+process by calling %MA several times to specify different MA terms and lags
+for different equations.
+<BR><BR>The first call has the general form
+<BR><BR><DL><DD><B CLASS="ssbeleven">%MA(</B> <I CLASS="ssieleven">  <I>name</I>, <I>nlag</I>, <I>endolist</I>, <SPAN CLASS="ssbeleven"><B>DEFER</B></SPAN> )</I></DL>
+<A NAME="idxmod0470">&#13;</A>where
+<BR><BR><DL>
+<DT><I>name</I>
+<DD>specifies a prefix for %MA to use in constructing names
+of variables needed to define the vector MA process.
+<BR><BR><DT><I>nlag</I>
+<DD>specifies the order of the MA process.
+<BR><BR><DT><I>endolist</I>
+<DD>specifies the list of equations to which the MA process is to be applied.
+<BR><BR><DT>DEFER
+<DD>specifies that %MA is not to generate
+the MA process but is to wait for further information
+specified in later %MA calls for the same <I>name</I> value.
+</DL><BR>The subsequent calls have the general form
+<BR><BR><PRE>
+   %MA( name, eqlist, varlist, laglist )
+</PRE>
+<BR><BR>where
+<BR><BR><DL>
+<DT><I>name</I>
+<DD>is the same as in the first call.
+<BR><BR><DT><I>eqlist</I>
+<DD>specifies the list of equations to which the specifications
+in this %MA call are to be applied.
+<BR><BR><DT><I>varlist</I>
+<DD>specifies the list of equations whose lagged structural
+residuals are to be included as regressors in the equations in <I>eqlist</I>.
+<BR><BR><DT><I>laglist</I>
+<DD>specifies the list of lags at which the MA terms are to be added. 
+</DL><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,333 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using External Files : Writing to External Files </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425637.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1271256.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0380528.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the CMS Environment                                                                                     </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0606442">Writing to External Files</A></FONT></H1>
+
+
+<P><A name="z0592336">&#13; You can use the FILE statement or the
+FILE command to write
+to an external file.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the FILE Statement</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592337">&#13;
+  The FILE statement
+specifies the current output file for PUT
+statements in the DATA step.  (See  
+
+
+
+<B>SAS Language Reference: Dictionary</B> for a complete description
+of the PUT statement.) </A>
+<P>The specified output file must be an external file,
+not a SAS data library. It cannot be a CMS MACLIB or an OS/390 data set. If
+no FILE statement is specified, then any PUT statements in your SAS program
+write to the SAS log. The FILE statement is executable; therefore, you can
+use it in conditional processing (in an IF/THEN statement, for example).
+<P>When multiple FILE statements are present, the PUT statement
+builds and writes output lines to the file that was specified in the most
+recent FILE statement.
+<P>For complete information about the FILE statement, see
+<A href="zptfmain.htm">FILE</A>.
+<P>The syntax of the FILE statement is
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>FILE</B>
+<I>file-specification</I>
+&lt;<I>options</I>&gt;;
+</TD></TR></TABLE>
+<P>FILE
+<P>
+<DL>
+<DT><B>file-specification</B></DT>
+<DD>identifies the file.  It can be in the following
+forms: 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="0">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  colspan="2" align="LEFT" valign="BOTTOM" ><B>Form </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Example </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">fileref </TD>
+  
+<TD  align="LEFT" valign="TOP"><CODE><B>report</B></CODE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">filename filetype </TD>
+  
+<TD  align="LEFT" valign="TOP"><CODE><B>'report listing'</B></CODE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">filename filetype filemode (or SFS directory)</TD>
+  
+<TD  align="LEFT" valign="TOP"><CODE><B>'report listing b'</B></CODE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">fileref(filename)</TD>
+  
+<TD  align="LEFT" valign="TOP"><CODE><B>mydir(report)</B></CODE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">fileref (filename filetype)</TD>
+  
+<TD  align="LEFT" valign="TOP"><CODE><B>mydir(report listing)</B></CODE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">CMS pipeline</TD>
+  
+<TD  align="LEFT" valign="TOP"><CODE><B>> report listing b</B></CODE></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">reserved filerefs </TD>
+  
+<TD  align="LEFT" valign="TOP"><CODE><B>LOG</B></CODE> or   
+<CODE><B>PRINT</B></CODE></TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P>See <A href="zf-ident.htm">Identifying an External File</A> 
+
+
+
+for details.<P></DD>
+
+<DT><B>options</B></DT>
+<DD>describe the output file's characteristics
+and specify how it is to be written with a PUT statement.  Options that are
+not host-dependent are documented in  
+
+
+
+<B>SAS Language Reference: Dictionary</B>. For information about CMS-specific
+options, see <A href="zptfmain.htm">FILE</A>.
+<P>You can use options to do the following: 
+<P>
+<UL>
+
+<LI>define
+variables that will contain information
+about the external file<P>
+
+<LI>specify special open and close processing<P>
+
+<LI>specify file
+characteristics.<P>
+
+<LI>indicate that the file specification is a pipeline.<P>
+</UL>
+<P></DD>
+</DL>
+
+<BR><H3>Dynamically Changing Files in a DATA Step</H3>
+
+
+<P><A name="z0592364">&#13;
+Use the FILEVAR= option in the FILE statement to dynamically
+change output files in the middle of a DATA step. For example:    
+</A>
+<PRE>data _null_;
+   length x $20;
+   x='old file a';
+   file cc filevar=x ;
+   put 'line one';
+   x='new file b';
+   file cc filevar=x ;
+   put 'line two';
+run;</PRE>
+<P>These statements place <B>'line one'</B>
+in OLD FILE A while NEW FILE B contains <B>'line two'</B>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the FILE Command</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592366">&#13;
+ The FILE command writes the
+entire contents of the current
+window to an external file without removing text from the window.  You can
+specify a previously assigned fileref or an external file.</A>
+<P>The form of the FILE command is
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+FILE
+&lt;<I>file-specification</I>&gt; &lt;<I>options</I>&gt;
+</TD></TR></TABLE>
+<P>The
+<B>file-specification</B> argument is in one
+of the forms that is given in <A href="zf-ident.htm">Identifying an External File</A> 
+
+
+
+. The file specification cannot be applied to a CMS MACLIB or OS/390 data
+set.  For information about the available options, see the help for base SAS
+or see  
+
+
+
+<B>SAS Language Reference: Dictionary</B>.
+<P>For example, suppose you specify this FILENAME statement:
+   
+
+<PRE>filename sasfile 'myfile saspgm b';</PRE>
+<P>The following command-line command will copy the text
+from the Program Editor window to the disk file MYFILE SASPGM B:    
+
+<PRE>file sasfile</PRE>
+<P>If you do not give a value for <B>file-specification</B>, the file from the previous FILE or INCLUDE command is used.  If you
+have not issued previous FILE or INCLUDE commands, then an error message tells
+you that no default file exists.
+<P>The FILE command does not create a PRINT file, even
+if A you specify the RECFM= option. In order to create a PRINT file from any
+window, use the PRINT command instead.
+<P>Aggregate external files can also be used in a FILE statement. Suppose
+that a FILENAME statement assigns a fileref to an SFS directory as an aggregate
+external file. To illustrate a further point, suppose that the FILENAME statement
+consists of an SFS directory specification only, as follows:  
+
+<PRE>filename mydir 'fpool:myuser.dir';</PRE>When the filemode is not specified,
+the FILE statement assumes a filetype of SAS. In the following FILE statement,
+the contents of the Program Editor window are copied to PGM1 SAS FPOOL:MYUSER.DIR:
+ 
+
+<PRE>file mydir(pgm1);</PRE>
+<P>Note that aggregate syntax can be applied only to SFS directories and
+CMS minidisks.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Writing to Print Files</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592374">&#13; When you write SAS output to
+external files, you need to know
+the differences between <B>print</B> files and <B>nonprint</B>
+files.</A>
+<P>A  print file contains carriage-control information
+(also called ASA control characters) in column 1 of each line.  These characters
+(blank, 0, - , +, and 1) control the operation of a printer:  skipping
+lines, beginning a new page, and so on.  They do not normally appear on a
+printout.  If you do not expect to print the external file, you do not need
+to write to a print file.
+<P>When you write to a print file in a DATA step, SAS shifts
+all column specifications in the PUT statement one column to the right to
+accommodate the carriage-control characters in column 1.
+<BR><H3>Using the PRINT Option</H3>
+
+
+<P><A name="z0592377">&#13; You can declare an external file as a print file if you
+specify the PRINT option in the FILE or INFILE statement.  For example, the
+following SAS program writes one line to MYFILE1 FILE, which is declared to
+be a print file by the FILE statement:    
+</A>
+<PRE>filename out1 'myfile1 file a';
+data _null_;
+   file out1 print;
+   put 'line to myfile1';
+run;</PRE>
+<BR><H3>Using File-Specification Options</H3>
+
+
+<P><A name="z0592378">&#13; You can
+declare a file to be a print file if you include an
+A (for ASA carriage control) in the RECFM= option in the FILENAME statement.
+The following SAS program shows an example of this second method:    
+</A>
+<PRE>filename out2 'myfile2 file a' recfm=va;
+data _null_;
+   file out2;
+   put 'line to myfile2';
+run;</PRE>
+   
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You can use either of these techniques
+to read from or write to a file with carriage-control characters. If a print
+file is being read, the first byte is stripped off and is not returned as
+part of the data. If you wish to include the carriage-control bytes as part
+of the data, do not declare the file as a print file.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Writing to Nonprint Files</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592380">&#13; A nonprint file that is
+written by SAS does not contain any
+characters to control printer operation.  The NOPRINT option declares the
+file as a nonprint file, even if an A is specified in the RECFM= option. 
+For example, the following SAS program writes a nonprint file to MYFILE3 FILE,
+even though an A has been included in the RECFM= option.    
+</A>
+<PRE>filename out3 'myfile3 file a' recfm=va;
+data _null_;
+   file out3 noprint;
+   put 'line to myfile3';
+run;</PRE>
+<P>Whether you create a print file or a nonprint file,
+SAS provides default values for most characteristics of the file. <A href="z1main.htm">FILENAME</A> lists the default
+file characteristics for print and nonprint files.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425637.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1271256.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0380528.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0606442">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

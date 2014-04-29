@@ -1,0 +1,523 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>CMS: APPC Access Method : System Configuration for the APPC Access Method for SAS/CONNECT </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381760.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381764.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381775.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zconnect">System Configuration for the APPC Access Method for SAS/CONNECT</A></FONT></H1>
+
+
+<DL>
+<DT><B>VTAM
+Systems Personnel</B></DT>
+<DD>Configure CMS userids for the CMS system that enable it
+to behave as either a local or a remote host in a  SAS/CONNECT 
+session when using the APPC access method.
+<P>Perform the following tasks to configure CMS userids to use with the
+APPC access method: 
+<OL START="1" type="1">
+<LI>At a CMS local host, create a communications directory.<P>
+
+<LI>At a CMS remote host, set up a $SERVER$ NAMES
+directory.<P>
+
+<LI>At a CMS remote host, edit the PROFILE EXEC file, as necessary.<P>
+
+<LI>At both a CMS local host and a remote host, define a VTAM
+gateway.<P>
+
+<LI>At both a CMS local host and a remote host, define the logon mode
+table entries.<P>
+
+<LI>At a CMS local host, set session limits and contention values.<P>
+</OL>
+
+<P>This section highlights the general tasks that you must
+perform to configure
+the system to use with the APPC access method. For full details about configuring
+the APPC access method, see <A href="#zcdocref">References</A>.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zccomdir">Creating a Communications Directory File</A></FONT></B></TD></TR></TABLE>
+
+<P>To connect a CMS local host to a remote host, create a communications
+directory file for the connecting user. The file contains
+an entry that is used for the value of the
+SAS option REMOTE=, at the local host.
+<P>The communications directory file can reside at the system level, the
+user level, or both.  The
+default system-wide communications directory file is named SCOMDIR NAMES,
+and the default user communications directory file is named UCOMDIR NAMES.
+ The format of a CMS communications directory entry follows:  
+
+
+
+<PRE>:NICK.<I>LU-name</I>  :LUNAME.<I>gateway target-LU</I>
+               :TPN.SASRMT
+               :MODENAME.<I>modename</I>
+               :SECURITY.<I>level</I>
+               :USERID.<I>userid</I>
+               :PASSWORD.<I>password</I></PRE>
+<P>where
+<DL>
+<DT>NICK.<B>LU-name</B></DT>
+<DD>is short for nickname. It specifies the eight-character
+symbolic destination name of the resource.
+<P>You will use <B>LU-name</B> as the value for the  REMOTE=  option
+at the local host.
+<P>A CMS user cannot take advantage of the aliasing support that is implicit
+in the CMS communications directory structure when accessing a host that is
+not a CMS host. Instead, the NICK value in the communications directory must
+be identical to the <B>target LU</B> value in the :LUNAME definition.<P></DD>
+
+<DT>LUNAME.<B>gateway target-LU</B></DT>
+<DD>is composed of two eight-character names. The first name
+defines the name of the gateway for connections outside the TSAF collection;
+the second is the name of the partner LU.
+<P>For connections within the TSAF collection the first name can be USERID
+and the second name the remote host userid.<P></DD>
+
+<DT>TPN.SASRMT</DT>
+<DD>indicates the transaction program name as it is known to
+the target LU. For SAS/CONNECT, the
+transaction program name is always SASRMT.<P></DD>
+
+<DT>MODENAME.<B>modename</B></DT>
+<DD>specifies the mode name of the SNA session that connects
+the gateway to the target LU.<P></DD>
+
+<DT>SECURITY.<B>level</B></DT>
+<DD>specifies whether to use security in a SAS/CONNECT session.
+The two values for <B>level</B> are PGM, which indicates program security,
+or NONE. Specify PGM if the server is running secured (requiring a userid
+and password from each connecting user). Specify NONE if the server is running
+unsecured (not requiring a userid and password from each connecting user).
+See <A href="z0123908.htm#zssecure">Setting Security for SAS/CONNECT and SAS/SHARE</A>
+for more information about userid and password security.<P></DD>
+
+<DT>USERID.<B>userid</B></DT>
+<DD>indicates the access security userid that is presented to
+the target LU for verification.<P></DD>
+
+<DT>PASSWORD.<B>password</B></DT>
+<DD>indicates the access security password that is presented
+to the target LU.<P></DD>
+</DL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You can
+omit specifying the USERID.
+
+
+<CODE><B>userid</B></CODE> and PASSWORD.
+
+
+<CODE><B>password</B></CODE> parameters, if you do one of the following:
+<P>
+<UL>
+
+<LI>use the Version 8 USER= and PASSWORD= options<P>
+
+<LI>add a fully qualified APPCPASS statement to your CP
+directory<P>
+
+<LI>assign _PROMPT_ to the APPCSEC option.<P>
+</UL>
+ Both the APPCPASS statement and the APPCSEC option are more
+secure methods for presenting userid and password information to a target
+LU than the USERID and PASSWORD parameters. Refer to <B>VM/ESA Connectivity
+Planning, Administration and Operation (SC24-5448)</B> for more details
+about the APPCPASS statement.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Examples:
+<P>The first example allows a CMS-to-CMS connection. In this example, the
+NICK value (CONNVM) is different from the <B>target-LU</B> value (N01SASPG).
+ 
+
+
+
+<PRE>:NICK.CONNVM   :LUNAME.N01SASOG N01SASPG
+               :TPN.SASRMT
+               :MODENAME.SASAPPC
+               :SECURITY.PGM
+               :USERID.bass
+               :PASSWORD.time2go</PRE>
+<P>The next example allows a CMS-to-OS/390 connection. In this example,
+the NICK value (N01TGT62) is identical to the <B>target-LU</B> value
+(N01TGT62).  
+
+
+
+<PRE>:NICK.N01TGT62 :LUNAME.N01SASOG N01TGT62
+               :TPN.SASRMT
+               :MODENAME.SASAPPC
+               :SECURITY.PGM
+               :USERID.bass
+               :PASSWORD.time2go</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Creating a $SERVER$ NAMES Directory</FONT></B></TD></TR></TABLE>
+
+<P>To
+connect to a CMS remote host, you must create the $SERVER$
+NAMES directory at the remote CMS host. This directory defines the EXEC to
+be run when the connection is made to the remote CMS system.  The format of
+a CMS $SERVER$ NAMES directory entry follows:  
+
+
+
+<PRE>:NICK.SASRMT   :LIST.<I>userid1 ... useridn</I>|.*
+               :MODULE.<I>exec-name</I></PRE>
+<P>where
+<DL>
+<DT>NICK.SASRMT</DT>
+<DD>specifies the eight-character symbolic destination name
+of the resource. SASRMT is the transaction program name as it is known to
+the target LU. For  SAS/CONNECT,  the
+transaction program name is always SASRMT.<P></DD>
+
+<DT>LIST.<B>userid1 ... useridn</B></DT>
+<DD>enables you to limit the number of users that are allowed
+to connect to this system.<P></DD>
+
+<DT>LIST.*</DT>
+<DD>specifies that all users are allowed to  connect to this
+system.<P></DD>
+
+<DT>MODULE.<B>exec-name</B></DT>
+<DD>specifies the EXEC to be run when a connection is made to
+the remote CMS system.  Specifying this module eliminates the need for a sign-on
+script. The primary purpose of this EXEC is to invoke the remote SAS session
+with the SAS options that you want.<P></DD>
+</DL>
+
+<P>A sample $SERVER$ NAMES file follows:  
+
+
+
+<PRE> $SERVER$ NAMES
+:NICK.SASRMT   :LIST.*
+               :MODULE.RMTBOOT</PRE>
+<P>The RMTBOOT EXEC that was specified in the previous example might be
+structured as follows:  
+
+
+
+<PRE> /*   This is the BOOTSTRAP EXEC */
+ /*   for the remote CMS host */
+ say 'Remote Bootstrap in Progress'
+ say 'Invoking the SAS System     '
+ 'EXEC SAS (COMAMID=APPC DMR REMOTE=N01SASPG 
+<BR>        NOTERMINAL NO$SYNTAXCHECK)'
+ queue 'CP logoff'
+ exit</PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The SAS options COMAMID, DMR, and REMOTE that are
+included in this example are required to invoke SAS/CONNECT on
+the remote host.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Customizing the PROFILE EXEC File</FONT></B></TD></TR></TABLE>
+
+<P>You
+must ensure that the appropriate CMS SET commands are specified in the remote
+CMS virtual machine to allow the virtual machine to function as a remote host.
+ Edit the PROFILE EXEC file on the remote CMS userid and add the following
+commands:  
+
+
+
+<PRE> /*   Make sure that we are set up to accept */
+ /*   connections if we get autologged       */
+ if substr(diagrc(24,-1),11,1) = '2' then do
+    'SET SERVER ON'
+    'SET FULLSCREEN OFF'
+    'SET AUTOREAD OFF'
+ end</PRE>
+<P>Because these commands are part of the PROFILE EXEC file, these CMS
+commands are automatically issued during login if the CMS userid is being
+autologged through a SAS/CONNECT sign
+on.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zgateway">Defining a VTAM Gateway</A></FONT></B></TD></TR></TABLE>
+
+<P>A
+VTAM gateway provides a path for local host users to reach desired remote
+hosts. Use APPL statements to define separate VTAM gateways for 
+<P>
+<UL>
+
+<LI>a CMS local host connecting to the desired remote host<P>
+
+<LI>a CMS remote host to which a
+local host connects.<P>
+</UL>
+
+<P>To connect
+a CMS local host to a remote host, you must define local-domain VTAM application
+minor node identifiers (outbound gateway) using APPL statements.
+<P>Use a comma to separate each entry.
+<P>APPL statements for a CMS local host follow:  
+
+
+
+<PRE>N01SASOG  APPL   ACBNAME=N01SASOG,
+
+                APPC=YES,
+                AUTHL=(ACQ),
+                AUTHEXIT=YES,
+                AUTOSES=0,
+                DLOGMOD=<I>mode-table-entry</I>,
+                DMINWNL=16384,
+                DMINWNR=0,
+                DSESLIM=32767,
+                EAS=30,
+                MODETAB=<I>mode-table</I>,
+                PARSESS=YES,
+                SECACPT=CONV,
+                SONSCIP=YES,
+                VPACING=<I>n</I></PRE>
+<P>To connect to a VM/CMS system, you must define a non-dedicated private
+gateway to provide SAS/CONNECT users
+with a pathway for reaching the VM/CMS system.  APPL statements for a CMS
+remote host follow:  
+
+
+
+<PRE>N01SASPG  APPL   ACBNAME=N01SASPG,
+
+                APPC=YES,
+                AUTHL=(ACQ),
+                AUTHEXIT=YES,
+                AUTOSES=0,
+                DLOGMOD=<I>mode-table-entry</I>,
+                DMINWNL=0,
+                DMINWNR=16384,
+                DSESLIM=32767,
+                EAS=30,
+                MODETAB=<I>mode-table</I>,
+                PARSESS=YES,
+                SECACPT=CONV,
+                SONSCIP=YES,
+                VPACING=<I>n</I></PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The only differences between the two sets
+of APPL statements are the values assigned to the DMINWNL and DMINWNR parameters.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>An
+explanation of each entry follows: 
+<DL>
+<DT>ACBNAME</DT>
+<DD>defines the minor node name assigned to this application
+program.<P></DD>
+
+<DT>APPC=YES</DT>
+<DD>tells APPC that the application program can issue APPCCMD
+macros.<P></DD>
+
+<DT>APPL</DT>
+<DD>declares an APPL definition statement.<P></DD>
+
+<DT>AUTH=(ACQ)</DT>
+<DD>enables the application to acquire a session with a particular
+logical unit.<P></DD>
+
+<DT>AUTHEXIT=YES</DT>
+<DD>allows the application's exit routines to run in supervisor
+state.<P></DD>
+
+<DT>AUTOSES=0</DT>
+<DD>defines the number of contention winner sessions to activate
+automatically.<P></DD>
+
+<DT>DLOGMOD=<B>mode-entry</B></DT>
+<DD>defines the default session parameter mode table entry.<P></DD>
+
+<DT>DMINWNL=<B>x</B></DT>
+<DD>specifies the initial negotiation value for local contention
+winner sessions.<P></DD>
+
+<DT>DMINWNR=<B>y</B></DT>
+<DD>specifies that the remote partner's contention winner sessions
+request be used.<P></DD>
+
+<DT>DSESLIM=32767</DT>
+<DD>defines the maximum session limits.<P></DD>
+
+<DT>EAS=30</DT>
+<DD>specifies the estimated number of sessions that will be
+active with this logical unit at any given time.<P></DD>
+
+<DT>MODETAB=<B>mode-table</B></DT>
+<DD>defines the session logon mode table.<P></DD>
+
+<DT>PARSESS=YES</DT>
+<DD>allows multiple concurrent sessions with another application
+program.<P></DD>
+
+<DT>SECACPT=CONV</DT>
+<DD>indicates that the FMH5 security subfield information is
+accepted.<P></DD>
+
+<DT>SONSCIP=YES</DT>
+<DD>allows the application to receive UNBIND RUs in its SCIP
+exit routine.<P></DD>
+
+<DT>VPACING=<B>n</B></DT>
+<DD>sets network requirements per site.<P></DD>
+</DL>
+
+<P>See <B>VTAM Installation and Resource Definition (SC23-0111)</B>
+for more information about the VTAM gateway parameters.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zmodetab">Defining Logon Mode Table Entries</A></FONT></B></TD></TR></TABLE>
+
+<P>A
+logon mode table contains one or more sets of session properties that support
+session binding to a secondary LU that resides within the local VTAM domain.
+<P>Refer to the BIND RU description in <B>Technical Reference 3, SNA
+Formats</B> and the MODEENT discussion in <B>VTAM Resource Definition
+Reference (SC32-6412)</B> for complete information.
+<P>The following sample logon mode table entry contains a single set of
+session properties.  
+
+
+
+<PRE>SASAPPC MODEENT  LOGMODE=SASAPPC,
+                 FMPROF=X'13',
+                 TSPROF=X'07',
+                 PRIPROT=X'B0',
+                 SECPROT=X'B0',
+                 COMPROT=X'50B1',
+                 RUSIZES=X'xxxx',
+                 PSERVIC=X'060200000000000000102F00',
+                 TYPE=0</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Setting Session Limits and Contention Values</FONT></B></TD></TR></TABLE>
+
+<P>To use the SNA
+network for your APPC communications, you
+must use the CNOS (Change Number of Sessions) command to increase the session
+limits to greater than 0 between the AVS outbound gateway and the appropriate
+partner LU. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;CNOS is a privileged command.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Because the IBM APPC/VM implementation does not support a programming
+interface to this command, SAS cannot issue it automatically. Instead, you
+must enter control information at an AVS console. Alternatively, you may supply
+this information through the Programmable Operator Facility (PROP) that is
+included with the CMS system.
+<P>The CNOS command remains in effect while the remote host remains in
+operation until the system has been rebooted. If you do not re-issue the command
+following a system reboot, communication between the two partner LUs cannot
+proceed.
+<P>It is recommended that you routinely re-issue the CNOS command each
+time the remote system is restarted.  Re-issuing  the CNOS command enables
+CMS users to gain access to the remote system at any time without operator
+intervention.
+<P>The command format for the implementation of the CMS CNOS command follows:
+ 
+
+
+
+<PRE>PROP AGW CNOS <I>gateway
+remote-LU  modenameses-limit con-win con-lose</I></PRE>
+<P>The parameters for the CNOS command are 
+<DL>
+<DT><B>gateway</B></DT>
+<DD>specifies the name of the local LU that is the gateway.<P></DD>
+
+<DT><B>remote-LU</B></DT>
+<DD>specifies the name of the remote LU for which the session
+limits are set.<P></DD>
+
+<DT><B>modename</B></DT>
+<DD>specifies the logon mode name for which the session limit
+and contention values are changed.<P></DD>
+
+<DT><B>ses-limit</B></DT>
+<DD>specifies the maximum number of LU-to-LU sessions that are
+allowed between the gateway LU and the remote LU for the logon mode name.<P></DD>
+
+<DT><B>con-win</B></DT>
+<DD>specifies the number of parallel sessions for which the
+gateway LU is guaranteed to be the contention winner.<P></DD>
+
+<DT><B>con-lose</B></DT>
+<DD>specifies the number of parallel sessions to which the remote
+LU is guaranteed to be the contention winner.<P></DD>
+</DL>
+
+<P>Example:  
+
+
+
+<PRE>PROP AWG CNOS N01SASOG N01TGT62 NO1MOD1 100 50 50</PRE>
+<P>Appropriate values for your site are based on the number of simultaneous
+users of the gateway.  A general recommendation for the CNOS <B>ses-limit</B> value is to allocate three sessions per userid that will simultaneously
+use the gateway.
+<P>You have completed the remote and local CMS host configuration procedure
+for SAS/CONNECT.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zcdocref">References</A></FONT></B></TD></TR></TABLE>
+
+<P>For
+complete details about how to install and configure the system
+for use with the APPC access method, see the following IBM publications: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>VM/ESA Connectivity Planning, Administration, and Operation (SC24-5448)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SNA Technical Overview
+(GC30-3073)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SNA Formats (GA27-3136)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>VTAM Programming for LU6.2
+(SC30-3400)</B></TD></TR></TABLE>
+<P>Contact IBM for information about obtaining this documentation.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381760.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381764.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381775.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zconnect">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

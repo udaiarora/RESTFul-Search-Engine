@@ -1,0 +1,488 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS/GRAPH Programs : Procedure Output and the Graphics Output Area </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696047.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zrunning.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="dev-ov.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zprocout">Procedure Output and the Graphics Output Area</A></FONT></H1>
+
+
+<P><A name="z0761812">&#13;  The result of most SAS/GRAPH procedures
+is the graphic display of data in the form of graphics output.  <B>Graphics
+output</B> is made up of commands that tell a graphics device how to draw
+graphic elements. A <B>graphics element</B> is a visual element of graphics
+output - for example, a plot line, a bar, a footnote, the outline of
+a map area, or a border.</A>
+<P>To generate graphics output, your program uses a device
+driver that directs the graphics output to a display device (a graphics monitor
+or terminal), a hardcopy device, or a file. Despite the fact that all graphics
+devices do not understand the same commands,  SAS/GRAPH software
+can produce graphics output on many types of graphics devices. It does so
+by producing output in two steps: 
+<OL START="1" type="1">
+<LI>It creates a catalog entry made up of graphics
+commands in a generic, device-independent format.<P>
+
+<LI>It uses a device driver to translate the commands
+from the generic format to commands that a particular graphics device understands.
+This is called device-dependent output.<P>
+</OL>
+
+<P>Your program controls this process as well as the graphics
+environment in which the graphics appear. This section describes this graphics
+environment and how you can modify it, how SAS/GRAPH uses
+it, and how you can make your programs work for different output devices.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-modgoa">About the Graphics Output Area</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0761817">&#13; When
+SAS/GRAPH software
+produces graphics output, it draws the graphic elements inside of an area
+called the <B>graphics output area</B>. Characteristics of the graphics
+output area are determined by the values of certain device parameters within
+the device entry. You can modify some of these characteristics  for a single
+graph or an entire SAS session by using graphics options to change the values
+of the device parameters. This section describes changes you can make to the
+external dimensions, the resolution, the cell size, and the type of units.
+For a description of the graphics options and device parameters referred to
+in this section, see </A><A href="z0713550.htm">Graphics Options and Device Parameters Dictionary</A>.
+<BR><H3>External Dimensions</H3>
+
+
+<P><A name="z0761818">&#13;The graphics output area is
+contained within the device's display
+area. The external dimensions of the device's display area are controlled
+by the values of the XMAX and YMAX device parameters.  XMAX sets the maximum
+horizontal dimension; YMAX sets the maximum vertical dimension. The <B>orientation</B> of the graphics output area, that is, whether it is landscape
+or portrait, is determined by whether the larger value is XMAX (orientation
+is landscape) or YMAX (orientation is portrait).</A>
+<P>The external dimensions of the graphics output area
+are controlled by the values of the HSIZE and VSIZE device parameters.
+<P>Typically, the default dimensions of the graphics output
+area are the same as the dimensions of the device. This is usually true for
+display devices. For those devices, the default value of HSIZE and VSIZE is
+0. However, for hardcopy devices, the XMAX, YMAX values represent the external
+boundaries of the output medium (such as a sheet of paper). If these devices
+need a margin, HSIZE, VSIZE and HORIGIN, VORIGIN are assigned default values
+and the default graphics output area is somewhat smaller than the device's
+display area. <A href="#z0747390">Default Dimensions of the PSCOLOR Device</A>
+illustrates such a device. 
+<P>
+<B><I><A name="z0747390">Default Dimensions of the PSCOLOR Device</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329072.gif" vspace="12" alt="[IMAGE]">
+<P> 
+<P>Note
+that HORIGIN and VORIGIN define the left margin
+and bottom margin, respectively. The right margin and top margin are calculated
+by the device driver as follows:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<I>right-margin</I> = XMAX - (HSIZE + HORIGIN)
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<I>top-margin</I> = YMAX -(VSIZE
++ VORIGIN)
+</TD></TR></TABLE>
+<P>You cannot specify values for <B>right-margin</B>
+and <B>top-margin</B>.
+<P>You can change the dimensions of the graphics output
+area for a SAS session or for a single graph with the HSIZE= and VSIZE= graphics
+options.  Changing the size of the graphics output area does not change the
+dimensions of the device's display area or affect the resolution. The values
+of HSIZE= and VSIZE= cannot exceed the maximum dimensions for the device as
+specified by XMAX and YMAX.  Furthermore, you cannot specify values for graphics
+options HSIZE= and VSIZE= that exceed the HSIZE and VSIZE values in the device
+entry.
+<BR><H3>Device Resolution</H3>
+
+
+<P><A name="z0761824">&#13; The resolution of a device is the number of pixels per inch.
+It is determined by the values of the device parameters XMAX, YMAX, and XPIXELS,
+YPIXELS, and is calculated by dividing the number of pixels by the corresponding
+external dimension. For example,</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<I>x-resolution</I> = XPIXELS / XMAX
+</TD></TR></TABLE>
+<P>Therefore, the X resolution of the
+PSCOLOR device illustrated
+in <A href="#z0747390">Default Dimensions of the PSCOLOR Device</A>
+is 300dpi (dots per inch).
+<P>Ordinarily, you do not want to change the device resolution
+because changing it may distort your image. However, you may want to change
+the size of the display area. To do so without changing the resolution, use
+the GOPTIONS statement to change the values of only XPIXELS= and YPIXELS=,
+or the values of only XMAX= and YMAX=. Then SAS/GRAPH will
+automatically calculate the correct value for the unspecified parameters so
+that the device retains the default resolution.
+<P>If you do want to change the device resolution (usually
+for image files or graphs that are displayed online), specify values for both
+XMAX= and XPIXELS= (horizontal resolution) or both YMAX= and YPIXELS= (vertical
+resolution), or all four. In these cases, SAS/GRAPH changes
+the dimensions  and recalculates the device resolution. <A href="#z1263747">Interactions of Graphics Options That Affect Resolution</A> summarizes the interaction
+of these options.
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="z1263747">Interactions of Graphics Options That Affect Resolution</A></I></B></CAPTION>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><A name="z1263747">&#13;<B>If you specify values for</B></A></TD>
+  
+<TD  align="LEFT" valign="TOP"><B>and...</B></TD>
+  
+<TD  align="LEFT" valign="TOP"><B>then SAS/GRAPH...</B></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">XPIXELS= and YPIXELS=</TD>
+  
+<TD  align="LEFT" valign="TOP">not XMAX= and YMAX=</TD>
+  
+<TD  align="LEFT" valign="TOP">changes the dimensions and recalculates the value of
+XMAX= and YMAX= in order to retain the resolution</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">XMAX= and YMAX=</TD>
+  
+<TD  align="LEFT" valign="TOP">not XPIXELS= and YPIXELS=</TD>
+  
+<TD  align="LEFT" valign="TOP">changes the dimensions and recalculates the value of
+XPIXELS= and YPIXELS= in order to retain the resolution</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">XMAX= </TD>
+  
+<TD  align="LEFT" valign="TOP">XPIXELS=</TD>
+  
+<TD  align="LEFT" valign="TOP">changes the horizontal dimension and recalculates the
+resolution</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">YMAX=</TD>
+  
+<TD  align="LEFT" valign="TOP">YPIXELS=</TD>
+  
+<TD  align="LEFT" valign="TOP">changes the vertical dimension and recalculates the
+resolution</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<BR><H3>Cells</H3>
+
+
+<P><A name="z0761843">&#13; 
+ Within the graphics output area,
+SAS/GRAPH software
+defines an invisible grid of rows and columns. This grid is made up of <B>character cells</B> as shown in
+</A><A href="#zavalues">Rows, Columns, and Cells in the Graphics Output Area</A>.
+<P>The size and proportion of these cells affects the size
+and appearance of graphic elements that are drawn using units of CELLS. The
+attributes of the cells are determined by both the external dimensions of
+the graphics output area (controlled by HSIZE and VSIZE) and the number of
+rows and columns. The number of rows is controlled by the LROWS (if orientation
+is landscape) or PROWS (if orientation is portrait) device parameter. Similarly,
+the number of columns is controlled by the LCOLS (landscape) or PCOLS (portrait)
+device parameter.
+<P>You can change the number of rows and columns in the
+grid with the HPOS= and VPOS= graphics options.  HPOS= overrides the value
+of LCOLS or PCOLS and sets the number of columns in the graphics output area.
+VPOS= overrides the value of LROWS or PROWS and sets the number of rows in
+the graphics output area.
+<P><A href="#zavalues">Rows, Columns, and Cells in the Graphics Output Area</A>
+illustrates the relationship between the graphics options or device parameters
+that determine the dimensions of the graphics output area and those that determine
+the number of character cells within the graphics output area. 
+<P>
+<B><I><A name="zavalues">Rows, Columns, and Cells in the Graphics Output Area</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329073.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Changing only the external dimensions of the graphics
+output area (HSIZE= and VSIZE=) retains the cell size but causes SAS/GRAPH to
+automatically recalculate the number of rows and columns, as illustrated in <A href="#zizepos1">Changing HSIZE=, VSIZE= Changes Dimensions and Recalculates Number of Rows and Columns</A>. 
+<P>
+<B><I><A name="zizepos1">Changing HSIZE=, VSIZE= Changes Dimensions and Recalculates Number of Rows and Columns</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329074.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Changing only the number of rows and columns (HPOS and
+VPOS) changes the size of the cells without altering the overall size of the
+output. <A href="#zellsize">Changing HPOS= and VPOS= Changes Cell Size</A>
+shows how increasing the number of rows and columns reduces the size of the
+individual cells. 
+<P>
+<B><I><A name="zellsize">Changing HPOS= and VPOS= Changes Cell Size</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329075.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Usually, you should not change the number of rows and
+columns from the default for your device.  However, if you must change them
+to make a graph fit, note that the size of text in the graphics output will
+change <B>if</B> you specified text size using units of CELLS.  If the
+cells are large (that is, HPOS= and VPOS= have small values), the text may
+not fit.  If the cells are too small, the text may be too small to read. In
+this case, you can adjust the size of the text with the HEIGHT= statement
+option or the HTEXT= graphics option.
+<P>To change all the attributes of the graphics output
+area, specify values for all four options, as shown in <A href="#zizepos3">Changing HSIZE=, VSIZE= and HPOS=, VPOS= Changes Dimensions and Number and Size of Cells</A>. 
+<P>
+<B><I><A name="zizepos3">Changing HSIZE=, VSIZE= and HPOS=, VPOS= Changes Dimensions and Number and Size of Cells</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329076.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><A href="#z1122981">Interaction of Graphics Options Affecting Cells</A>
+summarizes the interaction of the HSIZE=, VSIZE=, HPOS=, and VPOS= graphics
+options.
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="z1122981">Interaction of Graphics Options Affecting Cells</A></I></B></CAPTION>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><A name="z1122981">&#13;<B>If you specify values for ...</B></A></TD>
+  
+<TD  align="LEFT" valign="TOP"><B>and ...</B></TD>
+  
+<TD  align="LEFT" valign="TOP"><B>then SAS/GRAPH ...</B></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">HSIZE= and VSIZE=</TD>
+  
+<TD  align="LEFT" valign="TOP">not HPOS= and VPOS= (or specify HPOS=0 and VPOS=0)</TD>
+  
+<TD  align="LEFT" valign="TOP">changes the external dimensions of the graphics output
+area and recalculates the number of rows and columns in order to retain cell
+size and proportions.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">HPOS= and VPOS=</TD>
+  
+<TD  align="LEFT" valign="TOP">not HSIZE= and VSIZE=</TD>
+  
+<TD  align="LEFT" valign="TOP">keeps the external dimensions but changes the cell size
+according to the number of rows and columns.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">HSIZE= and VSIZE=</TD>
+  
+<TD  align="LEFT" valign="TOP">HPOS= and VPOS=</TD>
+  
+<TD  align="LEFT" valign="TOP">changes the dimensions of the graphics output area,
+the number of rows and columns, and recalculates the cell size.</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<BR><H3>Units</H3>
+
+
+<P><A name="z0761864">&#13;  By
+default,
+most graphic elements are drawn using units of CELLS to determine their size.
+For example, the default character height for the TITLE1 definition is two
+cells; for all other text the default height is one cell.</A>
+<P>Changing the cell size to control the size of one element,
+such as text, may distort other parts of your graph.  Instead, you may want
+to change the type of units that SAS/GRAPH uses
+to control the size of the graphic elements. In addition to CELLS and other
+absolute units such as inches (IN), centimeters (CM), and points (PT), you
+can often use units of percent of the graphics output area (PCT). This unit
+specification allows the height of the graphic elements to change in proportion
+to the size of the graphics output area.
+<P>You can specify the type of unit for individual graphic
+elements or you can use the GUNIT= graphics option to set the default units
+that will be used for most height specifications.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zs-drawn">Placement of Graphic Elements in the Graphics Output Area</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0761867">&#13;  By default, SAS/GRAPH software
+positions certain graphics elements in predefined locations in the graphics
+output area.  </A><A href="#z-goafig">Default Locations for Graphic Elements in the Graphics Output Area</A>
+shows the graphics output area and the areas within it that are used by the
+following graphic elements: 
+<P>
+<UL>
+
+<LI>Titles are placed in the title area at the top
+of the graphics output area.<P>
+
+<LI>Footnotes are placed in the footnote area at the
+bottom of the graphics output area.<P>
+
+<LI><A name="z0761870">&#13; The graph itself uses the <B>procedure output
+area</B>, which is the area left after the titles and footnotes have been drawn.</A><P>
+
+<LI>Legends also use the procedure output area and
+may affect the amount of space available for the graph. By default, space
+is reserved for the legend below the axis area of a graph and above the footnote
+area.  However, you can position the legend in the part of the procedure output
+area that is reserved for the graph. For details, see <A href="zendchap.htm">LEGEND Statement</A>.<P>
+</UL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Titles and
+footnotes can be
+positioned elsewhere on the graph as well, with different effects on space
+allocation.  See <A href="ztlechap.htm">TITLE, FOOTNOTE, and NOTE Statements</A>
+for details.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>
+<P>
+<B><I><A name="z-goafig">Default Locations for Graphic Elements in the Graphics Output Area</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329077.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If the titles, footnotes, and legend
+are very large, they may make the procedure output area too small for the
+graph.  You can control the size of title and footnote text and of most legend
+elements with statement options.  For details, see <A href="z0724351.htm">SAS/GRAPH Statements</A> for a description of the appropriate statement.
+In addition, <A href="zonschap.htm">GOPTIONS Statement</A>
+lists the graphics options that control the size of various graphic elements.
+ See also <A href="#zms-port">Making Programs Portable</A>.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>How Errors in Sizing Are Handled</H3>
+
+
+<P><A name="z0761875">&#13;Sometimes
+SAS/GRAPH cannot
+fit one or more graphic elements on the graph. This can happen if an element
+is too big for the available space (for example, the title is too long), or
+if you have too many elements to fit in a given space (for example, a bar
+chart has too many bars). In these cases, SAS/GRAPH either </A>
+<P>
+<UL>
+
+<LI>resizes the graphics element and issues a warning
+explaining what it did<P>
+
+<LI>issues an error message and does not attempt to
+produce the graph.<P>
+</UL>
+
+<P>For example, it adjusts the size of titles to make them
+fit but it does not drop bars in order to produce a readable bar chart. If
+you get unexpected results or no graph, check the SAS log for notes, warnings,
+and errors.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zms-port">Making Programs Portable</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0761879">&#13;  When you want to write a program that will produce the same
+graphics output on two different devices, you can use features in SAS/GRAPH software
+to simplify the process: </A>
+<P>
+<UL>
+
+<LI>Use percent of the graphics output area (PCT)
+as the unit of measure when specifying sizes of text and other graphics to
+make sure that text is proportional in size across devices.  A one-inch-high
+title may be appropriate on a standard piece of paper, but it is almost all
+of the display area of a slide.  To make units of percentage the default for
+size specifications, use the GUNIT= graphics option:  
+
+
+
+<PRE>goptions gunit=pct;</PRE>
+<P>You can also specify PCT anywhere you specify a size:
+ 
+
+
+
+<PRE>axis1 label=(height=3 pct 'Year');</PRE>
+<P>See <A href="zt-gunit.htm">GUNIT</A>
+for a complete description of the GUNIT= graphics option.<P>
+
+<LI>Compare colors and patterns for the devices you
+will use and use the colors of  the device that has the fewest colors, With
+a slide camera, for example, you can choose from over 16 million colors, but
+some graphics monitors display only four or eight colors at a time.
+<P>If you want to generate a graph on both a color device
+and a black-and-white device, such as a laser printer or a monochrome graphics
+monitor, all colors are remapped to black, white, or scales of gray, depending
+on the device.  However, with the PATTERN statement, you can substitute line-patterns
+for colors.<P>
+
+<LI>Preview the appearance of the output on a different
+device with the TARGETDEVICE= graphics option. For example, to see how the
+output will look on a color PostScript printer, specify  
+
+
+
+<PRE>goptions targetdevice=pscolor;</PRE><P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696047.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zrunning.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="dev-ov.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zprocout">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

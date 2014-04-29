@@ -1,0 +1,262 @@
+<HTML>
+<HEAD>
+<TITLE>Choice of Instruments</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Choice of Instruments  </H2>
+<P><A NAME="idxmod0426">&#13;</A><A NAME="idxmod0425">&#13;</A><A NAME="idxmod0427">&#13;</A><A NAME="idxmod0429">&#13;</A><A NAME="idxmod0428">&#13;</A>Several of the estimation methods supported by PROC MODEL are instrumental
+variables methods. There is no standard method for choosing instruments
+for nonlinear regression. Few econometric textbooks discuss the
+selection of instruments for nonlinear models. Refer to Bowden, R.J. 
+and Turkington, D.A. (1984, p. 180-182) for more information.
+<P>The purpose of the instrumental projection is
+to purge the regressors of their correlation with the residual.
+For nonlinear systems, the regressors are the partials of the residuals
+with respect to the parameters.
+<P>Possible instrumental variables include:
+<UL>
+<LI> any variable in the model that is independent of the errors
+<LI> lags of variables in the system
+<LI> derivatives with respect to the parameters, if the derivatives
+are independent of the errors
+<LI> low degree polynomials in the exogenous variables
+<LI> variables from the data set or functions of variables from the data set.
+<P></UL>
+<P>Selected instruments must not
+<P><UL>
+<LI> depend on any variable endogenous with respect to
+the equations estimated
+<LI> depend on any of the parameters estimated
+<LI> be lags of
+endogenous variables if there is serial correlation of the errors.
+</UL>
+<P>If the preceding rules are satisfied and there are enough 
+observations to support 
+the number of instruments used, the results should be consistent and
+the efficiency loss held to a minimum.
+<P><A NAME="idxmod0431">&#13;</A><A NAME="idxmod0430">&#13;</A>You need at least as many instruments as the maximum number of
+parameters in any equation, or some of the parameters cannot be estimated. 
+Note that <I>number of instruments</I> means linearly independent instruments. 
+If you add an instrument that is a linear combination of other instruments, 
+it has no effect and does not increase the effective number of instruments.
+<P>You can, however, use too many instruments. 
+In order to get the benefit of instrumental variables,
+you must have more observations than instruments.
+Thus, there is a trade-off;
+the instrumental variables technique completely eliminates
+the simultaneous equation bias only in large samples.
+In finite samples, the larger the excess of observations over
+instruments, the more the bias is reduced.
+Adding more instruments may improve the efficiency, 
+but after some point efficiency declines as the excess of
+observations over instruments becomes smaller and the bias grows.
+<P>The instruments used in an estimation are printed out at the
+beginning of the estimation. For example, the following
+statements produce the instruments list shown in <A HREF="sect48.htm#modinst1">Figure 14.48</A>:
+<PRE>
+   proc model data=test2;
+      exogenous x1 x2;
+      parms b1 a1 a2 b2 2.5 c2 55;
+      y1 = a1 * y2 + b1 * exp(x1);
+      y2 = a2 * y1 + b2 * x2 * x2 + c2 / x2;
+      fit y1 y2 / n2sls;
+      inst b1 b2 c2 x1 ;
+   run;
+</PRE>
+<P><A NAME="modinst1">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>The 2 Equations to Estimate</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y1 =</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">F(b1, a1(y2))</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y2 =</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">F(a2(y1), b2, c2)</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Instruments</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1 x1 @y1/@b1 @y2/@b2 @y2/@c2</font></TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.48:</B> Instruments Used Message</SPAN><P>
+<P>This states that an intercept term, the exogenous
+variable X1, and the partial derivatives of the equations with respect to
+B1, B2, and C2, were used as instruments for the estimation.
+<P><H3><I>Examples</I></H3>
+Suppose that Y1 and Y2 are endogenous variables, that X1 and X2 are
+exogenous variables, and that A, B, C, D, E, F, and G are parameters.
+Consider the following model:
+<P><PRE>
+   y1 = a + b * x1 + c * y2 + d * lag(y1);
+   y2 = e + f * x2 + g * y1;
+   fit y1 y2;
+   instruments exclude=(c g);
+</PRE>
+<P>The INSTRUMENTS statement produces X1, X2, LAG(Y1), and
+an intercept as instruments.
+<P>In order to estimate the Y1 equation by itself, it is necessary to
+include X2 explicitly in the instruments since F, in this case,
+is not included in the estimation
+<P><PRE>
+   y1 = a + b * x1 + c * y2 + d * lag(y1);
+   y2 = e + f * x2 + g * y1;
+   fit y1;
+   instruments x2 exclude=(c);
+</PRE>
+<P>This produces the same instruments as before.
+You can list the parameter associated with the lagged variable as an
+<A NAME="idxmod0432">&#13;</A>instrument instead of using the EXCLUDE=
+option. Thus, the following is equivalent to the previous example:
+<P><PRE>
+   y1 = a + b * x1 + c * y2 + d * lag(y1);
+   y2 = e + f * x2 + g * y1;
+   fit y1;
+   instruments x1 x2 d;
+</PRE>
+<P>For an example of declaring instruments when estimating a model involving
+identities, consider Klein's Model I
+<P><PRE>
+   proc model data=klien;
+      endogenous c p w i x wsum k y;
+      exogenous  wp g t year;
+      parms c0-c3 i0-i3 w0-w3;
+      a: c = c0 + c1 * p + c2 * lag(p) + c3 * wsum;
+      b: i = i0 + i1 * p + i2 * lag(p) + i3 * lag(k);
+      c: w = w0 + w1 * x + w2 * lag(x) + w3 * year;
+      x = c + i + g;
+      y = c + i + g-t;
+      p = x-w-t;
+      k = lag(k) + i;
+      wsum = w + wp;
+</PRE>
+<P>The three equations to estimate are identified by the labels 
+A, B, and C. The parameters
+associated with the predetermined terms are C2, I2, I3, W2, and W3 (and
+the intercepts, which are 
+automatically added to the instruments). In addition, the system includes five
+identities that contain the predetermined variables G, T, LAG(K), and WP.
+Thus, the INSTRUMENTS statement can be written as
+<P><PRE>
+   lagk = lag(k);
+   instruments c2 i2 i3 w2 w3 g t wp lagk;
+</PRE>
+<P>where LAGK is a program variable used to hold LAG(K).
+However, this is more complicated than it needs to be. 
+Except for LAG(K), all the
+predetermined terms in the identities are exogenous variables, and
+LAG(K) is already included as the coefficient of I3. 
+There are also more parameters for predetermined terms than for endogenous 
+terms, 
+so you might prefer to use the EXCLUDE= option. Thus, you can specify the
+same instruments list with the simpler statement
+<P><PRE>
+   instruments _exog_ exclude=(c1 c3 i1 w1);
+</PRE>
+<P>To illustrate the use of polynomial terms as instrumental
+variables, consider the following model:
+<P><PRE>
+   y1 = a + b * exp( c * x1 ) + d * log( x2 ) + e * exp( f * y2 );
+</PRE>
+<P>The parameters are A, B, C, D, E, and F, and the right-hand-side
+variables are X1, X2, and Y2. Assume that X1 and X2 are
+exogenous (independent of the error), while Y2 is endogenous. 
+The equation for Y2 is not specified, but assume that it includes
+the variables X1, X3, and Y1, with X3 exogenous, so the exogenous
+variables of the full system are X1, X2, and X3. Using as instruments
+quadratic terms in the exogenous variables, the model is specified
+to PROC MODEL as
+<P><PRE>
+   proc model;
+      parms a b c d e f;
+      y1 = a + b * exp( c * x1 ) + d * log( x2 ) + e * exp( f * y2 );
+      instruments inst1-inst9;
+      inst1 = x1; inst2 = x2; inst3 = x3;
+      inst4 = x1 * x1; inst5 = x1 * x2; inst6 = x1 * x3;
+      inst7 = x2 * x2; inst8 = x2 * x3; inst9 = x3 * x3;
+      fit y1 / 2sls;
+   run;
+</PRE>
+<P>It is not clear what degree polynomial should be used. There is no 
+way to know how good the approximation is for any degree chosen, although the
+first-stage <SPAN CLASS="mathfont"><I>R<SUP>2</SUP></I></SPAN>s may help the assessment.
+<P><H3><I>First-Stage <SPAN CLASS="mathfont"><I>R<SUP>2</SUP></I></SPAN>s</I></H3>
+<A NAME="idxmod0433">&#13;</A><A NAME="idxmod0434">&#13;</A>When the FSRSQ option is used on the FIT statement, 
+the MODEL procedure prints a column of
+first-stage <SPAN CLASS="mathfont"><I>R<SUP>2</SUP></I></SPAN> (FSRSQ) statistics along with the parameter estimates.
+The FSRSQ measures the fraction of the variation of the derivative column
+associated with the parameter that remains after projection through the instruments.
+<P>Ideally, the FSRSQ should be very close to 1.00 for exogenous derivatives.
+If the FSRSQ is small for an endogenous derivative, it is unclear
+whether this reflects a poor choice of instruments or a large influence
+of the errors in the endogenous right-hand-side variables. 
+When the FSRSQ for one or more parameters is small, the standard errors of the
+parameter estimates are likely to be large.
+<P>Note that you can make all the FSRSQs larger (or 1.00) by including
+more instruments, because of the disadvantage discussed previously. 
+The FSRSQ statistics reported are unadjusted <SPAN CLASS="mathfont"><I>R<SUP>2</SUP></I></SPAN>s and do not include a
+degrees-of-freedom correction.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

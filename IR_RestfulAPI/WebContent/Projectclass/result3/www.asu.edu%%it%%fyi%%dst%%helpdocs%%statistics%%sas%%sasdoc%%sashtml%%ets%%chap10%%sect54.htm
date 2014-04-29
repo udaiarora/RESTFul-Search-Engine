@@ -1,0 +1,133 @@
+<HTML>
+<HEAD>
+<TITLE>Example 10.10: CRSP 1995 CDROM Data Files</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="datex9">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect53.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect55.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The DATASOURCE Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 10.10: CRSP 1995 CDROM Data Files</H2>
+<P>The normal character filetypes used for tape
+files may also be used for the CDROM character data.
+<A NAME="idxdat0318">&#13;</A><A NAME="idxdat0317">&#13;</A><A NAME="idxdat0320">&#13;</A><A NAME="idxdat0319">&#13;</A>They are CRSPDCS, CRSPDCI, CRSPDCA for daily data
+and CRSPMCS, CRSPMCI, CRSPMCA for monthly data.
+It is necessary to use the LRECL=( 130 401 )
+option on the DATASOURCE statement 
+when processing CDROM character data as shown in the 
+first DATASOURCE run.
+<P>The CRSP 1995 UNIX (SUN)Binary data is readable by
+PROC DATASOURCE using the filetypes CRSPDUS,
+CRSPDUI, CRSPDUA for daily files and
+filetypes CRSPMUS, CRSPMUI, CRSPMUA for
+monthly files. Both IEEE Big Endian and
+IEEE Little Endian machines may use
+the same CDROM UNIX Binary filetypes.
+<A NAME="idxdat0322">&#13;</A><A NAME="idxdat0321">&#13;</A><A NAME="idxdat0324">&#13;</A><A NAME="idxdat0323">&#13;</A><A NAME="idxdat0326">&#13;</A><A NAME="idxdat0325">&#13;</A><A NAME="idxdat0328">&#13;</A><A NAME="idxdat0327">&#13;</A>PROC DATASOURCE can not read the PC Binary
+Data from CDROM, but the UNIX (SUN) Binary may
+be used from the same CDROM instead, even on PC's.
+The second DATASOURCE run shows how to access
+the  1995 UNIX Binary data.
+<P><PRE>
+   filename csec 'machar.dat' recfm=f lrecl=401;
+   filename ccal 'msix.dat' recfm=f lrecl=130;
+                           
+   /*--------------------------------------------------------------*
+    *       create output data sets without any subsetting         *
+    *       character data from MA CDROM                           *
+    *--------------------------------------------------------------*/
+   /*- create calendar/indices output data sets using DATASOURCE  -*/
+   /*- statements                                                 -*/
+   proc datasource filetype=crspmcs  
+                  infile=( ccal csec )
+                  lrecl=( 130 401 )
+                  interval=month
+                  outselect=off
+                  outcont=maccont outkey=mackey
+                  out=mac outevent=macevent;
+      keep _all_;
+      keepevent _all_;
+   run;
+
+   title3 'MA/CDROM Security File Outputs';
+   title4 'OUTKEY= Data Set';
+   proc print data=mackey; run;
+
+   title4 'OUTCONT= Data Set';
+   proc print data=maccont; run;
+
+   title4 'Listing of OUT= Data Set';
+   proc print data=mac; run;
+
+   title4 'Listing of OUTEVENT= Data Set';
+   proc print data=macevent; run ;
+
+
+   filename macal 'maucal95.data' lrecl=48;
+   filename masec 'mausub95.data' recfm=v lrecl=32760;
+
+   /*-------------------------------------------------------------*
+    *       create output data sets without any subsetting        *
+    *       UNIX (SUN) binary data from MA CDROM                  *
+    *-------------------------------------------------------------*/
+   /*- create calendar/indices output data sets using DATASOURCE -*/
+   /*- statements                                                -*/
+   proc datasource filetype=crspmus  
+                  infile=( macal masec )
+                  interval=month
+                  outselect=off
+                  outcont=macont outkey=makey
+                  out=ma outevent=maevent;
+      keep _all_;
+      keepevent _all_;
+   run;
+
+   title3 'MA/CDROM Security File Outputs';
+   title4 'OUTKEY= Data Set';
+   proc print data=makey; run;
+
+   title4 'OUTCONT= Data Set';
+   proc print data=macont; run;
+
+   title4 'Listing of OUT= Data Set';
+   proc print data=ma; run;
+
+   title4 'Listing of OUTEVENT= Data Set';
+   proc print data=maevent; run ;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect53.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect55.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

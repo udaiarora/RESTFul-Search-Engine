@@ -1,0 +1,351 @@
+<HTML>
+<HEAD>
+<TITLE>Computer Resource Requirements</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect38.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Computer Resource Requirements  </H2>
+<P>If you are estimating large systems, you need to be aware of how
+PROC MODEL uses computer resources such as memory and the CPU
+so they can be used most efficiently.
+<P><H3><I>Saving Time with Large Data Sets</I></H3>
+<A NAME="idxmod0320">&#13;</A><A NAME="idxmod0319">&#13;</A>If your input data set has many observations, the FIT statement does a
+large number of model program executions. A pass through the data is made at
+least once for each iteration and the model program is executed once for
+each observation in each pass. If you refine the starting estimates by
+using a smaller data set, the final estimation with
+the full data set may require fewer iterations.
+<P>For example, you could use
+<P><PRE>
+   proc model;
+      /* Model goes here */
+      fit / data=a(obs=25);
+      fit / data=a;
+</PRE>
+<P>where OBS=25 selects the first 25 observations in A.
+The second FIT statement produces the final estimates
+using the full data set and starting values from the first run.
+<P><H3><I>Fitting the Model in Sections to Save Space and Time</I></H3>
+<A NAME="idxmod0322">&#13;</A><A NAME="idxmod0321">&#13;</A>If you have a very large model (with several hundred parameters, for
+example), the procedure uses considerable space and time. You may be
+able to save resources by breaking the estimation process into several
+steps and estimating the parameters in subsets.
+<P>You can use the FIT statement to select for estimation only the
+parameters for selected equations.
+Do not break the estimation into too many small steps;
+the total computer time required is minimized by compromising between
+the number of FIT statements that are executed and the size of the
+crossproducts matrices that must be processed.
+<P>When the parameters are estimated for selected equations, the entire
+model program must be executed even though only a part of the model
+program may be needed to compute the residuals for the equations
+selected for estimation. If the model itself can be broken into
+sections for estimation (and later combined for simulation and
+forecasting), then more resources can be saved.
+<P>For example, to estimate the following four equation model in two steps,
+you could use
+<P><PRE>
+   proc model data=a outmodel=part1;
+      parms a0-a2 b0-b2 c0-c3 d0-d3;
+      y1 = a0 + a1*y2 + a2*x1;
+      y2 = b0 + b1*y1 + b2*x2;
+      y3 = c0 + c1*y1 + c2*y4 + c3*x3;
+      y4 = d0 + d1*y1 + d2*y3 + d3*x4;
+      fit y1 y2;
+      fit y3 y4;
+      fit y1 y2 y3 y4;
+   run;
+</PRE>
+<P>You should try estimating the model in pieces to save time
+only if there are more than 14 parameters; the preceding example 
+takes more time, not less, and the difference in memory required is trivial.
+<P><H3><I>Memory Requirements for Parameter Estimation</I></H3>
+<A NAME="idxmod0324">&#13;</A><A NAME="idxmod0323">&#13;</A>PROC MODEL is a large program, and it requires much memory. 
+Memory is also required for the SAS System, various data areas,
+the model program and associated tables and data vectors, and a few
+crossproducts matrices. 
+For most models, the memory required for PROC MODEL
+itself is much larger than that required for the model program, and the
+memory required for the model program is larger than that required for
+the crossproducts matrices.
+<P>The number of bytes needed for two 
+crossproducts matrices, four <B>S</B> matrices, and
+three parameter covariance matrices is 
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">8 &times;(2+<I>k</I>+<I>m</I>+<I>g</I>)<sup>2</sup>+16 &times;<I>g<SUp>2 </SUp></I>+12 &times;(<I>p</I>+1)<sup>2</sup></SPAN>
+</DL>
+plus lower-order terms. <I>m</I> is the number
+of unique nonzero derivatives of each residual with respect to each parameter,
+<I>g</I> is the number of equations, <I>k</I> is the number of instruments,
+and <I>p</I> is the number of parameters. This formula is for
+the memory required for 3SLS. If you are using OLS, 
+a reasonable estimate of the memory required for large problems (greater
+than 100 parameters) is to divide the value obtained from the formula
+in half.
+<P>Consider the following model program:
+<PRE>
+   proc model data=test2 details;
+      exogenous x1 x2;
+      parms b1 100 a1 a2 b2 2.5 c2 55;
+      y1 = a1 * y2 + b1 * x1 * x1;
+      y2 = a2 * y1 + b2 * x2 * x2 + c2 / x2;
+      fit y1 y2 / n3sls;
+      inst b1 b2 c2 x1 ;
+   run;
+</PRE>
+<A NAME="idxmod0325">&#13;</A>The DETAILS option
+prints the storage requirements information shown in
+<A HREF="sect37.htm#moddetails">Figure 14.29</A>.
+<P><A NAME="moddetails">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Storage Requirements for this Problem</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Order of XPX Matrix</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Order of S Matrix</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Order of Cross Matrix</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">13</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Total Nonzero Derivatives</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Distinct Variable Derivatives</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Size of Cross matrix</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">728</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.29:</B> Storage Requirements Information</SPAN><P>
+<P>The matrix <SPAN CLASS="mathfont"><b>X</b>'<b>X</b></SPAN> augmented by the residual vector 
+is called
+the XPX matrix in the output, and it has the size <SPAN CLASS="mathfont"><I>m</I>+1</SPAN>. 
+The order of the <B>S</B> matrix, 2 for this
+example, is the value of <I>g</I>. The CROSS matrix is made up 
+of the <I>k</I> unique instruments,
+a constant column representing the intercept terms, followed by the
+<I>m</I> unique Jacobian variables plus a constant column representing 
+the parameters with constant derivatives, followed by the <I>g</I> residuals.
+<P>The size of two CROSS matrices in bytes is 
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">8 &times;(2+<I>k</I>+<I>m</I>+<I>g</I>)<sup>2</sup>+2+<I>k</I>+<I>m</I>+<I>g</I></SPAN>
+</DL>
+Note that the CROSS matrix is symmetric, so only the diagonal and 
+the upper triangular part of the matrix is stored.
+For examples of the CROSS and XPX matrices see
+&#34;Iteration History&#34; in this section.
+<P><H3><I>The MEMORYUSE Option</I></H3>
+The MEMORYUSE option on the FIT, SOLVE, MODEL, or RESET statement may
+be used to request a comprehensive memory usage summary.
+<P><A HREF="sect37.htm#model101">Figure 14.30</A> shows an example of the output produced by the
+MEMORYUSE option.
+<P><A NAME="model101">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Memory Usage Summary (in bytes)</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Symbols</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5368</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Strings</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1057</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lists</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1472</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Arrays</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">84</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Statements</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">704</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Opcodes</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">800</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parsing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">640</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Executable</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">220</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Block option</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Cross reference</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Flow analysis</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1024</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Derivatives</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">9406</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Data vector</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">240</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Cross matrix</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">728</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>X'X matrix</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">392</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>S matrix</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">96</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>GMM memory</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Jacobian</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Work vectors</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">692</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Overhead</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1906</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>-----------------------</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">--------------</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Total</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">24829</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.30:</B> MEMORYUSE Option Output for SOLVE Task</SPAN><P>
+<P>Definitions of the memory components follows:
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL><COL>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>symbols</TD><TD ALIGN=LEFT NOWRAP>memory used to store information about variables in the model</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>strings</TD><TD ALIGN=LEFT NOWRAP>memory used to store the variable names and labels</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>lists</TD><TD ALIGN=LEFT NOWRAP>space used to hold lists of variables</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>arrays</TD><TD ALIGN=LEFT NOWRAP>memory used by ARRAY statements</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>statements</TD><TD ALIGN=LEFT NOWRAP>memory used for the list of programming statements in the model</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>opcodes</TD><TD ALIGN=LEFT NOWRAP>memory used to store the code compiled to evaluate the</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>expression in the model program</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>parsing</TD><TD ALIGN=LEFT NOWRAP>memory used in parsing the SAS statements</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>executable</TD><TD ALIGN=LEFT NOWRAP>the compiled model program size (not correct yet)</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>block option</TD><TD ALIGN=LEFT NOWRAP>memory used by the BLOCK option</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>cross ref.</TD><TD ALIGN=LEFT NOWRAP>memory used by the XREF option</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>flow analysis</TD><TD ALIGN=LEFT NOWRAP>memory used to compute the interdependencies of the variables</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>derivatives</TD><TD ALIGN=LEFT NOWRAP>memory used to compute and store the analytical derivatives</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>data vector</TD><TD ALIGN=LEFT NOWRAP>memory used for the program data vector</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>cross matrix</TD><TD ALIGN=LEFT NOWRAP>memory used for one or more copies of the Cross matrix</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont"><b>X</b>'<b>X</b></SPAN> matrix</TD><TD ALIGN=LEFT NOWRAP>memory used for one or more copies of the <SPAN CLASS="mathfont"><b>X</b>'<b>X</b></SPAN> matrix</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>S matrix</TD><TD ALIGN=LEFT NOWRAP>memory used for the covariance matrix</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>GMM memory</TD><TD ALIGN=LEFT NOWRAP>additional memory used for the GMM and ITGMM methods</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>Jacobian</TD><TD ALIGN=LEFT NOWRAP>memory used for the Jacobian matrix for SOLVE and FIML</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>work vectors</TD><TD ALIGN=LEFT NOWRAP>memory used for miscellaneous work vectors</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>overhead</TD><TD ALIGN=LEFT NOWRAP>other miscellaneous memory</TD></TR>
+</TABLE><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect38.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

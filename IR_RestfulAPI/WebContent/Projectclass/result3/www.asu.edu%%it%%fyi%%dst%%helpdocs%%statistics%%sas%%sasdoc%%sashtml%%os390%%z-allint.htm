@@ -1,0 +1,366 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Allocating SAS Data Libraries : Allocating SAS Data Libraries Internally </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217297.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217298.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-allext.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z-allint">Allocating SAS Data Libraries Internally</A></FONT></H1>
+
+
+<P>The LIBNAME statement or LIBNAME function allocates
+the operating environment data set, associates it with an engine, and assigns
+a libref to it. The assignment lasts for the duration of the SAS job or session
+unless you clear it. (See <A href="zdealloc.htm">Deallocating SAS Data Libraries</A>
+for information about clearing a libref.)
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-libadv">Advantages of Allocating SAS Data Libraries Internally</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0550005">&#13;   Although you can use a JCL DD statement or a TSO ALLOCATE command
+to allocate SAS files externally, the LIBNAME statement or LIBNAME function
+can do much more. Here are several reasons why it is better to allocate SAS
+data libraries internally with the LIBNAME statement or function: </A>
+<P>
+<UL>
+
+<LI>The LIBNAME statement or function provides an
+easy way to do dynamic allocation in the batch environment.  SAS programs
+that have LIBNAME statements or functions instead of external allocations
+can be executed either in the TSO environment or in the batch environment.<P>
+
+<LI>In the batch environment, the LIBNAME statement
+or function provides the only means of creating a new SAS data library in
+the hierarchical file system of UNIX System Services.<P>
+
+<LI>The JCL DD statement and the TSO ALLOCATE command
+are not portable to other operating environments. The LIBNAME statement or
+function is portable with minor changes to the <B>physical-filename</B>
+and options parameters.<P>
+
+<LI>If you use the LIBNAME statement or function,
+you can allocate your data library for only as long as you need it, and then
+deassign and deallocate it. By contrast, DDnames that are allocated externally
+remain allocated for the duration of the SAS session or job. (The LIBNAME
+CLEAR statement deassigns an externally allocated libref, but it does not
+deallocate the file. See <A href="zdealloc.htm">Deallocating SAS Data Libraries</A>.)<P>
+
+<LI>DDnames that are allocated externally
+cannot be
+reassigned later by a LIBNAME statement or LIBNAME function.  You would receive
+an error message in the SAS log stating that the DDname is currently assigned.<P>
+
+<LI>By using macro statements and the LIBNAME statement
+or function, you can conditionally allocate files.<P>
+
+<LI>Using a LIBNAME statement or LIBNAME function
+allows you to specify an engine explicitly. Also, the following SAS engines
+must be specified in a LIBNAME statement or function because they are not
+assigned by default: XPORT, BMDP, SPSS, OSIRIS, and REMOTE.<P>
+
+<LI>DDnames that are allocated externally are not
+included in the list that is produced by the LIBNAME LIST statement nor in
+the SAS Explorer window until after they have been used as librefs in your
+SAS session. (See <A href="zas-list.htm">Listing Your Current Librefs</A>.)<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-libsyn">LIBNAME Statement Syntax</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0550013">&#13; This
+section provides a brief
+overview of LIBNAME statement syntax. For complete information about the LIBNAME
+statement, see </A><A href="zlibname.htm">LIBNAME</A>.
+<P>The general form of the LIBNAME statement
+is:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>LIBNAME</B> <I>libref</I> &lt;<I>engine </I>&gt;
+&lt;'<I>physical-filename</I>'&gt; &lt; <I>engine/host-options</I>&gt;;
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>LIBNAME</B>
+<I>libref</I> &lt;<I>engine</I>&gt; &lt;('<I>physical-filename-1</I>', ...,
+'<I>physical-filename-n</I>')&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>LIBNAME</B> <I>libref </I>  | _ALL_ CLEAR; 
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>LIBNAME </B>
+<I>libref</I>  | _ALL_ LIST;
+</TD></TR></TABLE>
+<DL>
+<DT><B>libref</B></DT>
+<DD>is a logical name by which the library is
+referenced during your SAS session.  The libref must begin with a letter and
+must contain 1-8 characters consisting of letters or numbers. SAS reserves
+some names as librefs for special system libraries. See <A href="zit-sysf.htm">SAS System Files</A> for more information.
+<P>When choosing
+a libref, follow the rules for SAS names,
+but do not use underscores. To read, update, or create files that belong to
+a permanent SAS data library, you must include the libref as the first part
+of a two-level SAS member name in your program statements, as follows:<FONT size="-1"><A href="#footnote1">(footnote 1)</A></FONT>   
+
+
+
+<PRE><I>libref.member</I></PRE>
+
+
+<B>libref</B> could also be a DDname
+that was specified in a JCL DD statement or in a TSO ALLOCATE command. The
+first time the DDname of a SAS data library is used in a SAS statement or
+procedure, SAS assigns it as a libref for the SAS data library.<P></DD>
+
+<DT><B>engine</B></DT>
+<DD>tells SAS which engine to use for accessing
+the library. Valid engine names for OS/390 include V8 (or its alias, BASE),
+V8TAPE, V7, V7TAPE, V6, V6TAPE, V5, V5TAPE, XPORT, REMOTE, BMDP, OSIRIS, and
+SPSS. See <A href="z0217298.htm#zengines">SAS Library Engines</A>
+for more information. If you do not specify an engine, SAS uses the procedures
+described in <A href="zwithout.htm">How SAS Assigns an Engine When No Engine Is Specified</A>
+to assign an engine for you. If the engine name that you supply does not match
+the actual format or attributes of the data library, then any attempt to access
+the library will fail.<P></DD>
+
+<DT>'<B>physical-filename</B>'</DT>
+<DD>is the OS/390 operating environment data
+set name or the HFS directory name of the SAS data library, enclosed in quotes.
+See <A href="zspecify.htm">Specifying Physical Files</A>.
+You can omit this argument if you are merely specifying the engine for a previously
+allocated DDname. Examples:
+
+
+
+<PRE>'userid.v8.library'
+'MVS:userid.v8.library'
+'HFS:/u/userid/v8/library'
+'/u/userid/v8/library'</PRE><P></DD>
+
+<DT>('<B>physical-filename-1</B>', ..., '<B>physical-filename-n</B>') </DT>
+<DD>is used to allocate an ordered concatenation
+of SAS data libraries and associate that concatenation with a single LIBREF.
+The concatenation can include direct-access bound libraries, UNIX System Services
+directories, and sequential libraries, as long as all of the libraries in
+the concatenation can be accessed with the specified engine.
+<P> When accessing a member of a concatenated series of
+libraries, SAS searches through the concatenation in the order that it was
+specified. SAS accesses the first member that matches the specified name.
+SAS will not access any members with the same name that are positioned after
+the first occurrence in the concatenation.<P></DD>
+
+<DT><B>engine/host options</B></DT>
+<DD>are options that apply to the SAS data library.
+The host-specific options that are available depend on which engine you are
+using to access the data library.  See <A href="z0217298.htm#zengines">SAS Library Engines</A> for more information about SAS engines.
+Specify as many options as you need. Separate them with a blank space. For
+a complete list of available options, see <A href="zlibname.htm">LIBNAME</A>.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">LIBNAME Statement Examples</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0550029">&#13;
+</A>
+<DL>
+<DT>Allocating an existing SAS data library:</DT>
+<DD>The following LIBNAME statement allocates
+the existing SAS data library LIBRARY.CATALOG.DATA and assigns the libref
+BOOKS to it:  
+
+
+
+<PRE>libname books 'library.catalog.data';</PRE>
+<P>The following LIBNAME statement allocates the existing
+SAS data library contained in the UNIX System Services directory 
+
+
+<CODE><B>/corp/dev/test1</B></CODE>:
+
+
+
+<PRE>libname results '/corp/dev/test1';</PRE>
+<P>The following LIBNAME statement allocates a concatenation
+of SAS data libraries:
+
+
+
+<PRE>libname concatlb ('library.catalog.data', '/corp/dev/test1');</PRE><P></DD>
+
+<DT>Allocating a new SAS data library:</DT>
+<DD>The following LIBNAME statement allocates
+the new SAS data library <B>prefix</B>.NEW.SASDATA. The <B>prefix</B> will be taken from the value of the SYSPREF= system option, as explained
+in <A href="zspecify.htm">Specifying Physical Files</A>.
+The LIBNAME statement assigns the libref NEWLIB to the data library.  
+
+
+
+<PRE>libname newlib '.new.sasdata' 
+disp=(new,catlg)
+   unit=3380 vol=xyz828 space=(cyl,(10,3))
+   blksize=23040;</PRE>
+<P>Because the operating environment data set did not previously
+exist, appropriate values are specified for DISP=, UNIT=, and other engine/host
+options. The engine name is not specified explicitly, so SAS assigns the default
+engine to the libref.  (The default engine is the engine that is specified
+by the SAS system option ENGINE=.) SAS uses these values to dynamically allocate
+the data set; then it assigns the libref to the data set. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If you do not specify default values for DCB attributes when you allocate
+a new operating environment data set with the LIBNAME statement, the SAS System
+supplies default values.  See <A href="zcsas-v6.htm#zs-v6int">Internal Allocation: V8 Engine</A> and
+<A href="zs-v6seq.htm#z-seqint">Internal Allocation: V8TAPE Engine</A> for details.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P></DD>
+
+<DT>Specifying additional options for a
+previously allocated
+SAS data set:</DT>
+<DD>See <A href="z-allext.htm#z-libext">Using the LIBNAME Statement or LIBNAME Function with Externally Allocated SAS Data Libraries</A>.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1249092">Accessing SAS Data Sets Without a Libref Using Quoted References</A></FONT></B></TD></TR></TABLE>
+
+<P>You can access SAS data sets under OS/390 without the usual
+libref.member
+specification using any of the following
+alternatives:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+'&lt;MVS:&gt;&lt;<I>data-set-name</I>&gt;(<I>member</I>)'
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+&lt;'MVS:'&gt;<I>member</I>
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+'&lt;HFS:&gt;&lt;<I>full-UNIX-path</I>&gt;<I>member</I>&lt;.<I>extension</I>&gt;'
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+'&lt;HFS:&gt;&lt;&gt;<I>member</I>&lt;.<I>extension</I>&gt;'
+</TD></TR></TABLE>
+<P>Despite
+the similarity to partitioned data set (PDS) notation, the first
+syntax definition above refers to a member of a SAS data library, not to a
+PDS. The <B>member</B> is the name of the SAS data set.
+<P>The <B>data-set-name</B> could be either a direct or sequential
+access bound library. If the <B>data-set-name</B> is omitted, the parenthesis
+around the <B>member</B> name are also omitted. In this case, SAS assumes
+that the member is part of the WORK library or of a different default library,
+as specified by the USER= system option.
+<P>If the <B>data-set-name</B> begins with a period and if the file
+system is MVS, SAS adds the value of the SYSPREF= system option to the beginning
+of the data set name.
+<P>If a <B>relative-UNIX-path</B> is specified, SAS searches for
+the file starting in your default UNIX System Services directory.
+<P>MVS: or HFS: is required only if the value of the FILESYSTEM= system
+option is set to the opposing value. Use MVS: if FILESYSTEM=HFS, for example.
+<BR><H3>Examples of SAS File Access Without a Libref</H3>
+
+
+<P>The following example can be rewritten so that a LIBNAME statement is
+not needed.
+
+
+
+<PRE>libname test 'userid.test.saslib';
+data test.one; x=1; run;
+proc print data=test.one; run;</PRE>Here is the equivalent example, without
+the libref:
+
+
+
+<PRE>data 'userid.test.saslib(one)'; x=1; run;
+proc print data='userid.test.saslib(one)'; run;</PRE>Note that the specified
+data set is a direct access bound library, as opposed to a partitioned data
+set.
+<P>Assuming that the value of the SYSPREF= system option is USERID, then
+the following example represents a second alternative:
+
+
+
+<PRE>data '.test.saslib(one)'; run;
+proc print data='.test.saslib(one)'; run;</PRE>
+<P>Files in UNIX System Services can also be specified without a libref.
+The following example specifies an HFS file using a relative path:
+
+
+
+<PRE>data 'saswork/two'; x=2; run;
+proc print data='saswork/two'; run;
+proc contents data='saswork/two'; run;</PRE>In this case, SAS generates an absolute path from the relative path
+by adding your default UNIX System Services directory to the start of the
+relative path. If your default directory is /u/userid/, then the absolute
+path generated by SAS would be /u/userid/saswork/two.
+<P>Note that the presence of a slash (/) in a specification always indicates
+an HFS file. If your specification does not contain a slash, then the value
+of the FILESYSTEM= system option becomes an issue and the HFS file name may
+require HFS: in front. The following example overrides FILESYSTEM=MVS to accesses
+an HFS file in your default UNIX System Services directory:
+
+
+
+<PRE>options FILESYSTEM=MVS;
+data 'HFS:study03'; x=3; run;
+proc print data='HFS:study03;
+proc contents data='HFS:study03'; run;</PRE>The prefix HFS: is required because
+the specification does not contain a slash and because the value of the FILESYSTEM=
+system option is MVS. If FILESYSTEM=HFS, the prefix is not necessary. To avoid
+using HFS: and still override the value of FILESYSTEM=, use this alternative:
+
+
+
+<PRE>option FILESYSTEM=MVS;
+data './study03'; x=3; run;
+proc print data='./study03';
+proc contents data='./study03'; run;</PRE>
+
+<HR><A name="footnote1"><FONT size="-1">FOOTNOTE 1:&nbsp;&nbsp;</FONT></A>An exception is a SAS file in the USER library.
+In this case, you can use a one-level name.  See <A href="zit-sysf.htm#zit-user">Directing Temporary SAS Data Sets to the USER Library</A> for more information about the USER
+library.&nbsp;<A href="#r1-an"><IMG border="0" src="../common/images/fntarrow.gif" alt="[arrow]"></A>
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217297.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217298.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-allext.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z-allint">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

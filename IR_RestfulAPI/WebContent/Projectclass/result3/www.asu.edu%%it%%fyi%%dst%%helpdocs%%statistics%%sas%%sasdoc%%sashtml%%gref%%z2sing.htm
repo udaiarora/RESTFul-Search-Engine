@@ -1,0 +1,165 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The GREDUCE Procedure : Using the GREDUCE Procedure </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zucechap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z14ment.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0212485.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The GREDUCE Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z2sing">Using the GREDUCE Procedure</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0212483">Specifying Density Levels</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0691431">&#13;
+ GREDUCE uses default criteria
+for determining the appropriate DENSITY variable value for each observation
+in the input map data set.  If you do not want to use the default criteria,
+use PROC GREDUCE options to select </A>
+<P>
+<UL>
+
+<LI>the maximum number of observations for each DENSITY
+level<P>
+
+<LI>the minimum distance that an intermediate point
+must lie from a line between two end points to be included in the level.<P>
+</UL>
+
+<P>If you do not explicitly specify criteria, the procedure
+computes and uses default values.
+<P><A name="z0691435">&#13; GREDUCE
+creates seven density levels, numbered 0 through 6.  Specify criteria for
+density levels 1 through 5.  You cannot define criteria for level 0, which
+is reserved for map vertex points, such as common corners of unit areas. 
+You also cannot define criteria for level 6, which is assigned to those points
+that do not meet the criteria for any lower level.</A>
+<P><A name="z0691436">&#13;
+
+Specify the maximum number of observations per density level using N<B>n</B>= in the PROC GREDUCE statement, and specify the minimum point distance
+using E<B>n</B>= .  You must have knowledge of the X and Y variable
+values in the particular input map data set to determine appropriate values
+for E<B>n</B>=.  See  </A><A href="z13ment.htm#zduce-en">En= and Nn=</A> for
+details.
+<P><A href="#z2fore">Points in Data Set before Reduction</A>
+illustrates how to use the minimum distance parameter to determine which points
+belong in a particular density level.  At density level <B>n</B>, only
+point C lies at a distance greater than the E<B>n</B>= value (70) from
+a line between points A and B. Thus, after reduction only point C remains
+between points A and B at density level <B>n</B>, and the resulting
+reduced boundary is shown in <A href="#zs-after">Points in Data Set at Density n after Reduction</A>.  See Douglas and Peucker (1973) for
+details of the algorithm used. 
+<P>
+<B><I><A name="z2fore">Points in Data Set before Reduction</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329354.gif" vspace="12" alt="[IMAGE]">
+<P>
+
+<P>
+<B><I><A name="zs-after">Points in Data Set at Density n after Reduction</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329355.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><A name="z0691438">&#13; GREDUCE uses
+the usual Euclidean distance formula to determine the distance between points.
+For example, the distance <B>d</B> between the points (<B>x</B><SUB>0</SUB>,<B>y</B><SUB>0</SUB>) and
+(<B>x</B><SUB>1</SUB>,<B>y</B><SUB>1</SUB>) is GREDUCE uses the
+usual Euclidean distance formula to determine the distance between points.
+For example, the distance <B>d</B> between the points (<B>x</B><SUB>0</SUB>,<B>y</B><SUB>0</SUB>) and
+(<B>x</B><SUB>1</SUB>,<B>y</B><SUB>1</SUB>) is </A>
+<P>
+<P><IMG border="0" src="./images/deqn5.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>If this distance function is not suitable for the coordinate
+system in your input map data set, transform the X and Y values to an appropriate
+coordinate system before using GREDUCE. An example of inappropriate coordinates
+is latitude and longitude values around one of the poles. In this case, the
+data values should be projected before they are reduced. See <A href="zectchap.htm">The GPROJECT Procedure</A> for more information
+on map projection.
+<P>If you specify both N<B>n</B>= and E<B>n</B>=
+values for a density level, GREDUCE attempts to satisfy both criteria.  However,
+the number of points for any level is never reduced below the number of points
+in density level 0.  If you specify a combination of N<B>n</B>= or E<B>n</B>= values such that the resulting DENSITY values are not in order of
+increasing density, a note is printed in the SAS log, and the DENSITY values
+are calculated in increasing order of density.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0212484">Subsetting a Map Data Set</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0691441">&#13;
+  
+A map data set that is processed by GREDUCE does not automatically result
+in a map that uses fewer points.  By default, the GMAP procedure produces
+a map that uses all of the points in the map data set, even if the data set
+has been processed by the GREDUCE procedure.  To decrease the number of points
+that produce the map, you must create a subset of the original data set using
+a DATA step or the WHERE= data set option.  For example, to create a subset
+of a map that uses only the DENSITY values 0, 1, and 2, use this DATA step:
+ 
+
+
+</A>
+<PRE>data smallmap;
+   set map;
+   if density &lt;= 2;
+run;</PRE>
+<P><A name="z0691442">&#13; Alternatively, you can use WHERE=
+in the PROC GMAP statement:  
+
+
+</A>
+<PRE>proc gmap map=map(where=(density&lt;=2))
+          data=response;</PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;GREDUCE does not
+reduce the size of the output map data set compared to the input map data
+set. By default, the output map data set from PROC GREDUCE will be larger
+than the input map data set because it contains all of the variables and observations
+from the original data set, with the addition of the DENSITY variable if it
+was not present in the original data set.  If the input map data set already
+had a DENSITY variable, the output map data set will be the same size as the
+input map data set.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zucechap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z14ment.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0212485.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z2sing">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

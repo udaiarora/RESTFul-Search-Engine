@@ -1,0 +1,189 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Scatter Control : Using a Pick List in a Scatter Control </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zr-c-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1236788.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1236786.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1236793">Using a Pick List in a Scatter Control</A></FONT></H1>
+
+
+<P>Scatter
+controls have an actionMode attribute that determines what action is taken
+when you click on the control. For information on setting the action mode,
+see <A href="z1236816.htm">Setting the Action Mode in a Scatter Control</A>.
+<P>One of the actions is Pick, which causes the control to store the clicked
+marker's values in the control's pickList attribute. The pickList attribute
+contains an SCL list of lists, any of which can be a named list.
+<P>For example, assume a Scatter control's actionMode attribute is set
+to Pick, and that the markers represent the population figures for a set of
+countries. If you click on the marker representing France, the pickList attribute
+stores the value identifying the country as France, and it stores France's
+population value. If, pressing the multiple selection key on the keyboard,
+you click on France, England, and Germany, the pickList attribute's list stores
+three lists; the first list identifies France and its population, the second
+identifies England and its population, and the third identifies Germany and
+its population.
+<P>To get the items from the pickList attribute, use the _getPickList method.
+The SCL list that is returned is a named SCL list. The named SCL list contains
+a named entry for every variable associated with the graph. Using SCL's getnitemn()
+and getnitemc() routines, you can extract the variable values for the picked
+marker, assuming the variable has been assigned in the control. If the variable
+has not been assigned, there is no entry for it in the list. You can use the
+following names in the getnitemn() and getnitemc()
+routines:
+<P>
+<UL>
+
+<LI>Color<P>
+
+<LI>Label<P>
+
+<LI>Shape<P>
+
+<LI>Size<P>
+
+<LI>X<P>
+
+<LI>Y<P>
+
+<LI>Z<P>
+</UL>
+
+<P>For
+a control named scatter1, the following code gets items from the
+pickList attribute:
+<P>
+<PRE>/* Make an empty list */
+mylist = makelist();
+
+/* Fill it with information from the picked marker */
+scatter1._getPickList(mylist);
+
+/* The list is a list of lists, each */
+/* containing info about a marker    */
+
+sublist = getiteml(mylist,1);
+
+/* Check on the type of the variable, */
+/* in case the type changes           */
+idx = nameditem(sublist,"X");
+if itemtype(sublist,idx) = 'C' then
+  xc = getnitemc(sublist,"X");
+else
+  x = getnitemn(sublist,"X");
+
+idx = nameditem(sublist,"Y");
+if itemtype(sublist,idx) = 'C' then
+  yc = getnitemc(sublist,"Y");
+else
+  y = getnitemn(sublist,"Y");
+
+/* and so forth for all the plot variables */</PRE>  
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Extending a Pick List</FONT></B></TD></TR></TABLE>
+
+<P>To collect information on multiple picks in a graph, first determine
+how many items are picked by using the _getPickedItemCount method. This returns
+a count of all the items in the current pick list. The following code shows
+how to nest into a loop structure the code that is shown in the previous section.
+This code iterates through the loop once for each picked item:
+
+
+
+<PRE>scatter1._getPickedItemCount(count);
+mylist = makelist();
+scatter1._getPickList(mylist);
+
+/* Loop through the sublists */
+do i = 1 to count;
+  sublist = getiteml(mylist,i);
+  
+  /* Process a sublist... */
+end;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Setting a Pick List</FONT></B></TD></TR></TABLE>
+
+<P>To specify a list of markers to highlight in a scatter plot, create
+a list of lists with variable values that identify each marker, and assign
+that list to the pickList attribute. The sub-lists do not have to contain
+named items, but if they are not named items, each sub-list should contain
+the following values in the order that they are listed here:
+<P>
+<UL>
+
+<LI>X variable value<P>
+
+<LI>Y variable value<P>
+
+<LI>Z variable value (if there
+is a Z variable assigned and viewMode
+is set to 3D or 3DPerspective).<P>
+</UL>
+
+<P>For example, the following code highlights a marker whose values are
+X=a and Y=66:
+
+
+
+<PRE>scatter1.actionMode='pick';
+pklist=makelist();
+sublist=makelist();
+  rc=insertc(sublist, 'a', -1);
+  rc=insertn(sublist, 66, -1);
+rc=insertl(pklist, sublist);
+scatter1.pickList=pklist;
+
+/* clean memory */
+rc=dellist(pklist, 'Y');</PRE>To determine the highlight color, use the highlightColor
+attribute.
+<P>The pick-list operations are additive. Successive calls do not replace
+what was in the pick list, they add to it. Thus, you may want to clear pick-list
+items between pickList settings. To clear all the picked items, pass an empty
+list to pickList:
+
+
+
+<PRE>listid = makelist();
+scatter1.pickList = listid;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zr-c-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1236788.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1236786.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1236793">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,631 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using the INFILE/FILE User Exit Facility : Sample Program </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zctivate.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0325769.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z-sample">Sample Program</A></FONT></H1>
+
+
+<P><A name="z0557716">&#13; The following sample program
+illustrates
+the process of writing an INFILE/FILE user exit. Notice that this is not a
+trivial program. Writing user exits requires a firm understanding of register
+manipulation and other fairly advanced programming techniques.</A>
+<P>The example uses OS/390 services to compress data. The
+data is compressed on output and decompressed on input.<FONT size="-1"><A href="#footnote1">(footnote 1)</A></FONT>
+<P>The example consists of several assembly macros, followed
+by the assembly language program itself. The macros define how the parameter
+lists are to be interpreted. Each macro begins with a MACRO statement and
+ends with a MEND statement. The actual program begins on the line that reads 
+
+
+<CODE><B>SASCSRC START</B></CODE>.  Here is the example:  
+
+
+
+<PRE>TITLE 'INFILE/FILE USER EXIT TO COMPRESS DATA USING ESA SERVICES'
+*----------------------------------------------------------------------
+* COPYRIGHT (C) 1991 BY SAS INSTITUTE INC., CARY, NC 27513 USA
+*
+* NAME:      ==> SASCSRC
+* TYPE:      ==> EXTERNAL FILE USER EXIT
+* LANGUAGE:  ==> ASM
+* PURPOSE:   ==> TO COMPRESS/DECOMPRESS DATA USING CSRCESRV SERVICES
+* USAGE:     ==> DATA;INFILE MYFILE CSRC;INPUT;RUN;
+*----------------------------------------------------------------------
+* - - - - - - - - - -
+         MACRO
+*---------------------------------------------------------------------
+* COPYRIGHT (C) 1991 BY SAS INSTITUTE INC., CARY, NC 27513 USA
+*
+*  NAME      ==> VXEXIT
+*  PURPOSE   ==> DSECT MAPPING OF INFILE EXIT TABLE
+*---------------------------------------------------------------------
+        VXEXIT
+*------------------------------------------------------------------
+* MAP OF USER EXIT HOST BAG
+*------------------------------------------------------------------
+VXEXIT   DSECT
+         SPACE 1
+*------------------------------------------------------------------
+* THE FOLLOWING FIELDS MUST NOT BE CHANGED BY THE EXIT ROUTINE
+* EXCEPT USERWORD
+*------------------------------------------------------------------
+EXITIDB  DS    A
+EXITEP   DS    A
+MEMALEN  DS    F                LENGTH OF WORK AREA ABOVE 16M LINE
+MEMABV   DS    A                POINTER TO WORK AREA ABOVE 16M LINE
+MEMBLEN  DS    F                LENGTH OF WORK AREA BELOW 16M LINE
+MEMBEL   DS    A                POINTER TO WORK AREA BELOW 16M LINE
+USERWORD DS    A    (USER UPD)  WORD AVAILABLE TO EXIT
+EDDNAME  DS    CL8              LOGICAL NAME OF THE FILE
+VARRTN   DS    A                SAS VARIABLE CREATING ROUTINE ADDRESS
+ERRMSG   DS    A    (USER UPD)  NULL TERMINATED ERROR MESSAGE POINTER
+EFLAG1   DS    XL1  (USER UPD)  FLAG BYTE-1
+EX_NEXT  EQU   X'80'            GET NEXT RECORD FROM EXIT
+EX_DEL   EQU   X'40'            DELETE THIS RECORD
+EX_EOF   EQU   X'20'            EOF OF DATASET REACHED
+EX_EOFC  EQU   X'10'            CALL USER EXIT AFTER EOF
+EX_ALC   EQU   X'08'            WILL USE ALLOC/FREE ROUTINES
+EX_STOR  EQU   X'04'            WILL SUPPORT STORED PROGRAMS
+EX_TERM  EQU   X'02'            WILL NEED A TERMINAL CALL
+EFLAG2   DS    XL1              FLAG BYTE-2
+EFLAG3   DS    XL1              FLAG BYTE-3
+EFLAG4   DS    XL1              FLAG BYTE-4
+ALLOC    DS    A                ALLOC ROUTINE
+FREE     DS    A                FREE ROUTINE
+PIDA     DS    F                PID ABOVE
+PIDB     DS    F                PID BELOW
+ALLOC1   DS    A                ALLOCATE ROUTINE WITH SWITCH
+FREE1    DS    A                FREE ROUTINE WITH SWITCH
+VARRTN1  DS    A                SAS VARIABLE CREATING ROUTINE WITH SWITCH
+VXCRAB   DS    A                CRAB ADDRESS
+LOG      DS    A                LOG ROUTINE WITHOUT SWITCH
+LOG1     DS    A                LOG ROUTINE WITH SWITCH
+         SPACE 1
+         DS    0D
+         SPACE 1
+VXEXITL  EQU   *-VXEXIT
+*------------------------------------------------------------------
+* MAP OF VARRTN FUNCTION CALL
+*------------------------------------------------------------------
+PARMVAR  DSECT
+*
+VARNAME  DS    A                 POINTER TO VARIABLE NAME
+VARNAMEL DS    F                 VARIABLE NAME LENGTH
+VARTYPE  DS    F                 VARIABLE TYPE 1=NUM, 2=CHAR
+VARSIZE  DS    F                 SIZE OF VARIABLE IF CHAR
+VARFLAG  DS    F                 FLAGS , X'01' - INTERNAL
+*                                        X'02' - EXTERNAL
+VARADDR  DS    A                 POINTER TO VAR LOC ADDRESS (RETURNED)
+*
+* FOR CHARACTER VARIABLE IT RETURNS A POINTER TO A STRING STRUCTURE
+*
+* MAXLEN DS    H                 MAX LENGTH OF STRING
+* CURLEN DS    H                 CURRENT LENGTH OF STRING
+* ADDR   DS    A                 ADDRESS OF STRING DATA
+PARMVARL EQU   *-PARMVAR
+*------------------------------------------------------------------
+* MAP OF ALLOC FUNCTION CALL
+*------------------------------------------------------------------
+PARMALC  DSECT
+*
+ALCEXIT  DS    A                 POINTER TO THE EXIT BAG
+ALCPTR   DS    A                 PLACE TO RETURN ALLOCATED ADDRESS
+ALCLEN   DS    F                 LENGTH OF MEMORY REQUIRED
+ALCFLG   DS    F                 FLAG BYTE  1=BELOW 16M, 0=ABOVE 16M
+PARMALCL EQU   *-PARMALC
+*------------------------------------------------------------------
+* MAP OF FREE FUNCTION CALL
+*------------------------------------------------------------------
+PARMFRE  DSECT
+*
+FREEXIT  DS    A                 POINTER TO THE EXIT BAG
+FREPTR   DS    A                 ADDRESS OF FREEMAIN
+FREFLG   DS    F                 FLAG BYTE  1=BELOW 16M, 0=ABOVE 16M
+PARMFREL EQU   *-PARMFRE
+*------------------------------------------------------------------
+* MAP OF INIT EXIT CALL
+*------------------------------------------------------------------
+PARMINIT DSECT
+*
+INITFUNC DS    F                 FUNCTION CODE
+INITEXIT DS    A                 USER EXIT BAG ADDRESS
+INITMBLN DS    A                 PTR TO AMT OF MEMORY NEEDED BELOW LINE
+INITMALN DS    A                 PTR TO AMT OF MEMORY NEEDED ABOVE LINE
+PARMINIL EQU   *-PARMINIT
+*------------------------------------------------------------------
+* MAP OF PARSE EXIT CALL
+*------------------------------------------------------------------
+PARMPARS DSECT
+*
+PARSFUNC DS    F                 FUNCTION CODE
+PARSEXIT DS    A                 USER EXIT BAG ADDRESS
+PARSOPTL DS    F                 OPTION NAME LENGTH
+PARSOPTN DS    A                 POINTER TO OPTION NAME
+PARSVALL DS    F                 OPTION VALUE LENGTH
+PARSVAL  DS    A                 OPTION VALUE
+PARMPARL EQU   *-PARMPARS
+*------------------------------------------------------------------
+* MAP OF OPEN EXIT CALL
+*------------------------------------------------------------------
+PARMOPEN DSECT
+*
+OPENFUNC DS    F                 FUNCTION CODE
+OPENEXIT DS    A                 USER EXIT BAG ADDRESS
+OPENMODE DS    F                 OPEN MODE
+OPENZLEN DS    A                 POINTER TO DATA LENGTH
+OPENBLKL DS    F                 DATA SET BLOCK SIZE
+OPENRECL DS    F                 DATA SET RECORD LENGTH
+OPENRECF DS    F                 DATA SET RECORD FORMAT
+PARMOPEL EQU   *-PARMOPEN
+*------------------------------------------------------------------
+* MAP OF READ EXIT CALL
+*------------------------------------------------------------------
+PARMREAD DSECT
+*
+READFUNC DS    F                 FUNCTION CODE
+READEXIT DS    A                 USER EXIT BAG ADDRESS
+READRECA DS    A                 POINTER TO RECORD AREA ADDRESS
+READRECL DS    A                 POINTER TO RECORD LENGTH
+PARMREAL EQU   *-PARMREAD
+*------------------------------------------------------------------
+* MAP OF WRITE EXIT CALL
+*------------------------------------------------------------------
+PARMWRIT DSECT
+*
+WRITFUNC DS    F                 FUNCTION CODE
+WRITEXIT DS    A                 USER EXIT BAG ADDRESS
+WRITRECA DS    A                 POINTER TO RECORD AREA ADDRESS
+WRITRECL DS    F                 RECORD LENGTH
+PARMWRIL EQU   *-PARMWRIT
+*------------------------------------------------------------------
+* MAP OF CLOSE EXIT CALL
+*------------------------------------------------------------------
+PARMCLOS DSECT
+*
+CLOSFUNC DS    F                 FUNCTION CODE
+CLOSEXIT DS    A                 USER EXIT BAG ADDRESS
+PARMCLOL EQU   *-PARMCLOS
+*------------------------------------------------------------------
+* MAP OF CONCAT EXIT CALL
+*------------------------------------------------------------------
+PARMCONC DSECT
+*
+CONCFUNC DS    F                 FUNCTION CODE
+CONCEXIT DS    A                 USER EXIT BAG ADDRESS
+CONCBLKL DS    F                 NEXT DATA SET IN CONCAT BLOCK SIZE
+CONCRECL DS    F                 NEXT DATA SET IN CONCAT RECORD LENGTH
+CONCRECF DS    F                 NEXT DATA SET IN CONCAT RECORD FORMAT
+CONCZLEN DS    A                 POINTER TO DATA LENGTH
+PARMCONL EQU   *-PARMCONC
+*
+*------------------------------------------------------------------
+* MAP OF LOG ROUTINE PARMLIST
+*------------------------------------------------------------------
+PARMLOG  DSECT
+LOGSTR   DS    A                 ADDRESS OF THE NULL-TERMINATED STRING
+PARMLOGL EQU   *-PARMLOG
+*
+*------------------------------------------------------------------
+* EQUATES AND CONSTANTS
+*------------------------------------------------------------------
+EXITPARS EQU   4
+EXITOPEN EQU   8
+EXITREAD EQU   12
+EXITCONC EQU   16
+EXITWRIT EQU   20
+EXITCLOS EQU   24
+EXITP2HB EQU   28   NOT SUPPORTED YET
+EXITHB2P EQU   32   NOT SUPPORTED YET
+*
+*  EXITMODE     VALUES
+EXITINP  EQU   1
+EXITOUT  EQU   2
+EXITAPP  EQU   4
+EXITUPD  EQU   8
+*  RECFM        VALUES
+EXITRECF EQU   X'80'
+EXITRECV EQU   X'40'
+EXITRECB EQU   X'10'
+EXITRECS EQU   X'08'
+EXITRECA EQU   X'04'
+EXITRECU EQU   X'C0'
+&amp;SYSECT  CSECT
+         MEND
+         DS    OD
+VXEXITL  EQU   *-VXEXIT
+         SPACE 1
+         MACRO
+&amp;LBL     VXENTER &amp;DSA=,&amp;WORKAREA=MEMABV,&amp;VXEXIT=R10
+         DROP
+&amp;LBL     CSECT
+         USING &amp;LBL,R11
+         LR    R11,R15                 LOAD PROGRAM BASE
+         USING VXEXIT,&amp;VXEXIT
+         L     &amp;VXEXIT,4(,R1)          LOAD -> VXEXIT STRUCTURE
+         AIF   ('&amp;DSA' EQ 'NO').NODSA
+         AIF   ('&amp;DSA' EQ '').NODSA
+         L     R15,&amp;WORKAREA           LOAD -> DSA FROM VXEXIT
+         ST    R15,8(,R13)             SET FORWARD CHAIN
+         ST    R13,4(,R15)             SET BACKWARD CHAIN
+         LR    R13,R15                 SET NEW DSA
+         USING &amp;DSA,R13
+.NODSA  ANOP
+         MEND
+* - - - - - - - - - -
+         MACRO
+&amp;LBL     VXRETURN &amp;DSA=
+         AIF   ('&amp;LBL' EQ '').NOLBL
+&amp;LBL     DS    0H
+.NOLBL   AIF   ('&amp;DSA' EQ 'NO').NODSA
+         L     R13,4(,R13)             LOAD PREVIOUS DSA
+.NODSA  ANOP
+         ST    R15,16(,R13)            SAVE RETURN CODE
+         LM    R14,R12,12(R13)         RELOAD REGS
+         BR    R14                     RETURN
+         LTORG
+         MEND
+* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SASCSRC  START 
+*
+* MAIN ENTRY POINT FOR ALL EXITS
+*
+         USING SASCSRC,R15
+         STM   R14,R12,12(R13)
+         L     R2,0(,R1)               LOAD FUNCTION CODE
+         L     R15,CSRCFUNC(R2)        LOAD FUNCTION ADDRESS
+         BR    R15
+*
+CSRCFUNC DS    0A                      CSRC FUNCTIONS
+         DC    A(CSRCINIT)                  INITIALIZATION
+         DC    A(CSRCPARS)                  PARSE CSRC OPTIONS
+         DC    A(CSRCOPEN)                  OPEN EXIT
+         DC    A(CSRCREAD)                  READ EXIT
+         DC    A(CSRCCNCT)                  CONCATENATION BOUNDARY EXIT
+         DC    A(CSRCWRIT)                  WRITE EXIT
+         DC    A(CSRCCLOS)                  CLOSE EXIT
+*
+* INITIALIZATION EXIT
+*
+CSRCINIT VXENTER DSA=NO
+         SPACE 1
+         USING PARMINIT,R1
+*
+* THIS EXIT RUNS ONLY IN ESA AND ABOVE RELEASES
+* WHICH SUPPORT DECOMPRESSION.
+* THE CODE CHECKS FOR IT FIRST. IF NOT ESA, THE INIT FAILS
+*
+         L     R15,16                  LOAD CVT POINTER
+         USING CVT,R15                 BASE FOR CVT MAPPING
+         TM    CVTDCB,CVTOSEXT         EXTENSION PRESENT
+         BNO   NOTESA                  FAIL, NOT ESA
+         TM    CVTOSLV0,CVTXAX         SUPPORTS ESA
+         BNO   NOTESA                  NOT AN ESA
+         DROP  R15
+         L     R3,=A(PWALENL)          SET WORK AREA LENGTH...
+         L     R2,INITMALN
+         ST    R3,0(,R2)               AS ABOVE THE 16M LINE LENGTH
+         SLR   R15,R15                 GOOD RC
+         XC    EFLAG1,EFLAG1           CLEAR
+         OI    EFLAG1,EX_ALC           WILL USE ALLOC/FREE ROUTINES
+         B     INITX                   RETURN
+NOTESA   DS    0H
+         LA    R15,BADOS
+         ST    R15,ERRMSG              SAVE ERROR MESSAGE
+INITX    DS    0H
+         SPACE 1
+         VXRETURN DSA=NO
+BADOS    DC C'THIS SUPPORT IS NOT AVAILABLE IN THIS ENVIRONMENT'
+         DC XL1'00'
+*
+*  PARSE EXIT
+*
+CSRCPARS VXENTER DSA=PWA
+         USING PARMPARS,R4
+         LR    R4,R1                   R4 IS PARMLIST BASE
+         SPACE 1
+         L     R6,PARSOPTL             R6 = OPTION NAME LENGTH
+         LTR   R6,R6                   IF 0
+         BZ    PARSR                      RETURN OK
+         LA    R15,4                   SET BAD OPTION RC
+         L     R7,PARSOPTN             R7 -> OPTION NAME
+         L     R8,PARSVALL             R8 = OPTION VALUE LENGTH
+         L     R9,PARSVAL              R9 -> OPTION VALUE (VAR NAME)
+         SPACE 1
+*---------------------------------------------*
+* OPTION ACCEPTED IS:                         *
+*    CSRC   RECL=                             *
+*---------------------------------------------*
+         C     R6,=F'4'                IF LENGTH NOT 4
+*        BNE   PARSX                   RETURN WITH ERROR
+         LTR   R8,R8                   IS IT =
+         BNZ   PARSRECL                THEN CHECK FOR RECL=
+         CLC   0(4,R7),=CL4'CSRC'      IF NOT 'CSRC'
+         BNE   PARSX                   RETURN WITH ERROR
+         B     PARSR                    ELSE RETURN OK
+*---------------------------------------------*
+* PARSE RECL=NUM                              *
+*---------------------------------------------*
+PARSRECL DS    0H
+         CLC   0(4,R7),=CL4'RECL'      IF NOT 'RECL'
+         BNE   PARSX                   RETURN WITH ERROR
+         CH    R8,=H'16'               GREATER THAN 16
+         BNL   PARSX                   INVALID VALUE
+         BCTR  R8,0                    MINUS 1 FOR EXECUTE
+         XC    TEMP,TEMP               CLEAR
+         EX    R8,CONNUM               CONVERT TO NUMBER
+*CONNUM  PACK  TEMP(0),0(R9)
+         CVB   R0,TEMP                 CONVERT TO BINARY
+         ST    R0,RECL                 SAVE RECL
+         SPACE 1
+PARSR    SLR   R15,R15                 RETURN OK
+         SPACE 1
+PARSX    VXRETURN DSA=PWA
+CONNUM   PACK  TEMP(8),0(0,R9)           *** EXECUTE ****
+*
+* OPEN EXIT
+*
+CSRCOPEN VXENTER DSA=PWA
+         USING PARMOPEN,R1
+         SPACE 1
+         LA    R15,NOINPUT             SET -> NO INPUT ERROR MESSAGE
+         L     R4,RECL                 LOAD USER RECLEN
+         LTR   R4,R4                   HAS IT BEEN SET?
+         BNZ   *+8
+         LH    R4,=Y(32676)            SET LRECL=32K BY DEFAULT
+         SPACE 1
+         LA    R15,DLENBIG             SET -> DATALENGTH TOO BIG MESSAGE
+         L     R2,OPENZLEN
+         L     R3,0(,R2)               R3 = DATA LENGTH OF EACH RECORD
+         CR    R3,R4                   IF GREATER THAN CSRC MAXIMUM
+         BH    OPENX                      RETURN ERROR
+         SPACE 1
+         ST    R4,0(,R2)               RETURN LENGTH TO THE SAS SYSTEM
+         ST    R4,RECL                 SAVE LENGTH
+*
+* ALLOCATION OF BUFFER FOR INPUT RECORDS
+*
+         LA    R1,PARM                 POINT TO PARMAREA
+         XC    PARM,PARM               CLEAR
+         USING PARMALC,R1
+         ST    R10,ALCEXIT             COPY HOST BAG POINTER
+         LA    R15,MEMADDR
+         ST    R15,ALCPTR              PLACE TO RETURN MEM ADDRESS
+         ST    R4,ALCLEN               LENGTH OF MEMORY NEEDED
+         L     R15,ALLOC               LOAD MEMORY ALLOCATE ROUTINE
+         BALR  R14,R15                 ALLOCATION OF MEMORY
+         LTR   R15,R15                 WAS MEMORY ALLOCATED?
+         BNZ   OPENMEM                 IF NOT, OPERATION FAILS
+*
+* QUERY THE COMPRESS SERVICE
+*
+         LA    R0,1                    USE RUN LENGTH ENCODING
+         CSRCESRV SERVICE=QUERY        QUERY IT
+         LTR   R15,R15                 EVERYTHING OK
+         BNZ   OPENERR                 IF NOT, FAIL WITH MESSAGE
+         LTR   R1,R1                   REQUIRE WORK AREA
+         BZ    OPENX                   IF NOT, END
+         LR    R0,R1                   SAVE R1
+         LA    R1,PARM                 POINT TO PARMLIST
+         LA    R15,MEMWK               ALLOCATE WORK AREA
+         ST    R15,ALCPTR              PLACE TO RETURN MEM ADDRESS
+         ST    R0,ALCLEN               LENGTH OF MEMORY NEEDED
+         L     R15,ALLOC               LOAD MEMORY ALLOCATE ROUTINE
+         BALR  R14,R15                 ALLOCATION OF MEMORY
+         LTR   R15,R15                 WAS MEMORY ALLOCATED?
+         BNZ   OPENMEM                 IF NOT, OPERATION FAILS
+         B     OPENX                   RETURN, OPERATION IS DONE
+OPENERR  DS    0H
+         XC    TEMP,TEMP               CONVERT RC TO DECIMAL
+         CVD   R15,TEMP                CONVERT TO DECIMAL
+         MVC   MSG(BADESRVL),BADESRV   MOVE IN SKELETON
+         UNPK  MSG+BADESRVL-3(2),TEMP  UNPACK
+         OI    MSG+BADESRVL-2,X'F0'    MAKE IT PRINTABLE
+         LA    R15,MSG                 SET MESSAGE
+         ST    R15,ERRMSG              SET -> ERROR MESSAGE, IF ANY
+         LA    R15,8
+         B     OPENX
+OPENMEM  DS    0H
+         LA    R15,NOMEMORY
+         SPACE 1
+OPENX    DS    0H
+         ST    R15,ERRMSG              SET -> ERROR MESSAGE, IF ANY
+*                                      R15 = EITHER 0 OR NONZERO
+         VXRETURN DSA=PWA
+*
+NOINPUT  DC   C'CSRC: DECOMPRESS DOES NOT SUPPORT OUTPUT'
+         DC   XL1'00'
+NOFIXED  DC   C'CSRC: DECOMPRESS DOES NOT SUPPORT FIXED LENGTH RECORDS'
+         DC   XL1'00'
+DLENBIG  DC   C'DATASET DATALENGTH > CSRC MAXIMUM'
+         DC   XL1'00'
+NOMEMORY DC   C'CSRC: UNABLE TO OBTAIN MEMORY'
+         DC    XL1'00'
+BADESRV  DC    C'CSRC: NON ZERO RETURN CODE FROM QUERY, RC = '
+BADESRVN DC    H'0'
+         DC    XL1'00'
+BADESRVL EQU   *-BADESRV
+*---------------------------------------------------------------
+* READ EXIT
+*
+* THIS EXIT DECOMPRESSES EACH RECORD
+*---------------------------------------------------------------
+CSRCREAD VXENTER DSA=PWA
+         USING PARMREAD,R1
+         SPACE 1
+         L     R8,READRECL             R8 -> RECORD LENGTH
+         L     R9,READRECA             R9 -> RECORD ADDRESS
+         L     R3,0(,R8)               R3 = RECORD LENGTH
+         L     R2,0(,R9)               R2 = RECORD ADDRESS
+         L     R1,MEMWK                LOAD WORK AREA ADDRESS
+         L     R4,MEMADDR              R4 = OUTPUT BUFFER
+         L     R5,RECL                 R5 = OUTPUT BUFFER LENGTH
+         CSRCESRV SERVICE=EXPAND
+         LTR   R15,R15                 EVERYTHING OK
+         BNZ   READERR                 IF NOT, SET ERROR AND RETURN
+         L     R15,MEMADDR             START OF BUFFER
+         SR    R4,R15                  MINUS LAST BYTE USED
+         ST    R4,0(,R8)               LENGTH OF UNCOMPRESSED RECORD
+         ST    R15,0(,R9)              SAVE UNCOMPRESSED REC ADDRESS
+         SLR   R15,R15                 SET GOOD RC
+         B     READX                   RETURN TO USER
+READERR  DS    0H
+         XC    TEMP,TEMP               CONVERT RC TO DECIMAL
+         CVD   R15,TEMP                CONVERT TO DECIMAL
+         MVC   MSG(EXPERRL),EXPERR     MOVE IN SKELETON
+         UNPK  MSG+EXPERRL-3(2),TEMP   UNPACK
+         OI    MSG+EXPERRL-2,X'F0'     MAKE IT PRINTABLE
+         LA    R15,MSG                 SET MESSAGE
+         ST    R15,ERRMSG              SET -> ERROR MESSAGE, IF ANY
+         LA    R15,8
+*
+         SPACE 1
+READX    DS    0H
+         VXRETURN DSA=PWA
+         SPACE ,
+EXPERR   DC    C'CSRC NON ZERO RETURN CODE FROM EXPAND, RC = '
+EXPERRN  DC    H'0'
+         DC    XL1'00'
+EXPERRL  EQU   *-EXPERR
+*
+*
+* CONCATENATION EXIT
+*
+CSRCCNCT VXENTER DSA=PWA
+         SPACE 1
+         SLR   R15,R15
+         VXRETURN DSA=PWA
+*---------------------------------------------------------------
+* WRITE EXIT
+*
+* THIS EXIT COMPRESSES EACH RECORD
+*---------------------------------------------------------------
+CSRCWRIT VXENTER DSA=PWA
+         USING PARMWRIT,R1
+         L     R8,WRITRECL             R8 -> RECORD LENGTH
+         L     R9,WRITRECA             R9 -> RECORD ADDRESS
+         L     R3,0(,R8)               R3 = RECORD LENGTH
+         L     R2,0(,R9)               R2 = RECORD ADDRESS
+         L     R1,MEMWK                LOAD WORK AREA ADDRESS
+         L     R4,MEMADDR              R4 = OUTPUT BUFFER
+         L     R5,RECL                 R5 = OUTPUT BUFFER LENGTH
+         CSRCESRV SERVICE=COMPRESS
+         LTR   R15,R15                 EVERYTHING OK
+         BNZ   WRITERR                 IF NOT, SET ERROR AND RETURN
+         L     R15,MEMADDR             START OF BUFFER
+         SR    R4,R15                  MINUS LAST BYTE USED
+         ST    R4,0(,R8)               LENGTH OF RECORD
+         ST    R15,0(,R9)              SAVE NEW RECORD ADDRESS
+         SLR   R15,R15                 SET GOOD RC
+         B     WRITEX                  RETURN TO USER
+WRITERR  DS    0H
+         XC    TEMP,TEMP               CONVERT RC TO DECIMAL
+         CVD   R15,TEMP                CONVERT TO DECIMAL
+         MVC   MSG(WRTERRL),WRTERR     MOVE IN SKELETON
+         UNPK  MSG+WRTERRL-3(2),TEMP   UNPACK
+         OI    MSG+WRTERRL-2,X'F0'     MAKE IT PRINTABLE
+         LA    R15,MSG                 SET MESSAGE
+         ST    R15,ERRMSG              SET -> ERROR MESSAGE, IF ANY
+         LA    R15,8
+         SPACE 1
+         SPACE 1
+WRITEX   DS    0H
+         VXRETURN DSA=PWA
+WRTERR   DC    C'CSRC: NON ZERO RETURN CODE FROM COMPRESS, RC = '
+WRTERRN  DC    H'0'
+         DC    XL1'00'
+WRTERRL  EQU *-WRTERR
+         LTORG
+*
+* CLOSE EXIT
+*
+CSRCCLOS VXENTER DSA=PWA
+         SLR   R15,R15
+         LA    R1,PARM
+         XC    PARM,PARM
+         USING PARMFRE,R1
+         ST    R10,FREEXIT
+         L     R15,MEMADDR
+         ST    R15,FREPTR
+         L     R15,FREE
+         BALR  R14,R15
+         VXRETURN DSA=PWA
+*
+R0       EQU   0
+R1       EQU   1
+R2       EQU   2
+R3       EQU   3
+R4       EQU   4
+R5       EQU   5
+R6       EQU   6
+R7       EQU   7
+R8       EQU   8
+R9       EQU   9
+R10      EQU   10
+R11      EQU   11
+R12      EQU   12
+R13      EQU   13
+R14      EQU   14
+R15      EQU   15
+*
+         VXEXIT ,
+*
+PWA      DSECT                     PROGRAM WORK AREA
+PWASAVE  DS    32F                 SAVE AREA
+TEMP     DS    D
+RECL     DS    F
+SAVE     DS    32F
+PARM     DS    CL(PARMALCL)
+MEMADDR  DS    F
+MEMWK    DS    F
+MSG      DS    CL200
+PWALENL  EQU   *-PWA               LENGTH OF CSRC WORK AREA
+         CVT DSECT=YES
+*
+         END</PRE>
+
+<HR><A name="footnote1"><FONT size="-1">FOOTNOTE 1:&nbsp;&nbsp;</FONT></A>This code is actually implemented in SAS, to support
+the CSRC option in the INFILE and FILE statements. The CSRC is described in <A href="zptfmain.htm#zt-stand">Standard Host Options for the FILE Statement under OS/390</A> and
+in <A href="z2main.htm#zinstand">Standard Options for the INFILE Statement under OS/390</A>.&nbsp;<A href="#z1-this2"><IMG border="0" src="../common/images/fntarrow.gif" alt="[arrow]"></A>
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zctivate.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0325769.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z-sample">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

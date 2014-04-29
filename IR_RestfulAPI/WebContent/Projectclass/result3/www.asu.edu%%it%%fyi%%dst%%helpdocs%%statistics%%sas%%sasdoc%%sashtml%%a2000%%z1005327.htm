@@ -1,0 +1,361 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Browsing and Updating SYSTEM 2000 Data : Appending Data with the APPEND Procedure </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003235.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1005317.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1005334.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1005327">Appending Data with the APPEND Procedure</A></FONT></H1>
+
+
+<P><A name="z1042547">&#13;
+
+
+
+
+
+
+
+With the APPEND procedure, you can append data described
+by SAS/ACCESS view descriptors and
+PROC SQL views to  SAS data files. You can also update the data described
+by a view descriptor by appending to it the  data from another SAS data set.</A>
+<P>For an append operation to be successful, the variables
+in the BASE=, or target, data set and the variables in DATA=, or source, data
+set must match, or you must use the FORCE= option to concatenate the data
+sets. The FORCE= option causes the APPEND procedure to drop the extra variables
+and issues a warning. 
+<P>You can append the data described by a view descriptor
+to a Version 6 or Version 7 data file and vice versa. For variables that use
+the longer Version 7 naming conventions or otherwise do not match, use the
+RENAME= data set option in the APPEND procedure to rename the variables.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example of Appending Data to a SAS Data File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042550">&#13;
+
+In the following example, two managers have kept separate
+employee telephone lists.  The Marketing manager kept records in the SYSTEM
+2000 EMPLOYEE database described by the view descriptor VLIB.EMPPHON.  The
+Corporation manager kept records for the executive telephone list in a Version
+6 SAS data file, MYDATA.CORPHON.  The two sources must be  combined to create
+a telephone list of both departments.</A>
+<P>The data described by the view descriptor VLIB.EMPPHON
+and the data in the SAS data file MYDATA.CORPHON are displayed in <A href="#z1020417">Data Described by VLIB.EMPPHON</A> and
+<A href="#z1020420">Data in MYDATA. CORPHON</A>.
+
+
+
+<PRE>    proc print data=vlib.empphon;
+       title 'Marketing Phone List';
+    run; 
+ 
+    proc print data=mydata.corphon;
+       title 'Corporation Phone List';
+    run; </PRE>
+<P>
+<B><I><A name="z1020417">Data Described by VLIB.EMPPHON</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                        Marketing Phone List                              1
+ 
+           OBS    LASTNAME      FIRSTNME      PHONE
+ 
+             1    AMEER         DAVID         545 XT495
+             2    BROOKS        RUBEN R.      581 XT347
+             3    BROWN         VIRGINA P.    218 XT258
+             4    CHAN          TAI           292 XT331
+             5    GARRETT       OLAN M.       212 XT208
+             6    GIBSON        GEORGE J.     327 XT703
+             7    GOODSON       ALAN F.       323 XT512
+             8    JUAREZ        ARMANDO       506 XT987
+             9    LITTLEJOHN    FANNIE        219 XT653
+            10    RICHARDSON    TRAVIS Z.     243 XT325
+            11    RODRIGUEZ     ROMUALDO R    243 XT874
+            12    SCHOLL        MADISON A.    318 XT419
+            13    SHROPSHIRE    LELAND G.     327 XT616
+            14    SMITH         JERRY LEE     327 XT169
+            15    VAN HOTTEN    GWENDOLYN     212 XT311
+            16    WAGGONNER     MERRILEE D    244 XT914
+            17    WILLIAMSON    JANICE L.     218 XT802</PRE></TD></TR></TABLE>
+
+<P>
+<P>
+<P>
+<B><I><A name="z1020420">Data in MYDATA. CORPHON</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>   
+                     Corporation Phone List                               1
+ 
+           OBS    LASTNAME      FIRSTNME        PHONE
+ 
+             1    BOWMAN        HUGH E.       109 XT901
+             2    FAULKNER      CARRIE ANN    132 XT417
+             3    GARRETT       OLAN M.       212 XT208
+             4    KNAPP         PATRICE R.    222 XT 12
+             5    KNIGHT        ALTHEA        213 XT218
+             6    MILLSAP       JOEL B.       131 XT224
+             7    MUELLER       PATSY         223 XT822
+             8    NATHANIEL     DARRYL        118 XT544
+             9    SALAZAR       YOLANDA       111 XT169
+            10    WATERHOUSE    CLIFTON P.    101 XT109</PRE></TD></TR></TABLE>
+
+<P>
+<P>You can combine the data described by these two sources
+using the APPEND procedure as follows:
+
+
+
+<PRE>    proc append base=mydata.corphon data=vlib.empphon;
+    run; 
+ 
+    proc sort data=mydata.corphon;
+    by lastname;
+ 
+    proc print data=mydata.corphon;
+       title 'Corporation and Marketing Phone List';
+    run; </PRE>
+<P><A href="#z1023630">Appended Data</A>
+displays the data in the updated data file MYDATA.CORPHON. Notice that the
+combined data is sorted by last  name.  Also, since PROC PRINT was used to
+display the data, the variable names are used (for example, FIRSTNME), not
+the variable labels, which are the item names (for example, FORENAME), as
+with the SQL procedure.
+
+<P>
+<B><I><A name="z1023630">Appended Data</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                Corporation and Marketing Phone List                      1
+ 
+           OBS    LASTNAME      FIRSTNME      PHONE
+ 
+             1    AMEER         DAVID         545 XT495
+             2    BOWMAN        HUGH E.       109 XT901
+             3    BROOKS        RUBEN R.      581 XT347
+             4    BROWN         VIRGINA P.    218 XT258
+             5    CHAN          TAI           292 XT331
+             6    FAULKNER      CARRIE ANN    132 XT417
+             7    GARRETT       OLAN M.       212 XT208
+             8    GARRETT       OLAN M.       212 XT208
+             9    GIBSON        GEORGE J.     327 XT703
+            10    GOODSON       ALAN F.       323 XT512
+            11    JUAREZ        ARMANDO       506 XT987
+            12    KNAPP         PATRICE R.    222 XT 12
+            13    KNIGHT        ALTHEA        213 XT218
+            14    LITTLEJOHN    FANNIE        219 XT653
+            15    MILLSAP       JOEL B.       131 XT224
+            16    MUELLER       PATSY         223 XT822
+            17    NATHANIEL     DARRYL        118 XT544
+            18    RICHARDSON    TRAVIS Z.     243 XT325
+            19    RODRIGUEZ     ROMUALDO R    243 XT874
+            20    SALAZAR       YOLANDA       111 XT169
+            21    SCHOLL        MADISON A.    318 XT419
+            22    SHROPSHIRE    LELAND G.     327 XT616
+            23    SMITH         JERRY LEE     327 XT169
+            24    VANHOTTEN     GWENDOLYN     212 XT311
+            25    WAGGONNER     MERRILEE D    244 XT914
+            26    WATERHOUSE    CLIFTON P.    101 XT109
+            27    WILLIAMSON    JANICE L.     218 XT802</PRE></TD></TR></TABLE>
+
+<P>
+<P>The APPEND procedure also accepts a WHERE= data set
+option or a WHERE statement to subset which observations from the DATA= data
+set are added to the BASE= data set, as shown in the following example. (It
+is assumed that the MYDATA.CORPHON data file is in its original state before
+issuing the previous APPEND procedure.)
+
+
+
+<PRE>proc append base=mydata.corphon
+  data=vlib.empphon(where=(lastname='AMEER'));
+run; 
+ 
+proc print data=mydata.corphon;
+  title2 'Appended Data with a WHERE= Data Set Option';
+run; </PRE>
+<P><A href="#z1023633">Appended Data with a WHERE= Data Set Option</A>
+displays the data when the observations appended  to the BASE= data set are
+subset by the WHERE= data set option.
+
+<P>
+<B><I><A name="z1023633">Appended Data with a WHERE= Data Set Option</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                 Appended Data With a WHERE= Data Set Option              1
+ 
+                 OBS    LASTNAME      FIRSTNME        PHONE
+ 
+                   1    BOWMAN        HUGH E.       109 XT901
+                   2    FAULKNER      CARRIE ANN    132 XT417
+                   3    GARRETT       OLAN M.       212 XT208
+                   4    KNAPP         PATRICE R.    222 XT 12
+                   5    KNIGHT        ALTHEA        213 XT218
+                   6    MILLSAP       JOEL B.       131 XT224
+                   7    MUELLER       PATSY         223 XT822
+                   8    NATHANIEL     DARRYL        118 XT544
+                   9    SALAZAR       YOLANDA       111 XT169
+                  10    WATERHOUSE    CLIFTON P.    101 XT109
+                  11    AMEER         DAVID         545 XT495</PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Appending Data to a Version 7 Data File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042557">&#13;
+
+Had the Corporation manager in the previous example
+kept his records in a Version 7 SAS data file named V7.CORPHON (see </A><A href="#z1023686">Data in V7.CORPHON</A>) and used
+variable names longer than 8 characters, the data in VLIB.EMPPHON could be
+appended with the following code: 
+
+
+
+<PRE>  proc append base=v7.corphon
+     (rename (firstname=firstnme))
+     data=vlib.empphon;
+  run;
+
+  proc sort data=v7.corphon;
+     by lastname;
+
+  proc print data=v7.corphon;
+    title2 'Corporation and Marketing Phone List';
+  run;</PRE>
+<P>
+<B><I><A name="z1023686">Data in V7.CORPHON</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>               Corporation Phone List      
+
+  Obs    lastname      firstname       phone
+    1    BOWMAN        HUGH E.       109 XT901
+    2    FAULKNER      CARRIE ANN    132 XT417
+    3    GARRETT       OLAN M.       212 XT208
+    4    KNAPP         PATRICE M.    222 XT 12
+    5    KNIGHT        ALTHEA        213 XT218
+    6    MILLSAP       JOEL B.       131 XT224
+    7    MUELLER       PATSY         223 XT822
+    8    NATHANIEL     DARRYL        118 XT544
+    9    SALAZAR       YOLANDA       111 XT169
+   10    WATERHOUSE    CLIFTON P.    101 XT109</PRE></TD></TR></TABLE>
+
+<P>
+<P>In this example, the RENAME= data set option is used
+to reconcile a character-length discrepancy between the firstname variable
+in the V7 data file and the firstnme variable in the view descriptor.<A href="#z1023690">Data in V7.CORPHON with Data from VLIB.EMPPHON Appended to It</A> shows
+a portion of the data in the updated data file V7.CORPHON.
+
+<P>
+<B><I><A name="z1023690">Data in V7.CORPHON with Data from VLIB.EMPPHON Appended to It</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>           Corporation and Marketing Phone List 
+
+      Obs    lastname     firstnme        phone
+       1
+       2    AMEER        DAVID         545 XT495
+       3    BOWMAN       HUGH E.       109 XT901
+       4    BOWMAN       HUGH E.       109 XT901
+       5    BROOKS       RUBEN R.      581 XT347
+       6    BROWN        VIRGINA P.    218 XT258
+       7    CAHILL       JACOB         435 XT426
+       8    CANADY       FRANK A.      153 XT406
+       9    CHAN         TAI           292 XT331
+      10    COLLINS      LILLIAN       166 XT616
+      11    FAULKNER     CARRIE ANN    132 XT417
+      12    FAULKNER     CARRIE ANN    132 XT417
+      13    FERNANDEZ    SOPHIA        414 XT847
+      14    FREEMAN      LEOPOLD       436 XT604
+      15    GARCIA       FRANCISCO     414 XT348
+      16    GARRETT      OLAN M.       212 XT208
+      17    GARRETT      OLAN M.       212 XT208
+      18    GIBSON       GEORGE J.     327 XT703
+      19    GIBSON       MOLLY I.      323 XT227
+      20    GOODSON       ALAN F.       323 XT512
+      21    HERNANDEZ     JESSE L.      444 XT448
+      22    JOHNSON       BRADFORD      244 XT446
+      23    JONES         MICHAEL Y.    434 XT713
+      24    JONES         RITA M.       127 XT271
+      25    JUAREZ        ARMANDO       506 XT987
+      26    KAATZ         FREDDIE       243 XT387
+      27    KNAPP         PATRICE M.    222 XT 12
+      28    KNAPP         PATRICE R.    222 XT123
+      29    KNIGHT        ALTHEA        213 XT218
+      30    KNIGHT        ALTHEA        213 XT218
+      31    LITTLEJOHN    FANNIE        219 XT653
+      32    MILLSAP       JOEL B.       131 XT224
+      33    MILLSAP       JOEL B.       131 XT224
+      34    MUELLER       PATSY         223 XT822
+      35    MUELLER       PATSY         223 XT822
+      36    NATHANIEL     DARRYL        118 XT544
+      37    NATHANIEL     DARRYL        118 XT544
+      38    POLANSKI      IVAN L.       506 XT621</PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Appending SAS Data to a View Descriptor</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042559">&#13;
+
+
+When appending SAS data to a view descriptor, you will
+not be able to sort the data unless you specify an output data file. To sort
+the data in the view descriptor, you would have to sort the SYSTEM 2000 database,
+which is not recommended.</A>
+<P>For more information on the APPEND procedure, see the <B>SAS Procedures Guide</B>.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003235.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1005317.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1005334.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1005327">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

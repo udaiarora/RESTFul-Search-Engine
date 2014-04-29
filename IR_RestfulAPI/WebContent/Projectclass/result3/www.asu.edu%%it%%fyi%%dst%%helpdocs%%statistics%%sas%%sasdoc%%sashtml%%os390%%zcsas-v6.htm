@@ -1,0 +1,367 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Accessing SAS Data Libraries : Using V8 Engines </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217271.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1080681.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zs-v6seq.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zcsas-v6">Using V8 Engines</A></FONT></H1>
+
+
+<P><A name="z0549723">&#13;A
+V8 data library
+is a physical file that is formatted to be compatible with the V8 engine.
+The V8 engine format enables you to access any of the SAS data sets in the
+library directly, without searching through other SAS data sets. You can read
+or write more than one SAS data set in a disk-format data library in a single
+DATA step. Note that preceding does not apply to SAS HFS data libraries stored
+in UNIX System Services directories.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">When to Use This Engine</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549725">&#13; You use the V8 engine to create SAS data
+libraries on disk and
+to read from, write to, or update those libraries. The V8 engine also enables
+you to index and compress observations.  For more information about indexes,
+see 
+
+
+
+<B>SAS Language Reference: Dictionary</B>.  For more information about compressing observations, see 
+
+
+
+<B>SAS Language Reference: Dictionary</B>
+and </A><A href="zperf-io.htm#zompress">Determine whether you should compress your data</A>.
+<P>The V8 engine is the default engine for SAS data libraries,
+unless the default engine has been changed with the SAS system option ENGINE=.
+This engine is also the only engine under OS/390 that provides full support
+for catalogs in SAS Version 8; members of type ACCESS, PROGRAM, and VIEW;
+and SAS data libraries under UNIX System Services. It also supports multivolume
+SAS data libraries on disk. For further information on multivolume libraries,
+see <A href="zultivol.htm">Allocating Multivolume SAS Data Libraries</A>.
+<P>Here are some other important characteristics of the
+V8 engine for direct access bound data libraries: 
+<P>
+<UL>
+
+<LI>The V8 engine makes efficient use of DASD space
+because it uses fixed-length physical blocks and enables you to have more
+than one SAS file per track.<P>
+
+<LI>You can use standard utilities to move or copy
+a V8 data library between unlike device types.  This can be done only if the
+block size of the library does not change and is less than or equal to the
+track size of the target device.<P>
+</UL>
+
+<P>Here are additional characteristics of the V8 engine
+that apply to all library implementations (direct access bound library, HFS
+library, and hiperspace library):
+<P>
+<UL>
+
+<LI>The V8 engine provides a convenient way for you
+to reduce the elapsed time for SAS jobs. Setting the BUFNO= system option
+or data set option to a value greater than 1 causes multiple pages to be transferred
+during a single DASD I/O operation.  This can substantially reduce the elapsed
+time for SAS jobs.  However, multiple pages may not necessarily be transferred
+when an index is used in a "read" operation.<P>
+
+<LI>It exploits memory above the 16-megabyte line.
+I/O buffers for permanent V8 data libraries are allocated above the 16-megabyte
+line.<P>
+
+<LI>After a V8 data library is opened, it remains
+open until the LIBREF is cleared, or until you end the SAS session.  At step
+boundaries within a SAS session, SAS ensures data integrity by writing any
+necessary control information to the data set.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zs-selv6">How to Select the V8 Engine</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549733">&#13; There are four ways to select the V8
+engine: </A>
+<P>
+<UL>
+
+<LI>Specify V8 as the value of the <B>engine</B>
+argument in the LIBNAME statement or LIBNAME function. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Use BASE as the engine name if you write programs that create new SAS data
+libraries and you want to create the data libraries in the latest available
+format. In Version 8, BASE is an alias for V8, and it will be an alias for
+newer engines in subsequent releases.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P>
+
+<LI>For existing V8 direct access bound data libraries,
+specify no value for <B>engine</B> in the LIBNAME statement or LIBNAME
+function. SAS then examines the data set attributes and selects the V8 engine
+automatically. SAS also selects the V8 engine automatically if you omit the
+LIBNAME statement or function and use a JCL DD statement or a TSO ALLOCATE
+command to allocate the library.<P>
+
+<LI>Set the value of the SAS system option ENGINE=
+to V8. This option tells SAS which engine to use as the default when you allocate
+a new physical file without specifying an engine.<P>
+
+<LI>Specify V8 in the Engine field in the SAS Explorer
+New Library dialog box.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zs-v6dcb">DCB Attributes for Direct Access Bound Libraries with the V8 Engine</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549738">&#13; The
+physical file label contains DCB information that describes the data set's
+characteristics.  The operating environment writes the DCB information when
+it creates the library, using either values that are supplied by the user
+or the values of several SAS system options. Both the SAS System and OS/390
+utility programs use this DCB information during processing.</A>
+<P>The following sections provide additional information
+about DCB parameters for the V8 engine.  Also see <A href="z1main.htm#ztmt-dcb">DCB Attribute Options</A> for more information.
+<BR><H3>External Allocation: V8 Engine</H3>
+
+
+<P><A name="z0549740">&#13;
+ If you use a JCL DD statement or a TSO ALLOCATE command to allocate
+a new V8 SAS data library, and if you choose to specify DCB attributes, then
+you must specify the following DCB attributes:
+</A>
+<P>
+<UL>
+
+<LI>DSORG=PS<P>
+
+<LI>RECFM=FS<P>
+
+<LI>BLKSIZE=4096 to 32256 in increments of 512 (The
+default is 6144.)<P>
+
+<LI>LRECL=<B>value</B>, where <B>value</B>
+is the same as the value for BLKSIZE=.<P>
+</UL>
+
+<P>If you do not specify DCB attributes for a new V8 SAS
+data library, then SAS supplies the above DCB attributes whenever the V8 engine
+has been either explicitly or implicitly assigned. (See <A href="#zs-selv6">How to Select the V8 Engine</A> and
+<A href="zwithout.htm">How SAS Assigns an Engine When No Engine Is Specified</A> for details
+about how engines are assigned.)
+<P>When allocating a V8 data library, choose an appropriate
+block size. Here are some guidelines.  (See also the performance information
+in <A href="zperf-io.htm">Optimizing I/O</A>.) 
+<P>
+<UL>
+
+<LI>If most members of the library will have large
+numbers of observations, choose the optimal block size for the device.  (For
+a 3380, this value is 23040. For a 3390, it is 27648. See your IBM documentation
+for the optimal block sizes of other devices.) The result is the minimum amount
+of overhead that is required to map and transfer library DASD blocks, because
+there will be fewer total blocks to handle.<P>
+
+<LI>If most members of the library will contain few
+observations, or if their size and number of observations vary widely, choose
+a smaller block size such as 6144. This increases the opportunity for apportioning
+DASD space among library members, and it generally makes better use of DASD
+space.<P>
+</UL>
+
+<P>If no block size is specified when a SAS data library
+is physically opened for the first time, SAS uses the value of the BLKSIZE=
+system option. If that value is 0, then SAS uses the BLKSIZE(<B>device-type</B>)= system option.  If the value of BLKSIZE(<B>device-type</B>)=
+is 0, SAS uses a block size of 6144 by default.
+<P>If you specify a block size that is not an integral
+multiple of 512, then the number is rounded down to an integral multiple of
+512.
+<BR><H3><A name="zs-v6int">Internal Allocation: V8 Engine</A></H3>
+
+
+<P><A name="z0549751">&#13;
+ If you use the LIBNAME statement or LIBNAME function to allocate
+a new V8 SAS data library, SAS supplies the following DCB attributes for you:
+</A>
+<P>
+<UL>
+
+<LI>DSORG=PS<P>
+
+<LI>RECFM=FS<P>
+
+<LI>BLKSIZE=6144<P>
+
+<LI>LRECL=6144<P>
+</UL>
+
+<P>You
+can override the default value of the BLKSIZE= system
+option by using the BLKSIZE= option in the LIBNAME statement or LIBNAME function. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If the SAS system option BLKALLOC is in effect, then
+SAS assigns BLKSIZE= and LRECL= values when the SAS data library is allocated.
+If NOBLKALLOC is in effect, then SAS assigns BLKSIZE= and LRECL= values when
+the library is first accessed.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0217276">Engine/Host Options for the V8 Engine</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549758">&#13; The engine/host
+options that you can supply in the LIBNAME statement,
+LIBNAME function, or SAS Explorer New Library Assignment dialog box correspond
+to the JCL or TSO parameters that you would specify if you allocated the SAS
+data library externally. For bound libraries using the V8 engine, you can
+specify any of the engine/host options shown in </A><A href="z0217272.htm#zcsas-t1">Overview of the V8 and V8TAPE Engines</A>. (For more information about these options
+and their values, see the description of engine/host options under <A href="zlibname.htm">LIBNAME</A>.) Or you can
+accept the default values that are derived from the corresponding SAS system
+options, as follows: 
+<P>
+<UL>
+
+<LI>If you do not specify a value for DISP=, the default
+for existing data sets is DISP=(OLD,KEEP,KEEP). For new data sets, the default
+depends on how you are allocating the library: 
+<P>
+<UL>
+
+<LI>If you are allocating the library with a LIBNAME
+statement, LIBNAME function, or with a TSO ALLOCATE command, disposition defaults
+to DISP=(NEW,CATLG,DELETE).<P>
+
+<LI>If you are allocating the library with a JCL DD
+statement, disposition defaults to DISP=(NEW,DELETE,DELETE).<P>
+
+<LI>For HFS libraries, the DISP= option is
+ignored.<P>
+</UL>
+
+<P>In an interactive environment, if you use a LIBNAME
+statement, LIBNAME function, or the SAS Explorer New Library Assignment dialog
+box to allocate a data library that does not exist and you do not specify
+a value for DISP=, one of the following actions occurs: 
+<P>
+<UL>
+
+<LI>If the SAS system option FILEPROMPT is in effect
+(the default), then a requestor window asks whether you want to create the
+physical file. If you reply 
+
+
+<CODE><B>Yes</B></CODE>, you are asked whether you want
+to catalog the data set when it is deallocated, or to delete it.
+<P>For HFS libraries, a requestor window asks whether you
+want to create the file, but you do not get a second requestor window.<P>
+
+<LI>If the SAS system option NOFILEPROMPT is in effect,
+an error message is written to the SAS log.<P>
+</UL>
+<P>
+
+<LI>If you do not specify values for the SPACE= parameters,
+SAS uses the current values of the SAS system options FILEUNIT=, FILESPPRI=,
+and FILESPSEC=. The defaults are SPACE=(CYL,(1,1)).<P>
+
+<LI>If you do not specify a value for VOLSER=, SAS
+uses the current value of the SAS system option FILEVOL=, if a value for FILEVOL=
+has been specified at your site.<P>
+
+<LI>If you do not specify a value for UNIT=, SAS uses
+the current value of the SAS system option FILEDEV=.  The default is SYSDA.<P>
+</UL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The default values shown are
+those that are supplied by SAS. Your SAS system administrator may have changed
+the default values for your site.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>For temporary data libraries, you do not need to specify
+any options, but you can override any of the default values.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">CONTENTS Procedure Output</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549770">&#13; The PROC CONTENTS output in </A><A href="#zcsas-o1">PROC CONTENTS Output Generated by the V8 Engine</A> shows information that is generated
+by the V8 engine. 
+
+<P>
+<B><I><A name="zcsas-o1">PROC CONTENTS Output Generated by the V8 Engine</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                               The SAS System                              1
+                                  The CONTENTS Procedure
+
+   Data Set Name: WORK.ORANGES                        Observations:         4
+   Member Type:   DATA                                Variables:            5
+   Engine:        V8                                  Indexes:              0
+   Created:       14:27 Tuesday, March 5, 1999        Observation Length:   40
+   Last Modified: 14:27 Tuesday, March 5, 1999        Deleted Observations: 0
+   Protection:                                        Compressed:           NO
+   Data Set Type:                                     Sorted:               NO
+   Label:
+
+                  -----Engine/Host Dependent Information-----
+
+       Data Set Page Size:         6144
+       Number of Data Set Pages:   1
+       First Data Page:            1
+       Max Obs per Page:           152
+       Obs in First Data Page:     4
+       Number of Data Set Repairs: 0
+       Physical Name:              SYS96065.T142625.RA000.USERID.R0000180
+       Release Created:            7.0000B2
+       Release Last Modified:      7.0000B2
+       Created by:                 USERID
+       Last Modified by:           USERID
+       Subextents:                 1
+       Total Blocks Used:          1
+
+           -----Alphabetic List of Variables and Attributes-----
+
+#    Variable    Type    Len    Pos   Format      Informat   Label
+--------------------------------------------------------------------------------
+2    FLAVOR      Num       8      8
+4    LOOKS       Num       8     24
+3    TEXTURE     Num       8     16
+5    TOTAL       Num       8     32
+1    VARIETY     Char      8      0</PRE></TD></TR></TABLE>
+
+<P>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217271.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1080681.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zs-v6seq.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zcsas-v6">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

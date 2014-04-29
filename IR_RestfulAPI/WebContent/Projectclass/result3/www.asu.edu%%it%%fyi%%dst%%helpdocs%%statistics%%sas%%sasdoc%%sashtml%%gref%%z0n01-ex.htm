@@ -1,0 +1,219 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The Annotate Data Set : Example 1: Labeling Cities on a Map </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zatachap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zdata-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0n02-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0n01-ex">Example 1: Labeling Cities on a Map</A></FONT></H1>
+
+
+<P><A name="z0689911">&#13;<B>Features:</B></A>
+<P>
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>Annotate function:</TD>
+<TD align="left">LABEL</TD></TR>
+
+<TR align=left valign="top">
+<TD>Annotate variables:</TD>
+<TD align="left">HSYS</TD></TR>
+
+<TR align=left valign="top">
+<TD> </TD>
+<TD align="left">POSITION</TD></TR>
+
+<TR align=left valign="top">
+<TD>  </TD>
+<TD align="left">SIZE</TD></TR>
+
+<TR align=left valign="top">
+<TD>   </TD>
+<TD align="left">STYLE</TD></TR>
+
+<TR align=left valign="top">
+<TD>    </TD>
+<TD align="left">TEXT</TD></TR>
+
+<TR align=left valign="top">
+<TD>     </TD>
+<TD align="left">WHEN</TD></TR>
+
+<TR align=left valign="top">
+<TD>      </TD>
+<TD align="left">X and Y</TD></TR>
+
+<TR align=left valign="top">
+<TD>       </TD>
+<TD align="left">XSYS</TD></TR>
+
+<TR align=left valign="top">
+<TD>        </TD>
+<TD align="left">YSYS</TD></TR>
+
+<TR align=left valign="top">
+<TD><B>Sample library member:</B></TD>
+<TD align="left">GR10N01</TD></TR>
+</TABLE>
+
+<P>
+<P>
+<P><IMG border="0" src="./images/01329071.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>This
+example labels a map of the continental United
+States with the location and names of three cities. The GMAP procedure draws
+a map of the U.S. and an Annotate data set adds the stars and labels.
+<P>The DATA step that creates the Annotate data set gets
+the <B>x</B> and <B>y</B> coordinates of the cities to be labeled
+from the MAPS.USCITY data set. Because MAPS.USCITY stores projected coordinates
+in the X and Y variables, the DATA step does not need to reassign the variable
+values.  Also because X and Y contain data values (the map data set coordinates),
+the XSYS and YSYS variables specify coordinate system 2, absolute data values.
+However, the HSYS variable that controls text height uses coordinate system
+3, percent of the graphics output area.
+<P>See <A href="z14-ex.htm">Projecting an Annotate Data Set</A>
+for an example of labeling a map using map coordinates in units of latitude
+and longitude.
+<P>See <A href="z0729027.htm">The GMAP Procedure</A>
+for more information on using map data sets. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If the libref MAPS is automatically assigned at your site to the SAS data
+library containing the Institute-supplied map data sets, you can omit the
+LIBNAME statement.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265725">&nbsp;</A><A href="z0265725.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>libname maps '<I>SAS-data-library</I>';
+goptions reset=global gunit=pct border cback=white
+         colors=(black blue green red)
+         ftext=swissb htitle=6 htext=3;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265726">&nbsp;</A><A href="z0265726.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>data lower48;
+   set maps.us;
+   if state ne stfips('AK');
+   if state ne stfips('HI');
+run;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265727">&nbsp;</A><A href="z0265727.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>data citystar;
+   length function style color $ 8 position $ 1
+          text $ 20;
+   retain function 'label' xsys ysys '2' hsys '3'
+          when 'a';</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265728">&nbsp;</A><A href="z0265728.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>   set maps.uscity(keep=x y city state);
+   if (city='Atlanta' and state=13)
+       or city='Chicago'
+       or city='Seattle';</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265729">&nbsp;</A><A href="z0265729.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>   style='special'; text='M'; color='red'; size=7;
+      position='5'; output;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265730">&nbsp;</A><A href="z0265730.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>   style='swissb'; text=city; color='green';
+      size=5; position='8'; output;
+run;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265731">&nbsp;</A><A href="z0265731.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>title 'Distribution Center Locations';
+footnote font=swiss j=r 'GR10N101 ';</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265732">&nbsp;</A><A href="z0265732.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>pattern value=mempty color=blue repeat=49;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0265733">&nbsp;</A><A href="z0265733.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>proc gmap data=lower48 map=lower48;
+   id state;
+   choro state / annotate=citystar discrete nolegend;
+run;
+quit;</PRE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zatachap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zdata-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0n02-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0n01-ex">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

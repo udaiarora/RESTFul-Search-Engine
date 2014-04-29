@@ -1,0 +1,108 @@
+<HTML>
+<HEAD>
+<TITLE>Column Selection</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Column Selection  </H2>
+<P><A NAME="idxcom0066">&#13;</A><A NAME="idxcom0065">&#13;</A>The following discussion assumes that the NOTRANS option has not been
+specified.  When NOTRANS is specified, this section
+applies to rows rather than columns.
+<P>If a COLUMNS statement appears in PROC COMPUTAB, a target column must be
+selected for the incoming observation. If there is no COLUMNS statement,
+a new column is added for each observation. When a COLUMNS statement is
+present and the selection criteria fail to designate a column, the
+current observation is ignored. Faulty column selection can result in
+columns or entire tables of 0s (or missing values if the INITMISS
+option is specified).
+<P>During execution of the input block, when an observation is read,
+its values are copied into row variables in the Program Data Vector (PDV).
+<P>To select columns, use either the column variable names themselves or
+the special variable _COL_.
+Use the column names by setting a column variable
+equal to some nonzero value. The example in the section
+&#34;Getting Started&#34; earlier in this chapter uses
+the logical expression
+COMPDIV= <I>value</I> which is evaluated to produce 0 or 1, and the result is
+assigned to the corresponding column variable.
+<P><PRE>
+   a = compdiv = 'A';
+   b = compdiv = 'B';
+   c = compdiv = 'C';
+</PRE>
+<P>IF statements can also be used to select columns. The following statements
+are equivalent to the preceding example:
+<P><PRE>
+   if      compdiv = 'A' then a = 1;
+   else if compdiv = 'B' then b = 1;
+   else if compdiv = 'C' then c = 1;
+</PRE>
+<P>At the end of the
+input block for each observation, PROC COMPUTAB multiplies numeric input values
+by any nonzero selector values and adds the result to selected columns.
+Character values simply overwrite the contents already in the table.
+If more than one column is selected, the values
+are added to each of the selected columns.
+<P>Use the _COL_ variable to select a column by assigning the column number to it.
+The COMPUTAB procedure automatically initializes column variables and
+sets the _COL_ variable to 0 at the start of each execution of the input block.
+At the end of the input block for each observation, PROC COMPUTAB examines the
+value of _COL_.
+If the value is nonzero and within range, the row variable values are added
+to the CDT cells of the _COL_th column, for example,
+<P><PRE>
+   data rept;
+      input div sales cgs;
+      datalines;
+   2   106    85
+   3   120   114
+   1    83    52
+   ;
+   
+   proc computab data=rept;
+      row div sales cgs;
+      columns div1 div2 div3;
+      _col_ = div;
+   run;
+</PRE>
+<P><A NAME="idxcom0068">&#13;</A><A NAME="idxcom0067">&#13;</A>The code in this example places the first observation (DIV=2) in column 2
+(DIV2), the second observation (DIV=3) in column 3 (DIV3), and the third
+observation (DIV=1) in column 1 (DIV1).
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

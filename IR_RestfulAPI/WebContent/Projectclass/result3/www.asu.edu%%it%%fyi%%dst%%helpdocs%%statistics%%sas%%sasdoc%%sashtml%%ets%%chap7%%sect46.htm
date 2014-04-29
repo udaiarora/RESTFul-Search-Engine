@@ -1,0 +1,323 @@
+<HTML>
+<HEAD>
+<TITLE>OUTEST= Data Set</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect45.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>OUTEST= Data Set  </H2>
+<P><A NAME="idxari0245">&#13;</A><A NAME="idxari0244">&#13;</A><A NAME="idxari0246">&#13;</A>PROC ARIMA writes the parameter estimates for a model to an output data
+set when the OUTEST= option is specified in the ESTIMATE statement.
+The OUTEST= data set contains the following:
+<P><UL>
+<LI> the BY variables
+<LI> _NAME_, a character variable containing the name of the parameter
+for the covariance or correlation observations, or blank for the
+observations containing the parameter estimates.
+(This variable is not created if neither OUTCOV nor OUTCORR is specified.)
+<LI> _TYPE_, a character variable that identifies
+the type of observation.  A description of the _TYPE_ variable
+values is given below.
+<LI> variables for model parameters
+</UL>
+<P>The variables for the model parameters are named as follows:
+<P><DL>
+<DT>ERRORVAR
+<DD>This numeric variable contains the variance estimate.
+The _TYPE_=EST observation for this variable contains
+the estimated error variance, and the remaining observations are missing.
+<BR><BR><DT>MU
+<DD>This numeric variable contains values for the mean parameter for the model.
+(This variable is not created if NOCONSTANT is specified.)
+<BR><BR><DT>MA<I>j</I>_<I>k</I>
+<DD>These numeric variables contain values for the moving average parameters.
+The variables for moving average parameters are named MA<I>j</I>_<I>k</I>,
+where <I>j</I> is the factor number,
+and <I>k</I> is the index of the parameter within a factor.
+<BR><BR><DT>AR<I>j</I>_<I>k</I>
+<DD>These numeric variables contain values for the autoregressive parameters.
+The variables for autoregressive parameters are named AR<I>j</I>_<I>k</I>,
+where <I>j</I> is the factor number,
+and <I>k</I> is the index of the parameter within a factor.
+<BR><BR><DT>I<I>j</I>_<I>k</I>
+<DD>These variables contain values for the transfer function parameters.
+Variables for transfer function parameters are named  I<I>j</I>_<I>k</I>,
+where <I>j</I> is the number of the INPUT variable associated with
+the transfer function component,
+and <I>k</I> is the number of the parameter for the particular INPUT variable.
+INPUT variables are numbered according to the order in which
+they appear in the INPUT= list.
+<BR><BR><DT>_STATUS_
+<DD>This variable describes the convergence status of the model.
+A value of 0_CONVERGED indicates that the model converged.  
+</DL><BR>The value of the _TYPE_ variable for each observation indicates the kind of value
+contained in the variables for model parameters for the observation.
+The OUTEST= data set contains observations with the
+following _TYPE_ values:
+<BR><BR><DL>
+<DT>EST
+<DD>the observation contains parameter estimates
+<BR><BR><DT>STD
+<DD>the observation contains approximate standard errors of the estimates
+<BR><BR><DT>CORR
+<DD>the observation contains correlations of the estimates.
+OUTCORR must be specified to get these observations.
+<BR><BR><DT>COV
+<DD>the observation contains covariances of the estimates.
+OUTCOV must be specified to get these observations.
+<BR><BR><DT>FACTOR
+<DD>the observation contains values that identify for each parameter the
+factor that contains it.  Negative values indicate denominator factors
+in transfer function models.
+<BR><BR><DT>LAG
+<DD>the observation contains values that identify
+the lag associated with each parameter
+<BR><BR><DT>SHIFT
+<DD>the observation contains values that identify the shift associated
+with the input series for the parameter
+</DL><BR>The values given for _TYPE_=FACTOR, _TYPE_=LAG, or
+_TYPE_=SHIFT observations enable you to reconstruct the model
+employed when provided with only the OUTEST= data set.
+<BR><BR><H3><I>OUTEST= Examples</I></H3>
+This section clarifies how model parameters are stored in the OUTEST= data set
+with two examples.
+<BR><BR>Consider the following example:
+<BR><BR><PRE>
+
+   proc arima data=input;
+      identify var=y cross=(x1 x2);
+      estimate p=(1)(6) q=(1,3)(12) input=(x1 x2) outest=est;
+   quit;
+   proc print data=est;
+   run;
+</PRE>
+<BR><BR>The model specified by these statements is
+<BR><BR>
+<DL CLASS="equation"><DD><IMG WIDTH="511" HEIGHT="100"
+ SRC="images/arieq139.gif"
+ ALT="Y_{t}={\mu}+{\omega}_{1,0}X_{1,t}+{\omega}_{2,0}X_{2,t}
++ \frac{(1-{\theta}_{11...
+ ...eta}_{12}B^3)(1-{\theta}_{21}B^{12})}{(1-{\phi}_{11}B)(1-{\phi}_{21}B^6)} a_{t}"></DL><BR>The OUTEST= data set contains the values shown in <A HREF="sect46.htm#arioutest1">Table 7.9</A>.
+<BR><BR></P><A NAME="arioutest1"><SPAN CLASS="ssften"><B>Table 7.9:</B> OUTEST= Data Set for First Example</SPAN></A>
+
+<TABLE COLS=11 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COL ALIGN=CENTER><COL><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Obs</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">_TYPE_</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Y</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">MU</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">MA1_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">MA1_2</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">MA2_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">AR1_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">AR2_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I1_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I2_1</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>EST</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="22" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq92.gif"
+ ALT="{{\sigma}^2}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq3.gif"
+ ALT="{\mu}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq140.gif"
+ ALT="{{\theta}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq141.gif"
+ ALT="{{\theta}_{12}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq142.gif"
+ ALT="{{\theta}_{21}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="29" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq143.gif"
+ ALT="{{\phi}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="29" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq144.gif"
+ ALT="{{\phi}_{21}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq129.gif"
+ ALT="{{\omega}_{1,0}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq131.gif"
+ ALT="{{\omega}_{2,0}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>STD</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq3.gif"
+ ALT="{\mu}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq140.gif"
+ ALT="{{\theta}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq141.gif"
+ ALT="{{\theta}_{12}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="27" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq142.gif"
+ ALT="{{\theta}_{21}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="29" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq143.gif"
+ ALT="{{\phi}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="29" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq144.gif"
+ ALT="{{\phi}_{21}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq129.gif"
+ ALT="{{\omega}_{1,0}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="34" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq131.gif"
+ ALT="{{\omega}_{2,0}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>3</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>FACTOR</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>4</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>LAG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>3</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>12</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>6</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>5</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SHIFT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY>
+</TABLE>
+
+<BR><BR>Note that the symbols in the rows for _TYPE_=EST and _TYPE_=STD
+in <A HREF="sect46.htm#arioutest1">Table 7.9</A> would be numeric values in a real data set.
+<BR><BR>Next, consider the following example:
+<BR><BR><PRE>
+
+   proc arima data=input;
+      identify var=y cross=(x1(2) x2(1));
+      estimate p=1 q=1 input=(2 $ (1)/(1,2)x1 1 $ /(1)x2) outest=est;
+   quit;
+   proc print data=est;
+   run;
+</PRE>
+<BR><BR>The model specified by these statements is
+<BR><BR>
+<DL CLASS="equation"><DD><IMG WIDTH="529" HEIGHT="99"
+ SRC="images/arieq145.gif"
+ ALT="Y_{t}={\mu}+\frac{{\omega}_{10}-{\omega}_{11}B}{1-{\delta}_{11}B
+-{\delta}_{12}...
+ ...0}}{1-{\delta}_{21}B}X_{2,t-1}
++\frac{(1-{\theta}_{1}B)}{(1-{\phi}_{1}B)}a_{t}"></DL>
+<P>The OUTEST= data set contains the values shown in <A HREF="sect46.htm#arioutest2">Table 7.10</A>.
+<P></P><A NAME="arioutest2"><SPAN CLASS="ssften"><B>Table 7.10:</B> OUTEST= Data Set for Second Example</SPAN></A>
+
+<TABLE COLS=12 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COL ALIGN=CENTER><COL><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Obs</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">_TYPE_</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Y</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">MU</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">MA1_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">AR1_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I1_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I1_2</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I1_3</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I1_4</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I2_1</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">I2_2</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>EST</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="22" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/arieq92.gif"
+ ALT="{{\sigma}^2}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq3.gif"
+ ALT="{\mu}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="20" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq146.gif"
+ ALT="{{\theta}_{1}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq126.gif"
+ ALT="{\phi}_{1}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq147.gif"
+ ALT="{{\omega}_{10}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq148.gif"
+ ALT="{{\omega}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq149.gif"
+ ALT="{{\delta}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq150.gif"
+ ALT="{{\delta}_{12}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq151.gif"
+ ALT="{{\omega}_{20}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP><IMG WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq152.gif"
+ ALT="{{\delta}_{21}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>STD</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq3.gif"
+ ALT="{\mu}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="20" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq146.gif"
+ ALT="{{\theta}_{1}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="22" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq126.gif"
+ ALT="{\phi}_{1}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq147.gif"
+ ALT="{{\omega}_{10}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq148.gif"
+ ALT="{{\omega}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq149.gif"
+ ALT="{{\delta}_{11}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq150.gif"
+ ALT="{{\delta}_{12}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="30" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq151.gif"
+ ALT="{{\omega}_{20}}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>se <IMG WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq152.gif"
+ ALT="{{\delta}_{21}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>3</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>FACTOR</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-1</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>4</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>LAG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>5</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SHIFT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>.</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>1</TD></TR></TBODY>
+</TABLE>
+
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect45.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

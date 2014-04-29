@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+<TITLE>Minimization Methods</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect32.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Minimization Methods  </H2>
+<P>PROC MODEL currently supports two methods for minimizing the objective
+function. These methods are described in the following sections.
+<A NAME="idxmod0266">&#13;</A><A NAME="idxmod0265">&#13;</A><H3><I>GAUSS</I></H3>
+<A NAME="idxmod0267">&#13;</A><A NAME="idxmod0268">&#13;</A>The Gauss-Newton parameter-change
+vector for
+a system with <I>g</I> equations, <I>n</I> non-missing observations,
+and <I>p</I> unknown parameters is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="138" HEIGHT="76"
+ SRC="images/modeq111.gif"
+ ALT="{{\Delta}}=(X'X)^{-1}X'r"></DL>
+<P><A NAME="idxmod0269">&#13;</A><A NAME="idxmod0270">&#13;</A>where <B><IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq112.gif"
+ ALT="{\Delta}"></B> is the change vector, 
+<B>X</B> is the stacked <SPAN CLASS="mathfont"><I>ng</I> &times;<I>p</I></SPAN> Jacobian
+matrix of partial derivatives of the residuals with
+respect to the parameters, and <B>r</B> is an <SPAN CLASS="mathfont"><I>ng</I> &times;1</SPAN>vector of the stacked residuals. 
+The components of <B>X</B> and <B>r</B> are weighted by the <B>S</B><SPAN CLASS="mathfont"><SUP>-1</SUP></SPAN> matrix.
+When instrumental methods are used, <B>X</B> and <B>r</B> are the projections 
+of the Jacobian matrix and residuals vector in the instruments space 
+and not the Jacobian and residuals themselves. 
+In the preceding formula, <B>S</B> and W are suppressed. If instrumental variables
+are used, then the change vector becomes:
+
+<DL CLASS="equation"><DD><IMG WIDTH="300" HEIGHT="76"
+ SRC="images/modeq113.gif"
+ ALT="{{\Delta}}=(X'(S^{-1}{\otimes}W)X)^{-1}X'(S^{-1}{\otimes}W)r"></DL>
+<P>This vector is computed at the end of each iteration.
+The objective function is then computed at the changed parameter values at the 
+start of the next iteration.
+If the objective function is not improved by the change,
+the <B><IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq112.gif"
+ ALT="{\Delta}"></B> vector is reduced by one-half and the objective function
+is re-evaluated. 
+The change vector will be halved up to MAXSUBITER= times until 
+the objective function is improved.
+<A NAME="idxmod0271">&#13;</A>For FIML the <SPAN CLASS="mathfont"><b>X</b>'<b>X</b></SPAN> matrix is substituted with
+one of three choices for approximations to the Hessian. See the
+&#34;FIML Estimation&#34; section in this chapter.
+<P><H3><I>MARQUARDT</I></H3>
+<A NAME="idxmod0272">&#13;</A>The Marquardt-Levenberg parameter change vector is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="255" HEIGHT="76"
+ SRC="images/modeq114.gif"
+ ALT="{{\Delta}}=(X'X+{\lambda}\rm{diag}({X'X}))^{-1}{X'r}"></DL>
+<P><A NAME="idxmod0273">&#13;</A>where <B><IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq112.gif"
+ ALT="{\Delta}"></B> is the change vector, and <B>X</B> and <B>r</B> are the same 
+as for the Gauss-Newton method, described in the preceding section. 
+Before the iterations start, <IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq22.gif"
+ ALT="{\lambda}"> is set to a small value (1E-6).
+At each iteration, 
+the objective function is evaluated at the parameters changed by <B><IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq112.gif"
+ ALT="{\Delta}"></B>.
+If the objective function is not improved,
+<IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq22.gif"
+ ALT="{\lambda}"> is increased to 10<IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq22.gif"
+ ALT="{\lambda}"> and the step is tried again.
+<IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq22.gif"
+ ALT="{\lambda}"> can be increased up to MAXSUBITER= times
+to a maximum of 1E15 (whichever comes first) until the objective
+function is improved.
+For the start of the next iteration, <IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq22.gif"
+ ALT="{\lambda}"> is reduced to
+max(<IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq22.gif"
+ ALT="{\lambda}">/10,1E-10).
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect32.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

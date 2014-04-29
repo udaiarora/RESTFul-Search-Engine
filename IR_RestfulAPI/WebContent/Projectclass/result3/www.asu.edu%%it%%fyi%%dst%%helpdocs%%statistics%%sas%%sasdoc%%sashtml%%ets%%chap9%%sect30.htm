@@ -1,0 +1,179 @@
+<HTML>
+<HEAD>
+<TITLE>Example 9.1: Using Programming Statements</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="comex1">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect29.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 9.1: Using Programming Statements</H2>
+<P>This example illustrates two ways of operating on the same input
+variables and producing the same tabular report. To simplify the
+example, no report enhancements are shown.
+<P>The manager of a hotel chain wants a report that shows the number
+of bookings at its hotels in each of four cities, the total number of
+bookings in the current quarter, and the percentage of the total coming from
+each location for each quarter of the year. Input observations contain
+the following variables: REPTDATE (report date), LA (number of bookings
+in Los Angeles), ATL (number of bookings in Atlanta), CH (number of
+bookings in Chicago), and NY (number of bookings in New York).
+<P>The following DATA step creates the SAS data set BOOKINGS:
+<P><PRE>
+   data bookings;
+      input reptdate date9. la atl ch ny;
+      datalines;
+   01JAN1989 100 110 120 130
+   01FEB1989 140 150 160 170
+   01MAR1989 180 190 200 210
+   01APR1989 220 230 240 250
+   01MAY1989 260 270 280 290
+   01JUN1989 300 310 320 330
+   01JUL1989 340 350 360 370
+   01AUG1989 380 390 400 410
+   01SEP1989 420 430 440 450
+   01OCT1989 460 470 480 490
+   01NOV1989 500 510 520 530
+   01DEC1989 540 550 560 570
+   ;
+</PRE>
+<P>The following PROC COMPUTAB statements select columns by setting _COL_ to
+an appropriate value. The PCT1, PCT2, PCT3, and PCT4 columns represent
+the percentage contributed by  each city to the total for the quarter.
+These statements produce <A HREF="sect30.htm#comex01a">Output 9.1.1</A>.
+<P><PRE>
+   proc computab data=bookings cspace=1 cwidth=6;
+   
+      columns qtr1 pct1 qtr2 pct2 qtr3 pct3 qtr4 pct4;
+      columns qtr1-qtr4 / format=6.;
+      columns pct1-pct4 / format=6.2;
+      rows la atl ch ny total;
+   
+      /* column selection */
+      _col_ = qtr( reptdate ) * 2 - 1;
+   
+      /* copy qtr column values temporarily into pct columns */
+      colcopy:
+         pct1 = qtr1;
+         pct2 = qtr2;
+         pct3 = qtr3;
+         pct4 = qtr4;
+   
+      /* calculate total row for all columns */
+      /* calculate percentages for all rows in pct columns only  */
+      rowcalc:
+         total = la + atl + ch + ny;
+         if mod( _col_, 2 ) = 0 then do;
+            la  = la  / total * 100;
+            atl = atl / total * 100;
+            ch  = ch  / total * 100;
+            ny  = ny  / total * 100;
+            total = 100;
+            end;
+   run;
+</PRE>
+<P></P><A NAME="comex01a"><SPAN CLASS="ssften"><B>Output 9.1.1:</B> Quarterly Report of Hotel Bookings</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                                                                                
+                                                                                
+                                                                                
+                 QTR1   PCT1   QTR2   PCT2   QTR3   PCT3   QTR4   PCT4          
+                                                                                
+         LA       420  22.58    780  23.64   1140  24.05   1500  24.27          
+         ATL      450  24.19    810  24.55   1170  24.68   1530  24.76          
+         CH       480  25.81    840  25.45   1200  25.32   1560  25.24          
+         NY       510  27.42    870  26.36   1230  25.95   1590  25.73          
+         TOTAL   1860 100.00   3300 100.00   4740 100.00   6180 100.00          
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><BR>Using the same input data, the next set of statements shows the
+usefulness of arrays in allowing PROC COMPUTAB to work in two directions at
+once. Arrays in larger programs can both reduce the
+amount of program source code and simplify otherwise complex methods of
+referring to rows and columns. The same report as in <A HREF="sect30.htm#comex01a">Output 9.1.1</A> is
+produced.
+<P><PRE>
+   proc computab data=bookings cspace=1 cwidth=6;
+   
+      columns qtr1 pct1 qtr2 pct2 qtr3 pct3 qtr4 pct4;
+      columns qtr1-qtr4 / format=6.;
+      columns pct1-pct4 / format=6.2;
+      rows la atl ch ny total;
+   
+      array pct[4] pct1-pct4;
+      array qt[4] qtr1-qtr4;
+      array rowlist[5]} la atl ch ny total;
+   
+      /* column selection */
+      _col_ = qtr(reptdate) * 2 - 1;
+   
+      /* copy qtr column values temporarily into pct columns */
+      colcopy:
+         do i = 1 to 4;
+            pct[i] = qt[i];
+            end;
+   
+      /* calculate total row for all columns */
+      /* calculate percentages for all rows in pct columns only */
+   
+      rowcalc:
+         total = la + atl + ch + ny;
+         if mod(_col_,2) = 0 then
+            do i = 1 to 5;
+               rowlist[i] = rowlist[i] / total * 100;
+            end;
+   run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect29.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

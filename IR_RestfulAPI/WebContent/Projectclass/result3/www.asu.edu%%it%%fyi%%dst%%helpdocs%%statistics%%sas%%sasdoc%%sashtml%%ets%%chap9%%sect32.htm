@@ -1,0 +1,189 @@
+<HTML>
+<HEAD>
+<TITLE>Example 9.3: Comparison of Actual and Budget</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="comex3">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 9.3: Comparison of Actual and Budget</H2>
+<P>This example shows a more complex report that compares the actual data
+with the budgeted values. The same input data as in the previous
+example is used.
+<P>The report produced by these statements is shown in <A HREF="sect32.htm#comex03a">Output 9.3.1</A>.
+The report shows the values for the current month
+and the year-to-date totals for budgeted amounts, actual amounts, and
+the actuals as a percentage of the budgeted amounts.  The data
+have the values for January and February. Therefore, the CURMO variable
+(current month)  in the RETAIN
+statement is set to 2.  The values for the observations where the
+month of the year is 2 (February) are accumulated for the Current
+Month values. The year-to-date values are accumulated from those
+observations where the month of the year is less than or equal to
+2 (January and February).
+<P><PRE>
+   /* do a more complex report */
+   title  'Pro Forma Income Statement';
+   title2 'XYZ Computer Services, Inc.';
+   title3 'Budget Analysis';
+   title4 'Amounts in Thousands';
+   
+   proc computab data=incomrep;
+   
+      columns cmbud cmact cmpct ytdbud ytdact ytdpct /
+              zero=' ';
+      columns cmbud--cmpct / mtitle='- Current Month: February -';
+      columns ytdbud--ytdpct / mtitle='- Year To Date -';
+      columns cmbud ytdbud / 'Budget' f=comma6.;
+      columns cmact ytdact / 'Actual' f=comma6.;
+      columns cmpct ytdpct / '%  ' f=7.2;
+      columns cmbud--ytdpct / '-';
+      columns ytdbud / _titles_;
+      retain curmo 2; /* current month: February */
+      rows sales    / ' '
+                      'Gross Sales';
+      rows retdis   / 'Less Returns &#38; Discounts';
+      rows netsales / 'Net Sales'                   +3 ol;
+      rows tcos     / ' '
+                      'Total Cost of Sales';
+      rows grosspft / ' '
+                      'Gross Profit'                +3;
+      rows selling  / ' '
+                      'Operating Expenses:'
+                      '   Selling';
+      rows randd    / '   R &#38; D';
+      rows general  / +3;
+      rows admin    / '   Administrative';
+      rows deprec   / '   Depreciation'             ul;
+      rows operexp  / ' ';
+      rows operinc  / 'Operating Income'           ol;
+      rows other    / 'Other Income/-Expense'       ul;
+      rows taxblinc / 'Taxable Income';
+      rows taxes    / 'Income Taxes'                ul;
+      rows netincom / '   Net Income'               dul;
+   
+      cmbud = type = 'BUDGET' &#38; month(date) = curmo;
+      cmact = type = 'ACTUAL' &#38; month(date) = curmo;
+      ytdbud = type = 'BUDGET' &#38; month(date) &#60;= curmo;
+      ytdact = type = 'ACTUAL' &#38; month(date) &#60;= curmo;
+   
+      rowcalc:
+         if cmpct | ytdpct then return;
+         netsales = sales - retdis;
+         grosspft = netsales - tcos;
+         operexp  = selling + randd + general + admin + deprec;
+         operinc  = grosspft - operexp;
+         taxblinc = operinc + other;
+         netincom = taxblinc - taxes;
+   
+      colpct:
+         if cmbud  &#38; cmact  then cmpct  = 100 * cmact  / cmbud;
+         if ytdbud &#38; ytdact then ytdpct = 100 * ytdact / ytdbud;
+   run;
+</PRE>
+<P></P><A NAME="comex03a"><SPAN CLASS="ssften"><B>Output 9.3.1:</B> Report Using Specifications to Tailor Output</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Pro Forma Income Statement</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>XYZ Computer Services, Inc.</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Budget Analysis</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Amounts in Thousands</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">    --- Current Month: February ---                            -------- Year To Date ---------    
+       Budget     Actual        %                                 Budget     Actual        %      
+    ---------  ---------  ---------                            ---------  ---------  ---------    
+                                                                                                  
+        4,700      5,100     108.51  Gross Sales                   9,300     10,000     107.53    
+          330        480     145.45  Less Returns & Discounts        630        985     156.35    
+    ---------  ---------  ---------                            ---------  ---------  ---------    
+        4,370      4,620     105.72     Net Sales                  8,670      9,015     103.98    
+                                                                                                  
+        2,300      2,400     104.35  Total Cost of Sales           4,500      4,500     100.00    
+                                                                                                  
+        2,070      2,220     107.25     Gross Profit               4,170      4,515     108.27    
+                                                                                                  
+                                     Operating Expenses:                                          
+          500        510     102.00     Selling                      980        940      95.92    
+          110        110     100.00     R & D                        220        240     109.09    
+          500        390      78.00     GENERAL                    1,000        800      80.00    
+          200        230     115.00     Administrative               410        430     104.88    
+           14         15     107.14     Depreciation                  28         29     103.57    
+    ---------  ---------  ---------                            ---------  ---------  ---------    
+        1,324      1,255      94.79                                2,638      2,439      92.46    
+    ---------  ---------  ---------                            ---------  ---------  ---------    
+          746        965     129.36  Operating Income              1,532      2,076     135.51    
+                       2             Other Income/-Expense            -8         -6      75.00    
+    ---------  ---------  ---------                            ---------  ---------  ---------    
+          746        967     129.62  Taxable Income                1,524      2,070     135.83    
+          480        490     102.08  Income Taxes                    990        990     100.00    
+    ---------  ---------  ---------                            ---------  ---------  ---------    
+          266        477     179.32     Net Income                   534      1,080     202.25    
+    =========  =========  =========                            =========  =========  =========    
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

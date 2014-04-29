@@ -1,0 +1,616 @@
+<HTML>
+<HEAD>
+<TITLE>Input and Output Data Sets</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Input and Output Data Sets  </H2>
+<P><H3><I><A NAME="nlpdids">DATA= Input Data Set</A></I></H3>
+<A NAME="idxnlp0515">&#13;</A>The DATA= data set is used only to specify an objective function
+<SPAN CLASS="mathfont"><I>f</I></SPAN>, that is a combination of <SPAN CLASS="mathfont"><I>m</I></SPAN> other functions <SPAN CLASS="mathfont"><I>f</I><SUB><I>i</I></SUB></SPAN>. For each
+function <SPAN CLASS="mathfont"><I>f</I><SUB><I>i</I></SUB></SPAN>, <SPAN CLASS="mathfont"><I>i</I> = 1, ... ,<I>m</I></SPAN>, listed in a MAX, MIN, or LSQ
+statement, each observation <SPAN CLASS="mathfont"><I>l</I></SPAN>, <SPAN CLASS="mathfont"><I>l</I> = 1, ... ,<I>nobs</I></SPAN>, in the DATA=
+data set defines a specific function <SPAN CLASS="mathfont"><I>f</I><SUB><I>il</I></SUB></SPAN> that is evaluated
+by substituting the values of the variables of this observation
+into the program statements. If the MAX or MIN statement is used,
+the <SPAN CLASS="mathfont"><I>m</I> * <I>nobs</I></SPAN> specific functions <SPAN CLASS="mathfont"><I>f</I><SUB><I>il</I></SUB></SPAN> are added to a single
+objective function <SPAN CLASS="mathfont"><I>f</I></SPAN>. If the LSQ statement is used, the
+sum-of-squares <SPAN CLASS="mathfont"><I>f</I></SPAN> of the <SPAN CLASS="mathfont"><I>m</I> * <I>nobs</I></SPAN> specific functions <SPAN CLASS="mathfont"><I>f</I><SUB><I>il</I></SUB></SPAN>
+is minimized.
+The NOMISS option causes observations with missing values to
+be skipped.
+<P><H3><I><A NAME="nlpiids">INEST= Input Data Set</A></I></H3>
+<A NAME="idxnlp0516">&#13;</A><A NAME="idxnlp0517">&#13;</A><A NAME="idxnlp0518">&#13;</A>The INEST= (or INVAR=, or ESTDATA=) input data set can be used
+to specify the initial values of the parameters defined in a
+PARMS statement as well as boundary constraints and the
+more general linear constraints which could be imposed on these
+parameters. This form of input is similar to the dense format
+input used in PROC LP.
+<P>The variables of the INEST= data set are
+<UL>
+<LI> a character variable _TYPE_ that indicates the type of
+      the observation
+<LI> <SPAN CLASS="mathfont"><I>n</I></SPAN> numeric variables with the parameter names used in
+      the PARMS statement
+<LI> the BY variables that are used in a DATA= input data set
+<LI> a numeric variable _RHS_ (right-hand side)
+      (needed only if linear constraints are used)
+<LI> additional variables with names corresponding to constants
+      used in the program statements
+</UL>
+The content of the _TYPE_ variable defines the meaning of the
+observation of the INEST= data set. PROC NLP recognizes
+the following _TYPE_ values:
+<A NAME="idxnlp0511">&#13;</A><UL><LI> PARMS, which specifies initial values for parameters.
+      Additional variables can contain the
+      values of constants that are referred to in program
+      statements. 
+      The values of the constants in the PARMS observation
+      initialize the constants in the program statements.
+<P><A NAME="idxnlp0512">&#13;</A><LI> UPPERBD | UB, which as specifies upper bounds.
+      Missing values indicate that no upper
+      bound is specified for the parameter.
+<P><A NAME="idxnlp0513">&#13;</A><LI> LOWERBD | LB, which specifies lower bounds.
+      Missing values indicate that no lower
+      bound is specified for the parameter.
+<LI> LE | <SPAN CLASS="mathfont">&#60;=</SPAN> | <SPAN CLASS="mathfont">&#60;</SPAN>, which specifies linear constraint <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq178.gif"
+ ALT="\sum_j a_{ij} x_j \leq b_i">.      The <SPAN CLASS="mathfont"><I>n</I></SPAN> parameter values contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>,
+      and the _RHS_ variable contains the right-hand side <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>.
+      Missing values indicate zeros.
+<P><A NAME="idxnlp0514">&#13;</A><LI> GE | <SPAN CLASS="mathfont">&#62;=</SPAN> | <SPAN CLASS="mathfont">&#62;</SPAN>, which specifies linear constraint <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq179.gif"
+ ALT="\sum_j a_{ij} x_j \geq b_i">.      The <SPAN CLASS="mathfont"><I>n</I></SPAN> parameter values contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>,
+      and the _RHS_ variable contains the right-hand side <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>.
+      Missing value indicates zeros.
+<LI> EQ <SPAN CLASS="mathfont">|</SPAN> <SPAN CLASS="mathfont">=</SPAN>, which specifies linear constraint <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq180.gif"
+ ALT="\sum_j a_{ij} x_j = b_i">.      The <SPAN CLASS="mathfont"><I>n</I></SPAN> parameter values contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>,
+      and the _RHS_ variable contains the right-hand side <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>.
+      Missing value indicates zeros.
+</UL>
+<P>The constraints specified in an INEST= data set are
+added to the constraints specified in BOUNDS and LINCON statements.
+You can use an OUTEST= data set
+as an INEST= data set in a subsequent run of PROC NLP.
+However, be aware that the OUTEST= data set also
+contains the boundary and general
+linear constraints specified in the former run of PROC NLP. When
+you are using this OUTEST= data set without changes as an INEST=
+data set, PROC NLP adds the constraints from the data set to the
+constraints specified by a BOUNDS and LINCON statement. Although
+PROC NLP automatically eliminates multiple identical constraints
+you should avoid specifying the same constraint a second time.
+<P><H3><I><A NAME="nlpinq">INQUAD= Input Data Set</A></I></H3>
+<A NAME="idxnlp0519">&#13;</A><A NAME="idxnlp0520">&#13;</A>Two types of INQUAD= data sets can be used to specify the
+objective function of a quadratic programming problem
+for TECH=QUADAS or TECH=LICOMP,
+ 
+<DL CLASS="equation"><DD><IMG WIDTH="340" HEIGHT="92"
+ SRC="images/nlpeq97.gif"
+ ALT="f(x) = {1 \over 2} x^T G x + g^T x + c,
+  {with}  G^T = G "></DL>
+<P>The <I>dense</I> INQUAD= data set must contain all numerical
+values of the symmetric matrix <SPAN CLASS="mathfont"><I>G</I></SPAN>, vector <SPAN CLASS="mathfont"><I>g</I></SPAN>, and the value
+of the scalar <SPAN CLASS="mathfont"><I>c</I></SPAN>.
+Using the <I>sparse</I> INQUAD= data set allows to specify
+only the nonzero positions in matrix <SPAN CLASS="mathfont"><I>G</I></SPAN> and vector <SPAN CLASS="mathfont"><I>g</I></SPAN>.
+Those locations that are not set by the <I>sparse</I>
+INQUAD= data set are assumed to be zero.
+<P><H4><I>Dense INQUAD= Data Set</I></H4>
+<P>A dense INQUAD= data set must contain two character
+variables _TYPE_ and _NAME_ and at least <SPAN CLASS="mathfont"><I>n</I></SPAN> numeric
+variables whose names are the parameter names.
+The _TYPE_ variable takes
+the following values:
+<UL>
+<LI> QUAD lists the <SPAN CLASS="mathfont"><I>n</I></SPAN> values of the row of
+the <SPAN CLASS="mathfont"><I>G</I></SPAN> matrix that is defined by the parameter name
+used in the _NAME_ variable.
+<LI> LINEAR lists the <SPAN CLASS="mathfont"><I>n</I></SPAN> values of the <SPAN CLASS="mathfont"><I>g</I></SPAN>
+vector.
+<LI> CONST sets the the value of the scalar <SPAN CLASS="mathfont"><I>c</I></SPAN> and
+cannot contain different numerical
+values; however, it could contain up to <SPAN CLASS="mathfont"><I>n</I>-1</SPAN> missing values.
+<LI> PARMS specifies initial values for parameters.
+<LI> UPPERBD | UB
+      specifies upper bounds.
+      Missing value indicates that no upper
+      bound is specified.
+<LI> LOWERBD | LB
+      specifies lower bounds.
+      The use of a missing value indicates that no lower
+      bound.
+<LI> LE | <SPAN CLASS="mathfont">&#60;=</SPAN> | <SPAN CLASS="mathfont">&#60;</SPAN>
+      specifies linear constraint <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq178.gif"
+ ALT="\sum_j a_{ij} x_j \leq b_i">.      The <SPAN CLASS="mathfont"><I>n</I></SPAN> parameter values contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>,
+      and the _RHS_ variable contains the right-hand side <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>.
+      Missing values indicate zeros.
+<LI> GE | <SPAN CLASS="mathfont">&#62;=</SPAN> | <SPAN CLASS="mathfont">&#62;</SPAN>
+      specifies linear constraint <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq179.gif"
+ ALT="\sum_j a_{ij} x_j \geq b_i">.      The <SPAN CLASS="mathfont"><I>n</I></SPAN> parameter values contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>,
+      and the _RHS_ variable contains the right-hand side <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>.
+      Missing values indicate zeros.
+<LI> EQ | <SPAN CLASS="mathfont">=</SPAN>
+      specifies linear constraint <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq180.gif"
+ ALT="\sum_j a_{ij} x_j = b_i">.      The <SPAN CLASS="mathfont"><I>n</I></SPAN> parameter values contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>,
+      and the _RHS_ variable contains the right-hand side <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>.
+      Missing values indicate zeros.
+</UL>
+Constraints specified in a dense INQUAD= data set are
+added to the constraints specified in BOUNDS and LINCON
+statements.
+<P><H4><I>Sparse INQUAD= Data Set</I></H4>
+<P><A NAME="idxnlp0521">&#13;</A>A sparse INQUAD= data set must contain three character
+variables _TYPE_, _ROW_, and _COL_ and one numeric
+variable _VALUE_. 
+The _TYPE_ variable can assume
+three values:
+<UL>
+<LI> QUAD specifies that the _ROW_ and _COL_
+variables define the row and column location of the
+value in the <SPAN CLASS="mathfont"><I>G</I></SPAN> matrix.
+<LI> LINEAR specifies that the _ROW_
+variable defines the row location of the value in the
+<SPAN CLASS="mathfont"><I>g</I></SPAN> vector. The _COL_ variable is not used.
+</UL>
+Using both the MODEL= option and the INCLUDE program
+statement with the same model file will include the
+file twice (erroneous in most cases).
+<P><H3><I>OUT= Output Data Set</I></H3>
+<A NAME="idxnlp0522">&#13;</A>The OUT= data set contains those variables of a DATA= input
+data set that are referred to in the program statements
+and additionally variables computed by the
+program statements for the objective function. Specifying
+the NOMISS option enables you to skip observations with
+missing values in variables used in the program
+statements.
+The OUT= data set can also contain
+first- and second-order derivatives of these variables
+if the OUTDER= option is specified. The variables and
+derivatives are the
+final parameter estimates <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN> or (for TECH=NONE)
+the initial value <SPAN CLASS="mathfont"><I>x<SUP>0</SUP></I></SPAN>.
+<P>The variables of the OUT= data set are:
+<UL>
+<LI> the BY variables and all other variables that are used in
+      a DATA= input data set and referred to in the program code
+<LI> a variable _OBS_ containing the number of observations
+      read from a DATA= input data set where the counting is
+      restarted with the start of each BY group. If there is
+      no DATA= input data set, then _OBS_=1
+<LI> a character variable _TYPE_ naming the type of
+      the observation
+<LI> the parameter variables listed in the PARMS statement
+<LI> the function variables listed in the the MIN, MAX, or
+      LSQ statement
+<LI> all other variables computed in the program statements
+<LI> the character variable _WRT_ (if OUTDER=1) containing
+      the <I>with respect to</I> variable for which the
+      first-order derivatives are written in the function
+      variables
+<LI> the two character variables _WRT1_ and _WRT2_(if OUTDER=2)
+      containing the two <I>with respect to</I> variables for
+      which the first- and second-order derivatives are written
+      in the function variables
+</UL>
+<P><H4><I>OUTEST= Output Data Set</I></H4>
+<P><A NAME="idxnlp0523">&#13;</A><A NAME="idxnlp0524">&#13;</A>The OUTEST= or OUTVAR= output data set saves the
+optimization solutions of the use of the OUTEST= or OUTVAR= data set
+<UL>
+<LI> to save the values of the objective function on grid points
+      to examine, for example, surface plots using PROC G3D
+      (use the OUTGRID option)
+<LI> to avoid any costly computation of analytical (first- or
+      second-order) derivatives during optimization when they
+      only needed upon termination. In this case a
+      two-step approach is recommended:
+      <OL>
+<LI> In a first execution, the optimization is done;
+            that is, optimal parameter estimates are computed, and
+            the results are saved in an OUTEST= data set.
+<LI> In a subsequent execution, the optimal parameter
+            estimates in the former OUTEST= data set are
+            read in an INEST= data set and used with
+            TECH=NONE to compute further results, such as analytical
+            second-order derivatives or some kind of covariance
+            matrix.
+      </OL>
+<LI> to restart the procedure using parameter estimates
+      as initial values
+<LI> to split a timeconsuming optimization problem into a series
+      of smaller problems using intermediate results as
+      initial values in a subsequent runs.
+      (Refer to the MAXTIME=, MAXIT=, and MAXFU= options to trigger stopping
+      in the section <A HREF="sect6.htm#nlppns">&#34;PROC NLP Statement&#34;</A>)
+<LI> to write the value of the objective function, 
+      the parameter estimates, the time in
+      seconds starting at the beginning of the optimization process
+      and (if available) the gradient to the OUTEST=
+      data set during the iterations. After the PROC NLP run
+      is completed, the convergence progress can be inspected
+      by graphically displaying the iterative information.
+      (Refer to the OUTITER option in the section <A HREF="sect6.htm#nlppns">&#34;PROC NLP Statement&#34;</A>) 
+</UL>
+<P>The variables of the OUTEST= data set are
+<P><UL>
+<LI> the BY variables that are used in
+      a DATA= input data set
+<LI> a character variable _TECH_ naming the
+      optimization technique used
+<LI> a character variable _TYPE_ specifying the type of
+      the observation
+<LI> a character variable _NAME_ naming
+      the observation. For a linear constraint, the _NAME_
+      variable indicates whether the constraint is active
+      at the solution. For the initial observations, the
+      _NAME_ variable indicates if the number in the _RHS_
+      variable corresponds to the number of positive,
+      negative, or zero eigenvalues
+<LI> <SPAN CLASS="mathfont"><I>n</I></SPAN> numeric variables with the parameter names used in
+      the PARMS statement. These variables contain a
+      point <SPAN CLASS="mathfont"><I>x</I></SPAN> of the parameter space, lower or upper boundary
+      constraints, or the coefficients of linear constraints
+<LI> a numeric variable _RHS_ (right-hand side) that is used
+      for the right-hand side value <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN> of a linear constraints
+      or for the value <SPAN CLASS="mathfont"><I>f</I>=<I>f</I>(<I>x</I>)</SPAN> of the objective function at a
+      point <SPAN CLASS="mathfont"><I>x</I></SPAN> of the parameter space
+<LI> a numeric variable _ITER_, that is zero for initial
+      values, equal to the iteration number for the OUTITER
+      output, and missing for the result output
+</UL>
+<P>The _TYPE_ variable identifies how to interpret the observation.
+If _TYPE_ is:
+<P><UL>
+<LI> PARMS then parameter named variables contain the coordinates 
+      of the resulting point <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN>.
+      The _RHS_ variable contains <SPAN CLASS="mathfont"><I>f</I>(<I>x<SUP>*</SUP></I>)</SPAN>.
+<LI> INITIAL then parameter named variables contain the
+      feasible starting point <SPAN CLASS="mathfont"><I>x<SUP>(0)</SUP></I></SPAN>.
+      The _RHS_ variable contains <SPAN CLASS="mathfont"><I>f</I>(<I>x<SUP>(0)</SUP></I>)</SPAN>.
+<LI> GRIDPNT then (if the OUTGRID option is specified)
+      parameter named variables contain the coordinates 
+      of any point <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> used in the grid search. 
+      The _RHS_ variable contains <SPAN CLASS="mathfont"><I>f</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN>.
+<LI> GRAD then parameter named variables
+      contain the gradient at the initial or final estimates.
+<LI> STDERR then parameter named variables contain
+      the approximate standard errors (square roots of the
+      diagonal elements of the covariance matrix) if the
+      COV= option is specified.
+<LI> _NOBS_ then (if the COV= options is specified)
+      all parameter variables contain the value of _NOBS_
+      used in computing the <IMG WIDTH="22" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq13.gif"
+ ALT="\sigma^2"> value in the formula
+      of the covariance matrix.
+<LI> UPPERBD | UB then (if there are boundary constraints)
+      the parameter variables contain the upper bounds.
+<LI> LOWERBD | LB then (if there are boundary constraints)
+      the parameter variables contain the lower bounds.
+<LI> NACTBC then all parameter variables contain the
+      number <SPAN CLASS="mathfont"><I>n</I><SUB><I>abc</I></SUB></SPAN> of active boundary constraints at the
+      solution <SPAN CLASS="mathfont"><I>x<SUP>(*)</SUP></I></SPAN>.
+<LI> ACTBC then (if there are active boundary constraints)
+      three observation indicate which
+      of the parameters is actively constrained, as follows:
+      <DL>
+<DT><STRONG>_NAME_=GE</STRONG>
+<DD>the active lower bounds
+<DT><STRONG>_NAME_=LE</STRONG>
+<DD>the active upper bounds
+      <DT><STRONG>_NAME_=EQ</STRONG>
+<DD>the active equality constraints
+      </DL>
+<LI> NACTLC then all parameter variables contain the
+      number <SPAN CLASS="mathfont"><I>n</I><SUB><I>alc</I></SUB></SPAN> of active linear constraints
+      that are recognized as linear independent.
+<LI> NLDACTLC then all parameter variables contain the 
+      number of active linear
+      constraints that are recognized
+      as linearly dependent.
+<LI> LE  then (if there are linear constraints)
+      the observation contains the <SPAN CLASS="mathfont"><I>i</I></SPAN>th linear constraint
+      <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq178.gif"
+ ALT="\sum_j a_{ij} x_j \leq b_i">. The parameter variables
+      contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>, <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I></SPAN>,
+      and the _RHS_ variable contains <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>. If the
+      constraint <SPAN CLASS="mathfont"><I>i</I></SPAN> is active at the solution <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN>,
+      then _NAME_= 'ACTLC' or 'LDACTLC'.
+<LI> GE  then (if there are linear constraints)
+      the observation contains the <SPAN CLASS="mathfont"><I>i</I></SPAN>th linear constraint
+      <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq179.gif"
+ ALT="\sum_j a_{ij} x_j \geq b_i">. The parameter variables
+      contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>, <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I></SPAN>,
+      and the _RHS_ variable contains <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>. If the
+      constraint <SPAN CLASS="mathfont"><I>i</I></SPAN> is active at the solution <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN>,
+      then _NAME_= 'ACTLC' or 'LDACTLC'.
+<LI> EQ  then (if there are linear constraints)
+      the observation contains the <SPAN CLASS="mathfont"><I>i</I></SPAN>th linear constraint
+      <IMG WIDTH="110" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq180.gif"
+ ALT="\sum_j a_{ij} x_j = b_i">. The parameter variables
+      contain the coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN>, <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I></SPAN>,
+      the _RHS_ variable contains <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN>, and
+      _NAME_=  'ACTLC' or 'LDACTLC'.
+<LI> LAGRANGE  then (if at least one of the linear
+      constraints is an equality constraint or an inequality
+      constraint that is active) 
+      the observation contains the vector of Lagrange multipliers.
+      The Lagrange multipliers of active boundary constraints
+      are listed first followed by those of active linear
+      constraints and those of active nonlinear constraints.
+      Lagrange multipliers are only available for the set of
+      linearly independent active constraints.
+<LI> PROJGRAD  then (if there are linear constraints)
+      the observation contains the <SPAN CLASS="mathfont"><I>n</I> - <I>n</I><SUB><I>act</I></SUB></SPAN> values
+      of the projected gradient <SPAN CLASS="mathfont"><I>g</I><SUB><I>Z</I></SUB> = <I>Z</I>'<I>g</I></SPAN> in the variables
+      corresponding to the first <SPAN CLASS="mathfont"><I>n</I>-<I>n</I><SUB><I>act</I></SUB></SPAN> parameters.
+<LI> JACOBIAN ( then if the PJAC or OUTJAC
+      option is specified) 
+      the <SPAN CLASS="mathfont"><I>m</I></SPAN> observations contain the <SPAN CLASS="mathfont"><I>m</I></SPAN>
+      rows of the <SPAN CLASS="mathfont"><I>m</I> &times;<I>n</I></SPAN> Jacobian matrix
+      The _RHS_ variable contains the row number <SPAN CLASS="mathfont"><I>l</I></SPAN>,
+      <SPAN CLASS="mathfont"><I>l</I> = 1, ... ,<I>m</I></SPAN>.
+<LI> HESSIAN  then the first <SPAN CLASS="mathfont"><I>n</I></SPAN> observations contain the <SPAN CLASS="mathfont"><I>n</I></SPAN>
+      rows of the (symmetric) Hessian matrix. 
+      The _RHS_ variable contains the row number <SPAN CLASS="mathfont"><I>j</I></SPAN>, <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I></SPAN>,
+      and the _NAME_ variable contains the corresponding parameter
+      name.
+<LI> PROJHESS  then the first <SPAN CLASS="mathfont"><I>n</I> - <I>n</I><SUB><I>act</I></SUB></SPAN> observations contain
+      the <SPAN CLASS="mathfont"><I>n</I>-<I>n</I><SUB><I>act</I></SUB></SPAN> rows of the projected Hessian matrix <SPAN CLASS="mathfont"><I>Z</I><SUP><I>T</I></SUP><I>GZ</I></SPAN>.
+      The _RHS_ variable contains the row
+      number <SPAN CLASS="mathfont"><I>j</I></SPAN>, <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I>-<I>n</I><sub><I>act</I></sub></SPAN>, and the _NAME_ variable is
+      blank.
+<LI> CRPJAC  then the first <SPAN CLASS="mathfont"><I>n</I></SPAN> observations contain the <SPAN CLASS="mathfont"><I>n</I></SPAN>
+      rows of the (symmetric) crossproduct Jacobian matrix at
+      the solution.
+      The _RHS_ variable
+      contains the row number <SPAN CLASS="mathfont"><I>j</I></SPAN>, <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I></SPAN>, and the _NAME_
+      variable contains the corresponding parameter name.
+<LI> PROJCRPJ  then the first <SPAN CLASS="mathfont"><I>n</I> - <I>n</I><SUB><I>act</I></SUB></SPAN> observations
+      contain the <SPAN CLASS="mathfont"><I>n</I>-<I>n</I><SUB><I>act</I></SUB></SPAN> rows of the projected crossproduct
+      Jacobian matrix <SPAN CLASS="mathfont"><I>Z</I><SUP><I>T</I></SUP>(<I>J</I><SUP><I>T</I></SUP><I>J</I>)<I>Z</I></SPAN>.
+      The _RHS_ variable contains the row number <SPAN CLASS="mathfont"><I>j</I></SPAN>,
+      <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I>-<I>n</I><sub><I>act</I></sub></SPAN>, and the _NAME_ variable is blank.
+<LI> COV1, COV2, COV3, COV4, COV5, or COV6  then (depending
+      on the COV= option) the first <SPAN CLASS="mathfont"><I>n</I></SPAN>
+      observations contain the <SPAN CLASS="mathfont"><I>n</I></SPAN> rows of the (symmetric) covariance
+      matrix of the parameter estimates.
+      The _RHS_ variable contains the row
+      number <SPAN CLASS="mathfont"><I>j</I></SPAN>, <SPAN CLASS="mathfont"><I>j</I> = 1, ... ,<I>n</I></SPAN>, and the _NAME_ variable contains
+      the corresponding parameter name.
+<LI> DETERMIN  then contains the determinant <SPAN CLASS="mathfont"><I>det</I> = <I>a</I> * 10<SUP><I>b</I></SUP></SPAN> of
+      the matrix specified by the value of the _NAME_ variable
+      where the value of 
+      the first variable in the PARMS statement and <SPAN CLASS="mathfont"><I>b</I></SPAN> is in _RHS_.
+<LI> NEIGPOS, NEIGNEG, or NEIGZER  then 
+      the _RHS_ variable
+      contains the number of positive, negative, and zero eigenvalues
+      of the matrix specified by the value of the _NAME_ variable.
+<LI> COVRANK  then the _RHS_ variable contains the rank
+      of the covariance matrix.
+<LI> SIGSQ  then the _RHS_ variable contains the scalar
+      factor of the covariance matrix.
+<LI> _TIME_  then (if the OUTITER option is specified) the
+      _RHS_ variable contains the number of seconds passed since
+      the start of the optimization.
+<LI> TERMINAT  then if optimization terminated at
+      a point satisfying one of the termination criteria, an
+      abbreviation of the corresponding criteria is given to
+      the _NAME_ variable. Otherwise _NAME_='PROBLEMS'.
+</UL>
+<P>If for some reason the procedure does not terminate successfully
+(for example, no feasible initial values can be
+computed or the function value or derivatives at the starting
+point cannot be computed), the OUTEST= data set may
+contain only part of the observations (usually only the PARMS
+and GRAD observation).
+<P><B>Note:</B> Generally you can use an OUTEST= or OUTVAR= data set
+as an INEST= or INVAR= data set in a further run of PROC NLP.
+However, be aware that the OUTEST= or OUTVAR= data set also
+contains the boundary and general
+linear constraints specified in the former run of PROC NLP. When
+you are using this OUTEST= data set without changes as an INEST=
+data set, PROC NLP adds the constraints from the data set to the
+constraints specified by a BOUNDS or LINCON statement. Although
+PROC NLP automatically eliminates multiple identical constraints
+you should avoid specifying the same constraint a second time.
+<P><H4><I>Output of Profiles</I></H4>
+<P><A NAME="idxnlp0525">&#13;</A><A NAME="idxnlp0526">&#13;</A><A NAME="idxnlp0527">&#13;</A>The following observations are written to the OUTEST= data set
+only when the PROFILE statement or CLPARM option is specified
+<DIV ALIGN="CENTER">
+<TABLE COLS=4 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL ALIGN=RIGHT><COLGROUP><COL ALIGN=CENTER><COLGROUP><COL ALIGN=RIGHT><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=RIGHT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>_TYPE_</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>_NAME_</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=RIGHT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>_RHS_</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Meaning of Observation</B></FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>PLC_LOW</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>parname</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP><SPAN CLASS="mathfont"><I>y</I></SPAN> value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>coordinates of lower CL for <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>PLC_UPP</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>parname</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP><SPAN CLASS="mathfont"><I>y</I></SPAN> value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>coordinates of upper CL for <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"></TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>WALD_CL</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>LOWER</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP><SPAN CLASS="mathfont"><I>y</I></SPAN> value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>lower Wald CL for <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> in _ALPHA_</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>WALD_CL</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>UPPER</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP><SPAN CLASS="mathfont"><I>y</I></SPAN> value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>upper Wald CL for <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> in _ALPHA_</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>PL_CL</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>LOWER</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP><SPAN CLASS="mathfont"><I>y</I></SPAN> value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>lower PL CL for <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> in _ALPHA_</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>PL_CL</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>UPPER</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP><SPAN CLASS="mathfont"><I>y</I></SPAN> value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>upper PL CL for <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> in _ALPHA_</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>PROFILE</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>L(THETA)</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>missing</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont"><I>y</I></SPAN> value corresponding to <SPAN CLASS="mathfont"><I>x</I></SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>in following _NAME_=THETA</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>PROFILE</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>THETA</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>missing</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont"><I>x</I></SPAN> value corresponding to <SPAN CLASS="mathfont"><I>y</I></SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>in previous _NAME_=L(THETA)</TD></TR></TBODY>
+</TABLE></DIV>
+<P>Assume that the PROFILE statement specifies <SPAN CLASS="mathfont"><I>n</I><SUB><I>p</I></SUB></SPAN> parameters and
+<IMG WIDTH="24" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq181.gif"
+ ALT="n_{\alpha}"> confidence levels. For CLPARM, <SPAN CLASS="mathfont"><I>n</I><SUB><I>p</I></SUB>=<I>n</I></SPAN> and
+<IMG WIDTH="58" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq182.gif"
+ ALT="n_{\alpha}=4">.<UL>
+<LI> _TYPE_=PLC_LOW and _TYPE_=PLC_UPP: <BR>
+<P>If CLPARM= option or the PROFILE statement with the OUTTABLE option
+      is specified, then the complete set <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq73.gif"
+ ALT="\theta"> of parameter
+      estimates (rather than only the confidence limit <IMG WIDTH="54" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq74.gif"
+ ALT="x=\theta_j">)      is written to the OUTEST= data set for each side of the
+      confidence interval. This output may be helpful for further
+      analyses on how small changes in <IMG WIDTH="54" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq74.gif"
+ ALT="x=\theta_j"> affect the
+      changes in the other <IMG WIDTH="65" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq75.gif"
+ ALT="\theta_i, i \neq j">. The _ALPHA_
+      variable contains the corresponding value of <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha">.      There should be no more than <IMG WIDTH="52" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq183.gif"
+ ALT="2n_{\alpha}n_p"> observations.
+      If the confidence limit cannot be computed, the corresponding
+      observation is not available.
+<LI> _TYPE_=WALD_CL: <BR>
+<P>If CLPARM=WALD, CLPARM=BOTH, or the PROFILE statement with
+      <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> values is specified, then the Wald confidence
+      limits are written to the OUTEST= data set for each of the
+      default or specified values of <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha">. The _ALPHA_
+      variable contains the corresponding value of <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha">.      There should be <IMG WIDTH="33" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq184.gif"
+ ALT="2n_{\alpha}"> observations.
+<LI> _TYPE_=PL_CL: <BR>
+<P>If CLPARM=PL, CLPARM=BOTH, or the PROFILE statement with
+      <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> values is specified, then the PL confidence
+      limits are written to the OUTEST= data set for each of the
+      default or specified value of <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha">. The _ALPHA_
+      variable contains the corresponding values of <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha">.      There should be <IMG WIDTH="33" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq184.gif"
+ ALT="2n_{\alpha}"> observations; some observations
+      may have missing values.
+<LI> _TYPE_=PROFILE: <BR>
+<P>If CLPARM=PL, CLPARM=BOTH, or the PROFILE statement with
+      or without <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> values is specified, then a set of
+      <SPAN CLASS="mathfont">(<I>x</I>,<I>y</I>)</SPAN> point coordinates in two adjacent observations
+      with _NAME_=L(THETA) (<SPAN CLASS="mathfont"><I>y</I></SPAN> value) and _NAME_=THETA
+      (<SPAN CLASS="mathfont"><I>x</I></SPAN> value) is written to the OUTEST= data set. The
+      _RHS_ and _ALPHA_ variables are not used (are set to
+      missing). The number of observations depends on the difficulty
+      of the optimization problems.
+</UL>
+<P><H4><I>OUTMODEL= Output Data Set</I></H4>
+<P><A NAME="idxnlp0528">&#13;</A>The program statements for objective functions, nonlinear
+constraints, and derivatives can be saved into an OUTMODEL=
+output data set. This data set can be used in an INCLUDE
+program statement or as a MODEL= input data set in subsequent
+calls of PROC NLP. The OUTMODEL= option is similar to the
+option used in PROC MODEL in SAS/ETS software.
+<P><H4><I>Storing Programs in Model Files</I></H4>
+<P><A NAME="idxnlp0529">&#13;</A><A NAME="idxnlp0530">&#13;</A><A NAME="idxnlp0531">&#13;</A>Models can be saved to and recalled from
+SAS catalog files. SAS catalogs are special files which can store
+many kinds of data structures as separate units in one SAS file.
+Each separate unit is called an entry, and each entry has an
+entry type that identifies its structure to the SAS system.
+<P>In general, to save a model, use the OUTMODEL=<I>name</I> option
+in the PROC NLP statement, where <I>name</I> is specified as
+<I>libref.catalog.entry</I>, <I>libref.entry</I>, or <I>entry</I>.
+The <I>libref</I>, <I>catalog</I>, and <I>entry</I> names must be
+valid SAS names no more than 8 characters long. The <I>catalog</I>
+name is restricted to 7 characters on the CMS operating system.
+If not given, the <I>catalog</I> name defaults to MODELS, and the
+<I>libref</I> defaults to WORK. The entry type is always MODEL.
+Thus, OUTMODEL=X writes the model to the file WORK.MODELS.X.MODEL.
+<P>The MODEL= option is used to read in a model. A list of model
+files can be specified in the MODEL= option, and a range of names
+with numeric suffixes can be given, as in MODEL=(MODEL1-MODEL10).
+When more than one model file is given, the list must be placed
+in parentheses, as in MODEL=(A B C), except in the case of a
+single name. If more than one model file is specified, the files
+are combined in the order listed in the MODEL= option.
+<P>When the MODEL= option is specified in the PROC NLP statement
+and model definition statements are also given later in the
+PROC NLP step, the model files are read in first, in the order
+listed, and the model program specified in the PROC NLP step
+is appended after the model program read from the MODEL= files.
+<P>The INCLUDE statement can be used to append model code to the
+current model code. The contents of the model files are
+inserted into the current model at the position where the
+INCLUDE statement appears.
+<P>Note that the following statements are not part of the
+program code that is written to an OUTMODEL= data set:
+ MIN, MAX, LSQ, MINQUAD, MAXQUAD, PARMS, BOUNDS, BY,
+ CRPJAC, GRADIENT, HESSIAN, JACNLC, JACOBIAN, LABEL,
+ LINCON, MATRIX, NLINCON.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

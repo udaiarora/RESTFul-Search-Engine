@@ -1,0 +1,206 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Object Class : Object Class: _term </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zect-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zieswind.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zostring.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Object Class: _term</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zectterm">Object Class: _term</A></FONT></H1>
+
+<P><HR><BR><B>Deletes an
+object</B><p>
+ <HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="zectterm.htm#znid-750"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zectterm.htm#z1321928"><FONT size="2"><B>Details</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="znid-750">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<I>objectName</I>._term(  );
+</TD></TR></TABLE><A name="znid-751">&#13;</A>
+<P>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1321928">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>
+<P>To perform additional processing when you delete an object (for example,
+when you close any open data set or delete nested lists) you can write your
+own _term method to override the default _term method. However, if you do
+this, you should also invoke the super _term method (the _term method inherited
+from the parent class) so the object is deleted according to the parent class'
+specifications. Usually this should be the last step in your SCL method. After
+the super _term method is invoked, the object does not exist anymore. The
+object identifier is then invalid and the object cannot receive broadcast
+messages or methods.
+<P>When a FRAME application ends, the widgets and FRAME objects are deleted
+by running their _term methods, even if you override the _term method and
+omit a call to the _term method using the SUPER routine.
+<P>You do not have to override the _term method to delete most sublists
+of an object. If you define an instance variable in a class such as type LIST,
+sublist instance variables are tagged during object creation with a new list
+attribute, AUTODELETE. When the Object class _term method executes, it deletes
+the object with a new AUTODELETE option for DELLIST. When this option is used
+for DELLIST, any sublists that have the AUTODELETE option set are also deleted.
+This differs from the RECURSIVE option of DELLIST, since only sublists with
+AUTODELETE are affected. AUTODELETE is ignored if the sublist has the NODELETE
+attribute.
+<P>The default behavior for DELLIST is NOAUTODELETE, so existing use of
+the DELLIST function is not affected.
+<P>You may also set the AUTODELETE list attribute on other lists that you
+add to your object. For example, if your _init method allocates a list for
+the automatic instance variable SUBLIST, you can designate that list to be
+automatically deleted, as shown here: 
+
+
+
+<PRE>if sublist then
+  /* delete existing sublist */
+rc = dellist(sublist, 'y autodelete');
+sublist = makelist();
+rc = setlattr(sublist, 'AUTODELETE');</PRE>
+<P>You can test for the AUTODELETE attribute with HASATTR: 
+
+
+
+<PRE>hasAutoDelete = hasattr(listid, 'AUTODELETE');</PRE>
+<P>You can turn it off with 
+
+
+
+<PRE> rc = setlattr(listid,'NOAUTODELETE');</PRE>
+<P>COPYLIST and SAVELIST preserve the AUTODELETE attribute. This means
+that if you execute COPYLIST for a list that is held in an object's instance
+variable, the COPY has the AUTODELETE attribute (as will any of its sublists,
+if the original sublists had AUTODELETE). If you assign that COPY to another
+instance variable of another object, for example, that list and its contents
+are deleted automatically when the second object is deleted.
+<P>For example, consider an object A with an instance variable LIST that
+contains the sublists S1 and S2. Object B is another object. Assume the objects'
+class define methods 'getSublist' and 'setSublist', which get and set the
+LIST instance variable. 
+
+
+
+<PRE>a.getSublist(list);
+ /* fetches inst var LIST */
+ copy = copylist(list);
+ b.setSublist(copy);
+ /* sets inst var LIST*/
+.
+.
+.
+ b._term;</PRE>
+<P>Since the list was not copied recursively, the list COPY (which has
+the AUTODELETE attribute) contains the sublists S1 and S2. When object B is
+deleted, its sublist LIST (which is the list COPY) is also deleted. Further,
+its sublists S1 and S2 are deleted, since they also have the AUTODELETE attribute.
+This situation is not common and is actually discouraged.
+<P>Another situation to consider but that should not be a problem is late
+deletion of automatic list instance variables. For example, if your class
+has an automatic list instance variable SUBLIST, you may have written your
+_term method as follows: 
+
+
+
+<PRE>_term_: method;
+   call super(_self_, '_term_');
+   rc = dellist(sublist);
+endmethod;</PRE>
+<P>Now, the sublist is deleted automatically during the SUPER call so the
+DELLIST returns a nonzero value in RC since SUBLIST is not a valid listid.
+Normally, the SUPER _term is the last action of a _term method, so this should
+not be a major problem. Deleting the list before the SUPER _term is still
+fine but not always necessary.
+<P>The AUTOTERM feature exists to automatically invoke _term on all undeleted
+objects when an application terminates. The _term method will be sent to all
+objects in an unspecified order.
+<P>On the AF or AFAPPLICATION commands, use the AUTOTERM option to control
+the feature: 
+
+
+
+<PRE>AF C=lib.cat.member.name AUTOTERM=option
+AFA C=lib.cat.member.name AUTOTERM=option</PRE>
+<P>You can also use the AFSYS command once an application is running: 
+
+
+
+<PRE> AFSYS AUTOTERM <I>option</I></PRE>
+
+
+ 
+
+
+<CODE><B><B>Option</B></B></CODE> is one of the following: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>ON</TD>
+<TD align="left">enables the AUTOTERM features.
+AUTOTERM is on by default. Use this to enable it if it has been turned off.</TD></TR>
+
+<TR align=left valign="top">
+<TD>OFF</TD>
+<TD align="left">disables the AUTOTERM feature.
+The software will not invoke _term on objects at task termination time.</TD></TR>
+
+<TR align=left valign="top">
+<TD>VERBOSE</TD>
+<TD align="left">prints a NOTE: and dumps
+the object list of each object that still exists at task termination time.
+This works even if AUTOTERM is OFF; it serves as a debugging aid to identify
+which objects still exist but whose _term method has not run.</TD></TR>
+
+<TR align=left valign="top">
+<TD>NOVERBOSE</TD>
+<TD align="left">disables the VERBOSE
+option. NOVERBOSE the default.</TD></TR>
+</TABLE>
+
+<P>You cannot combine options in one string; use separate AUTOTERM= options
+on the command line or use separate AFSYS commands.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zect-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zieswind.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zostring.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zectterm">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

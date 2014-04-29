@@ -1,0 +1,147 @@
+<HTML>
+<HEAD>
+  <META NAME="GENERATOR" CONTENT="Adobe PageMill 3.0 Win">
+  <TITLE>IT: MVS COBOL: File Definitions</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<H3><TABLE WIDTH="585" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+  <TR>
+    <TD WIDTH="585">
+    <H3><FONT SIZE="+0" FACE="Arial">File Definitions and Access
+    Methods</FONT></H3>
+
+    <H4><FONT SIZE="-1" FACE="Arial">DD Statements Related to SELECT
+    Clauses</FONT></H4>
+
+    <P><FONT SIZE="-1" FACE="Arial">Usually, one DD statement is
+    required for each data set accessed by your COBOL program. &quot;Card-reader&quot;
+    input and &quot;printer&quot; output are treated as data sets,
+    so DD statements must be supplied for these also.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">A COBOL program which reads card-images
+    from the jobstream, accesses a sequential tape data set, and
+    prints output would have SELECT clauses like these:</FONT></P>
+
+    <PRE>     SELECT CARD-FILE ASSIGN TO S-CARDS ...
+     SELECT DISK-FILE ASSIGN TO S-SEQINPT ...
+     SELECT PRINT-FILE ASSIGN TO S-PRINTA ...</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">In the first SELECT, the assignment-name
+    is &quot;S-CARDS&quot;. The &quot;S&quot; stands for &quot;sequential&quot;,
+    and &quot;CARDS&quot; matches the ddname on the associated DD
+    statement. The DD statements for the above SELECT clauses would
+    look like this:</FONT></P>
+
+    <PRE>     //GO.CARDS  DD  *
+          input data goes here
+     //GO.SEQINPT DD DSN=...
+     //GO.PRINTA  DD SYSOUT=A</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The forms of the assignment-name
+    are:</FONT></P>
+
+    <UL>
+      <LI><FONT SIZE="-1" FACE="Arial">&quot;R-ddname&quot; for relative
+      data sets. (DIRECT)</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">&quot;S-ddname&quot; for sequential
+      data sets.</FONT>
+    </UL>
+
+    <P><FONT SIZE="-1" FACE="Arial">ACCEPT statements and DISPLAY
+    statements also require associated DD statements. Examples are:</FONT></P>
+
+    <PRE>     ACCEPT YOUR-NAME FROM SYSIN.
+     DISPLAY MY-NAME UPON SYSOUT.</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">where SYSIN and SYSOUT are ddnames
+    on DD statements as follows:</FONT></P>
+
+    <PRE>     //GO.SYSIN  DD ...
+     //GO.SYSOUT DD SYSOUT=A</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">Note that &quot;FROM SYSIN&quot;
+    and &quot;UPON SYSOUT&quot; need not be specified since SYSIN
+    and SYSOUT are assumed. You may use ddnames other than SYSIN
+    or SYSOUT, but they cannot be the same as ddnames on any SELECT
+    clause.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The output from the DISPLAY statements
+    will be printed separately from any printed output produced by
+    file definitions using SELECT clauses.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">Also, it is not possible to use
+    SYSOUT as the ddname on an ASSIGN TO clause of a SELECT statement.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The total record length as defined
+    in the PICTURE clauses in the COBOL source program must match
+    exactly the LRECL value (logical record length) of the designated
+    data set.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">Relative Data Sets:</FONT></P>
+
+    <UL>
+      <LI><FONT SIZE="-1" FACE="Arial">Use &quot;SELECT fd-name ASSIGN
+      to R-ddname&quot;.</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">The ORGANIZATION clause should
+      be omitted.</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Use NOMINAL KEY, not RELATIVE
+      KEY.</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">Relative data sets must be created
+      using the following DCB specification: <pre>DCB=(DSORG=DA,RECFM=F,BLKSIZE=record-length)
+      </pre></FONT>
+    </UL>
+
+    <P><FONT SIZE="-1" FACE="Arial">Relative data sets are initialized
+    by the system by filling the allocated space with dummy records.
+    The only way to control the number of records is to limit the
+    space allocated to the data set.</FONT></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">Accessing Blocked Data Sets</FONT></H4>
+
+    <P><FONT SIZE="-1" FACE="Arial">COBOL requires that the BLOCK
+    CONTAINS clause be specified when a blocked data set is to be
+    accessed. IBM COBOL allows you to specify</FONT></P>
+
+    <PRE>     BLOCK CONTAINS 0 RECORDS</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">so that the block size is determined
+    from DCB parameters on the DD statement or from the data set
+    label. Using this technique, your program need not be changed
+    if you change the block sizes of your data sets.</FONT></P>
+
+    <H4><FONT SIZE="-1" FACE="Arial">Copying, Dumping, Listing Data
+    Sets</FONT></H4>
+
+    <P><FONT SIZE="-1" FACE="Arial">Sequential, relative and ISAM
+    data sets can be listed or dumped using the UCANDU utility program.
+    In addition, sequential data sets can be copied.&nbsp;</FONT></TD>
+  </TR>
+</TABLE></H3>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

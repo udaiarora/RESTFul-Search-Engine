@@ -1,0 +1,211 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Creating and Loading SYSTEM 2000 Databases : Loading the BANKING Database </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003239.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1024342.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1005668.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1005428">Loading the BANKING Database</A></FONT></H1>
+
+
+<P><A name="z1042986">&#13;
+
+
+
+
+You create and load a SYSTEM 2000 database by using the DBLOAD procedure
+ with options and statements that describe the SYSTEM 2000 database you want
+to create and the data you want to load into the database. To load the BANKING
+database with the DBLOAD procedure, use the following options and statements:
+
+
+</A>
+<PRE><I>JCL statements;</I>
+
+proc dbload dbms=s2k data=trans.banking;
+   s2kpw=mine;
+   dbn=banking;
+   accdesc=mylib.bank;
+   viewdesc=vlib.myview;
+   s2kmode=m;
+   rename acctnum='account number' 4= 'account type'        
+         5='trans type' 6='trans amount' 
+         7='trans date';
+   index 1=y 2=y 3=y 4=y transtyp=y 7=y;
+   level 3=1 4=1 5=2 6=2 transdat=2;
+   list all; 
+ load;
+ run;</PRE>
+<DL>
+<DT><I>JCL statements;</I> </DT>
+<DD>submit your statements for execution under the SAS System.<P></DD>
+
+<DT><CODE><B>proc dbload dbms=s2k data=trans.banking;</B></CODE> </DT>
+<DD>invokes the DBLOAD procedure. The DBMS= option specifies
+the DBMS into which you want to load data. The DATA= option specifies the
+SAS data file where the data reside.<P></DD>
+
+<DT><CODE><B>s2kpw=mine; </B></CODE></DT>
+<DD>issues the password that will become the master password
+for the new database.<P></DD>
+
+<DT><CODE><B>dbn=banking; </B></CODE></DT>
+<DD>identifies the database you want to create with the DBN=
+statement, in this case, a SYSTEM 2000 database named BANKING.<P></DD>
+
+<DT><CODE><B>accdesc=mylib.bank;</B></CODE></DT>
+<DD>specifies the access descriptor libref and member name.
+ The access descriptor is created automatically by the DBLOAD procedure. In
+this example, the name specified is MYLIB.BANK.  The default access descriptor
+name would be WORK.BANKING.ACCESS, where BANKING is the name of the database
+to be created. The access descriptor member name must not already exist when
+you are creating a new database.<P></DD>
+
+<DT><CODE><B>viewdesc=vlib.myview;</B></CODE></DT>
+<DD>specifies the view descriptor libref and member name for
+the new database. The view descriptor is created automatically by the DBLOAD
+procedure. In this example, the specified name is VLIB.MYVIEW. The default
+view descriptor name would be WORK.BANKING.VIEW, where BANKING is the name
+of the database to be created. The view descriptor member name must not already
+exist when you are creating a new database.<P></DD>
+
+<DT><CODE><B>s2kmode=m;</B></CODE></DT>
+<DD>creates the new database in a Multi-User environment. The
+default (S) is a single-user job. For a Multi-User session, the new database
+files can be allocated when the session is initialized or dynamically allocated
+during execution using the ALLOC command (Release 12.0 and later). For a single-user
+job, you must allocate the database files in the JCL for the job.  <P></DD>
+
+<DT><CODE><B>rename acctnum='account
+number' 4= 'account type' 5='trans type' 6='trans amount' 7='trans date';</B></CODE></DT>
+<DD>changes the names of the last five items with the RENAME
+statement. You always use a SAS variable on the left-hand side of the equal
+sign. You can use either the SAS variable name or its positional equivalent
+as shown in the LIST statement, and you can rename as many items as you want
+in one RENAME statement.<P></DD>
+
+<DT><CODE><B>index 1=y 2=y 3=y 4=y transtyp=y
+7=y; </B></CODE></DT>
+<DD>defines items as key (indexed) with the INDEX statement.
+ This statement makes key items of all items except TRANS AMOUNT.  TRANS AMOUNT
+is not listed, so it defaults to non-key. You always use a SAS variable on
+the left-hand side of the equals sign. You can use either the SAS variable
+name or its positional equivalent as shown in the LIST output, and you can
+index as many items as you want in one INDEX statement.<P></DD>
+
+<DT><CODE><B>level 3=1 4=1 5=2 6=2 transdat=2;</B></CODE></DT>
+<DD>changes the level number of an item with the LEVEL statement.
+In this example, ACCOUNT NUMBER and ACCOUNT TYPE become items in a level 1
+record; TRANS TYPE, TRANS AMOUNT, and TRANS DATE become items in a level 2
+record. The DBLOAD procedure automatically defines the schema record names
+RECORD_LEVEL_1 and RECORD_LEVEL_2, respectively, and assigns appropriate component
+numbers. 
+<P>You always use a SAS variable on the left-hand side of the equals sign.
+You can use either the SAS variable name or its positional equivalent as shown
+in the LIST output, and you can change the level number for as many items
+as you want in one LEVEL statement. <P></DD>
+
+<DT><CODE><B>list all;</B></CODE></DT>
+<DD>lists the items, levels, and index settings with the LIST
+statement.<P></DD>
+
+<DT>load; run;</DT>
+<DD>executes the DBLOAD procedure and creates and loads the
+database. <P></DD>
+</DL>
+
+<P>The output of the LIST statement is shown in <A href="#z1024023">LIST Statement Output</A>.
+
+<P>
+<B><I><A name="z1024023">LIST Statement Output</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE> Command ===>
+ 
+ PROC DBLOAD for SYSTEM 2000 - OPTIONS FOLLOW:
+    Input data set=        TRANS    BANKING  DATA
+    View descriptor=       VLIB     MYVIEW   VIEW
+    Access descriptor=     MYLIB    BANK     ACCESS
+    Database name=         BANKING
+    S2KMODE=               M
+    Label option=          N
+    Create option=         N
+    S2KLOAD=               N
+ ------------SAS NAME---LEVEL---INDEX---COMPONENT NAME----
+   1          CUSTNAME           YES     CUSTNAME
+   2          CUSTID             YES     CUSTID
+   3          ACCTNUM    1       YES     ACCOUNT NUMBER
+   4          ACCTTYP    1       YES     ACCOUNT TYPE
+   5          TRANSTYP   2       YES     TRANS TYPE
+   6          TRANSAMT   2               TRANS AMOUNT
+   7          TRANSDAT   2       YES     TRANS DATE</PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Subsetting Your Input Data</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043013">&#13;
+
+To subset your input data, use the SAS WHERE statement. Creating a subset
+of the input data is useful if you need to transfer only a portion of your
+SAS data to a SYSTEM 2000 database. For example, you might want to include
+only observations in which the value in a variable is greater than a specified
+number. Here is an example using the SAS WHERE statement:
+
+
+</A>
+<PRE>  proc dbload dbms=s2k data=trans.banking;
+    s2kpw=mine;
+    dbn=banking;
+    s2kmode=m;
+    where acctnum > 4141;
+  load;
+  run;</PRE>
+<P>This example subsets the input data to include only those observations
+in which the SAS variable ACCTNUM has a value greater than 4141. Here, none
+of the items are renamed or indexed, and they are all at level 0.
+<P>Note that you use the SAS variable name in the WHERE statement, not
+the SYSTEM 2000 item name. For information on the syntax of the SAS WHERE
+statement, see <B>SAS Language Reference: Dictionary</B>.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003239.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1024342.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1005668.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1005428">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,186 @@
+<html>
+<head>
+<title>AFS Commands</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+<p>
+<font SIZE="-1" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<TABLE WIDTH="585" BORDER="0" CELLSPACING="0" CELLPADDING="0" HEIGHT="371">
+<h2><center>
+Using AFS Commands to Control File Access at Directory Level
+</center></h2>
+
+<p>The Andrew File System (AFS) uses Access Control Lists (ACL) as its 
+authorization mechanism to control access to files in various 
+directories. The ACL for a directory is maintained using the "fs" (file 
+server) command. The commands shown below show how to use "fs" to set up 
+access rights to a subdirectory for a single user, for a group, or for 
+all users on ASU's AFS.</p>
+
+<p>Suppose you wish to give "read" access to all the files in one of 
+your subdirectories called "workshop" which is at a level below your home 
+directory. The process involved in setting up access to workshop includes 
+first giving access to its parent directory. This access should be at 
+least of the "lookup" type.</p>
+
+<h3>1.  Giving access to a single ASU AFS user</h3>
+
+<p>Suppose the user you wish to give access to is "abcde", you can
+type the following set of commands at the UNIX command prompt:</p>
+
+<dl>
+<dt>fs listacl
+<dd>this shows the current ACLs)
+
+<dt>fs setacl ~ abcde l
+<dd>this sets the ACL for your home directory to "lookup"
+
+<dt>fs setacl workshop abcde read
+<dd>this sets the ACL for your subdirectory called "workshop" 
+to "read"<p>
+<dt>For read access to SAS datasets from SAS 8.x, use:
+<dt>fs setacl workshop abcde rlk
+<dd>the "rlk" provides read, lookup and lock access
+</dl>
+
+<h3>2.  Giving access to all ASU AFS users</h3>
+
+<p>At the UNIX command prompt type the following commands:</p>
+
+<dl>
+<dt>fs listacl
+<dd>this shows the current ACLs
+
+<dt>fs setacl ~ system:anyuser l
+<dd>this sets the ACL for your home directory to "lookup"
+
+<dt>fs setacl workshop system:anyuser read
+<dd>this sets the ACL for your subdirectory called "workshop" to read
+<p>
+<dt>For read access to SAS datasets from SAS 8.x, use:
+<dt>fs setacl workshop system:anyuser rlk
+<dd>the "rlk" provides read, lookup and lock access
+</dl>
+
+<h3>3.  Giving access to a group of ASU AFS users</h3>
+
+<p>Before using the "fs" command, the "pts" (protection server) commands 
+are used for creating a group, for adding users to the group, and for 
+verifying membership to the group in the following manner:</p>
+
+<dl>
+<dt>pts creategroup youruserid:team
+<dd>this creates a group called "team" owned by you
+
+<dt>pts adduser -user abcde fghi40 jklm8 -group youruserid:team
+<dd>this adds three users: abcde, fghi40, jklm8, to the group
+
+<dt>pts membership youruserid:team
+<dd>this verifies the members in the group
+
+<dt>fs setacl ~ youruserid:team l
+<dd>this sets the ACL for your home directory to "lookup"
+
+<dt>fs setacl workshop youruserid:team read
+<dd>this sets the ACL for your subdirectory called "workshop" to "read"
+<p>
+<dt>For read access to SAS datasets from SAS 8.x, use:
+<dt>fs setacl workshop youruserid:team rlk
+<dd>the "rlk" provides read, lookup and lock access
+
+</dl>
+
+<p><em>Caution</em>: Do not re-enter the names of users already included 
+in the group list. When AFS detects an existing name in the series being 
+added, that name and all subsequent names are dropped from the group 
+membership list.</p>
+
+<h3>Other Useful pts Commands</h3>
+
+<dl>
+<dt>pts removeuser username youruserid:groupname
+<dd>removes a user from the group
+
+<dt>pts delete youruserid:groupname
+<dd>deletes a group
+
+<dt>pts rename youruserid:oldgroupname youruserid:newgroupname
+<dd>changes a group name
+
+<dt>pts help
+<dd>list protection server commands
+</dl>
+<p>
+<h3>Types of access control rights</h3>
+
+<p>The access control rights can be any one of the following:</p>
+
+<ul>
+<li>"l" provides lookup access, i.e., the ability to see the name of a
+file (but not the contents).</li>
+
+<li>"r" provides read access, i.e., the ability to read the contents of
+a file. (Lookup access is also required.)</li>
+
+<li>"i" provides insert access, i.e., the ability to create a new file
+or directory (which inserts an entry into the parent directory).</li>
+
+<li>"d" provides delete access, i.e., the ability to delete an existing
+file or directory. (Lookup access is also required.)</li>
+
+<li>"w" provides write access, i.e., the ability to update an existing
+file (but cannot create a file). (Lookup access is also required.)</li>
+
+<li>"k" provides lock access, i.e., the ability to lock a file to
+prevent simultaneous access by more than one process.</li>
+
+<li>"a" provides administrative access, i.e., the ability to change the
+access control rights for the directory.</li>
+
+<li>"read" is a synonym for "rl".</li>
+
+<li>"write" is a synonym for "rlidwk".</li>
+
+<li>"all" is a synonym for "rlidwka".</li>
+
+<li>"none" is a synonym for removing the access control rights</li>
+</ul>
+
+<p>For further details on AFS, please refer to the "AFS User's Guide"
+which is available online (previous menu) or in the Customer Assistance
+Center. More information is available online also by entering any of
+the following at the system prompt.
+<blockquote>
+"fs help | more"<br>
+"fs help {topic}"<br>
+"pts help | more"<br>
+"pts help {topic}"
+</blockquote>
+<p>
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3"><BR>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A> | <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:unix-q@asu.edu">unix-q@asu.edu</A></FONT><br>
+ <FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+ Page Last Updated: Thursday April 29, 2004</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+</table>
+</font>
+</body>
+
+</html>

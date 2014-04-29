@@ -1,0 +1,147 @@
+<HTML>
+<HEAD>
+<TITLE>The Working Basis Matrix</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NETFLOW Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>The Working Basis Matrix  </H2>
+<A NAME="idxnet1402">&#13;</A><A NAME="idxnet1403">&#13;</A>Let <SPAN CLASS="mathfont"><b>T</b></SPAN> be the basis matrix of <A HREF="sect6.htm#netflownpsc">NPSC</A>. 
+The following partitioning
+is done:
+
+<DL CLASS="equation"><DD><IMG WIDTH="114" HEIGHT="101"
+ SRC="images/neteq20.gif"
+ ALT="{T=} [ A & B \C & D \ ]"></DL>
+where
+<UL>
+<LI>
+<SPAN CLASS="mathfont"><I>n</I></SPAN> is the number of nodes
+<LI>
+<SPAN CLASS="mathfont"><I>k</I></SPAN> is the number of side constraints
+<LI>
+<SPAN CLASS="mathfont"><b>A</b></SPAN> (<SPAN CLASS="mathfont"><I>n</I></SPAN> x <SPAN CLASS="mathfont"><I>n</I></SPAN>)
+is the network component of the basis. Most of the columns of this
+matrix are columns of the problem's
+node-arc incidence matrix. 
+The arcs associated with columns of <SPAN CLASS="mathfont"><b>A</b></SPAN> ,
+called key basic variables or key arcs,
+form a spanning tree.
+The data structures of the spanning tree of this
+submatrix of the basis <SPAN CLASS="mathfont"><b>T</b></SPAN> enable the
+computations involving <SPAN CLASS="mathfont"><b>T</b></SPAN> and
+the manner in that <SPAN CLASS="mathfont"><b>T</b></SPAN> is updated to be very efficient,
+especially those dealing with <SPAN CLASS="mathfont"><b>A</b></SPAN> (or <SPAN CLASS="mathfont"><b>A<SUp>-1</SUp></b></SPAN>).
+<LI>
+<SPAN CLASS="mathfont"><b>C</b></SPAN> (<SPAN CLASS="mathfont"><I>k</I></SPAN> x <SPAN CLASS="mathfont"><I>n</I></SPAN>)
+are the key arcs' side constraint coefficient columns.
+<LI>
+<SPAN CLASS="mathfont"><b>B</b></SPAN> (<SPAN CLASS="mathfont"><I>n</I></SPAN> x <SPAN CLASS="mathfont"><I>k</I></SPAN>) are the node-arc incidence matrix
+columns of the nontree arcs.
+The columns of <B>B</B>  having nonzero elements
+are associated with basic nonspanning tree arcs.
+<LI>
+<SPAN CLASS="mathfont"><b>D</b></SPAN> (<SPAN CLASS="mathfont"><I>k</I></SPAN> x <SPAN CLASS="mathfont"><I>k</I></SPAN>)
+are the constraint coefficient columns of nonkey basic variables.
+Nonkey basic variables not only include nontree basic arcs but also
+basic slack, surplus, artificial, or nonarc variables.
+</UL>
+<P>It is more convenient to factor <SPAN CLASS="mathfont"><b>T</b></SPAN> by block
+triangular matrices <SPAN CLASS="mathfont"><b>P</b></SPAN> and <SPAN CLASS="mathfont"><b>M</b></SPAN> , such that
+<SPAN CLASS="mathfont"><b>P</b> = <b>T M</b></SPAN> . The matrices <SPAN CLASS="mathfont"><b>P</b></SPAN> and <SPAN CLASS="mathfont"><b>M</b></SPAN> are
+used instead of <SPAN CLASS="mathfont"><b>T</b></SPAN> because
+they are less burdensome to work with.
+You can perform block
+substitution when solving the Simplex iteration
+linear systems of equations.
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="128" HEIGHT="101"
+ SRC="images/neteq21.gif"
+ ALT="{P=} [ A & 0 \C & {D_w} \ ]"></DL>
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="164" HEIGHT="101"
+ SRC="images/neteq22.gif"
+ ALT="{M=} [ I & {-A^{-1}B} \0 & I \ ]"></DL>
+<P>where
+<SPAN CLASS="mathfont"><b>D<sub>w</sub></b> = <b>D</b> - <b>CA<SUp>-1</SUp>B</b></SPAN>
+and is called the working basis matrix.
+<P>To perform block substitution, you need
+the tree data structure of the <SPAN CLASS="mathfont"><b>A</b></SPAN> matrix, also the
+<SPAN CLASS="mathfont"><b>C</b></SPAN> , <SPAN CLASS="mathfont"><b>B</b></SPAN> ,
+and <SPAN CLASS="mathfont"><b>D<sub>w</sub></b></SPAN> matrices.
+Because the <SPAN CLASS="mathfont"><b>C</b></SPAN> matrix consists of columns
+of the constraint coefficient
+matrix,
+the maintenance of <SPAN CLASS="mathfont"><b>C</b></SPAN> from
+iteration to iteration simply entails
+changing information specifying
+which columns of the constraint coefficient
+matrix compose <SPAN CLASS="mathfont"><b>C</b></SPAN> .
+<P>The <SPAN CLASS="mathfont"><b>A<SUp>-1</SUp>B</b></SPAN> matrix is usually very sparse.
+Fortunately, the information in <SPAN CLASS="mathfont"><b>A<SUp>-1</SUp>B</b></SPAN>
+can be initialized
+easily using the tree structures. In most iterations,
+only one column is replaced by a new one.
+The values of the elements of the new column may
+already be known from preceding steps of the Simplex iteration.
+<P>The working basis matrix is the submatrix that
+presents the most computational complexity.
+However, PROC
+NETFLOW usually can use classical Simplex pivot techniques.
+In many iterations, only one column of <SPAN CLASS="mathfont"><b>D<sub>w</sub></b></SPAN> changes.
+Sometimes it is not necessary to update
+<SPAN CLASS="mathfont"><b>D<sub>w</sub></b></SPAN> or its inverse at all.
+<P>If <A HREF="sect15.htm#netflowinvd2d">INVD_2D</A> is specified in the 
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement,
+only one row and one column
+may need to be changed in the <SPAN CLASS="mathfont"><b>D<sub>w</sub><sup>-1</sup></b></SPAN> before
+the next Simplex iteration can begin.
+<A NAME="idxnet1404">&#13;</A><A NAME="idxnet1405">&#13;</A>The new contents of the changed column are already known.
+The new elements of the row that changes are influenced by the
+contents of a row of <SPAN CLASS="mathfont"><b>A<SUp>-1</SUp>B</b></SPAN> that
+is very sparse.
+<P>If <A HREF="sect15.htm#netflowinvd2d">INVD_2D</A> is not specified in the
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement,
+the Bartels-Golub update can be used to update
+the <B>LU</B>  factors of <SPAN CLASS="mathfont"><b>D<sub>w</sub></b></SPAN> .
+<A NAME="idxnet1406">&#13;</A><A NAME="idxnet1407">&#13;</A>The choice must be made whether to
+perform a series of updates (how many depends on the number of
+nonzeros in a row of
+<SPAN CLASS="mathfont"><b>A<SUp>-1</SUp>B</b></SPAN>), or refactorization.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

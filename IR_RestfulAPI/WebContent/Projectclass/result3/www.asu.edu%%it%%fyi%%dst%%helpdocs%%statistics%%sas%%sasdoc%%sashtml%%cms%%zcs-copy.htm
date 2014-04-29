@@ -1,0 +1,446 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Procedures : COPY </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425833.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zconvert.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zs-cport.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">COPY</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zcs-copy">COPY</A></FONT></H1>
+
+<P><HR><BR><B>Copies SAS data files</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>CMS specifics:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">use of LABEL= option
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="zcs-copy.htm#z1104872"><FONT size="2"><B>Copying Members to Sequential Libraries</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zcs-copy.htm#z0380445"><FONT size="2"><B>Types of Label Processing</b></FONT></A></TD></TR>
+<TR>
+<TD width="18"></TD>
+<TD><A href="zcs-copy.htm#z0380446"><FONT size="2">LABEL=LABOFF Processing</FONT></A></TD></TR>
+<TR>
+<TD width="18"></TD>
+<TD><A href="zcs-copy.htm#z0380451"><FONT size="2">LABEL=NL Processing</FONT></A></TD></TR>
+<TR>
+<TD width="18"></TD>
+<TD><A href="zcs-copy.htm#z0380457"><FONT size="2">LABEL=SL Processing</FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zcs-copy.htm#z0617027"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1104872">Copying Members to Sequential Libraries</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0595657">&#13;  When
+copying members to a sequential library, any existing members in the library
+are normally lost. The copied members replace the existing members. To preserve
+existing members in the destination sequential library, you can choose to
+append copied members to the end of the sequential library without checking
+for duplicate members. To do so, you need to allocate the destination library
+using the DISP=MOD option in the LIBNAME statement. This LIBNAME option is
+valid for libraries using the V6TAPE or later engine, and this option applies
+only to the COPY procedure. When DISP=MOD is asserted on the destination sequential
+library, SAS does not check for duplicate members.</A>
+<P>Appending new members without checking for duplicates means that the
+destination library can have two or more members with the same name after
+the copy. Only the first member in the library will be accessed by SAS. To
+ensure that all members can be accessed by SAS, use the EXCLUDE statement
+in the COPY procedure or, after the COPY procedure, use the REMOVE or RENAME
+statements in the DATASETS procedure. For further information, see  
+
+
+
+<B>SAS Procedures Guide</B>.
+<P>
+
+For further information on sequential tape processing, see <A href="z0380567.htm">Working with SAS Files on Tape</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0380445">Types of Label Processing</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0595659">&#13;The type of tape label processing
+that
+you choose has a fundamental effect on how you use tapes.  To specify how
+you want label processing done for your SAS program, you can use the LABEL=
+option in the LIBNAME statement.  The examples that follow show three common
+types of label processing: </A>
+<P>
+<UL>
+
+<LI>LABEL=LABOFF (turn off label processing)<P>
+
+<LI>LABEL=NL (nonlabeled tape
+processing)<P>
+
+<LI>LABEL=SL (standard labeled tape processing).<P>
+</UL>
+
+<P>The SAS System under CMS follows the defaults
+for the
+CMS FILEDEF command, and therefore the default for this option is LABEL=LABOFF.
+However, to reduce the risk of error, SAS Institute recommends using LABEL=NL
+for nonlabeled tapes.  Always use LABEL=SL for labeled tapes. SAS Institute
+also recommends avoiding the use of the CMS FILEDEF command with SAS and instead
+using the LIBNAME statement.
+<BR><H3><A name="z0380446">LABEL=LABOFF Processing</A></H3>
+
+
+<P><A name="z0595664">&#13;  If you
+specify the LABEL=LABOFF option in the LIBNAME statement, you assume all responsibility
+for positioning the tape before reading or writing a file. SAS begins reading
+or writing to the tape at its current position. Use CMS TAPE commands (TAPE
+REW, TAPE FSF, TAPE BSF) to position the tape to the correct point.  Note
+that when you issue CMS TAPE FSF or CMS TAPE BSF, your tape is positioned
+on  <I>just the other side</I> of the tape mark from
+where you started. You should first reissue the LIBNAME statement before issuing
+any CMS TAPE commands that change the position of the tape. Reissuing the
+LIBNAME statement clears internal data structures that are kept by SAS and
+that are invalidated by moving the tape. If there is any uncertainty about
+tape position, issue CMS TAPE REW to start from a known point, the beginning
+of the tape.</A>
+<P>After SAS reads or writes a tape library, the tape is
+positioned just after the end-of-file tape mark for that tape library.  An
+exception is that if an error occurs during tape I/O, the tape remains positioned
+at the point of the error, and not past the tape mark.  Normal output is terminated
+with a single tape mark.  After your final output, you should issue CMS TAPE
+WTM to ensure that the tape ends with a double tape mark.
+<P>If you write to a tape library and then want to append
+to the same tape library, you must issue CMS TAPE BSF so that the tape mark
+that ends the first output is overwritten.  Otherwise, this tape mark separates
+the two outputs into two tape libraries.  When you write data to a tape, everything
+from that point that was formerly on the tape becomes unusable. Therefore,
+take extreme care in positioning the tape.
+<P>To reread a tape library you have just read or written,
+manually position the tape to the desired location. To do this, reissue the
+LIBNAME statement, and then issue CMS TAPE commands to position the tape.
+<P>Some tape processing examples using LABEL=LABOFF include
+
+<P>
+<UL>
+
+<LI>copying a SAS data library to a new tape:    
+
+<PRE>    /* label=laboff default   */
+    /* insure tape position   */
+libname tapeout 'tap1';         
+CMS tape rew;                   
+    /* copy SAS data library  */
+proc copy in=lib1 out=tapeout;  
+    /*  from lib1 to tape     */
+run;                            
+    /* extra tape mark at end */
+CMS tape wtm;                   </PRE><P>
+
+<LI>copying multiple SAS data libraries to a single
+SAS data library on a new tape:  
+
+<PRE>    /* label=laboff default   */
+libname tapeout 'tap1';         
+    /* insure tape position   */
+CMS tape rew;                   
+    /* copy SAS data library  */
+proc copy in=lib1 out=tapeout;  
+    /*  from lib1 to tape     */
+run;                            
+    /* position tape before   */
+CMS tape bsf 1;                 
+    /*  end of file mark      */
+                                
+    /* copy SAS data library  */
+proc copy in=lib2 out=tapeout;  
+    /*  from lib2 to the      */
+run;                            
+    /*  same tape library     */
+                                
+    /* extra tape mark at end */
+CMS tape wtm;                   </PRE><P>
+
+<LI>copying a SAS data library to tape as a second
+sequential file (following a preexisting file):  
+
+<PRE>    /* label=laboff default   */
+libname tapeout 'tap1';         
+    /* insure tape position   */
+CMS tape rew;                   
+    /* use FSF N to forward   */
+CMS tape fsf 1;                 
+    /*  past N existing files */
+                                
+    /* copy SAS data library  */
+proc copy in=lib2 out=tapeout;  
+    /*  from lib2 to a        */
+run;                            
+    /*  separate tape library */
+                                
+    /* extra tape mark at end */
+CMS tape wtm;                   </PRE><P>
+
+<LI>appending a SAS data library to an existing SAS
+data library on a tape:  
+
+<PRE>    /* label=laboff default   */
+libname tapeout 'tap1';         
+    /* insure tape position   */
+cms tape rew;                   
+    /* use fsf N to forward   */
+cms tape fsf 1;                 
+    /*  past N existing files */                                
+cms tape bsf;                   
+    /* position for appending */
+    /* append SAS data library*/
+proc copy in=lib3 out=tapeout;  
+    /*  from lib3 to tape     */
+run;                            
+    /* extra tape mark at end */
+cms tape wtm;                   </PRE><P>
+</UL>
+
+<BR><H3><A name="z0380451">LABEL=NL Processing</A></H3>
+
+
+<P><A name="z0595673">&#13; 
+With the LABEL=NL <B>n</B> option of the LIBNAME statement, you specify
+the sequential number of the file on the tape. For example LABEL=NL 3 causes
+the third sequential file to be opened. You do not need to use the CMS TAPE
+command to position the tape; when SAS opens the sequential file, CMS automatically
+rewinds the tape and positions it to the specified file.  Because the tape
+is rewound during positioning, it will be positioned correctly regardless
+of the prior tape position.</A>
+<P>After SAS reads or writes a tape library, the tape is
+positioned just after the end-of-file tape mark for that tape library.  Output
+is terminated with a double tape mark; you do not need to write an additional
+tape mark.
+<P>If you do output to a tape library and then want to
+append to the same tape library, simply continue to use the existing libref.
+ Do not reissue the LIBNAME statement. Likewise, once you have read from or
+written to a tape library, if you then want to reread it, no special steps
+are required.
+<P>If you want to use PROC COPY to append to a tape library
+that was written in a previous SAS session or for which the libref has been
+deassigned, you must do something in the current SAS session to cause SAS
+to read the entire existing tape library (for example, PROC CONTENTS).
+This step appends subsequent output to that tape library to the end of the
+physical sequential file.  If you omit this step, output to that tape library
+overwrites the existing physical sequential file.
+<P>In one special case, CMS TAPE commands are needed with
+LABEL=NL.  To initialize a new tape for LABEL=NL processing, you must issue
+   
+
+<PRE>cms tape rew;
+cms tape wtm 2;</PRE>
+<P>Otherwise, the tape could run off the end.
+<P>Some tape processing examples using LABEL=NL include
+
+<OL START="1" type="1">
+<LI>copying a SAS data library to a new tape:    
+
+<PRE>    /* insure tape position   */
+cms tape rew;                   
+    /* initialize tape        */
+cms tape wtm 2;                 
+    /* specify file 1         */
+libname tapeout 'tap1' label=nl 1; 
+    /* copy SAS data library  */   
+proc copy in=lib1 out=tapeout;  
+    /*  from lib1 to tape     */
+run;                            </PRE><P>
+
+<LI>copying multiple SAS data libraries to a single
+SAS data library on a new tape:    
+
+<PRE>    /* insure tape position   */
+cms tape rew;
+    /* initialize tape        */
+cms tape wtm 2;
+    /* specify file 1         */
+libname tapeout 'tap1' label=nl 1; 
+    /* copy lib1 to tape      */
+proc copy in=lib1 out=tapeout;  
+    /* copy lib2 to the       */
+proc copy in=lib2 out=tapeout;  
+    /*  same tape library     */
+run;                            </PRE><P>
+
+<LI>copying a SAS data library to tape as a second
+sequential file (following a preexisting file):    
+
+<PRE>    /* specify file 2        */
+libname tapeout 'tap1' label=nl 2; 
+    /* copy SAS data library  */
+proc copy in=lib2 out=tapeout;  
+    /*  from lib2 to a        */
+run;                           
+    /*  separate tape library */</PRE><P>
+
+<LI>appending a SAS data library to an existing SAS
+data library on a tape:    
+
+<PRE>    /* specify file 1         */
+libname tapeout 'tap1' label=nl 1; 
+    /* read the library       */
+proc contents data=tapeout._all_ nods;
+run;                            
+    /* append SAS data library*/
+proc copy in=lib3 out=tapeout;  
+    /*  from lib3 to tape     */
+run;                            </PRE><P>
+</OL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;PROC CONTENTS is used to force
+SAS to load the tape's library structure so that PROC COPY will append rather
+than overwrite.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3><A name="z0380457">LABEL=SL Processing</A></H3>
+
+
+<P><A name="z0595685">&#13; 
+Like LABEL=NL, LABEL=SL frees you from the need to position the tape manually.
+ Standard label processing has advantages that are beyond the scope of this
+discussion.</A>
+<P>With the LABEL=SL <B>n</B> option of the LIBNAME
+statement, you specify the sequential number of the file on the tape.  For
+example, LABEL=SL 3 causes the third sequential file to be opened.  You do
+not need to use the CMS TAPE command to position the tape; when SAS opens
+the sequential file, CMS automatically rewinds the tape and positions it to
+the specified file. Because the tape is rewound during positioning, it will
+be positioned correctly regardless of the prior tape position.
+<P>If you do output to a tape library and then want to
+append to the same tape library, continue to use the existing libref. Do not
+reissue the LIBNAME statement.  Likewise, once you have read from or written
+to a tape library, if you then want to reread it, no special steps are required.
+<P>If you want to use PROC COPY to append to a tape library
+that was written in a previous SAS session, or for which the libref has been
+deassigned, you must cause SAS to read the entire existing tape library (for
+example, PROC CONTENTS).  This step appends subsequent output to that tape
+library to the end of the physical sequential file.  If you omit this step,
+output to that tape library overwrites the existing physical sequential file.
+<P>In one special case, you may need CMS TAPE commands
+with LABEL=SL.  To initialize a new
+tape for LABEL=SL processing, you must
+submit the following statements:  
+
+<PRE>cms tape rew;
+cms tape wvol1 volid;</PRE>
+<P>However if your tape is cataloged in a tape management
+system, this step has probably been done for you automatically.
+<P>Some tape processing examples using LABEL=SL include
+
+<OL START="1" type="1">
+<LI>copying a SAS data library to a new tape:    
+
+<PRE>    /* specify file 1         */
+libname tapeout 'tap1' label=sl 1  
+    /* and identify VOLID     */
+        volid=V00001;           
+    /* copy SAS data library  */
+proc copy in=lib1 out=tapeout;  
+    /*  from lib1 to tape     */
+run;                            </PRE><P>
+
+<LI>copying multiple SAS data libraries to a single
+SAS data library on a new tape:    
+
+<PRE>  /* specify file 1         */
+libname tapeout 'tap1' label=sl 1
+  /* and identify VOLID     */
+   volid=V00001;           
+  /* copy lib1 to tape      */
+proc copy in=lib1 out=tapeout;
+  /* copy lib2 to the       */
+proc copy in=lib2 out=tapeout;
+  /*  same tape library     */
+run;                            </PRE><P>
+
+<LI>copying a SAS data library to tape as a second
+sequential file (following a preexisting file):    
+
+<PRE>    /* specify file 2         */
+libname tapeout 'tap1' label=sl 2  
+    /* and identify VOLID     */
+        volid=V00001;           
+    /* copy SAS data library  */
+proc copy in=lib2 out=tapeout;  
+    /*  from lib2 to tape     */
+run;                            </PRE><P>
+
+<LI>appending a SAS data library to an existing SAS
+data library on a tape:    
+
+<PRE>    /* specify file 1      */
+libname tapeout 'tap1' label=sl 1  
+    /*  and identify VOLID    */
+        volid=V00001;           
+proc contents data=tapeout._all_ nods;
+    /* read the library       */
+run;                            
+    /* append SAS data library*/
+proc copy in=lib3 out=tapeout;  
+   /*  from lib3 to tape     */
+run;                            </PRE>
+   
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;PROC
+CONTENTS is used to force SAS to load the tape's library structure so that
+PROC COPY will append rather than
+overwrite.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P>
+</OL>
+
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0617027">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<P>
+<UL>
+
+<LI><A href="z0380567.htm">Working with SAS Files on Tape</A>
+
+
+<P>
+
+<LI>
+
+<B>SAS Procedures Guide</B><P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425833.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zconvert.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zs-cport.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zcs-copy">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

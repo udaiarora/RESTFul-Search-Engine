@@ -1,0 +1,186 @@
+<HTML>
+<HEAD>
+<TITLE>Active Set Methods</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Active Set Methods  </H2>
+<A NAME="idxnlp0474">&#13;</A>The parameter vector <IMG WIDTH="61" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq128.gif"
+ ALT="x \in {\cal R}^n"> may be subject to
+a set of <SPAN CLASS="mathfont"><I>m</I></SPAN> linear equality and inequality constraints:
+<DL CLASS="equation"><DD><IMG WIDTH="289" HEIGHT="189"
+ SRC="images/nlpeq129.gif"
+ ALT="\sum_{j=1}^n a_{ij} x_j = b_i ,  i=1, ... , m_e \ \sum_{j=1}^n a_{ij} x_j \geq b_i ,  i=m_e+1, ... , m"></DL>
+The coefficients <SPAN CLASS="mathfont"><I>a</I><SUB><I>ij</I></SUB></SPAN> and right-hand sides <SPAN CLASS="mathfont"><I>b</I><SUB><I>i</I></SUB></SPAN> of the
+equality and inequality constraints are collected in the
+<SPAN CLASS="mathfont"><I>m</I> &times;<I>n</I></SPAN> matrix <SPAN CLASS="mathfont"><I>A</I></SPAN> and the <SPAN CLASS="mathfont"><I>m</I></SPAN> vector <SPAN CLASS="mathfont"><I>b</I></SPAN>.
+<P><A NAME="idxnlp0475">&#13;</A>The <SPAN CLASS="mathfont"><I>m</I></SPAN> linear constraints define a feasible region <SPAN CLASS="mathfont"><I>G</I></SPAN>
+in <SPAN CLASS="mathfont"><I>R</I><sup><I>n</I></sup></SPAN> that must contain the point <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN> that minimizes
+the problem. If the feasible region <SPAN CLASS="mathfont"><I>G</I></SPAN> is empty, no
+solution to the optimization problem exists.
+<P>All optimization techniques in PROC NLP (except those processing
+nonlinear constraints) are <I>active set methods</I>. The iteration
+starts with a feasible point <SPAN CLASS="mathfont"><I>x<SUP>(0)</SUP></I></SPAN>, which either is
+provided by the user or can be computed by the Schittkowski and Stoer
+(1979) algorithm implemented in PROC NLP. The algorithm then moves from
+one feasible point <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>-1)</SUP></SPAN> to a better feasible point <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN>
+along a feasible search direction <SPAN CLASS="mathfont"><I>s</I><SUP>(<I>k</I>)</SUP></SPAN>,
+
+<DL CLASS="equation"><DD><IMG WIDTH="287" HEIGHT="75"
+ SRC="images/nlpeq130.gif"
+ ALT="x^{(k)} = x^{(k-1)} + \alpha^{(k)} s^{(k)}  
+  \alpha^{(k)} \gt 0 . "></DL>
+<P>Theoretically, the path of points <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> never leaves the
+feasible region <SPAN CLASS="mathfont"><I>G</I></SPAN> of the optimization problem, but it
+can hit its boundaries. The active set <SPAN CLASS="mathfont"><I>A</I><sup>(<I>k</I>)</sup></SPAN> of point
+<SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> is defined as the index set of all linear equality
+constraints and those inequality constraints that are satisfied
+at <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN>. If no constraint is active
+<SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN>, the point is located in the interior of
+<SPAN CLASS="mathfont"><I>G</I></SPAN>, and the active set <IMG WIDTH="71" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq131.gif"
+ ALT="{\cal A}^{(k)} = \emptyset "> is
+empty. If the point <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> in iteration <SPAN CLASS="mathfont"><I>k</I></SPAN> hits the boundary
+of inequality constraint <SPAN CLASS="mathfont"><I>i</I></SPAN>, this constraint <SPAN CLASS="mathfont"><I>i</I></SPAN> becomes active
+and is added to <SPAN CLASS="mathfont"><I>A</I><sup>(<I>k</I>)</sup></SPAN>. Each equality constraint and
+each active inequality constraint reduces the dimension
+(degrees of freedom) of the optimization problem.
+<P>In practice, the active constraints can be satisfied only with
+finite precision. The LCEPSILON=<SPAN CLASS="mathfont"><I>r</I></SPAN> option specifies the range for
+active and violated linear constraints. If the point <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN>
+satisfies the condition
+
+<DL CLASS="equation"><DD><IMG WIDTH="157" HEIGHT="112"
+ SRC="images/nlpeq132.gif"
+ ALT="| \sum_{j=1}^n a_{ij} x_j^{(k)} - b_i | \leq t "></DL>
+where <SPAN CLASS="mathfont"><I>t</I> = <I>r</I> * (|<I>b</I><SUB><I>i</I></SUB>| + 1)</SPAN>, the constraint <SPAN CLASS="mathfont"><I>i</I></SPAN> is recognized
+as an active constraint.
+Otherwise, the constraint <SPAN CLASS="mathfont"><I>i</I></SPAN> is either an inactive inequality
+or a violated inequality or equality constraint.
+Due to rounding errors in computing the projected search direction,
+error can be accumulated so that an iterate <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> steps out of
+the feasible region. In those cases, PROC NLP may try to pull the
+iterate <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> into the feasible region. However, in some
+cases the algorithm needs to increase the feasible region by
+increasing the LCEPSILON=<SPAN CLASS="mathfont"><I>r</I></SPAN> value. If this happens it is indicated
+by a message displayed in the log output.
+<P>If you cannot expect an improvement in the value of the objective
+function by moving from an active constraint back into the interior
+of the feasible region, you use this inequality constraint as an
+equality constraint in the next iteration. That means the active
+set <SPAN CLASS="mathfont"><I>A</I><sup>(<I>k</I>+1)</sup></SPAN> still contains the constraint <SPAN CLASS="mathfont"><I>i</I></SPAN>. Otherwise
+you release the active inequality constraint and increase the dimension
+of the optimization problem in the next iteration.
+<P><A NAME="idxnlp0476">&#13;</A>A serious numerical problem can arise when some of the active constraints
+become (nearly) linearly dependent. Linearly dependent equality constraints
+are removed before entering the optimization. You can use the LCSINGULAR=
+option to specify a criterion <SPAN CLASS="mathfont"><I>r</I></SPAN> used in the update of the QR
+decomposition that decides whether an active constraint is linearly
+dependent relative to a set of other active constraints.
+<P>If the final parameter set <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN> is subjected to <SPAN CLASS="mathfont"><I>n</I><SUB><I>act</I></SUB></SPAN> linear
+equality or active inequality constraints, the QR decomposition of
+the <SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I><sub><I>act</I></sub></SPAN> matrix <IMG WIDTH="28" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq133.gif"
+ ALT="\hat{A}^T"> of the linear constraints
+is computed by <IMG WIDTH="81" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq134.gif"
+ ALT="\hat{A}^T = QR">, where <SPAN CLASS="mathfont"><I>Q</I></SPAN> is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I></SPAN>
+orthogonal matrix and <SPAN CLASS="mathfont"><I>R</I></SPAN> is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I><sub><I>act</I></sub></SPAN> upper triangular
+matrix. The <SPAN CLASS="mathfont"><I>n</I></SPAN> columns of matrix <SPAN CLASS="mathfont"><I>Q</I></SPAN> can be separated into two
+matrices, <SPAN CLASS="mathfont"><I>Q</I>=[<I>Y</I>,<I>Z</I>]</SPAN>, where <SPAN CLASS="mathfont"><I>Y</I></SPAN> contains the first <SPAN CLASS="mathfont"><I>n</I><SUB><I>act</I></SUB></SPAN> orthogonal
+columns of <SPAN CLASS="mathfont"><I>Q</I></SPAN> and <SPAN CLASS="mathfont"><I>Z</I></SPAN> the last <SPAN CLASS="mathfont"><I>n</I>-<I>n</I><SUB><I>act</I></SUB></SPAN> orthogonal columns of <SPAN CLASS="mathfont"><I>Q</I></SPAN>.
+The <SPAN CLASS="mathfont"><I>n</I> &times;(<I>n</I>-<I>n</I><sub><I>act</I></sub>)</SPAN> column-orthogonal matrix <SPAN CLASS="mathfont"><I>Z</I></SPAN> is also called
+the nullspace matrix of the active linear constraints <IMG WIDTH="28" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq133.gif"
+ ALT="\hat{A}^T">.The <SPAN CLASS="mathfont"><I>n</I> - <I>n</I><SUB><I>act</I></SUB></SPAN> columns of the <SPAN CLASS="mathfont"><I>n</I> &times;(<I>n</I> - <I>n</I><sub><I>act</I></sub>)</SPAN> matrix
+<SPAN CLASS="mathfont"><I>Z</I></SPAN> form a basis orthogonal to the rows of the <SPAN CLASS="mathfont"><I>n</I><sub><I>act</I></sub> &times;<I>n</I></SPAN>
+matrix <IMG WIDTH="17" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq135.gif"
+ ALT="\hat{A}">.<P><A NAME="idxnlp0477">&#13;</A><A NAME="idxnlp0478">&#13;</A>At the end of the iteration process, the PROC NLP can display the
+<I>projected gradient</I> <SPAN CLASS="mathfont"><I>g</I><SUB><I>Z</I></SUB></SPAN>,
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>g</I><SUB><I>Z</I></SUB> = <I>Z</I><SUP><I>T</I></SUP><I>g</I> 
+</SPAN>
+</DL>
+In the case of boundary constrained optimization, the elements of
+the projected gradient correspond to the gradient elements of the
+free parameters. A necessary condition for <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN> to be a local
+minimum of the optimization problem is
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>g</I><SUB><I>Z</I></SUB>(<I>x<SUP>*</SUP></I>) = <I>Z</I><SUP><I>T</I></SUP><I>g</I>(<I>x<SUP>*</SUP></I>) = 0 
+</SPAN>
+</DL>
+The symmetric <SPAN CLASS="mathfont"><I>n</I><sub><I>act</I></sub> &times;<I>n</I><sub><I>act</I></sub></SPAN> matrix <SPAN CLASS="mathfont"><I>G</I><SUB><I>Z</I></SUB></SPAN>,
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>G</I><SUB><I>Z</I></SUB> = <I>Z</I><SUP><I>T</I></SUP><I>GZ</I>
+</SPAN>
+</DL>
+is called a <I>projected Hessian matrix</I>.
+A second-order necessary condition for <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN> to be a local
+minimizer requires that the projected Hessian matrix is positive
+semidefinite. If available, the projected gradient and projected
+Hessian matrix can be displayed and written in an OUTEST= or OUTVAR=
+data set.
+<P><A NAME="idxnlp0479">&#13;</A>Those elements of the <SPAN CLASS="mathfont"><I>n</I><SUB><I>act</I></SUB></SPAN> vector of first-order estimates
+of <I>Lagrange multipliers</I>,
+
+<DL CLASS="equation"><DD><IMG WIDTH="170" HEIGHT="77"
+ SRC="images/nlpeq136.gif"
+ ALT="\lambda = (\hat{A}\hat{A}^T)^{-1} \hat{A} ZZ^T g ,"></DL>
+which correspond to active inequality constraints indicate whether
+an improvement of the objective function can be obtained by
+releasing this active constraint. For minimization (maximization),
+a significant negative (positive) Lagrange multiplier indicates
+that a possible reduction (increase) of the objective function
+can be obtained by releasing this active linear constraint.
+The LCDEACT=<SPAN CLASS="mathfont"><I>r</I></SPAN> option can be used to specify a threshold
+<SPAN CLASS="mathfont"><I>r</I></SPAN> for the Lagrange multiplier that decides whether an active
+inequality constraint remains active or can be deactivated.
+The Lagrange multipliers are displayed (and written in an OUTEST=
+or OUTVAR= data set) only if linear constraints are active at the
+solution <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN>. (In the case of boundary-constrained optimization,
+the Lagrange multipliers for active lower (upper) constraints are
+the negative (positive) gradient elements corresponding to the
+active parameters.)
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,684 @@
+<html>
+<head><meta name="author" content="Created with Hot Potatoes by Half-Baked Software, registered to Helene Ossipov."></meta><meta name="keywords" content="Hot Potatoes, Half-Baked Software, Windows, University of Victoria"></meta>
+<title>
+mots crois&#233;s
+</title>
+
+<script language="javascript" type="text/javascript">
+
+//<![CDATA[
+
+<!--
+
+// BrowserCheck Object
+
+function BrowserCheck() {
+	var b = navigator.appName
+//HBS extension
+	this.mac = (navigator.appVersion.indexOf('Mac') != -1)
+	if (b=="Netscape") this.b = "ns"
+	else if (b=="Microsoft Internet Explorer") this.b = "ie"
+	else this.b = b
+	this.version = navigator.appVersion
+	this.v = parseInt(this.version)
+	this.ns = (this.b=="ns" && this.v>=4)
+	this.ns4 = (this.b=="ns" && this.v==4)
+	this.ns5 = (this.b=="ns" && this.v==5)
+	this.ie = (this.b=="ie" && this.v>=4)
+	this.ie4 = (this.version.indexOf('MSIE 4')>0)
+	this.ie5 = (this.version.indexOf('MSIE 5')>0)
+	this.min = (this.ns||this.ie)
+	this.CRAPBrowser = (this.ie4 && this.mac); //Cannot Resolve Addresses Properly
+}
+
+is = new BrowserCheck();
+
+var LocFolder = GetFolder(window.location.href);
+function GetFolder(LocPath){
+	LocPath = ReplaceStuff('\'','%27',LocPath);
+	var i = LocPath.lastIndexOf('/');
+	if (i<0){i=LocPath.lastIndexOf('\\')};
+	return LocPath.substring(0,i);
+}
+
+function CombineURLs(InURL){
+	var i = InURL.indexOf('../');
+	var s = LocFolder;
+	while (i >- 1){
+		s = GetFolder(s);
+		InURL = InURL.substring(3,InURL.length);
+		i = InURL.indexOf('../');
+	}
+	return s + '/' + InURL;
+}
+
+x = new Array();
+function ResolveURLs(InText,Attribute){
+	x.length=0;
+	var Temp = InText.toLowerCase();
+	var z;
+	var AttLen = Attribute.length + 2;
+	var y=Temp.lastIndexOf(Attribute + '="');
+	while (y>-1){
+		var sLoc = y+AttLen;
+		if (Temp.substring(sLoc,sLoc+5) != 'http:'){
+			x[x.length]=new Array();
+			x[x.length-1][0] = sLoc;
+			z = Temp.indexOf('"',sLoc);
+			x[x.length-1][1] = z;
+			x[x.length-1][2] = InText.substring(sLoc,z);
+
+		}
+		Temp = Temp.substring(0,y);
+		y=Temp.lastIndexOf(Attribute + '="');
+	}
+	for (var j=0; j<x.length; j++){
+		InText = InText.substring(0,x[j][0]) + CombineURLs(x[j][2]) + InText.substring(x[j][1], InText.length);
+	}
+	return InText;
+}
+
+
+function ResolveAllURLs(Stuff){
+	Stuff = ResolveURLs(Stuff,'href');
+	Stuff = ResolveURLs(Stuff,'src');
+	Stuff = ResolveURLs(Stuff,'parent.location');
+	return Stuff;
+}
+
+if (is.ie){
+	var BoxSize = '1';
+}
+else{
+	var BoxSize = '2';
+}
+
+var CurrentBox = -1;
+var Feedback = '';
+var CluesAcross = 'Across:';
+var CluesDown = 'Down:';
+var Correct = 'Correct! Well done.';
+var Incorrect = 'Some of your answers are incorrect. Incorrect squares have been blanked out.'; 
+var GiveHint = 'A correct letter has been added.';
+var YourScoreIs = 'Your score is ';
+var Instructions = 'Complete the crossword, then click on "Check" to check your answer. If you are stuck, you can click on "Hint" to get a free letter. Click on a number in the grid to see the clue or clues for that number.';
+var BuiltGrid = '';
+var BuiltClues = '';
+var BuiltExercise = '';
+var Penalties = 0;
+var ExerciseSubtitle = 'Crossword';
+var ExerciseTitle = 'mots crois&#233;s';
+var FirstShow = true;
+var ReadingURL = '';
+
+var PreviousPage = history.length;
+var CurrBoxElement = null;
+
+
+
+ReadingText='<html><head><meta name="author" content="Created with Hot Potatoes by Half-Baked Software, registered to Helene Ossipov."></meta><meta name="keywords" content="Hot Potatoes, Half-Baked Software, Windows, University of Victoria"></meta><title>La soir\u00E9e du poisson d\'avril</title></head><body background="" bgcolor="#ffffff" text="#000000" link="#0000ff" vlink="#0000cc"><center><table border="0" cellpadding="5" cellspacing="1" width="85%"><tr><td align="center" bgcolor="#ffffff"><font size="+1" face="Geneva,Arial" color="#000033">La soir\u00E9e du poisson d\'avril<br></br></font></td></tr><tr><td bgcolor="#bbbbee"><font face="Geneva,Arial" size="-1" color="#000000">Mme de Rouville avait invit\u00E9 plusieurs de ses neveux et ni\u00E8ces et quelques-uns de leurs amis pour passer la soir\u00E9e du 1er avril.<br />Jacques, Louis, Jules et Nicolas, Pierre et Henri \u00E9taient au nombre des invit\u00E9s. Camille et Madeleine de Rouville pr\u00E9paraient de quoi amuser leurs cousins et amis.<br />Sophie et Marguerite, leurs amies les plus intimes les aidaient.<br /><br />CAMILLE : Assez d\'images, Sophie ; tu en couvres toute la table.<br /><br />SOPHIE : Les images les amuseront beaucoup ; il n\'y en a jamais trop.<br /><br />MARGUERITE : Mais si ! Il y en a trop quand c\'est trop.<br /><br />SOPHIE : Cela est parfaitement vrai, mais je dis qu\'il n\'y en a pas trop.<br /><br />MARGUERITE : Tu vois bien qu\'il n\'y a pas de place pour rien mettre. <br /><br />SOPHIE : Que veux-tu mettre de plus ?<br /><br />MARGUERITE : Des livres, des couleurs, des dominos, des jonchets, des cartes, des ballons, des volants, des raquettes, des \u2026<br /><br />SOPHIE, d\'un air moqueur : Des provisions, des affaires de toilette, des lits, des\u2026<br /><br />MARGUERITE : Du tout, mademoiselle ; moi, je dis des choses raisonnables et vous, vous dites des b\u00EAtises.<br /><br />CAMILLE : Au lieu de vous disputer, aidez-nous \u00E0 tout ranger ; j\'entends mes cousins qui montent. "<br />	En effet, Pierre, Henri, Jacques et Louis entr\u00E8rent en courant ; ils embrass\u00E8rent leurs cousines apr\u00E8s avoir dit bonjour \u00E0 leur tante et \u00E0 leur oncle.<br /><br />JACQUES : Qu\'est-ce que vous faites ? Pourquoi arrangez-vous tout cela ?<br /><br />MADELAINE : Pour vous amuser tous ce soir.<br /><br />LOUIS : Ah bah ! nous nous amuserons \u00E0 jouer \u00E0 colin-maillard, \u00E0 cache-cache, \u00E0 d\'autres jeux courants ; c\'est bien plus amusant.<br /><br />- C\'est vrai ! c\'est vrai. " s\'\u00E9cri\u00E8rent ensemble Camille, Madeleine, Sophie et Marguerite.<br /><br />D\'autre enfants arriv\u00E8rent, et parmi eux Jules et Nicolas, qui regard\u00E8rent d\'un air m\u00E9chant Pierre et Henri.<br />Louis et Jacques avaient d\u00E9j\u00E0 racont\u00E9 aux Tuileries le mauvais tour qu\'on avait jou\u00E9 le matin \u00E0 la pauvre nourrice de Pierre et de Henri, mais sans rien dire que les coupables \u00E9taient Jules et Nicolas, car Mme d\'Arc\u00E9 leur avait d\u00E9fendu de les nommer. Tous les enfants qui avaient bon c\u0153ur furent indign\u00E9s de la m\u00E9chancet\u00E9 de cette attrape ; ils en parlaient devant Jules et Nicolas, sans remarquer leur embarras et leur silence. Le soir, les papas et les mamans avaient abandonn\u00E9 aux enfants le grand salon et la salle \u00E0 manger, et s\'\u00E9taient mis \u00E0 l\'abri du tapage dans un plus petit salon.<br /><br />	Au plus fort des jeux, la porte de l\'antichambre s\'ouvre \u00E0 deux battants ; un domestique annonce : " Monsieur le commissaire de police ! " Les jeux cessent ; les enfants se groupent au fond de la salle \u00E0 manger ; Jules et Nicolas se placent prudemment derri\u00E8re tout le monde.<br />Le commissaire de police tenait une lettre \u00E0 la main. Il regarde les enfants d\'un air s\u00E9v\u00E8re, s\'avan\u00E7ant vers eux.<br />" Lequel de vous, dit-il, a \u00E9crit la lettre que je tiens \u00E0 la main ?<br />- C\'est celle qui a tant fait pleurer ma nourrice ce matin, dit Pierre reconnaissant la lettre.<br /><br />HENRI : Et moi aussi, elle m\'a fait pleurer tr\u00E8s longtemps. <br />-Voyons, voyons la lettre ! " dirent les enfants s\'approchant du commissaire de police.<br />	Jules et Nicolas seuls restaient pr\u00E8s du mur et paraissaient terrifi\u00E9s.<br />" Savez-vous, mes enfants qui a \u00E9crit cette lettre ?<br />- Je ne sais pas ! " s\'\u00E9cri\u00E8rent les enfants en ch\u0153ur.<br />	Jacques et Louis ne disent rien.<br />" Voil\u00E0 deux petits messieurs bien gentils qui doivent savoir quelque chose, dit le commissaire. Approchez, mes petits messieurs. "<br />	Louis et Jacques s\'approch\u00E8rent sans crainte, car ils se sentaient innocents.<br />" Connaissez-vous ces deux messieurs qui se tiennent coll\u00E9s contre le mur l\u00E0-bas, comme s\'ils voulaient y rentrer ? "<br />Jacques se retourna, sourit et r\u00E9pondit :<br />" C\'est Jules et Nicolas de Bricone.<br />- Ne serait-ce pas eux qui auraient \u00E9crit cette lettre ? Ils ont l\'air de coupables qui craignent la prison ! "<br />	Louis et Jacques ne r\u00E9pondirent pas.<br /><br />" Vous ne voulez pas accuser ces messieurs ; c\'est g\u00E9n\u00E9reux \u00E0 vous, mes enfants, mais votre g\u00E9n\u00E9rosit\u00E9 ne les sauvera pas, s\'ils sont coupables. Approchez, messieurs Jules et Nicolas de Bricon ", ajouta le commissaire d\'une voix forte et s\u00E9v\u00E8re.<br /><br />	Jules et Nicolas approch\u00E8rent lentement ; leurs dents claquaient, leurs jambes pliaient sous eux, ils tremblaient de tous leurs membres.<br />" Lequel de vous a \u00E9crit cette lettre ?<br />-C\'est Jules, dit Nicolas.<br />-C\'est Nicolas, dit Jules.<br />-C\'est-\u00E0-dire que c\'est tous deux. Et vous croyez qu\'il est permis de prendre une fausse signature, d\'annoncer une fausse nouvelle qui devait affliger profond\u00E9ment la malheureuse femme \u00E0 laquelle vous l\'\u00E9criviez : vous croyez qu\'il est permis d\'exercer sa m\u00E9chancet\u00E9 sans en \u00EAtre puni ? La loi vous condamne \u00E0 \u00EAtre jug\u00E9s comme porteurs de fausses nouvelles, et vous irez en prison pour y attendre votre jugement.<br />-Gr\u00E2ce, pardon monsieur le commissaire ! s\'\u00E9cri\u00E8rent Jules et Nicolas en tombant \u00E0 genoux devant lui.<br /><br />-Gr\u00E2ce, c\'est Nicolas qui me l\'a conseill\u00E9.<br />-Gr\u00E2ce, c\'est Jules qui m\'y a engag\u00E9.<br />-M\u00E9chants et l\u00E2ches, dit le commissaire avec d\u00E9go\u00FBt ; vous faites le mal ensemble et vous vous accusez l\'un l\'autre\u2026Les juges d\u00E9m\u00EAleront lequel des deux est plus coupable ; quant \u00E0 moi, j\'ai ordre de vous emmener en prison et je vais chercher mes sergents de ville. Attendez moi ici et ne cherchez pas \u00E0 vous sauver : je saurai bien vous attraper. "<br /><br />	Le commissaire sorti, laissant Jules et Nicolas dans un affreux d\u00E9sespoir ; ils se roulaient par terre, ils poussaient des cris lamentables, qui attir\u00E8rent bient\u00F4t les p\u00E8res et les m\u00E8res. Mr et Mme de Bricone, voyant leurs fils dans l\'\u00E9tat de d\u00E9solation o\u00F9 les avait laiss\u00E9s le commissaire, s\'approch\u00E8rent d\'eux, les relev\u00E8rent et demand\u00E8rent aux autres enfants ce qui \u00E9tait arriv\u00E9. Au lieu de t\u00E9moigner de l\'inqui\u00E9tude et du chagrin de la menace du commissaire, ils regard\u00E8rent en souriant les personnes qui \u00E9taient rest\u00E9es au fond du salon. Mr de Bricone dit avec calme :<br /><br />" Voil\u00E0 ce que c\'est de faire des m\u00E9chancet\u00E9s ; on est toujours puni. Mr Poucque a aussi port\u00E9 plainte contre vous, car il a fini par vous d\u00E9couvrir ; ce sera encore une mauvaise affaire pour vous.<br />-Papa, papa, prot\u00E9gez-nous, secourez-nous ! Je ne recommencerai plus ! je le jure ! s\'\u00E9cria Jules en joignant les mains et le visage baign\u00E9 de larmes.<br />-Ni moi non plus, jamais ! jamais ! reprit Nicolas en sanglotant.<br />-Est-ce bien vrai ? Votre repentir est-il sinc\u00E8re ?<br />-Bien sinc\u00E8re, bien vrai, papa. Oh papa, sauvez-nous !<br />-Voyons, je vais t\u00E2cher d\'arr\u00EAter tout cela. Rentrons \u00E0 la maison ; j\'irai ensuite chez le commissaire, et j\'esp\u00E8re qu\'il ne sera plus question de cette terrible affaire. "<br /><br />	Mr et Mme de Bricone emmen\u00E8rent Jules et Nicolas tremblants encore, mais plus rassur\u00E9s. Quand ils furent partis, Mme d\'Arc\u00E9 dit aux enfants :<br />" Eh bien ! mes enfants, comment trouvez-vous mon poisson d\'avril ? Jules et Nicolas ne sont-ils pas bien punis du leur ?<br /><br />PIERRE : Comment, maman, le commissaire ?...<br /><br />MADAME D\'ARCE : N\'est pas un commissaire, mais un ami de Mme de Rouville qui a bien voulu nous aider \u00E0 punir une m\u00E9chante action.<br /><br />HENRI : Et les sergents de ville qu\'il a \u00E9t\u00E9 chercher ?<br /><br />MADAME D\'ARCE : Ne viendront pas, car il ne les a pas appel\u00E9s.<br /><br />CAMILLE : Et Mr et Mme de Bricone savaient tout cela ?<br /><br />MADAME D\'ARCE : Certainement ; nous \u00E9tions tous dans le secret ; je ne me serais jamais permis de faire jouer une sc\u00E8ne pareille sans l\'assentiment de M. et Mme de Bricone et des personnes ici pr\u00E9sentes. <br /><br />MADELEINE : Est-ce que Jules et Nicolas sauront que c\'est un poisson d\'avril ?<br /><br />MADAME D\'ARCE : On leur dira demain, seulement.<br /><br />MADAME DE ROUVILLE : A pr\u00E9sent mes enfants, reprenez vos jeux en attendant le souper. "<br /><br />	Mais les enfants avaient si impressionn\u00E9s pas la visite du pr\u00E9tendu commissaire et le d\u00E9sespoir de Jules et de Nicolas, qu\'ils pr\u00E9f\u00E9r\u00E8rent causer de cette aventure plut\u00F4t que de se livrer \u00E0 des jeux bruyants. Apr\u00E8s bien des r\u00E9flexions, des r\u00E9cits de diverses m\u00E9chancet\u00E9s des deux coupables et esp\u00E9rances de leur changement, ils se rendirent \u00E0 l\'appel de leurs mamans pour manger des cr\u00E8mes, des gel\u00E9es, des glaces, des g\u00E2teaux, et ils se retir\u00E8rent ensuite pour se coucher et r\u00EAver au poisson d\'avril de Mme d\'Arc\u00E9.<br /><br /><br /></font></td></tr></table></center></body></html>';
+
+
+if (is.CRAPBrowser){ReadingText=ResolveAllURLs(ReadingText);}
+
+
+var NavBar='';
+
+
+NavBar+='<tr><form name="NavButtons1"><td bgcolor="#000066" align="center">';
+NavBar+='<font face="Geneva,Arial" size="-1">';
+
+
+NavBar+='<input type="button" value="Index" onclick=\'parent.location="http://www.public.asu.edu/~candre/ComtesseDeSegur/textes.htm"\'></input>';
+
+
+NavBar+='<input type="button" value="=&gt;" onclick=\'parent.location="vocab2.htm"\'></input>';
+NavBar+='</font></td></form></tr>';
+if (is.CRAPBrowser){NavBar=ResolveAllURLs(NavBar);}
+
+
+var TitleCode = '<tr><td align="center" valign="middle" bgcolor="#ffffff">';
+TitleCode += '<font size="+1" face="Geneva,Arial" color="#000033">' + ExerciseTitle + '</font><br />';
+TitleCode += '<font size="-1" face="Geneva,Arial" color="#000033">' + ExerciseSubtitle + '<br />';
+
+TitleCode += '</font></td></tr>';
+
+var GridOpener = '<tr><td align="center" valign="middle" bgcolor="#bbbbee"><table border="1" cellpadding="0" cellspacing="0">';
+var GridRowOpener = '<tr>';
+var GridRowCloser = '</tr>';
+
+var BlankCell = '<td bgcolor="#000000" width="30" height="30">&nbsp;</td>';
+var LetterOnlyCell = '<td bgcolor="#FFFFFF" width="30" height="30" align="center" valign="middle"><b><font color="#000000">[Letter]</font></b></td>';
+var NumLetterCell = '<td bgcolor="#FFFFFF" width="30" height="30" align="center" valign="top" onclick="parent.ShowClue([ClueNum],[x],[y])" style="cursor: pointer; cursor: hand;"><sup><u>';
+
+if (! is.CRAPBrowser){
+	NumLetterCell += '<a href="javascript:parent.DoNothing()" onclick="parent.ShowClue([ClueNum],[x],[y])">[ClueNum]</a>';
+}
+else{
+	NumLetterCell += '[ClueNum]';
+}
+NumLetterCell += '</u></sup>&nbsp;<b><font color="#000000">[Letter]</font></b></td>';
+
+var GridCloser = '</table></td></tr>';
+
+var Buttons = '<tr><form name="Buttons[Num]" action=""><td align="center" valign="top" bgcolor="#bbbbee">';
+Buttons += '<font face="Geneva,Arial" color="#000000">';
+Buttons += '<input type="button" value="Check" onclick="parent.CheckAnswers()"></input>';
+Buttons += '</font></td></form></tr>';
+
+var Buttons1 = ReplaceStuff('[Num]', '1', Buttons);
+var Buttons2 = ReplaceStuff('[Num]', '2', Buttons);
+
+var GetAnswerOpener = '<form name="AnswerForm" action="" onSubmit="return false;">';
+var GetAnswer = ' <font size="3"><input type="text" name="[BoxName]" size="[AnsLength]" maxlength="[AnsLength]"></input>';
+GetAnswer += ' <input type="button" value="Enter" ';
+GetAnswer += 'onClick="parent.EnterAnswer(document.AnswerForm.[BoxName].value,[boolAcross],[AnsLength],[x],[y])"></input>';
+
+
+GetAnswer += '<input type="button" value="Hint" onclick="parent.ShowHint([boolAcross],[x],[y],\'[FrameName].document.AnswerForm.[BoxName]\')"></input>';
+
+
+GetAnswer += '</font>';
+
+var GetAnswerCloser = '</form>';
+
+function GoBack(){
+	var BackSkip = history.length - PreviousPage;
+	if (BackSkip > 0){
+		history.go((BackSkip+1)*-1);
+	}
+	else{
+		parent.history.back();
+	}
+}
+
+
+function ShowReading(){
+	if (ReadingFrame != null){
+		if (ReadingURL.length > 0){
+			ReadingFrame.location.href=ReadingURL;
+		}
+		else{
+			ReadingFrame.document.clear();
+			ReadingFrame.document.open();
+			ReadingFrame.document.write(ReadingText);
+			ReadingFrame.document.close();
+		}
+	}
+}
+
+
+
+
+function BuildExercise(){
+	var OutString = '';
+	var Temp = '';
+	var GridStuff = GridOpener;	
+
+	for (var i=0; i<L.length; i++){
+		GridStuff += GridRowOpener;
+		for (var j=0; j<L[i].length; j++){
+//If the cell is blank, add a black cell
+			if (L[i][j] == ''){
+				GridStuff += BlankCell;
+			}
+//else there's a letter there
+			else{
+//If there's a clue number, add it
+				if (C[i][j] > 0){
+					Temp = NumLetterCell;
+					Temp = ReplaceStuff('[ClueNum]', C[i][j], Temp);
+//Add location info
+					Temp = ReplaceStuff('[x]', i, Temp);
+					Temp = ReplaceStuff('[y]', j, Temp);
+				}
+//Otherwise add a blank cell
+				else{
+					Temp = LetterOnlyCell;
+				}
+
+//If the cell is already answered, add the letter from the Guess array
+				if (G[i][j] != ''){
+					Temp = ReplaceStuff('[Letter]', G[i][j], Temp);
+				}
+//Otherwise, put in a non-breaking space
+				else{
+					Temp = ReplaceStuff('[Letter]', '&nbsp;', Temp);
+				}
+				GridStuff += Temp;
+			}
+		}
+		GridStuff += GridRowCloser;
+	}
+
+	GridStuff += GridCloser;
+
+//Put the final pieces together
+	OutString = GridStuff;
+	BuiltExercise = OutString;
+}
+
+function WriteFeedback(Feedback) {
+//Build the output string
+	var OutString = '';
+	OutString += '<html>';
+	OutString += '<body  background="" bgcolor="#ffffff" text="#000000" link="#0000ff" vlink="#0000cc">';
+	OutString += '<center><table border="0" cellpadding="5" cellspacing="1" width="85%">';
+	OutString += NavBar;
+	if (Feedback.length>0){
+		OutString += '<tr><td bgcolor="#bbbbee" align="center">'; 
+		OutString += '<font face="Geneva,Arial" size="-1" color="#000000">';
+		OutString += Feedback;
+		OutString += '</font></td></tr>'
+	}
+	OutString += '</table></center></body></html>';
+
+	if (is.CRAPBrowser){OutString=ResolveAllURLs(OutString);}
+
+//Write it to the frame
+	TopFrame.document.clear();
+	TopFrame.document.open();
+	TopFrame.document.write(OutString);
+	TopFrame.document.close();
+}
+
+function DisplayExercise(){
+//Build the output string
+	var OutString = '';
+	OutString += '<html>';
+	OutString += '<body  background="" bgcolor="#ffffff" text="#000000" link="#0000ff" vlink="#0000cc">';
+	OutString += '<center><table border="0" cellpadding="5" cellspacing="1" width="85%">';
+	OutString += TitleCode;
+	OutString += Buttons1; 
+	OutString += BuiltExercise;
+	OutString += Buttons2;
+	OutString += BuiltClues;
+	OutString += NavBar;
+	OutString += '</table></center></body></html>';
+
+	if (is.CRAPBrowser){OutString=ResolveAllURLs(OutString);}
+
+//Write it to the frame
+	BottomFrame.document.clear();
+	BottomFrame.document.open();
+	BottomFrame.document.write(OutString);
+	BottomFrame.document.close();
+}
+
+function BuildClue(ClueNum,x,y,Across){
+	var OutString = '';
+	if (Across == true){
+		if (ClueNum >= A.length){
+			return '';
+		}	
+		if (A[ClueNum] == null){
+			return '';
+		}
+		OutString = ClueNum + '. ' + A[ClueNum];
+		OutString += GetAnswer;
+		OutString = ReplaceStuff('[BoxName]', 'BA'+ClueNum, OutString);
+//Find out how long the answer is
+		AnsLength = 0;
+		i = x;
+		j = y;
+		while (j<L[i].length){
+			if (L[i][j] != ''){
+				AnsLength++;
+			}
+			else{
+				break;
+			}
+			j++;
+		}
+		OutString = ReplaceStuff('[AnsLength]', AnsLength, OutString);
+		OutString = ReplaceStuff('[boolAcross]', 'true', OutString);
+	}
+	else{
+		if (ClueNum >= D.length){
+			return '';
+		}	
+		if (D[ClueNum] == null){
+			return '';
+		}
+		OutString = ClueNum + '. ' + D[ClueNum];
+		OutString += GetAnswer;
+		OutString = ReplaceStuff('[BoxName]', 'BD'+ClueNum, OutString);
+//Find out how long the answer is
+		AnsLength = 0;
+		i = x;
+		j = y;
+		while (i<L.length){
+			if (L[i][j] != ''){
+				AnsLength++;
+			}
+			else{
+				break;
+			}
+			i++;
+		}
+		OutString = ReplaceStuff('[AnsLength]', AnsLength, OutString);
+		OutString = ReplaceStuff('[boolAcross]', 'false', OutString);
+	}
+	OutString = ReplaceStuff('[x]', x ,OutString);
+	OutString = ReplaceStuff('[y]', y, OutString);
+	OutString = ReplaceStuff('[FrameName]', 'BottomFrame', OutString);
+	OutString += '<br />';
+	return OutString;
+}
+
+
+
+function ShowClue(ClueNum,x,y){
+	var OutString = '';
+	var AnsLength = 0;
+	var i;
+	var j;
+	CurrBoxElement = ClueNum;
+	if (A[ClueNum] != null){
+		OutString = OutString + 'Across: ' + ClueNum + '. ' + A[ClueNum];
+		OutString += GetAnswer;
+		OutString = ReplaceStuff('[BoxName]', 'BA'+ClueNum, OutString);
+//Find out how long the answer is
+		AnsLength = 0;
+		i = x;
+		j = y;
+		while (j<L[i].length){
+			if (L[i][j] != ''){
+				AnsLength++;
+			}
+			else{
+				break;
+			}
+			j++;
+		}
+		OutString = ReplaceStuff('[AnsLength]', AnsLength, OutString);
+		OutString = ReplaceStuff('[boolAcross]', 'true', OutString);
+	}
+	if (D[ClueNum] != null){
+		if (OutString.length > 0){
+			OutString += '<br />';
+		}
+		OutString = OutString + 'Down: ' + ClueNum + '. ' + D[ClueNum];
+		OutString += GetAnswer;
+		OutString = ReplaceStuff('[BoxName]', 'BD'+ClueNum, OutString);
+//Find out how long the answer is
+		AnsLength = 0;
+		i = x;
+		j = y;
+		while (i<L.length){
+			if (L[i][j] != ''){
+				AnsLength++;
+			}
+			else{
+				break;
+			}
+			i++;
+		}
+		OutString = ReplaceStuff('[AnsLength]', AnsLength, OutString);
+		OutString = ReplaceStuff('[boolAcross]', 'false', OutString);
+	}
+	OutString = GetAnswerOpener + OutString + GetAnswerCloser;
+	OutString = ReplaceStuff('[x]', x ,OutString);
+	OutString = ReplaceStuff('[y]', y, OutString);
+	OutString = ReplaceStuff('[FrameName]', 'TopFrame', OutString);
+	WriteFeedback(OutString); 
+	if (eval('TopFrame.document.AnswerForm.BA' + ClueNum) != null){
+		eval('TopFrame.document.AnswerForm.BA' + ClueNum).focus();
+	}
+	else{
+		if (eval('TopFrame.document.AnswerForm.BD' + ClueNum) != null){
+			eval('TopFrame.document.AnswerForm.BD' + ClueNum).focus();
+		}
+	}
+}
+
+function EnterAnswer(Guess,Across,AnsLength,x,y){
+
+	Guess = Guess.toUpperCase();
+
+	var i=x;
+	var j=y;
+	var Letter = 0;
+	while (Letter < AnsLength){
+		if (Letter < Guess.length){
+			G[i][j] = Guess.charAt(Letter);
+		}
+		if (Across == true){
+			j++;
+		}
+		else{
+			i++;
+		}
+		Letter++;
+	}
+
+	BuildExercise();
+	DisplayExercise();
+}
+
+function ShowHint(Across,x,y,BoxName){
+	var i=x;
+	var j=y;
+	var OutString = '';
+	if (Across==true){
+		while (j<L[i].length){
+			if (L[i][j] != ''){
+				OutString += L[i][j];
+				if (G[i][j] != L[i][j]){
+					G[i][j] = L[i][j];
+					Penalties++;
+					break;
+				}
+			}
+			else{
+				break;
+			}
+		j++;
+		}
+	}
+	else{
+		while (i<L.length){
+			if (L[i][j] != ''){
+				OutString += L[i][j];
+				if (G[i][j] != L[i][j]){
+					G[i][j] = L[i][j];
+					Penalties++;
+					break;
+				}
+			}
+			else{
+				break;
+			}
+		i++;
+		}
+	}
+	if (eval(BoxName) != null){
+		eval(BoxName).value = OutString;
+	}
+}
+
+function ReplaceStuff(Token, Replacement, InString){
+	var i = InString.indexOf(Token);
+	var FirstBit = '';
+	var LastBit = '';
+	while (i>-1){
+		FirstBit = InString.substring(0, i);
+		LastBit = InString.substring(i + Token.length, InString.length);	
+		InString = FirstBit + Replacement + LastBit;
+		i = InString.indexOf(Token);
+	}
+	return InString;
+}
+
+L = new Array();
+L[0] = new Array('T','','C','O','U','P','A','B','L','E','','','','C','');
+L[1] = new Array('\u00C9','','A','','','','','','','','','','','O','');
+L[2] = new Array('M','\u00C9','C','H','A','N','C','E','T','\u00C9','','','','M','');
+L[3] = new Array('O','','H','','','','','','','','','','','M','');
+L[4] = new Array('I','','E','','A','F','F','L','I','G','E','R','','I','');
+L[5] = new Array('G','','-','','S','','','','','','','','','S','');
+L[6] = new Array('N','','C','','S','','','','','B','\u00CA','T','I','S','E');
+L[7] = new Array('E','','A','','E','','','','','','','','','A','');
+L[8] = new Array('R','E','C','O','N','N','A','\u00CE','T','R','E','','','I','');
+L[9] = new Array('','','H','','T','','','','','','','','','R','');
+L[10] = new Array('G','','E','','I','N','Q','U','I','\u00C9','T','U','D','E','');
+L[11] = new Array('R','','','','M','','','','','','','','','','');
+L[12] = new Array('\u00C2','','','','E','','','','','','','','','','');
+L[13] = new Array('C','O','L','I','N','-','M','A','I','L','L','A','R','D','');
+L[14] = new Array('E','','','','T','','','','','','','','','','');
+
+
+C = new Array();
+C[0] = new Array(1,0,2,0,0,0,0,0,0,0,0,0,0,3,0);
+C[1] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[2] = new Array(4,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[3] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[4] = new Array(0,0,0,0,5,0,0,0,0,0,0,0,0,0,0);
+C[5] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[6] = new Array(0,0,0,0,0,0,0,0,0,6,0,0,0,0,0);
+C[7] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[8] = new Array(7,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[9] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[10] = new Array(8,0,0,0,9,0,0,0,0,0,0,0,0,0,0);
+C[11] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[12] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[13] = new Array(10,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+C[14] = new Array(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+
+
+G = new Array();
+G[0] = new Array('','','','','','','','','','','','','','','');
+G[1] = new Array('','','','','','','','','','','','','','','');
+G[2] = new Array('','','','','','','','','','','','','','','');
+G[3] = new Array('','','','','','','','','','','','','','','');
+G[4] = new Array('','','','','','','','','','','','','','','');
+G[5] = new Array('','','','','','','','','','','','','','','');
+G[6] = new Array('','','','','','','','','','','','','','','');
+G[7] = new Array('','','','','','','','','','','','','','','');
+G[8] = new Array('','','','','','','','','','','','','','','');
+G[9] = new Array('','','','','','','','','','','','','','','');
+G[10] = new Array('','','','','','','','','','','','','','','');
+G[11] = new Array('','','','','','','','','','','','','','','');
+G[12] = new Array('','','','','','','','','','','','','','','');
+G[13] = new Array('','','','','','','','','','','','','','','');
+G[14] = new Array('','','','','','','','','','','','','','','');
+
+
+A = new Array();
+A[2]='  Qui  a  commis  une  faute,  un  d&#233;lit,  un  crime';
+A[4]=' Penchant  &#224;  faire  du  mal.';
+A[5]='   Faire  endurer  de  grandes  souffrances  &#224; quelqu\'un';
+A[6]='     D&#233;faut  d\'intelligence,  de  jugement;  sottise,  stupidit&#233;';
+A[7]='   Percevoir  (qqn,  qqch)  comme  d&#233;j&#224;  connu,  identifier';
+A[9]='  &#201;tat  d\'une  personne  inqui&#232;te;  trouble,  appr&#233;hension';
+A[10]='  Jeu  o&#249;  l\'un  des  joueurs,  les  yeux  band&#233;s,  cherche  &#224;  attraper  les  autres.';
+
+
+D = new Array();
+D[1]='  Marquer,  manifester.  T&#233;moigner  sa  joie.';
+D[2]=' Jeu  d\'enfants  o&#249;  l\'un  des  joueurs  doit  trouver  les  autres  qui  se  sont  cach&#233;s';
+D[3]='  Titulaire  d\'une  fonction  permanente.  Commissaire  de  police:  fonctionnaire  charg&#233;,  dans  les  villes,  du  maintien  de  l\'ordre  et  de  la  s&#233;curit&#233;';
+D[5]='Adh&#233;sion,  consentement  (donn&#233;  &#224;  une  proposition,  &#224;  un  acte).  Donner  son  assentiment  &#224;  un  mariage. Syn.  approbation.';
+D[8]='  Remise  de  peine,  pardon  accord&#233;  volontairement.  Faire  gr&#226;ce  &#224;  quelqu\'un.';
+
+
+function StartUp(){
+
+	BuildExercise();
+
+	WriteFeedback(Instructions);
+	DisplayExercise();
+
+
+
+	ShowReading();
+
+
+
+
+
+}
+function CheckAnswers(){
+
+	var AllCorrect = true;
+	var TotLetters = 0;
+	var CorrectLetters = 0;
+
+//Check each letter
+	for (var i=0; i<L.length; i++){
+		for (var j=0; j<L[i].length; j++){
+			if (L[i][j] != ''){
+				TotLetters++;
+				if (G[i][j] != L[i][j]){
+					G[i][j] = '';
+					AllCorrect = false;
+				}
+				else{
+					CorrectLetters++;
+				}
+			}
+		}
+	}
+
+	var Score = Math.floor(((CorrectLetters-Penalties) * 100)/TotLetters);
+
+//Compile the output
+	var Output = '';
+
+	if (AllCorrect == true){
+		Output = Correct + '<br />';
+	}
+
+	Output += YourScoreIs + ' ' + Score + '%.<br />';
+	if (AllCorrect == false){
+		Output += '<br />' + Incorrect;
+		Penalties++;
+	}
+	BuildExercise();
+	WriteFeedback(Output);
+
+		
+
+
+	DisplayExercise();
+}
+
+
+
+function DoNothing(){}
+
+function Blank(){
+	return '<html><body>&copy;Half-Baked Software. Loading...</body></html>';
+}
+
+//-->
+
+//]]>
+
+</script>
+
+
+</head>
+<!--<body>Fool those dumb ad-inserting ISPs</body>-->
+
+<!--For full XHTML 1.0 compatibility, remove the border and framespacing attributes.
+These are required for proper display in current browsers, but render the document incompatible. Then, you'll need to add the appropriate Document Type Declaration; use
+the W3C XHTML 1 frameset DTD.-->
+
+
+
+
+
+<frameset cols = "50%,50%" framespacing="0" border="0">
+  <frameset rows = "30%,*" framespacing="0" border="0" onload="StartUp()">
+	<frame src="javascript:parent.Blank()" frameborder="0" name="TopFrame"></frame>
+	<frame src="javascript:parent.Blank()" frameborder="0" name="BottomFrame"></frame>
+   </frameset>
+  <frame src="javascript:parent.Blank()" frameborder="0" name="ReadingFrame"></frame>
+</frameset>
+
+
+
+
+
+</html>

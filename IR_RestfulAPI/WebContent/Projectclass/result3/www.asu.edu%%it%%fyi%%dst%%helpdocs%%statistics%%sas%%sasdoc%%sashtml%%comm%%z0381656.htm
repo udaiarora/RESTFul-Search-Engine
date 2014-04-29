@@ -1,0 +1,218 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Permission Program : Allowing SAS/SHARE Client Access to SAS Libraries or Files </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172891.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="znid-239.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381708.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0381656">Allowing SAS/SHARE Client Access to SAS Libraries or Files</A></FONT></H1>
+
+
+<P>You may write and use the 
+
+
+<CODE><B>permission</B></CODE> program on a
+ SAS/SHARE  server that is running
+on a UNIX host to allow clients to access SAS libraries or files.
+<P>When presented with a validated userid, the server uses a customer-supplied
+program named 
+
+
+<CODE><B>permission</B></CODE> to verify the following attributes: 
+<P>
+<UL>
+
+<LI>user name<P>
+
+<LI>file or directory path for a SAS library or file<P>
+
+<LI>file or directory access
+permissions (read or write).<P>
+</UL>
+
+<P>The server invokes this program whenever a client tries to access a
+SAS library or file.
+<P>The 
+
+
+<CODE><B>permission</B></CODE> program determines whether or not the
+requesting user has the specified access to the file or directory. If the
+user has the appropriate access permissions, the program exits with a zero
+return code. If the user does not have the appropriate access permissions,
+the program exits with a non-zero return code.
+<P>It is recommended that you write attempts, successes, and failures from
+the executable file to a log. Also, it is recommended that you fail the validation
+for any step in the process that has a problem.
+<P>After you write and test the program, move it to the <B>!sasroot</B>
+
+
+<CODE><B>/utilities/bin</B></CODE> directory where SAS/SHARE expects
+the program to be located. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Methods for implementing file-access
+security vary across types of UNIX systems. Although many UNIX systems use
+conventional UNIX file-access permissions for owner, group, and other, some
+UNIX systems use different methods, such as Access Control Lists (ACLs).&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>In addition, SAS requires the user to have execute permission in order
+to access a directory that contains a SAS data library. For systems that use
+ACLs, ask your system administrator or software vendor for the correct methods
+to validate access on your system.
+<P>The sample programs in the <B>!sasroot</B>
+
+
+<CODE><B>/utilities/src</B></CODE> directory verify a user's access rights by using both conventional
+UNIX permissions and ACLs.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Permission Program Examples</FONT></B></TD></TR></TABLE>
+
+<P>The <B>!sasroot</B>
+
+
+<CODE><B>/utilities/src</B></CODE> directory contains documented examples
+of the following permission programs: 
+<P>
+<UL>
+
+<LI><CODE><B>perm.conv.c</B></CODE><P>
+
+<LI><CODE><B>perm.afsacl.c</B></CODE><P>
+
+<LI><CODE><B>perm.aixacl.c</B></CODE><P>
+
+<LI><CODE><B>perm.hpacl.c</B></CODE><P>
+</UL>
+
+<P>Each of these programs verifies a user's access rights using both conventional
+UNIX permissions and ACLs. The filename extension indicates the specific type
+of UNIX system and the type of permissions for which the programs were designed.
+For example, 
+
+
+<CODE><B>perm.aixacl.c</B></CODE> specifies a permission program for
+an AIX UNIX system that uses ACLs.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Building the Permission Program</FONT></B></TD></TR></TABLE>
+
+<P>In
+most cases, the working examples can be built with the following commands:
+ 
+
+
+
+<PRE>% 
+cd !<I>sasroot</I>/utilities/src
+
+% 
+cc -o permission perm.conv.c</PRE>
+<P>The 
+
+
+<CODE><B>cc</B></CODE> command typically is the name of the C language
+compiler, but the command that you use on your system may be different. You
+do not need to set high optimization or to use an ANSI standard compiler to
+build the program because it already uses the standard C library functions
+for most of the work. See the README files for details about building the
+program on specific UNIX systems.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Testing the Permission Program</FONT></B></TD></TR></TABLE>
+
+<P>You
+can perform all testing outside the SAS/SHARE environment
+because the programs are stand- alone. The simplest way to test the programs
+is to look at the UNIX status variable in the UNIX shell. For example, using
+the C shell, you might test the 
+
+
+<CODE><B>permission</B></CODE> program as follows:
+ 
+
+
+
+<PRE>% 
+permission /usr/bass/abc.ssd01 bass R
+
+% 
+echo $status
+
+0
+%</PRE>
+<P>A zero exit status means that user 
+
+
+<CODE><B>bass</B></CODE> has read (
+
+
+<CODE><B>R</B></CODE>)
+access to the file 
+
+
+<CODE><B>abc.ssd01</B></CODE>.
+<P>In the following test, because the exit status is non-zero, user 
+
+
+<CODE><B>joe</B></CODE> does not have write access (
+
+
+<CODE><B>W</B></CODE>) to the file 
+
+
+<CODE><B>abc.ssd01</B></CODE>.  
+
+
+
+<PRE>% 
+permission /usr/joe/abc.ssd01 joe W
+
+% 
+echo $status
+
+1
+%</PRE>
+<P>After you test the program and are satisfied that it works correctly,
+move the program to the <B>!sasroot</B>
+
+
+<CODE><B>/utilities/bin</B></CODE> directory
+where SAS/SHARE expects the program
+to be located.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172891.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="znid-239.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381708.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0381656">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

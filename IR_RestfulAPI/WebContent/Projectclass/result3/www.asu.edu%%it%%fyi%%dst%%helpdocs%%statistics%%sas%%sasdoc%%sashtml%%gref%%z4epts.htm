@@ -1,0 +1,433 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The GMAP Procedure : Concepts </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0729027.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zew-gmap.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z7ntax.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The GMAP Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z4epts">Concepts</A></FONT></H1>
+
+
+<P>The GMAP procedure requires a map data set and a response
+data set. These two data sets must contain the required variables or the procedure
+stops with an error message.  You can use the same data set as both the map
+data set and the response data set, as long as the requirements are met. If
+a different data set is used as the response data set, it must contain an
+ID variable that is identical to the ID variable in the map data set.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zta-sets">About Map Data Sets</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0757980">&#13; A <B>map data set</B> is a SAS data set that contains coordinates that define
+the boundaries of map areas, such as states or counties.  A map data set must
+contain at least these variables: </A>
+<P>
+<UL>
+
+<LI>a numeric variable named X that contains the horizontal
+coordinates of the boundary points.  The value of this variable could be either
+projected or unprojected.  If unprojected, X represents longitude.<P>
+
+<LI>a numeric variable named Y that contains the vertical
+coordinates of the boundary points.  The value of this variable could be either
+projected or unprojected.  If unprojected, Y represents latitude.<P>
+
+<LI>one or more variables that uniquely identify the
+areas in the map.  Map area identification variables can be either character
+or numeric and are indicated in the ID statement.<P>
+</UL>
+
+<P>The X and Y variable values in the map data set do not
+have to be in any specific units because they are rescaled by the GMAP procedure
+based on the minimum and maximum values in the data set.  The minimum X and
+Y values are in the lower-left corner of the map, and the maximum X and Y
+values are in the upper-right corner.
+<P>Map data sets in which the X and Y variables contain
+longitude and latitude should be projected before you use them with PROC GMAP.
+ See <A href="zectchap.htm">The GPROJECT Procedure</A>
+for details.
+<P>Optionally, the map data set also can contain a variable
+named SEGMENT to identify map areas that comprise noncontiguous polygons.
+ Each unique value of the SEGMENT variable within a single map area defines
+a distinct polygon.  If the SEGMENT variable is not present, each map area
+is drawn as a separate closed polygon that indicates a single segment.
+<P>The observations for each segment of a map area in the
+map data set must occur in the order in which the points are to be joined.
+The GMAP procedure forms map area outlines by connecting the boundary points
+of each segment in the order in which they appear in the data set, eventually
+joining the last point to the first point to complete the polygon.
+<P>Any variables in the map data set other than the ones
+mentioned above are ignored for the purpose of determining map boundaries.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0729032">About SAS/GRAPH Map Data Sets</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0757989">&#13;In
+addition to the variables described in </A><A href="#zta-sets">About Map Data Sets</A>, the SAS/GRAPH map
+data sets may also contain the following variables: 
+<P>
+<UL>
+
+<LI>a numeric variable named LONG containing the unprojected
+longitude in radians of the boundary points.<P>
+
+<LI>a numeric variable named LAT containing the unprojected
+latitude in radians of the boundary points.<P>
+</UL>
+
+<P>The GMAP procedure uses the values of the X and Y variables
+to draw the map.  Therefore, if you want to produce an unprojected map by
+using the values in LONG and LAT, you would have to rename LONG and LAT to
+X and Y first.
+<P>SAS/GRAPH includes
+a number of predefined map data sets.  These data sets are described in <A href="z2sets.htm">SAS/GRAPH Map Data Sets</A>.
+<BR><H3><A name="z0729033">Map Data Sets Containing X, Y, LONG, and LAT</A></H3>
+
+
+<P>Most Institute-supplied map data sets
+contain four coordinate variables (X, Y, LONG, and LAT).  In this case, X
+and Y are always projected values that will be used by the GRAPH procedures
+(by default).  If you need to use the unprojected values that are contained
+in the LONG and LAT variables, you will need to rename the LONG and LAT variables
+to X and Y since the GMAP procedure automatically uses X and Y.  See <A href="z7epts.htm#zng-both">Input Map Data Sets that Contain Both Projected and Unprojected Values</A>
+for more details.
+<BR><H3><A name="z0729034">Map Data Sets Containing Only X and Y</A></H3>
+
+
+<P>The Institute-supplied map data sets that
+contain X and Y variables (and no LONG and LAT variables), are usually projected
+maps.  However, there are a few map data sets for the US and Canada that contain
+X and Y values that are unprojected longitude and latitude.  In this case,
+you will need to use the GPROJECT procedure to project the map (see <A href="zectchap.htm">The GPROJECT Procedure</A>). 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You can determine
+whether a SAS map data set is projected
+or unprojected by looking at the description of each variable that is displayed
+when you use the CONTENTS procedure or by browsing the MAPS.METAMAPS data
+set.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3><A name="zecialty">Specialty Map Data Sets</A></H3>
+
+
+<P>There are several map data sets available
+with SAS/GRAPH that allow you to easily
+label maps: 
+<DL>
+<DT>MAPS.USCENTER</DT>
+<DD>contains the X and Y coordinates
+of the visual center of each state in the U.S. and Washington, D.C., as well
+as points in the ocean for states that are too small to contain a label. You
+can use MAPS.USCENTER with the MAPS.US, MAPS.USCOUNTY, MAPS.COUNTIES, and
+MAPS.COUNTY data sets.<P></DD>
+
+<DT> MAPS.USCITY</DT>
+<DD>contains the X and Y coordinates
+of selected cities in the U.S.  Many city names occur in more than one state,
+so you may have to subset by state to avoid duplication.  You can use MAPS.USCITY
+with the MAPS.US, MAPS.USCOUNTY, MAPS.COUNTIES, and MAPS.COUNTY data sets.<P></DD>
+
+<DT> MAPS.CANCENS</DT>
+<DD>contains the names of the Canadian
+census divisions.  You can use MAPS.CANCENS with the MAPS.CANADA and MAPS.CANADA3
+data sets.<P></DD>
+</DL>
+
+<P>See the MAPS.METAMAPS data set for details on each of
+the Institute-supplied map data sets.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1sets">About Response Data Sets</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0758005">&#13;
+  A
+<B>response data set</B> is a SAS data set that contains </A>
+<P>
+<UL>
+
+<LI>one or more response variables that contain data
+values that are associated with map areas.  Each value of the response variable
+is associated with a map area in the map data set.<P>
+
+<LI>identification variables that identify the map
+area to which a response value belongs.  These variables must be the same
+as those that are contained in the map data set.<P>
+</UL>
+
+<P>The response data set can contain other variables in
+addition to these required variables.
+<P>The values of the map area identification variables
+in the response data set determine the map areas to be included on the map
+unless you use the ALL option in the PROC GMAP statement.  That is, unless
+you use ALL in the PROC GMAP statement, only the map areas with response values
+are shown on the map.  As a result, you do not need to subset your map data
+set if you are mapping only a small section of the map.  However, if you map
+the same small section frequently, create a subset of the map data set for
+efficiency.
+<P>For choropleth, block, and prism maps, the response
+variables can be either character or numeric. For surface maps, the response
+variables must be numeric with only positive values.
+<BR><H3><A name="z2bles">About Response Variables</A></H3>
+
+
+<P><A name="z0758011">&#13;  The GMAP procedure can produce block, choropleth,
+and prism maps for both numeric and character response variables. Numeric
+variables fall into two categories: discrete and continuous. </A>
+<P>
+<UL>
+
+<LI><A name="z0758012">&#13;
+ <B>Discrete variables</B> contain a finite
+number of specific numeric values that are to be represented on the map. For
+example, a variable that contains only the values 1989 or 1990 is a discrete
+variable.</A><P>
+
+<LI><A name="z0758013">&#13;  <B>Continuous variables</B> contain a
+range of numeric values that are to be represented on the map.  For example,
+a variable that contains any real value between 0 and 100 is a continuous
+variable.</A><P>
+</UL>
+
+<P>Numeric response variables are always treated as continuous
+variables unless the DISCRETE option is used in the action statement.
+<BR><H3><A name="z0729035">About Response Levels</A></H3>
+
+
+<P><A name="z0758015">&#13;  <B>Response levels</B> are
+the values that identify categories of data on the graph.  The categories
+that are shown on the graph are based on the values of the response variable.
+ Based on the type of the response variable, a response level can represent
+these values: </A>
+<P>
+<UL>
+
+<LI>a specific character value.  If the response variable
+is character type, the GMAP procedure treats each unique value of the variable
+as a response level.  For example, if the response variable contains the names
+of ten regions, each region will be a response level, resulting in ten response
+levels.
+<P>The exception to this is that the MIDPOINTS= option
+chooses specific response level values.  Any response variable values that
+do not match one of the specified response level values are ignored.  For
+example, if the response variable contains the names of ten regions and you
+specify these midpoints, only the observations for 
+
+
+<CODE><B>Midwest</B></CODE>, 
+
+
+<CODE><B>Northeast</B></CODE>, and 
+
+
+<CODE><B>Northwest</B></CODE> are included on the map:  
+
+
+
+<PRE>midpoints='Midwest' 'Northeast' 'Northwest'</PRE><P>
+</UL>
+ 
+<P>
+<UL>
+
+<LI>a range of numeric values.  If the response variable
+is numeric, the GMAP procedure determines the number of response levels for
+the response variable.  Each response level then represents the median of
+a range of values.
+<P>These options are exceptions to this: 
+<P>
+<UL>
+
+<LI>The LEVELS= option specifies the number of response
+levels to be used on the map.<P>
+
+<LI>The DISCRETE option causes the numeric variable
+to be treated as a discrete variable.<P>
+
+<LI>The MIDPOINTS= option chooses specific response
+level values as medians of the value ranges.<P>
+</UL>
+
+<P>If the response variable values are continuous, the
+GMAP procedure assigns response level intervals automatically unless you specify
+otherwise.  The response levels represent a range of values rather than a
+single value.<P>
+
+<LI>a specific numeric value.  If the response variable
+is numeric and you use the DISCRETE option, the GMAP procedure treats the
+variable much the same way as it treats a character response variable.  That
+is, the procedure creates a response level for each unique value of the response
+variable.  If you use DISCRETE with a numeric response variable that has an
+associated format, each formatted value is represented by a different response
+level.  Formatted values are truncated to 16 characters.<P>
+</UL>
+
+<P> The BLOCK, CHORO, and PRISM statements assign patterns
+to response levels. In CHORO and PRISM maps, response levels are shown as
+map areas. However, in BLOCK maps, response levels are shown as blocks. The
+default fill pattern for the response level is solid.
+<P>PATTERN statements can define the fill patterns and
+colors for both blocks and map areas. PATTERN definitions that define valid
+block patterns are applied to the blocks (response levels), and PATTERN definitions
+that define valid map patterns are applied to map areas.
+<P>See <A href="zernchap.htm">PATTERN Statement</A>
+for more information on fill pattern values and default pattern rotation.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z3bles">About Identification Variables</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0758028">&#13;
+     <B>Identification (ID) variables</B> are common to both the map data set and
+the response data set.  They identify the map areas (for example, counties,
+states, or provinces) that make up the map.  A <B>unit area</B> or <B>map area</B> is a group of observations with the same ID value.  The GMAP
+procedure matches the value of the response variables for each map area in
+the response data set to the corresponding map area in the map data set to
+create the output graphs.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zg-areas">Displaying Map Areas and Response Data</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0758029">&#13;    
+
+Whether the GMAP procedure draws a map area and whether it displays patterns
+for response values depends on the contents of the response data set and on
+the ALL and MISSING options. </A><A href="#z0762718">Displaying Map Areas and Response Data</A>
+describes the conditions under which the procedure does or does not display
+map areas and response data.
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="z0762718">Displaying Map Areas and Response Data</A></I></B></CAPTION>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><A name="z0762718">&#13;<B>If the response data set...</B></A></TD>
+  
+<TD  align="LEFT" valign="TOP"><B>And if...</B></TD>
+  
+<TD  align="LEFT" valign="TOP"><B>Then
+the procedure...</B></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">includes the map area</TD>
+  
+<TD  align="LEFT" valign="TOP">the map area has a response value</TD>
+  
+<TD  align="LEFT" valign="TOP">draws the map
+area and displays the response data</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">includes the map area</TD>
+  
+<TD  align="LEFT" valign="TOP">the map area has no response
+value (that is, the value is missing)</TD>
+  
+<TD  align="LEFT" valign="TOP">draws the map area but leaves it empty</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">includes
+the map area</TD>
+  
+<TD  align="LEFT" valign="TOP">the map area has no response value and the MISSING option is used in the map
+statement</TD>
+  
+<TD  align="LEFT" valign="TOP">draws the map area and displays a response level for the missing value</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">does not include the map area</TD>
+  
+<TD  align="LEFT" valign="TOP">the ALL option is used in the PROC      GMAP statement</TD>
+  
+<TD  align="LEFT" valign="TOP">draws
+the map area but leaves it empty</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">does not include the map area</TD>
+  
+<TD  align="LEFT" valign="TOP">the ALL option is not
+used</TD>
+  
+<TD  align="LEFT" valign="TOP">does not draw the map area</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0762723">Summary of Use</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0763150">&#13; To use the GMAP procedure, you must do the
+following:</A>
+<OL START="1" type="1">
+<LI>If necessary, issue a LIBNAME statement for the
+SAS data library that contains the map data set that you want to display.<P>
+
+<LI>Determine what processing needs to be done to
+the map data set before it is displayed. Use the GPROJECT, GREDUCE, and GREMOVE
+procedures or a DATA step to perform the necessary processing.<P>
+
+<LI>Issue a LIBNAME statement for the SAS data set
+that contains the response data set, or use a DATA step to create a response
+data set.<P>
+
+<LI>Use the PROC GMAP statement to identify the map
+and response data sets.<P>
+
+<LI>Use the ID statement to name the identification
+variable(s).<P>
+
+<LI>Use a BLOCK, CHORO, PRISM, or SURFACE statement
+to identify the response variable and generate the map.<P>
+</OL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0729027.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zew-gmap.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z7ntax.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z4epts">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

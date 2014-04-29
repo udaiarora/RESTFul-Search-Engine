@@ -1,0 +1,1417 @@
+<HTML>
+<HEAD>
+<TITLE>Solution Modes</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect54.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Solution Modes  </H2>
+<A NAME="idxmod0516">&#13;</A><A NAME="idxmod0515">&#13;</A>The following solution modes are commonly used:
+<A NAME="idxmod0518">&#13;</A><A NAME="idxmod0517">&#13;</A><A NAME="idxmod0520">&#13;</A><A NAME="idxmod0519">&#13;</A><UL>
+<LI> <I>Dynamic simultaneous forecast</I>
+<A NAME="idxmod0511">&#13;</A>mode is used for forecasting
+with the model. Collect the historical data on the
+model variables, the future assumptions of the exogenous variables,
+and any prior information on the future endogenous values, and combine them
+in a SAS data set. Use the FORECAST option on the SOLVE statement.
+<P><A NAME="idxmod0512">&#13;</A><LI> <I>Dynamic simultaneous simulation</I>
+mode is often called <I>ex-post simulation</I>, <I>historical simulation</I>,
+or <I>ex-post forecasting</I>. Use the DYNAMIC option. This mode is the default.
+<P><A NAME="idxmod0513">&#13;</A><LI> <I>Static simultaneous simulation</I>
+mode can be used to examine
+the within-period performance of the model without the complications of
+previous period errors. Use the STATIC option.
+<P><A NAME="idxmod0514">&#13;</A><LI> <I>NAHEAD=<I>n</I> dynamic simultaneous simulation</I>
+mode can be used to see how well <I>n</I>-period-ahead forecasting would have
+performed over the historical period. Use the NAHEAD=<I>n</I> option.
+</UL>
+<P>The different solution modes are explained in detail in the following
+sections.
+<H3><I>Dynamic and Static Simulations</I></H3>
+<A NAME="idxmod0522">&#13;</A><A NAME="idxmod0521">&#13;</A><A NAME="idxmod0524">&#13;</A><A NAME="idxmod0523">&#13;</A>In model simulation, either solved values or
+actual values from the data set can be used to supply 
+lagged values of an endogenous variable.
+A <I>dynamic</I> solution refers to
+a solution obtained by using only solved values for the lagged values.
+Dynamic mode is used both for forecasting and for simulating the dynamic
+properties of the model.
+<P>A <I>static</I> solution refers to a solution obtained by using
+the actual values when available for the lagged endogenous values.
+Static mode is used to simulate the behavior of the model without the
+complication of previous period errors.
+Dynamic simulation is the default.
+<P>If you wish to use static values for lags only for the first
+<I>n</I> observations, and dynamic values thereafter, specify the START=<I>n</I>
+option. For example, if you want a dynamic
+simulation to start after observation twenty-four, specify
+START=24 on the SOLVE statement. If the model being simulated
+had a value lagged for four time periods, then this value would start
+using dynamic values when the simulation reached observation number
+28.
+<P><H3><I><I>n</I>-Period-Ahead Forecasting</I></H3>
+<A NAME="idxmod0526">&#13;</A><A NAME="idxmod0525">&#13;</A>Suppose you want to regularly forecast 12 months ahead and produce
+a new forecast each month as more data becomes available.
+<I>n</I>-period-ahead forecasting allows you to test how well
+you would have done over time had you been using your model to
+forecast 1 year ahead.
+<P>To see how well a model predicts <I>n</I> time periods
+in the future, perform an <I>n</I>-period-ahead forecast on
+real data and compare the forecast values with the actual values.
+<P><A NAME="idxmod0527">&#13;</A><I>n</I>-period-ahead forecasting refers to using dynamic values
+for the lagged endogenous variables only for lags <I>1</I> through <I>n-1</I>.
+For example, 1-period-ahead forecasting, specified by the
+NAHEAD=1 option on the SOLVE statement, is the same as if a static
+solution had been requested. Specifying NAHEAD=2 produces a
+solution that uses dynamic values for lag one and static, actual,
+values for longer lags.
+<P>The following example is a 2-year-ahead dynamic simulation.
+The output is shown in <A HREF="sect55.htm#modnahead">Figure 14.59</A>.
+<PRE>
+   data yearly;
+      input year x1 x2 x3 y1 y2 y3;
+      datalines;
+   84 4 9  0  7  4  5
+   85 5 6  1  1  27  4
+   86 3 8  2  5  8  2
+   87 2 10 3  0  10 10
+   88 4 7  6  20 60 40
+   89 5 4  8  40 40 40
+   90 3 2  10 50 60 60
+   91 2 5  11 40 50 60
+   ;
+   run;
+   
+   proc model data=yearly outmodel=foo;
+      endogenous y1 y2 y3;
+      exogenous  x1 x2 x3;
+   
+      y1 = 2 + 3*x1 - 2*x2 + 4*x3;
+      y2 = 4 + lag2( y3 ) + 2*y1 + x1;
+      y3 = lag3( y1 ) + y2 - x2;
+   
+      solve y1 y2 y3 / nahead=2 out=c;
+   run;
+   
+   proc print data=c;run;
+</PRE>
+<P><A NAME="modnahead">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Simultaneous 2-Periods-Ahead Forecasting Simulation</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Data Set Options</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DATA=</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">YEARLY</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>OUT=</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">C</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solution Summary</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variables Solved</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Simulation Lag Length</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solution Method</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">NEWTON</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CONVERGE=</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1E-8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Maximum CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Maximum Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Total Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Average Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observations Processed</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Read</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">20</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lagged</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">12</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solved</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>First</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Last</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">8</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX3"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variables Solved For</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">y1 y2 y3</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.59:</B> NAHEAD Summary Report</SPAN><P>
+<P><A NAME="modnahead1">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Obs</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_TYPE_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_MODE_</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_LAG_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>_ERRORS_</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y1</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>y3</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>x1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>x2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>x3</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PREDICT</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">SIMULATE</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 10</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">  7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">10</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PREDICT</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">SIMULATE</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">24</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 58</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 52</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 6</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PREDICT</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">SIMULATE</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">41</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">101</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">102</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 4</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PREDICT</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">SIMULATE</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">47</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">141</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">139</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">10</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PREDICT</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">SIMULATE</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">42</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">130</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">145</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000"> 5</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">11</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.60:</B> C Data Set</SPAN><P>
+<P>The proceding 2-year-ahead simulation can be emulated without using the
+NAHEAD= option by the following PROC MODEL statements:
+<PRE>
+   proc model data=test model=foo;
+     range year = 87 to 88;
+     solve y1 y2 y3 / dynamic solveprint;
+   run;
+   
+     range year = 88 to 89;
+     solve y1 y2 y3 / dynamic solveprint;
+   run;
+   
+     range year = 89 to 90;
+     solve y1 y2 y3 / dynamic solveprint;
+   run;
+   
+     range year = 90 to 91;
+     solve y1 y2 y3 / dynamic solveprint;
+</PRE>
+The totals shown under &#34;Observations Processed&#34; in <A HREF="sect55.htm#modnahead">Figure 14.59</A>
+are equal to the sum of the four individual runs.
+<P><H3><I>Simulation and Forecasting</I></H3>
+<A NAME="idxmod0529">&#13;</A><A NAME="idxmod0528">&#13;</A><A NAME="idxmod0531">&#13;</A><A NAME="idxmod0530">&#13;</A>You can
+perform a simulation of your model or use the model to produce
+forecasts. <I>Simulation</I> refers to the determination of the endogenous
+or dependent variables as a function of the input values of the
+other variables, even when actual data for some of the solution
+variables are available in the input data set. The simulation mode
+is useful for verifying the fit of the model parameters. Simulation
+is selected by the SIMULATE option on the SOLVE statement.
+Simulation mode is the default.
+<P><A NAME="idxmod0533">&#13;</A><A NAME="idxmod0532">&#13;</A>In forecast mode, PROC MODEL solves only for those
+endogenous variables
+that are missing in the data set. The actual value of an endogenous
+variable is used as the solution value whenever nonmissing data
+for it are available in the input data set. Forecasting is
+selected by the FORECAST option on the SOLVE statement.
+<A NAME="idxmod0534">&#13;</A>For example, an econometric forecasting model can contain an equation to
+predict future tax rates, but tax rates are usually set in advance by law.
+Thus, for the first year or so of the forecast, the predicted tax
+rate should really be exogenous. Or, you may want to use a prior
+forecast of a certain variable from a short-run forecasting
+model to provide the predicted values for the earlier periods of a
+longer-range forecast of a long-run model.
+A common situation in forecasting is when historical data needed to fill
+the initial lags of a dynamic model are available for some of the variables
+but have not yet been obtained for others.
+In this case, the forecast must start in the past to supply the
+missing initial lags. Clearly, you should use the actual data that are
+available for the lags.
+In all the preceding cases, the forecast should be produced by running the model
+in the FORECAST mode; simulating the model over the future periods would not
+be appropriate.
+<P><H3><I>Monte Carlo Simulation</I></H3>
+<A NAME="idxmod0535">&#13;</A><A NAME="idxmod0537">&#13;</A><A NAME="idxmod0536">&#13;</A>The accuracy of the forecasts produced by PROC MODEL depends on
+four sources of error (Pindyck 1981, 405-406):
+<UL>
+<LI> The system of equations contains an implicit random error term <IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}">
+<DL CLASS="equation"><DD><IMG WIDTH="103" HEIGHT="78"
+ SRC="images/modeq243.gif"
+ ALT="g(y,x,\hat{{{\theta}}})={{\epsilon}}"></DL>
+where <B>y</B>, <B>x</B>, <B>g</B>, <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq70.gif"
+ ALT="{\hat{{{\theta}}}}">, and <B><IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"></B> are 
+vector valued.
+<LI> The estimated values of the parameters, <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq70.gif"
+ ALT="{\hat{{{\theta}}}}">, are
+themselves random variables.
+<LI> The exogenous variables may have been forecast themselves and therefore
+may contain errors.
+<LI> The system of equations may be incorrectly specified; 
+the model only approximates the process modeled.
+</UL>
+<P><A NAME="idxmod0538">&#13;</A>The RANDOM=  option is used to request Monte Carlo (or stochastic)
+simulations to generate confidence intervals for errors arising
+from the first two sources.
+The Monte Carlo simulations can be performed with <B><IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"></B>,
+<B><IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq28.gif"
+ ALT="{\theta}"></B>,
+or both vectors represented as random variables.
+<A NAME="idxmod0539">&#13;</A>The SEED= option is used to control the random number generator
+for the simulations.
+SEED=0 forces the random number generator to use the system clock
+as its seed value.
+<P>In Monte Carlo simulations, repeated simulations are performed on the model
+for random perturbations of the parameters and the additive error term.
+The random perturbations follow a multivariate normal distribution
+with expected value of
+0 and covariance described by a covariance matrix of the parameter estimates
+in the case of <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq28.gif"
+ ALT="{\theta}">,or a covariance matrix of the equation residuals for the case of
+<IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}">. PROC MODEL can generate both covariance matrices or
+you can provide them.
+<P><A NAME="idxmod0540">&#13;</A>The ESTDATA= option specifies a data set containing an estimate of the
+covariance matrix of the parameter estimates to use for computing
+perturbations of the parameters. The ESTDATA= data set is usually
+created by the FIT statement with the OUTEST= and OUTCOV options.
+When the ESTDATA= option is specified, the matrix read from the ESTDATA= data 
+set is used to compute vectors of random shocks or perturbations for the
+parameters.
+These random perturbations are computed at the start of each repetition of 
+the solution and added to the parameter values. 
+The perturbed parameters are fixed throughout the solution range.
+If the covariance matrix of the parameter estimates is not provided, the
+parameters are not perturbed.
+<P><A NAME="idxmod0541">&#13;</A>The SDATA= option specifies a data set containing the covariance matrix of the
+residuals to use for computing perturbations of the equations.
+The SDATA= data set is usually created by the FIT statement
+with the OUTS= option.
+When SDATA= is specified, the matrix read from the
+SDATA= data set is used to compute vectors of random shocks or
+perturbations for the equations. 
+These random perturbations are computed at each observation.
+The simultaneous solution satisfies the model
+equations plus the random shocks. That is, the solution is not a
+perturbation of a simultaneous solution of the structural equations;
+rather, it is a simultaneous solution of the stochastic equations using
+the simulated errors. If the SDATA= option is not specified,
+the random shocks are not used.
+<P><A NAME="idxmod0542">&#13;</A>The different random solutions are identified by the _REP_ variable in
+the OUT= data set. An
+unperturbed solution with _REP_=0 is also computed when
+the RANDOM= option is used. 
+RANDOM=<I>n</I> produces <I>n</I>+1 solution observations for each input
+observation in the solution range. 
+If the RANDOM= option is not specified, the
+SDATA= and ESTDATA= options are ignored, and no Monte Carlo simulation
+is performed.
+<P>PROC MODEL does not have an automatic way of modeling
+the exogenous variables as random variables for Monte Carlo
+simulation. If the exogenous variables have been forecast,
+the error bounds for these variables should be included in the
+error bounds generated for the endogenous variables.
+If the models for the exogenous variables are included in PROC MODEL,
+then the error bounds created from a Monte Carlo simulation will
+contain the uncertainty due to the exogenous variables.
+<P>Alternatively, if the distribution of the exogenous variables
+is known, the built-in random number generator functions can be
+used to perturb these variables appropriately for the Monte Carlo
+simulation. For example, if you knew the forecast of an exogenous
+variable, X, had a standard error of 5.2 and the error was
+normally distributed, then the following
+statements could be used to generate random values for X:
+<PRE>
+   x_new = x + 5.2 * rannor(456);
+</PRE>
+During a Monte Carlo simulation the random number generator functions
+produce one value at each observation. It is important to use a
+different seed value for all the random number generator functions in
+the model program; otherwise, the perturbations will be correlated.
+For the unperturbed solution, _REP_=0, the random number generator functions
+return 0.
+<P>PROC UNIVARIATE can be used
+to create confidence intervals for the simulation (see the
+Monte Carlo simulation example in the &#34;Getting Started&#34; section).
+<P><H3><I>Quasi-Random Number Generators</I></H3>
+<A NAME="idxmod0544">&#13;</A><A NAME="idxmod0543">&#13;</A>Traditionally high discrepancy psuedo-random number generators are
+used to generate innovations in Monte Carlo simulations.
+Loosely translated, a high discrepancy psuedo-random number generator
+is one in which there is very little correlation between the current
+number generated and the past numbers generated. This property is
+ideal if indeed independance of the innovations is required. If, on
+the other hand, the efficient spanning of a multi-dimensional space
+is desired, a low discrepancy, quasi-random number generator can be used. A
+quasi-random number generator produces numbers which have no random component.
+<P>A simple one-dimensional quasi-random sequence is the van der Corput
+sequence. Given a prime number r ( <SPAN CLASS="mathfont"><I>r</I>&#62;=2</SPAN> ) any integer has a
+unique representation in terms of base r. A number in the interval [0,1)
+can be created by inverting the represention base power by base power.
+For example, consider r=3 and n=1. 1 in base 3 is
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">1<sub>10</sub> = 1 &#183;3<sup>0</sup> = 1<sub>3</sub></SPAN>
+</DL>
+When the powers of 3 are inverted,
+
+<DL CLASS="equation"><DD><IMG WIDTH="69" HEIGHT="92"
+ SRC="images/modeq244.gif"
+ ALT="\phi(1) = \frac{1}3"></DL>
+Also 11 in base 3 is
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">11<sub>10</sub> = 1 &#183;3<sup>2</sup> + 2 &#183;3<sup>0</sup> = 102<sub>3</sub></SPAN>
+</DL>
+When the powers of 3 are inverted,
+
+<DL CLASS="equation"><DD><IMG WIDTH="173" HEIGHT="92"
+ SRC="images/modeq245.gif"
+ ALT="\phi(11) = \frac{1}9 + 2\cdot\frac{1}3 = \frac{7}9"></DL>
+The first 10 numbers in this squence <IMG WIDTH="108" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq246.gif"
+ ALT="\phi(1)  ...  \phi(10)"> are
+provided below
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">0, (1/3), (2/3), (1/9), (4/9), (7/9), (2/9), (5/9), (8/9), (1/27)</SPAN>
+</DL>
+<P>As the sequence proceeds it fills in the gaps in a uniform fashion.
+<P>Several authors have expanded this idea to many dimensions. Two
+versions supported by the MODEL procedure are the Sobol sequence
+(QUASI=SOBOL) and the Faure sequence (QUASI=FAURE). The Sobol sequence
+is based on binary numbers an is generally computationaly faster
+than the Faure sequence. The Faure sequence uses the dimensionality
+of the problem to determine the number base to use to generate the
+sequence. The Faure sequence has better distributional properties
+than the Sobol sequence for dimensions greater than 8.
+<P>As an example of the difference between a pseudo random number and
+a quasi random number consider simulating a bivariate normal with 100 draws.
+<P>
+<P><A NAME="modsd01">&#13;</A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/modsd01.gif" ALT="modsd01.gif (3781 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 14.61:</B> A Bivariate Normal using 100 pseudo random draws </SPAN><P>
+<P>
+<P><A NAME="modsd02">&#13;</A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/modsd02.gif" ALT="modsd02.gif (3788 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 14.62:</B> A Bivariate Normal using 100 Faure random draws </SPAN><P>
+<P><H3><I>Solution Mode Output</I></H3>
+<A NAME="idxmod0546">&#13;</A><A NAME="idxmod0545">&#13;</A>The following SAS statements dynamically forecast the solution to
+a nonlinear equation:
+<PRE>
+   proc model data=sashelp.citimon;
+      parameters a 0.010708  b  -0.478849 c 0.929304;
+      lhur = 1/(a * ip) + b + c * lag(lhur);
+      solve lhur / out=sim forecast dynamic;
+   run;
+</PRE>
+The first page of output produced by the SOLVE
+step is shown in <A HREF="sect55.htm#modzmonte">Figure 14.63</A>. This is the
+summary description of the model. The error message
+states that the simulation was aborted at observation
+144 because of missing input values.
+<P><A NAME="modzmonte">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Model Summary</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Model Variables</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameters</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Equations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Number of Statements</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Program Lag Length</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Model Variables</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">LHUR</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameters</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">a(0.010708) b(-0.478849) c(0.929304)</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Equations</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">LHUR</font></TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX2"></A>
+<HR size=3><P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Single-Equation Forecast</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Solution values are missing because of missing input values for observation 144 at NEWTON iteration 0.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Additional information on the values of the variables at this observation, which may be helpful in determining the cause of the failure of the solution process, is printed below.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Iteration Errors - Missing.</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Simulation aborted.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.63:</B> Solve Step Summary Output</SPAN><P>
+<P>The second page of output, shown in <A HREF="sect55.htm#modslv3">Figure 14.64</A>, gives more
+information on the failed observation.
+<P><A NAME="modslv3">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Single-Equation Forecast</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399">ERROR:</font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Solution values are missing because of missing input values for observation 144 at NEWTON iteration 0.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Additional information on the values of the variables at this observation, which may be helpful in determining the cause of the failure of the solution process, is printed below.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observation</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">144</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iteration</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.000000</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Missing</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&nbsp;</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Iteration Errors - Missing.</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><A NAME="IDX1"></A>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD bordercolor="#000000"><font  face="Courier New, Courier" size="2" color="#003399"><PRE>
+                                                                                
+                                                                                
+_N_:                144     ACTUAL.LHUR:          .     ERROR.LHUR:           . 
+IP:                   .     LHUR:           7.10000     PRED.LHUR:            . 
+RESID.LHUR:           .     a:              0.01071     b:             -0.47885 
+c:              0.92930                                                         
+                                                                                
+</PRE>
+</font></TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+<P>
+</font></CENTER>
+</font><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=LEFT><font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE >
+<TR>
+ <TD VALIGN=TOP><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>NOTE:</i></b></font></TD>
+ <TD><font  face="Verdana, Helvetica, helv" size="2" color="#003399">Simulation aborted.</font></TD>
+</TR>
+</TABLE>
+<P>
+</font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.64:</B> Solve Step Error Message</SPAN><P>
+<P>From the program data vector you can see the variable IP 
+is missing for observation 144. LHUR could not be computed so
+the simulation aborted.
+<P>The solution summary table is shown in <A HREF="sect55.htm#modslv2">Figure 14.65</A>.
+<P><A NAME="modslv2">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Single-Equation Forecast</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Data Set Options</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DATA=</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">SASHELP.CITIMON</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>OUT=</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">SIM</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solution Summary</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variables Solved</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Forecast Lag Length</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solution Method</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">NEWTON</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>CONVERGE=</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1E-8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Maximum CC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Maximum Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Total Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">143</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Average Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX2"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observations Processed</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Read</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">145</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Lagged</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Solved</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">143</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>First</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Last</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">145</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Failed</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX3"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variables Solved For</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">LHUR</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.65:</B> Solution Summary Report</SPAN><P>
+<P>This solution summary table includes the names of the input data set and
+the output data set followed by a description of the model. 
+The table also indicates the 
+solution method defaulted to Newton's method.
+The remaining output is defined as follows:
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL ALIGN=JUSTIFY><COL>
+<TR VALIGN="TOP"><TD>Maximum CC</TD><TD ALIGN=LEFT NOWRAP>is the maximum convergence value accepted by the Newton</TD></TR>
+<TR VALIGN="TOP"><TD>&#160;</TD><TD ALIGN=LEFT NOWRAP>procedure.  This number is always less than the value</TD></TR>
+<TR VALIGN="TOP"><TD><BR></TD><TD ALIGN=LEFT NOWRAP>for &#34;CONVERGE=.&#34;</TD></TR>
+<TR VALIGN="TOP"><TD>Maximum Iterations</TD><TD ALIGN=LEFT NOWRAP>is the maximum number of Newton iterations performed</TD></TR>
+<TR VALIGN="TOP"><TD>&#160;</TD><TD ALIGN=LEFT NOWRAP>at each observation and each replication of Monte</TD></TR>
+<TR VALIGN="TOP"><TD><BR></TD><TD ALIGN=LEFT NOWRAP>Carlo simulations.</TD></TR>
+<TR VALIGN="TOP"><TD>Total Iterations</TD><TD ALIGN=LEFT NOWRAP>is the sum of the number of iterations required for each</TD></TR>
+<TR VALIGN="TOP"><TD><BR></TD><TD ALIGN=LEFT NOWRAP>observation and each Monte Carlo simulation.</TD></TR>
+<TR VALIGN="TOP"><TD>Average Iterations</TD><TD ALIGN=LEFT NOWRAP>is the average number of Newton iterations required to</TD></TR>
+<TR VALIGN="TOP"><TD><BR></TD><TD ALIGN=LEFT NOWRAP>solve the system at each step.</TD></TR>
+<TR VALIGN="TOP"><TD>Solved</TD><TD ALIGN=LEFT NOWRAP>is the number of observations used times the number of</TD></TR>
+<TR VALIGN="TOP"><TD>&#160;</TD><TD ALIGN=LEFT NOWRAP>random replications selected plus one, for Monte Carlo</TD></TR>
+<TR VALIGN="TOP"><TD>&#160;</TD><TD ALIGN=LEFT NOWRAP>simulations. The one additional simulation is the original</TD></TR>
+<TR VALIGN="TOP"><TD>&#160;</TD><TD ALIGN=LEFT NOWRAP>unperturbed solution. For simulations not involving Monte</TD></TR>
+<TR VALIGN="TOP"><TD>&#160;</TD><TD ALIGN=LEFT NOWRAP>Carlo, this number is the number of observations used.</TD></TR>
+</TABLE>
+<P><H3><I>Summary Statistics</I></H3>
+<A NAME="idxmod0548">&#13;</A><A NAME="idxmod0547">&#13;</A><A NAME="idxmod0549">&#13;</A><A NAME="idxmod0550">&#13;</A>The STATS and THEIL options are used to select 
+goodness of fit statistics.
+Actual values must be provided in the input data set
+for these statistics to be printed.
+When the RANDOM= option is specified, 
+the statistics do not include the unperturbed (_REP_=0) solution.
+<P><H4><I>STATS Option Output</I></H4>
+If the STATS and THEIL options are added to the model in the previous section
+<PRE>
+   proc model data=sashelp.citimon;
+      parameters a 0.010708  b  -0.478849 c 0.929304;
+      lhur= 1/(a * ip) + b + c * lag(lhur) ;
+      solve lhur / out=sim dynamic stats theil;
+      range date to '01nov91'd;
+   run;
+</PRE>
+the STATS output in <A HREF="sect55.htm#modzstats">Figure 14.66</A> and the THEIL
+output in <A HREF="sect55.htm#modztheil">Figure 14.67</A> are generated.
+<P><A NAME="modzstats">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Single-Equation Simulation</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Solution Range DATE = FEB1980 To NOV1991</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=8 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Descriptive Statistics</b></font></TD>
+</TR>
+<TR>
+ <TD ROWSPAN=2 ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>N Obs</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>N</b></font></TD>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Actual</b></font></TD>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Predicted</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Label</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Std Dev</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Std Dev</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>LHUR</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">142</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">142</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7.0887</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.4509</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7.2473</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.1465</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">UNEMPLOYMENT RATE: ALL WORKERS, 16 YEARS</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=10 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Statistics of fit</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>N</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean % Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean Abs Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Mean Abs % Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>RMS Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>RMS % Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>R-Square</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Label</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>LHUR</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">142</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1585</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3.5289</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.6937</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">10.0001</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.7854</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">11.2452</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.7049</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">UNEMPLOYMENT RATE: ALL WORKERS, 16 YEARS</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.66:</B> STATS Output</SPAN><P>
+<P>The number of observations (Nobs), the number of observations with both predicted 
+and actual values nonmissing (N), and
+the mean and standard deviation of the actual and predicted values
+of the determined variables are printed first. The next set of columns
+in the output are defined as follows:
+<P><TABLE COLS=2 RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BORDER=0><COL><COL>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>Mean Error</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="139" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq247.gif"
+ ALT="{{1 \over N}\sum_{j=1}^N{(\hat{y}_{j} - y_{j} )}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>Mean % Error</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="173" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq248.gif"
+ ALT="{{100 \over N}\sum_{j=1}^N{(\hat{y}_{j} - y_{j}) / y_{j}}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>Mean Abs Error</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="135" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq249.gif"
+ ALT="{{1 \over N}\sum_{j=1}^N{|{\hat{y}_{j} - y_{j} }|}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>Mean Abs % Error</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="183" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq250.gif"
+ ALT="{{100 \over N}\sum_{j=1}^N{{|(\hat{y}_{j} - y_{j})/ y_{j}|}}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>RMS Error</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="165" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq251.gif"
+ ALT="{\sqrt{{1 \over N}\sum_{j=1}^N{(\hat{y}_{j} - y_{j})^2}}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>RMS % Error</TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="232" HEIGHT="51" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq252.gif"
+ ALT="{100\sqrt{{1 \over N}\sum_{j=1}^N{((\hat{y}_{j} - y_{j})/ y_{j})^2}}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>R-square</TD><TD ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">1 - <I>SSE</I> / <I>CSSA</I></SPAN></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP><I>SSE</I></TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="128" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq253.gif"
+ ALT="{\sum_{j=1}^N{(\hat{y}_{j} - y_{j} )^2}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP><I>SSA</I></TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="89" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq254.gif"
+ ALT="{\sum_{j=1}^N{(y_{j} )^2}}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP><I>CSSA</I></TD><TD ALIGN=LEFT NOWRAP><IMG WIDTH="153" HEIGHT="54" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq255.gif"
+ ALT="{{SSA} - (\sum_{j=1}^N{y_{j} } )^2}"></TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP><IMG WIDTH="13" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq256.gif"
+ ALT="{\hat y}"></TD><TD ALIGN=LEFT NOWRAP>predicted value</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>&#160;</TD><TD ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD ALIGN=LEFT NOWRAP>y</TD><TD ALIGN=LEFT NOWRAP>actual value</TD></TR>
+</TABLE>
+<P><A NAME="idxmod0551">&#13;</A>When the RANDOM=
+option is specified, the statistics do not include the unperturbed
+(_REP_=0) solution.
+<P><H4><I>THEIL Option Output</I></H4>
+The THEIL option specifies that Theil forecast error statistics
+be computed for the actual and predicted values and for
+the relative changes from lagged values. Mathematically, the quantities
+are
+
+<DL CLASS="equation"><DD><IMG WIDTH="193" HEIGHT="74"
+ SRC="images/modeq257.gif"
+ ALT="\hat{yc} = (\hat{y} - lag(y)) / lag(y)"></DL>
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>yc</I> = (<I>y</I>  - <I>lag</I>(<I>y</I>)) / <I>lag</I>(<I>y</I>)
+</SPAN>
+</DL>
+where <I><IMG WIDTH="21" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq258.gif"
+ ALT="{\hat yc}"></I> is the relative change for the predicted
+value and <I>yc</I> is the relative change for the actual value.
+<P><A NAME="modztheil">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Dynamic Single-Equation Simulation</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>Solution Range DATE = FEB1980 To NOV1991</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=12 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Theil Forecast Error Statistics</b></font></TD>
+</TR>
+<TR>
+ <TD ROWSPAN=2 ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>N</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Corr (R)</b></font></TD>
+ <TD COLSPAN=5 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE Decomposition Proportions</b></font></TD>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Inequality Coef</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Label</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Bias (UM)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Reg (UR)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Dist (UD)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Var (US)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Covar (UC)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>U1</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>U</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>LHUR</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">142.0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.6168</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.85</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.04</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.01</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.95</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.15</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.81</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1086</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0539</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">UNEMPLOYMENT RATE: ALL WORKERS, 16 YEARS</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=12 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Theil Relative Change Forecast Error Statistics</b></font></TD>
+</TR>
+<TR>
+ <TD ROWSPAN=2 ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD COLSPAN=3 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Relative Change</b></font></TD>
+ <TD COLSPAN=5 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE Decomposition Proportions</b></font></TD>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Inequality Coef</b></font></TD>
+ <TD ROWSPAN=2 ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Label</b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>N</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Corr (R)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Bias (UM)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Reg (UR)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Dist (UD)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Var (US)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Covar (UC)</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>U1</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>U</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>LHUR</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">142.0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0126</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.08</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.09</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.85</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.06</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.43</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.47</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4.1226</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.8348</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">UNEMPLOYMENT RATE: ALL WORKERS, 16 YEARS</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.67:</B> THEIL Output</SPAN><P>
+<P>The columns have the following meaning:
+<DL>
+<DT>Corr (R)
+<DD>is the correlation coefficient, <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq259.gif"
+ ALT="{{\rho}}">, between the actual and predicted values.
+
+<DL CLASS="equation"><DD><IMG WIDTH="105" HEIGHT="99"
+ SRC="images/modeq260.gif"
+ ALT="{\rho} = \frac{\rm{cov}( y, \hat{y})}
+{ {\sigma}_{a} {\sigma}_{p}}"></DL>
+where <IMG WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq261.gif"
+ ALT="{{\sigma}_{p}}"> and <IMG WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq262.gif"
+ ALT="{{\sigma}_{a}}"> are the standard
+deviations of the predicted and actual values. 
+<DT>Bias (UM)
+<DD>is an indication of systematic error and measures the extent to which the 
+average values of the actual and predicted deviate from each other.
+
+<DL CLASS="equation"><DD><IMG WIDTH="141" HEIGHT="105"
+ SRC="images/modeq263.gif"
+ ALT="\frac{(\rm{E}(y)- \rm{E}(\hat{y}))^2}
+{ \frac{1}N \sum_{t=1}^N{(y_{t} - \hat{y}_{t})^2} }"></DL>
+<DT>Reg (UR)
+<DD>is defined as <IMG WIDTH="161" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq264.gif"
+ ALT="{({\sigma}_{p} - {\rho} * {\sigma}_{a})^2/ {MSE}}">.Consider the regression
+
+<DL CLASS="equation"><DD><IMG WIDTH="87" HEIGHT="72"
+ SRC="images/modeq265.gif"
+ ALT="y = {\alpha}+ {\beta}\hat{y}"></DL>
+If <IMG WIDTH="48" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq266.gif"
+ ALT="{\hat{{\beta}}=1}">, UR will equal zero.
+<DT>Dist (UD)
+<DD>is defined as <IMG WIDTH="154" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq267.gif"
+ ALT="{(1 - {\rho}^2) {\sigma}_{a}{\sigma}_{a}/{MSE}}">and represents the variance of the residuals obtained by regressing <I>yc</I>
+on <I><IMG WIDTH="21" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq258.gif"
+ ALT="{\hat yc}"></I>.
+<DT>Var (US)
+<DD>is the variance proportion. US indicates the ability of the model to
+replicate the degree of variability in the endogenous variable.
+
+<DL CLASS="equation"><DD><IMG WIDTH="131" HEIGHT="96"
+ SRC="images/modeq268.gif"
+ ALT="{US} = \frac{({\sigma}_{p}-{\sigma}_{a})^2}{MSE}"></DL>
+<DT>Covar (UC)
+<DD>represents the remaining error after deviations from average values and
+average variabilities have been accounted for.
+
+<DL CLASS="equation"><DD><IMG WIDTH="153" HEIGHT="94"
+ SRC="images/modeq269.gif"
+ ALT="{UC} = \frac{2(1 - {\rho}) {\sigma}_{p}{\sigma}_{a}}{MSE}"></DL>
+<DT>U1
+<DD>is a statistic measuring the accuracy of a forecast.
+
+<DL CLASS="equation"><DD><IMG WIDTH="170" HEIGHT="112"
+ SRC="images/modeq270.gif"
+ ALT="{U1}=\frac{MSE}{\sqrt{{1 \over N}\sum_{t=1}^N{(y_{t})^2}}}"></DL>
+<DT>U
+<DD>is the Theil's inequality coefficient defined as follows:
+
+<DL CLASS="equation"><DD><IMG WIDTH="304" HEIGHT="112"
+ SRC="images/modeq271.gif"
+ ALT="U=\frac{MSE}
+{\sqrt{{1 \over N}\sum_{t=1}^N{(y_{t})^2}} +
+\sqrt{{1 \over N}\sum_{t=1}^N{( \hat{y}_{t})^2}}}"></DL>
+<DT>MSE
+<DD>is the mean square error
+
+<DL CLASS="equation"><DD><IMG WIDTH="194" HEIGHT="113"
+ SRC="images/modeq272.gif"
+ ALT="{MSE} = \frac{1}N \sum_{t=1}^N{(\hat{yc} - yc)^2}"></DL></DL>
+<P>More information on these
+statistics can be found in the references Maddala (1977, 344--347)
+and Pindyck and Rubinfeld (1981, 364 -365).
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect54.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect56.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

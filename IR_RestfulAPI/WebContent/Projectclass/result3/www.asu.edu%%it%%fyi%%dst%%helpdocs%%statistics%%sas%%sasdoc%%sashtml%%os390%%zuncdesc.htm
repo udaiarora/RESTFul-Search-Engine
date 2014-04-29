@@ -1,0 +1,317 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using the INFILE/FILE User Exit Facility : Function Descriptions </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0325702.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zservice.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zuncdesc">Function Descriptions</A></FONT></H1>
+
+
+<P><A name="z0557585">&#13;The following sections provide the information
+that you need in order to write the functions that are part of the user exit
+module.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Initialization Function</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557586">&#13;
+ SAS calls the Initialization function before it calls
+any of the other functions.  In the Initialization function, you specify the
+amount of virtual memory that your routine will need above and below the 16-megabyte
+address line.  You store the length of the work area that you need above the
+line in the fullword that is pointed to by the INITMALN field of the Initialization
+FRCB.  You store the length of the work area that you need below the line
+in the fullword that is pointed to by the INITMBLN field of the Initialization
+FRCB. All pointers in the Initialization FRCB point to valid data areas.</A>
+<P>In the amount of storage that you request, you should
+include space for a Local Register Save Area (LRSA) of 72 bytes, plus any
+other work areas that your Parse Options function and Open function will need.
+<P>SAS allocates the memory that you request when it returns
+from this function, and it stores pointers to the allocated memory in the
+UEBCB. The pointer to the memory that was allocated above the line is stored
+in the MEMABV field of the UEBCB.  The pointer to the memory that was allocated
+below the line is stored in the MEMBEL field.
+<P><A href="#zifue-f3">Initialization FRCB</A>
+illustrates the Initialization FRCB structure and its relationship with other
+control blocks: 
+<P>
+<B><I><A name="zifue-f3">Initialization FRCB</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328327.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Parse Options Function</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557590">&#13;
+ In the Parse Options function, you validate both the
+name of the user exit and any INFILE or FILE statement options that SAS does
+not recognize.  SAS calls this function once to process the user exit module
+name.  SAS then calls the function for each statement option that it does
+not recognize so that the function can process each option and value string.</A>
+<P>You can use two kinds of statement options in your user
+exit: 
+<P>
+<UL>
+
+<LI>options that take a value, such as <B>name</B>=<B>value</B>.  For example:  
+
+
+
+<PRE>myopt=ABC</PRE>
+<P>Note that quotes are considered part of the value; if
+you want them to be stripped off, you must provide the code to do so.<P>
+
+<LI>options that do not take a
+value.<P>
+</UL>
+
+<P>The first time the Parse Options function is invoked,
+it should do the following: 
+<P>
+<UL>
+
+<LI>verify that the virtual storage that was requested
+during the Initialization function has been allocated<P>
+
+<LI>initialize both the allocated virtual storage
+and the two data areas in the UEBCB (User Word and Pointer to User Error
+Message).<P>
+</UL>
+
+<P><A href="#zifue-f4">Parse Options FRCB</A>
+illustrates the Parse Options FRCB structure and its relationship to other
+control blocks. 
+<P>
+<B><I><A name="zifue-f4">Parse Options FRCB</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328328.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>When the Parse
+Options function receives control, PARSOPTL
+is set to the length of the option name, and the address of the option name
+is stored in PARSOPTN.  For options that take a value, PARSVALL is set to
+the length of the value, and the address of the option value is stored in
+PARSVAL.  For options that do not take a value, both PARSVALL and PARSVAL
+are set to 0.
+<P>If an invalid option name or option value is detected,
+R15 should be set to a return code value of 8.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Open Function</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557601">&#13;  SAS invokes the Open function after INFILE or FILE statement
+processing opens the associated data set.  </A><A href="#zifue-f5">Open FRCB</A> illustrates the Open FRCB and its
+relationship to other control blocks: 
+<P>
+<B><I><A name="zifue-f5">Open FRCB</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328329.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The OPENMODE field can be
+one of the following values: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>1</TD>
+<TD align="left">the data set is opened for input
+mode.</TD></TR>
+
+<TR align=left valign="top">
+<TD>2</TD>
+<TD align="left">the data set is opened for output
+mode.</TD></TR>
+
+<TR align=left valign="top">
+<TD>4</TD>
+<TD align="left">the data set is opened for append
+mode.</TD></TR>
+
+<TR align=left valign="top">
+<TD>8</TD>
+<TD align="left">the data set is opened for update
+mode (read and write).</TD></TR>
+</TABLE>
+
+<P>When this function receives control, the Pointer to
+User Maximum Data Size field (OPENZLEN) points to a fullword that contains
+the Data Set Record Size.  In this function, set the pointer so that it points
+to a fullword that you initialize.  The fullword should contain the size of
+the largest record that you expect to process with the Read function. If it
+contains a lesser value, then truncated records may be passed to the Read
+function.
+<P>The Data Set Record Format field (OPENRECF) can be any
+combination of the following values: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>'C0'x</TD>
+<TD align="left">indicates Undefined format.</TD></TR>
+
+<TR align=left valign="top">
+<TD>'80'x</TD>
+<TD align="left">indicates Fixed format.</TD></TR>
+
+<TR align=left valign="top">
+<TD>'40'x</TD>
+<TD align="left">indicates Variable format.</TD></TR>
+
+<TR align=left valign="top">
+<TD>'10'x</TD>
+<TD align="left">indicates Blocked format.</TD></TR>
+
+<TR align=left valign="top">
+<TD>'08'x</TD>
+<TD align="left">indicates Spanned format.</TD></TR>
+
+<TR align=left valign="top">
+<TD>'04'x</TD>
+<TD align="left">indicates ASA Control Characters
+format.</TD></TR>
+</TABLE>
+
+<P>The Open function should activate any subprocesses or
+exits and should solicit from them any virtual storage requirements.
+<P>In this function, if you turn on the EX_NEXT flag in
+the UEBCB, SAS calls the Read function for the first record before it reads
+any records from the file itself.
+<P>If you use any SAS service routines (such as the ALLOC
+and FREE routines) in this function, then you must set the EX_ALC flag in
+the UEBCB.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Read Function</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557628">&#13;  SAS invokes the Read function during execution of the
+INPUT statement to obtain the next input record.  </A><A href="#zifue-f6">Read FRCB</A> illustrates the Read FRCB structure
+and its relationship to other control blocks: 
+<P>
+<B><I><A name="zifue-f6">Read FRCB</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328330.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>When the Read function
+receives control, the READRECA
+field (or Pointer to User Record Area Address) points to the address of the
+current record from the file.  The READRECL field points to a fullword that
+contains the length of the record that is in the Record Area.
+<P>In this function you can change the Record Address so
+that it points to a record that was defined by your user exit. If you do this,
+then SAS passes your record to the INPUT statement, rather than passing the
+record that was read from the file.  However, in this case you must also update
+the fullword that the Pointer to Record Size points to: it must equal the
+actual size of the record that the Record Address points to.
+<P>As long as the EX_NEXT flag is on, SAS invokes the Read
+function to obtain the next record.  SAS reads no records from the file itself
+until you turn off the EX_NEXT flag.
+<P>If you set the EX_DEL flag, then SAS ignores the current
+record, and processing continues to the next record.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Concatenation Function</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557633">&#13;   SAS invokes the Concatenation function whenever a data set in
+a concatenation of data sets has reached an end-of-file condition and the
+next data set has been opened.  </A><A href="#zifue-f7">Concatenation FRCB</A>
+illustrates the Concatenation FRCB structure and its relationship to other
+control blocks: 
+<P>
+<B><I><A name="zifue-f7">Concatenation FRCB</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328331.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>In this function
+you can modify the maximum data size
+for the next data set by changing the Pointer to User Maximum Data Size so
+that it points to a fullword that you initialize.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Write Function</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557635">&#13;
+ SAS invokes the Write function during the execution of
+the PUT statement whenever a new record must be written to the file.  </A><A href="#zifue-f8">Write FRCB</A>
+illustrates the Write FRCB and its relationship to other control blocks. 
+<P>
+<B><I><A name="zifue-f8">Write FRCB</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328332.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>When the Write function
+receives control, the WRITRECA
+field (or Pointer to User Record Area Address) points to a Record Address.
+ The Record buffer is allocated by SAS and contains the record that was created
+by the PUT statement.
+<P>In this function you can change the Record Address so
+that it points to a record that is defined by your user exit.  If you do this,
+then SAS writes your record to the file, instead of writing the record that
+was created by the PUT statement.  However, in this case you must also update
+the fullword that the Pointer to Record Size points to:  it must equal the
+actual size of the record that the Pointer to Record Area points to.
+<P>In the Write function, you may also change the setting
+of flags in the UEBCB. As long as the EX_NEXT bit in the UEBCB is on, SAS
+calls the Write function to write the next output record.  The DATA step is
+not prompted for any new records to output until the EX_NEXT flag has been
+set.  At any time, if the EX_DEL bit in the UEBCB is on, SAS ignores the current
+record, and processing continues to the next record.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Close Function</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0557639">&#13;  SAS invokes the Close function after it closes the associated
+data set. In this function, you should close any files that you opened, free
+any resources that you obtained, and terminate all subprocesses or exits that
+your user exit initiated.</A>
+<P><A href="#zifue-f9">Close FRCB</A>
+illustrates the Close FRCB structure and its relationship to other control
+blocks.
+<P>
+<B><I><A name="zifue-f9">Close FRCB</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01328333.gif" vspace="12" alt="[IMAGE]">
+<P>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0325702.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zservice.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zuncdesc">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

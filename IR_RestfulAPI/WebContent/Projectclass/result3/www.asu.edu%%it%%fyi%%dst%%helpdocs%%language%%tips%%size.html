@@ -1,0 +1,129 @@
+<html>
+<head>
+<title>
+Memory Needed to Run Program
+</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h2><center>
+Memory Needed to Run Program
+</center></h2>
+<p>
+Q. I need to know how much RAM memory is needed to run my program on
+the Research Cluster (IBM RS-6000).  Is there an option that I can 
+type in when compiling the program?  
+<p> 
+Yes there is a command that you may find useful, it is the "size" 
+command. Any UNIX system should have it.
+<p> 
+Here's a Fortran 77 example I wrote which shows how to use it. It also
+demonstrates the distinction between the file's actual size and its
+"executable" size:
+<p> 
+79 research1 > cat temp.f
+<pre> 
+      parameter (N = 1000)
+      real A(N,N)
+      do i = 1, N
+         do j = 1, N
+            A(i,j) = i+2*j
+         end do
+      end do
+      call trans(A,N)
+      print *, "A(1,1) = ", A(1,1)
+      stop
+      end
+</pre>  
+C     The following subroutine overwrites A with its transpose. BT
+<pre>  
+      subroutine trans(A,M)
+      real A(M,M)
+      do i = 1, M
+         do j = i+1, M
+            temp = A(i,j)
+            A(i,j) = A(j,i)
+            A(j,i) = temp
+         end do
+      end do
+      return
+      end
+</pre>  
+80 research1 > make temp
+<pre>
+xlf    temp.f   -o temp
+** _main   === End of Compilation 1 ===
+** trans   === End of Compilation 2 ===
+1501-510  Compilation successful for file temp.f.
+ 
+81 research1 > temp
+ A(1,1) =   3.000000000
+STOP
+ 
+82 research1 > ls -l temp
+-rwxr-x---   1 tachoir  tachoir     5672 Mar 22 15:53 temp*
+ 
+83 research1 > file temp
+temp:  executable (RISC System/6000 V3.1) or object module 
+not stripped
+ 
+84 research1 > size temp
+temp: 20 + 1233 + 303 + 76 + 4000052 + 436 + 534 = 4002654
+</pre> 
+The reason "temp" is so large is that the stored matrix A is N-by-N 
+which equals 1000 x 1000 x 4 (4 bytes per real number) = 4 million 
+JUST to store A. But the program "temp" only stores a memory address in 
+the file "temp". This points out one of the differences between file 
+size and executable size.
+<p> 
+85 research1 > man size
+<dl><dt> 
+  size Command
+<p> 
+<dd>
+  Purpose
+<p> 
+  Displays the section sizes of the Extended Common Object File
+  Format (XCOFF) object files.
+<p> 
+   Syntax
+<pre>  
+  size [  -d |  -o |  -x ] [  -f ] [  -V ] File [ File ... ]
+</pre> 
+  Description
+<p> 
+  The size command writes to standard output the number of bytes
+  required  by  all  sections, along with their sum for each  XCOFF
+  file.  If the -f flag is specified, the section name follows the
+  section size.
+</dl><p> 
+For more information about the "size" command see the rest of the man 
+page concerning "size". 
+<p> 
+
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3"><BR>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A> | <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:unix-q@asu.edu">unix-q@asu.edu</A></FONT><br>
+ <FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+ Page Last Updated: Tuesday September  7, 1999</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,162 @@
+<HTML>
+<HEAD>
+<TITLE>Example 9.7: Cash Flows</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="comex7">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="../chap10/index.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 9.7: Cash Flows</H2>
+<P>The COMPUTAB procedure can be used to model cash flows from one time period to
+the next.  The RETAIN statement is useful for enabling a
+row or column to contribute one of its values to its successor.
+Financial functions such as IRR (internal rate of return) and NPV
+(net present value) can be used on PROC COMPUTAB table values to provide
+a more comprehensive report.
+The following statements produce <A HREF="sect36.htm#comex07a">Output 9.7.1</A>:
+<P><PRE>
+   data cashflow;
+      input date date9. netinc depr borrow invest tax div adv ;
+      datalines;
+   30MAR1982 65 42 32 126 43 51 41
+   30JUN1982 68 47 32 144 45 54 46
+   30SEP1982 70 49 30 148 46 55 47
+   30DEC1982 73 49 30 148 48 55 47
+   ;
+   
+   title1 'Blue Sky Endeavors';
+   title2 'Financial Summary';
+   title4 '(Dollar Figures in Thousands)';
+   
+   proc computab data=cashflow;
+   
+      cols qtr1 qtr2 qtr3 qtr4 / 'Quarter' f=7.1;
+      col  qtr1 / 'One';
+      col  qtr2 / 'Two';
+      col  qtr3 / 'Three';
+      col  qtr4 / 'Four';
+      row  begcash / 'Beginning Cash';
+      row  netinc  / 'Income' '   Net income';
+      row  depr    / 'Depreciation';
+      row  borrow;
+      row  subtot1 / 'Subtotal';
+      row  invest  / 'Expenditures' '   Investment';
+      row  tax     / 'Taxes';
+      row  div     / 'Dividend';
+      row  adv     / 'Advertising';
+      row  subtot2 / 'Subtotal';
+      row  cashflow/  skip;
+      row  irret   / 'Internal Rate' 'of Return' zero=' ';
+      rows depr borrow subtot1 tax div adv subtot2 / +3;
+   
+      retain cashin -5;
+      _col_ = qtr( date );
+   
+      rowblock:
+         subtot1 = netinc + depr + borrow;
+         subtot2 = tax + div + adv;
+         begcash = cashin;
+         cashflow = begcash + subtot1 - subtot2;
+         irret = cashflow;
+         cashin = cashflow;
+   
+      colblock:
+         if begcash then cashin = qtr1;
+         if irret then do;
+            temp = irr( 4, cashin, qtr1, qtr2, qtr3, qtr4 );
+            qtr1 = temp;
+            qtr2 = 0; qtr3 = 0; qtr4 = 0;
+            end;
+   run;
+</PRE>
+<P></P><A NAME="comex07a"><SPAN CLASS="ssften"><B>Output 9.7.1:</B> Report Using a RETAIN Statement and the IRR Financial Function</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Blue Sky Endeavors</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Financial Summary</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>(Dollar Figures in Thousands)</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                             Quarter    Quarter    Quarter    Quarter           
+                                 One        Two      Three       Four           
+          Beginning Cash        -5.0       -1.0        1.0        2.0           
+          Income                                                                
+             Net income         65.0       68.0       70.0       73.0           
+             Depreciation       42.0       47.0       49.0       49.0           
+             BORROW             32.0       32.0       30.0       30.0           
+             Subtotal          139.0      147.0      149.0      152.0           
+          Expenditures                                                          
+             Investment        126.0      144.0      148.0      148.0           
+             Taxes              43.0       45.0       46.0       48.0           
+             Dividend           51.0       54.0       55.0       55.0           
+             Advertising        41.0       46.0       47.0       47.0           
+             Subtotal          135.0      145.0      148.0      150.0           
+          CASHFLOW              -1.0        1.0        2.0        4.0           
+                                                                                
+          Internal Rate                                                         
+          of Return             20.9                                            
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="../chap10/index.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

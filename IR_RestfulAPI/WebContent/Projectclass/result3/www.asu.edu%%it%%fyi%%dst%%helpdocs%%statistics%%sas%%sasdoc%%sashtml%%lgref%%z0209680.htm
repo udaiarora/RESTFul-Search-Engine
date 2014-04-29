@@ -1,0 +1,165 @@
+<HTML>
+<!-- This page produced Mon Jul 19 13:58:41 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Functions and CALL Routines : DCLOSE </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0201606.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0245884.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">DCLOSE</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0209680">DCLOSE</A></FONT></H1>
+
+<P><HR><BR><B>Closes a directory that was opened by the DOPEN function and returns
+a value</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Category:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">External Files
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z0209680.htm#znid-875"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0209680.htm#znid-876"><FONT size="2"><B>Argument</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0209680.htm#z0225978"><FONT size="2"><B>Details</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0209680.htm#z0225979"><FONT size="2"><B>Examples</b></FONT></A></TD></TR>
+<TR>
+<TD width="18"></TD>
+<TD><A href="z0209680.htm#z0225981"><FONT size="2">Example 1: Using DCLOSE to Close a Directory</FONT></A></TD></TR>
+<TR>
+<TD width="18"></TD>
+<TD><A href="z0209680.htm#z0225985"><FONT size="2">Example 2: Using DCLOSE within a DATA Step</FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0209680.htm#z0225988"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="znid-875">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>DCLOSE</B>(<I>directory-id</I>)
+</TD></TR></TABLE>
+<BR><H3><A name="znid-876">Argument</A></H3>
+
+<P><A name="z0842464">&#13;</A>
+<DL>
+<DT><B><B><I>directory-id</I></B></B></DT>
+<DD>specifies the identifier that was assigned
+when the directory was opened, generally by the DOPEN function.<P></DD>
+</DL>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0225978">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>DCLOSE returns 0
+if the operation was successful, <IMG border="0" src="../common/images/ne.gif" alt="[ne]">0 if it was not successful.  The DCLOSE
+function closes a directory that was previously opened by the DOPEN function.
+ DCLOSE also closes any open members. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;All directories or members opened within a DATA
+step are closed automatically when the DATA step ends.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0225979">Examples</A></FONT></B></TD></TR></TABLE>
+
+<BR><H3> <A name="z0225981">Example 1: Using DCLOSE to Close a Directory</A> </H3>
+
+
+<P>This example opens the directory to which the fileref MYDIR has previously
+been assigned, returns the number of members, and then closes the directory:
+
+
+
+<PRE>%macro memnum(filrf,path);
+%let rc=%sysfunc(filename(filrf,&amp;path));
+%if %sysfunc(fileref(&amp;filrf)) = 0 %then
+   %do;
+         /* Open the directory. */
+      %let did=%sysfunc(dopen(&amp;filrf));
+      %put did=&amp;did;
+         /* Get the member count. */
+      %let memcount=%sysfunc(dnum(&amp;did));
+      %put &amp;memcount members in &amp;filrf.;
+         /* Close the directory. */
+      %let rc= %sysfunc(dclose(&amp;did));
+   %end;
+%else %put Invalid FILEREF;
+%mend;
+%memnum(MYDIR,<I>physical-filename</I>)</PRE>
+<BR><H3> <A name="z0225985">Example 2: Using DCLOSE within a DATA Step</A> </H3>
+
+
+<P>This example uses the DCLOSE function within a DATA step:  
+
+
+
+<PRE>%let filrf=MYDIR;
+data _null_;
+  rc=filename("&amp;filrf","<I>physical-filename</I>");
+  if fileref("&amp;filrf") = 0 then
+     do;
+           /* Open the directory. */
+        did=dopen("&amp;filrf");                
+           /* Get the member count. */
+        memcount=dnum(did);
+        put memcount "members in &amp;filrf";
+           /* Close the directory. */
+        rc=dclose(did);
+     end;
+  else put "Invalid FILEREF";
+run;</PRE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0225988">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>Functions:
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><A href="z0209538.htm">DOPEN</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0210034.htm">FCLOSE</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0209683.htm">FOPEN</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0209685.htm">MOPEN</A></TD></TR></TABLE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0201606.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0245884.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0209680">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

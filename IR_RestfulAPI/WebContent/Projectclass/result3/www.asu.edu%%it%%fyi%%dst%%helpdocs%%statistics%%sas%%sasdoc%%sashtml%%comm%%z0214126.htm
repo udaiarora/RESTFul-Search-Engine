@@ -1,0 +1,393 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>OS/390 Spawner Program : Starting the OS/390 Spawner </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z2wner.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0300892.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0104087.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0214126">Starting the OS/390 Spawner</A></FONT></H1>
+
+
+<P>As
+an alternative method to signing on to a remote session by using a TSO sign-on
+script, the OS/390 spawner program initiates SAS/CONNECT sessions
+on OS/390 systems without requiring that username and password pairs be passed
+over the network in clear text mode.
+<P>If the local SAS session is running Release 6.09E or a subsequent release
+or Release 6.11 TS040 or a subsequent release, all data that flows from the
+local host to the spawner program during sign on is encrypted by default.
+<P>The OS/390 spawner program supports encrypted sign ons, by default,
+to an OS/390 system with or without scripts. 
+<P>The OS/390 spawner runs as an OS/390 started task. It uses OS/390 Unix
+System Services, and you must be running OS/390 Version 2 Release 4 or later.
+The spawner program requires APF-authorization. To start the OS/390 spawner,
+enter the following operator console command:
+<PRE>START SPAWNER</PRE>
+<P>This command activates the started task procedure. An example of this
+procedure follows:
+<PRE>//SPAWNER  EXEC PGM=SASTCPD,
+//         PARM=(' =&lt;//DDN:PARMS')
+//STEPLIB  DD   DISP=SHR,DSN=SAS.SPAWNER.LOAD
+//SYSPRINT DD   SYSOUT=A
+//SYSTERM  DD   SYSOUT=A
+//PARMS    DD   DISP=SHR,DSN=SAS.SPAWNER.PARMS</PRE>
+<P>Here is the syntax to configure the OS/390 spawner program:
+
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-HELP&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-INHERITANCE&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-NETENCRALG
+<I>algorithm</I>&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-NETENCRYPT YES | NO&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-NETENCRKEY
+<I>n</I>&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-NETMAC |
+-NONETMAC&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-NOCLEARTEXT&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-NOSCRIPT&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-SASCMD
+<I>command</I>&gt;
+</TD></TR></TABLE>
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+&lt;-SERVICE
+<I>service-name</I>&gt;
+</TD></TR></TABLE>
+</TD></TR></TABLE>
+<DL>
+<DT>-HELP</DT>
+<DD>prints a list of valid parameters.<P></DD>
+
+<DT>-INHERITANCE</DT>
+<DD>causes the SAS session that is spawned to inherit the socket
+that was created when the spawner accepted the initial connection from the
+local SAS session .  This option is useful if your configuration involves
+a firewall and you want to minimize the number of ports that you define to
+the firewall for use by SAS/CONNECT. 
+<P>If you start a spawner with the -INHERITANCE option, you then define
+the port that the spawner is listening on to the firewall and map it to the
+server machine's port.  This will enable any number of SAS/CONNECT clients
+to connect through this single port and SIGNON to a remote host on the inside
+of the firewall.  Each client just opens a unique socket on the defined port.
+ This eliminates the need to define an individual port for each client that
+may need to come in through the firewall.  In this configuration you set your
+REMOTE= value to a two-level name where the first level is the name of the
+host running the firewall and the second level is the well-known service name
+of the port that you have enabled for connections.<P></DD>
+
+<DT>-NETENCRALG
+<B>algorithm</B></DT>
+<DD>If you specify more than one algorithm, enclose the algorithm
+names in parenthesis and use commas to separate the names. If there are embedded
+blanks in the algorithm name,  enclose each algorithm in quotation marks.
+<P>Set this option at the remote host and, optionally, at the local host
+to specify one or more encryption algorithms to use in a SAS/CONNECT session.
+However, the local host and the remote host must share an encryption algorithm
+in common. If you specify the option in the remote host session only, the
+local host attempts to select an algorithm that was specified at the remote
+host. If you also set the option at the local host and specify an algorithm
+that is not specified at the remote host, the local host's attempt to connect
+to that remote host fails when the local host assigns a library. 
+<P>Valid values for this option are
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>RC2</TD></TR>
+<TR valign="top"><TD></TD><TD>RC4</TD></TR>
+<TR valign="top"><TD></TD><TD>DES</TD></TR>
+<TR valign="top"><TD></TD><TD>TripleDES</TD></TR>
+<TR valign="top"><TD></TD><TD>SAS
+Proprietary.</TD></TR></TABLE>
+<P>See the 
+
+
+
+<B>SAS/CONNECT User's Guide</B> or the 
+
+
+
+<B>SAS/SHARE User's Guide</B>  for more information about the -NETENCRALG
+option.<P></DD>
+
+<DT>-NETENCRYPT</DT>
+<DD>Set this option at both the local host and the remote host.
+At the remote host, this option specifies that encryption is required for
+each connection from a local host SAS session. At the local host, this option
+specifies that the local host must connect only to a remote host that supports
+encryption. 
+<P>The default for this option is that encryption is used if the -NETENCRALG
+option is set and if both the local host and the remote host are capable of
+encryption. If encryption algorithms were specified but either the local host
+or the remote host is incapable of encryption, then encryption will not be
+performed.
+<P>Encryption may not be supported at the local host or the remote host
+for the following reasons:
+<UL>
+
+<LI>You are running a release of SAS (prior to Version 7) that does
+not support encryption.<P>
+
+<LI>Your site has not purchased a SAS/SECURE license for a specific
+platform.<P>
+
+<LI>You specified encryption algorithms in the local host and the
+remote host SAS sessions that are incompatible.<P>
+
+<LI>You do not have a cryptographic service provider installed on
+your UNIX system.<P>
+</UL>
+
+<P>See the 
+
+
+
+<B>SAS/CONNECT User's Guide</B> or the 
+
+
+
+<B>SAS/SHARE User's Guide</B>  for more information about the -NETENCRYPT
+option.<P></DD>
+
+<DT>-NETENCRKEY <B>n</B> </DT>
+<DD>You set this option in either the local host or the remote
+host SAS session. It specifies the key length to be used by the encryption
+algorithm.
+<P>Valid values for this option are
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>128</TD>
+<TD align="left">specifies 1024-bit RSA and 128-bit RC2 and RC4 key
+algorithms.</TD></TR>
+
+<TR align=left valign="top">
+<TD>40</TD>
+<TD align="left">specifies 512-bit RSA and 40-bit RC2 and RC4 key
+algorithms.</TD></TR>
+
+<TR align=left valign="top">
+<TD>0</TD>
+<TD align="left">no value is set. This is the default.</TD></TR>
+</TABLE>
+
+<P>If you require extra security, then set the -NETENCRKEY option to 128.
+If you prefer to save CPU, then set the -NETENCRKEY option to 40. 
+<P>By default, if you try to connect a host that is capable of only a 40-bit
+key length with a host that is capable of both a 40-bit and a 128-bit key
+length, then the connection is made using the lesser key length.  If both
+hosts are capable of 128-bit key lengths, then a 128-bit key length is used.
+<P>See the 
+
+
+
+<B>SAS/CONNECT User's Guide</B> or the 
+
+
+
+<B>SAS/SHARE User's Guide</B>  for more information about the -NETENCRKEY
+option.<P></DD>
+
+<DT>-NETMAC | -NONETMAC </DT>
+<DD>Set this option to control the use of Message Authentication
+Codes (MACs) on network communications. A Message Authentication Code is the
+equivalent of a checksum that is used to ensure that the original message
+has not been modified.
+<P>This option may be set at either the local host or the remote host.
+The default is -NETMAC.
+<P>See the 
+
+
+
+<B>SAS/CONNECT User's Guide</B>or the 
+
+
+
+<B>SAS/SHARE User's Guide</B>  for more information about the -NETMAC
+option.<P></DD>
+
+<DT>-NOCLEARTEXT</DT>
+<DD>prevents a sign on from a local host that does not support
+username and password encryption. This option prevents local hosts in a SAS
+session that are running releases prior to 6.09E and 6.11 TS040 from signing
+on to the spawner program. The default is to accept both encrypted and clear-text
+userids and passwords. This allows local hosts in a SAS session that are running
+releases prior to 6.09E and 6.11 TS040 to sign on to the UNIX spawner program.<P></DD>
+
+<DT>-NOSCRIPT</DT>
+<DD>prevents sign ons from local hosts that use scripts, and
+allows sign ons only from local hosts that do not use scripts.
+<P>For the TCP/IP access method, the spawner program requires a script
+file, or it will verify the supplied userid and the password. This option
+requires that the user set security in the local SAS session prior to sign
+on. For details about setting security (for example, by means of the USER=
+and PASSWORD= options in an appropriate statement), see <A href="z0216242.htm#z1252230">Setting Security for SAS/CONNECT and SAS/SHARE</A>.
+<P>If you use the -NOSCRIPT option, you must also use the
+-SASCMD option.<P></DD>
+
+<DT>-SASCMD <B>command</B></DT>
+<DD>specifies the SAS command that starts a SAS session when
+you sign on without a script. If the RLINK fileref is not defined in the local
+host SAS session, then the user is signing on without a script. In this case,
+the -SASCMD option must be specified.<P></DD>
+
+<DT>-SERVICE
+<B>service-name</B></DT>
+<DD>specifies the name of the service that the UNIX spawner
+program uses to listen for incoming requests. This value is identical to the <B>service</B> value in the REMOTE= option that the user specifies at the
+local host prior to sign on. Because there is no default, you must specify
+this value. See <A href="z0363155.htm#z0363163">Specifying the Remote Node Name</A>
+for details.
+<P>The service name must be defined identically in the SERVICES file on
+both the local and remote hosts. See <A href="zervices.htm">Configuring the SERVICES File</A> for more information about the SERVICES file.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Examples of Starting and Connecting to the OS/390 Spawner Program</FONT></B></TD></TR></TABLE>
+
+<P>The
+following examples illustrate how to start the spawner program and how to
+connect to it.
+<P>Example 1:
+<P>The following OS/390 command starts the spawner program at the remote
+OS/390 host with the <B>service-name</B> 
+
+
+<CODE><B>spawner</B></CODE> and allows clear-text sign ons from local hosts that use a
+script.
+
+
+
+<PRE>START SPAWNER</PRE>
+<P>It uses the following PARMS file:
+
+
+
+<PRE>-service spawner
+-cleartext</PRE>
+<P>At an OS/390 local host, the following statements specify a script file
+named 
+
+
+<CODE><B>tcpmvs.scr</B></CODE> that makes a connection to the spawner
+program on the system RMTHOST, which is listening on the port that is named 
+
+
+<CODE><B>spawner</B></CODE>. The value for REMOTE=
+ is the name of the OS/390 node, or it can be a macro variable that contains
+the Internet address of the OS/390 node where the spawner program is running.
+ 
+
+
+
+<PRE>options comamid=tcp;
+filename rlink '<I>!sasroot</I>\connect\saslink\tcpmvs.scr';
+signon rmthost.spawner;</PRE>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Do not use the return key to break the line that specifies the
+filename; continue typing the statement on a single line.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Example 2:
+<P>The following OS/390 command starts the spawner program at the remote
+OS/390 host.
+
+
+
+<PRE>START SPAWNER</PRE>
+<P>It uses the following configuration file:
+<PRE>-service spawner
+-inheritance
+-noscript
+-netencralg rc2
+-netencralg des
+-sascmd "SAS OPT('DMR,COMAMID=TCP,NOTERMINAL')"</PRE>
+<P>At an OS/390  local host, the TCP/IP access method is used to connect
+to the remote host named RMTHOST, which must be either the node name of the
+OS/390 node or a macro variable that contains the Internet address of the
+OS/390 node where the spawner program is running.  The USER= option in the
+SIGNON statement prompts the user for a userid and password when connecting
+to RMTHOST on which the OS/390 spawner program named 
+
+
+<CODE><B>spawner</B></CODE> runs.
+
+
+
+<PRE>options comamid=tcp;
+signon rmthost.spawner user=_prompt_ ;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Ending the OS/390 Spawner Program</FONT></B></TD></TR></TABLE>
+
+<P>To
+stop the spawner, enter the following system command:
+
+
+
+<PRE>STOP SPAWNER</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z2wner.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0300892.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0104087.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0214126">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

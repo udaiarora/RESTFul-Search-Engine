@@ -1,0 +1,167 @@
+<HTML>
+<HEAD>
+<TITLE>Example 14.9: Circuit Estimation</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="modcirest">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect79.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect81.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 14.9: Circuit Estimation</H2>
+Consider the nonlinear circuit shown in <A HREF="sect80.htm#modcirc">Figure 14.81</A>.
+<P>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/modcir.gif" ALT="modcir.gif (1596 bytes)" HEIGHT="196" WIDTH="366">
+</TD></TR></TABLE></CENTER><P><A NAME="modcirc">&#13;</A><SPAN CLASS="ssften"><B>Figure 14.81:</B> Nonlinear Resistor Capacitor Circuit </SPAN><P>
+<P>The theory of electric circuits is governed by Kirchhoff's
+laws: the sum of the currents flowing to a node is zero, and
+the net voltage drop around a closed loop is zero. In addition
+to Kirchhoff's laws, there are relationships between the
+current I through each element and the voltage drop V across the
+elements. For the circuit in <A HREF="sect80.htm#modcirc">Figure 14.81</A>, the relationships
+are
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>C</I>[(<I>dV</I>)/<I>dt</I>] = <I>I</I></SPAN>
+</DL>
+for the capacitor and
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>V</I> = (<I>R<SUb>1</SUb></I> + <I>R<SUb>2</SUb></I> (1-exp(-<I>V</I>))) <I>I</I></SPAN>
+</DL>
+for the nonlinear resistor. The following
+differential equation describes the current at
+node 2 as a function of time and voltage for this circuit:
+<P>label dvdt
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>C</I>[(<I>dV<SUb>2</SUb></I>)/<I>dt</I>] - [(<I>V<SUb>1</SUb></I> -<I>V<SUb>2</SUb></I>)/(<I>R<SUb>1</SUb></I>+<I>R<SUb>2</SUb></I>(1-exp(-<I>V</I>)))] = 0</SPAN>
+</DL>
+This equation can be written in the form
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">[(<I>dV<SUb>2</SUb></I>)/<I>dt</I>] = [(<I>V<SUb>1</SUb></I> -<I>V<SUb>2</SUb></I>)/((<I>R<SUb>1</SUb></I>+<I>R<SUb>2</SUb></I>(1-exp(-<I>V</I>))) <I>C</I>)]</SPAN>
+</DL>
+<P>Consider the following data.
+<PRE>
+      data circ;
+         input v2 v1 time@@;
+         datalines;
+      -0.00007 0.0 0.0000000001 0.00912 0.5 0.0000000002
+       0.03091 1.0 0.0000000003 0.06419 1.5 0.0000000004
+       0.11019 2.0 0.0000000005 0.16398 2.5 0.0000000006
+       0.23048 3.0 0.0000000007 0.30529 3.5 0.0000000008
+       0.39394 4.0 0.0000000009 0.49121 4.5 0.0000000010
+       0.59476 5.0 0.0000000011 0.70285 5.0 0.0000000012
+       0.81315 5.0 0.0000000013 0.90929 5.0 0.0000000014
+       1.01412 5.0 0.0000000015 1.11386 5.0 0.0000000016
+       1.21106 5.0 0.0000000017 1.30237 5.0 0.0000000018
+       1.40461 5.0 0.0000000019 1.48624 5.0 0.0000000020
+       1.57894 5.0 0.0000000021 1.66471 5.0 0.0000000022
+      ;
+</PRE>
+<P>You can estimate the parameters in the previous equation by using the
+following SAS statements:
+<PRE>
+      proc model data=circ mintimestep=1.0e-23;
+         parm R2 2000  R1 4000 C 5.0e-13;
+         dert.v2 = (v1-v2)/((r1 + r2*(1-exp( -(v1-v2)))) * C);
+         fit v2;
+      run;
+</PRE>
+<P>The results of the estimation are shown in <A HREF="sect80.htm#modcirc1">Output 14.9.1</A>.
+<P></P><A NAME="modcirc1"><SPAN CLASS="ssften"><B>Output 14.9.1:</B> Circuit Estimation</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=5 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear OLS Parameter Estimates </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx Std Err</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br> Pr &gt; |t|</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>R2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3002.465</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1556.5</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.93</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0688</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>R1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4984.848</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1504.9</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3.31</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0037</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>C</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5E-13</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.01E-22</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4.941E9</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR><A NAME="idxmod0704">&#13;</A><A NAME="idxmod0703">&#13;</A><A NAME="idxmod0706">&#13;</A><A NAME="idxmod0705">&#13;</A><A NAME="idxmod0708">&#13;</A><A NAME="idxmod0707">&#13;</A><A NAME="idxmod0710">&#13;</A><A NAME="idxmod0709">&#13;</A><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect79.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect81.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

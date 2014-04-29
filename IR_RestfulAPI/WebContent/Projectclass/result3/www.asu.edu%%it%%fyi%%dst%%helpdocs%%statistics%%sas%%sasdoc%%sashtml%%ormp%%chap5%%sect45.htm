@@ -1,0 +1,137 @@
+<HTML>
+<HEAD>
+<TITLE>Example 5.3: Using the INEST=Option</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect44.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect46.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 5.3: Using the INEST=Option  </H2>
+<P><A NAME="idxnlp0539">&#13;</A>This example illustrates the use of the INEST= option
+for specifying a starting point
+and linear constraints.
+You name a data set with the INEST= option.
+The format of this data set is similar to the format
+of the QUAD= data set described in the previous example.
+<P>Consider the Hock and Schittkowski (1981) Problem # 24.
+<A NAME="idxnlp0540">&#13;</A>
+<DL CLASS="equation"><DD><IMG WIDTH="230" HEIGHT="100"
+ SRC="images/nlpeq190.gif"
+ ALT="\min f(x) = \frac{((x_1 - 3)^2 - 9) x_2^3}{27 \sqrt{3}}"></DL>
+subject to:
+<DL CLASS="equation"><DD><IMG WIDTH="161" HEIGHT="200"
+ SRC="images/nlpeq191.gif"
+ ALT="0 & \leq & x_1, x_2 \ 0 & \leq & .57735 x_1 - x_2 \ 0 & \leq & x_1 + 1.732 x_2 \ 6 & \geq & x_1 + 1.732 x_2 \"></DL>
+with minimum function value <SPAN CLASS="mathfont"><I>f</I>(<I>x<SUP>*</SUP></I>) = -1</SPAN> at <IMG WIDTH="101" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq192.gif"
+ ALT="x^* = (3,\sqrt{3})">.The feasible starting point is <SPAN CLASS="mathfont"><I>x<SUP>0</SUP></I> = (1,.5)</SPAN>.
+<P>You can specify this model in PROC NLP as follows:
+<P><PRE>
+   proc nlp tech=trureg outest=res;
+      min y;
+      parms x1 = 1,
+            x2 = .5;
+      bounds  0 &#60;= x1-x2;
+      lincon  .57735 * x1 -         x2 &#62;=  0,
+                       x1 + 1.732 * x2 &#62;=  0,
+                      -x1 - 1.732 * x2 &#62;= -6;
+      y = (((x1 - 3)**2 - 9.) * x2**3) / (27 * sqrt(3));
+   run;
+</PRE>
+<P>Note that none of the data for this model are in a data set.
+Alternatively, you can save the starting point <SPAN CLASS="mathfont">(1,.5)</SPAN> 
+and the linear constraints in a data set.
+Notice that the _TYPE_ variable contains keywords
+that identify how the procedure is to interpret each
+of the observations and that the parameters in the
+problems X1 and X2 are variables in the data set.
+The observation with _TYPE_=LOWERBD gives the
+lower bounds on the parameters.
+The observation with _TYPE_=GE gives the
+coefficients for the first constraint.
+Similarly, the subsequent observations contain 
+specifications for the other constraints.
+Also notice that the special variable _RHS_
+contains the right-hand-side values.
+<P><PRE>
+   data betts1(type=est);
+      input _type_ $ x1 x2 _rhs_;
+      datalines;
+        parms    1        .5       .
+        lowerbd  0        0        .
+        ge       .57735   -1       .
+        ge       1        1.732    .
+        le       1        1.732    6
+     ;
+</PRE>
+<P>Now you can solve this problem with the following
+code. 
+Notice that you specify the objective function and
+the parameters.
+<P><PRE>
+   proc nlp inest=betts1 tech=trureg;
+      min y;
+      parms x1 x2;
+      y = (((x1 - 3)**2 - 9) * x2**3) / (27 * sqrt(3));
+   run;
+</PRE>
+<P>You can even include any constants used in the program
+statements in the INEST= data set.
+In the following code the variables A, B, C, and D
+contain some of the constants used in calculating
+the objective function Y.
+<P><PRE>
+   data betts2(type=est);
+      input _type_ $ x1    x2   _rhs_    a   b   c   d;
+      datalines;
+        parms    1        .5       .     3   9  27   3
+        lowerbd  0        0        .     .   .   .   .
+        ge       .57735   -1       0     .   .   .   .
+        ge       1        1.732    0     .   .   .   .
+        le       1        1.732    6     .   .   .   .
+</PRE>
+<P>Notice that in the program statement for calculating
+Y, the constants are replaced by the A, B, C, and D variables.
+<P><PRE>
+proc nlp inest=betts2 tech=trureg;
+   min y;
+   parms x1 x2;
+   y = (((x1 - a)**2 - b) * x2**3) / (c * sqrt(d));
+run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect44.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect46.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

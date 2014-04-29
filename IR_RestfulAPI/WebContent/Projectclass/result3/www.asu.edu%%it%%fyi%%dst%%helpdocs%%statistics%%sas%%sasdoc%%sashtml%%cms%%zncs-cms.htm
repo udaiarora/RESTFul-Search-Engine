@@ -1,0 +1,166 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Functions and CALL Routines : CMS </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0426384.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0646889.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zcollate.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">CMS</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zncs-cms">CMS</A></FONT></H1>
+
+<P><HR><BR><B>Invokes a CMS or CP command and returns the return code</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Alias:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">SYSTEM
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>CMS specifics:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">all
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="zncs-cms.htm#znid-102"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zncs-cms.htm#z0394854"><FONT size="2"><B>Details</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zncs-cms.htm#z0394858"><FONT size="2"><B>Example</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zncs-cms.htm#z0394861"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="znid-102">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>CMS</B> ('<I>command</I>')
+</TD></TR></TABLE><A name="znid-103">&#13;</A>
+<P><A name="z0594302">&#13;   
+</A>
+<DL>
+<DT><B>'<B><I>command</I></B>'</B></DT>
+<DD>is a character string that corresponds to
+a CMS or CP command. <P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0394854">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>The CMS function invokes one CMS or CP
+command and returns the return code that was set by execution of the command.
+ Because the CMS or SYSTEM function is part of an executable SAS statement,
+you can conditionally execute certain CMS and CP commands within a SAS session
+(unlike the CMS statement) and to use the CMS SUBCOM facility for support.
+<P>For example, you can use the CMS function in the following
+assignment statement:   
+
+<PRE><I>rc</I>=CMS('<I>command</I>');</PRE>
+<P><B>rc</B> is a variable that contains the return
+code that was set by execution of the command.
+<P>Commands invoked with the CMS function are executed
+when the DATA step executes, not when the statement containing the function
+is scanned.
+<P>The limitations on CMS and CP commands in CMS subset
+mode also apply to the CMS function; that is, commands that use the user area
+are not allowed. 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0394858">Example</A></FONT></B></TD></TR></TABLE>
+
+<P>The following SAS program determines whether
+today's data file exists on an accessed minidisk.  It does this using the
+SAS functions WEEKDAY and TODAY and by issuing a CMS STATE command.  The program
+references five CMS files; each file contains data for one weekday.   
+
+<PRE>DAY1 DATA A
+DAY2 DATA A
+DAY3 DATA A
+DAY4 DATA A
+DAY5 DATA A</PRE>
+<P>The first DATA step uses information from functions
+TODAY and WEEKDAY in the CMS STATE command, which determines whether a data
+file such as DAY2 DATA * exists.  If the file exists (rc=0), the program creates
+a macro variable called &amp;DAILY.  &amp;DAILY contains the name of the file
+that exists and is used in the INFILE statement in the second DATA step. 
+If the file does not exist, the SAS program aborts and the second DATA step
+is never executed.   
+
+<PRE>data day;
+   wd=weekday(today())-2;
+   if wd=0 then wd=5;
+   number=put(wd,1.);
+   rc=cms('state day'||number||' data *');
+      if rc=0 then do;
+         name=' "day'||number||' data" ';
+         call symput('daily',name);
+         end;
+      else do;
+         put ' The data file does not exist.';
+         abort return;
+         end;
+run;
+data daily;
+   infile &amp;daily;
+   input branch $ 1-20 dept 22-24 @26 revenue 10.;
+run;</PRE>
+<P>The sample program illustrates the difference between
+a command invoked with the CMS function and a command invoked with the CMS
+statement or in CMS subset mode.  Commands that are invoked with the CMS function
+are not invoked until execution time, after all statements in a step have
+been scanned.  Commands that are invoked with a CMS statement or in CMS subset
+mode are executed when SAS encounters them while scanning the
+step.
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0394861">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<P>
+<UL>
+
+<LI><A href="zt-cpcms.htm">Issuing CMS and CP Commands during a SAS Session</A> 
+
+<P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0426384.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0646889.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zcollate.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zncs-cms">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

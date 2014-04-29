@@ -1,0 +1,107 @@
+<HTML>
+<HEAD>
+<TITLE>Examples</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect27.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">SAS Macros and Functions</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Examples  </H2>
+<P>Suppose the data set TEST contains 104 observations of the time
+series variable Y, and you want to test the null hypothesis that
+there exists a lag 4 seasonal unit root in the Y series. 
+The following statements
+illustrate how to perform the single-mean Dickey-Fuller 
+regression coefficient test using PROC REG and PROBDF.
+<P><PRE>
+   data test1;
+      set test;
+      y4 = lag4(y);
+   run; 
+   
+   proc reg data=test1 outest=alpha;
+      model y = y4 / noprint;
+   run;
+   
+   data _null_;
+      set alpha;
+      x = 100 * ( y4 - 1 );           
+      p = probdf( x, 100, 4, 'RSM' );
+      put p= pvalue5.3;
+   run;
+</PRE>
+<P>To perform the augmented Dickey-Fuller test,
+regress the differences of the series on lagged differences and 
+on the lagged value of the series,
+and compute the test statistic from the regression coefficient
+for the lagged series.
+The following statements
+illustrate how to perform the single-mean augmented Dickey-Fuller 
+studentized test using PROC REG and PROBDF.
+<P><PRE>
+   data test1;
+      set test;
+      yl  = lag(y);
+      yd  = dif(y);
+      yd1 = lag1(yd); yd2 = lag2(yd);
+      yd3 = lag3(yd); yd4 = lag4(yd);
+   run; 
+   
+   proc reg data=test1 outest=alpha covout;
+      model yd = yl yd1-yd4 / noprint;
+   run;
+   
+   data _null_;
+      set alpha;
+      retain a;
+      if _type_ = 'PARMS' then a = yl - 1;
+      if _type_ = 'COV' &#38; _NAME_ = 'YL' then do;
+         x = a / sqrt(yl);
+         p = probdf( x, 99, 1, 'SSM' );
+         put p= pvalue5.3;
+         end;
+   run;
+</PRE>
+<P>The %DFTEST macro provides an easier way to perform Dickey-Fuller tests.
+The following statements perform the same tests as the preceding example.
+<P><PRE>
+   %dftest( test, y, ar=4 );
+   %put p=&#38;dftest;
+</PRE>
+<P>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect27.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

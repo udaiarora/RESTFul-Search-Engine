@@ -1,0 +1,235 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using the INFILE/FILE User Exit Facility : SAS Service Routines </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zuncdesc.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0325705.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zservice">SAS Service Routines</A></FONT></H1>
+
+
+<P><A name="z0557641">&#13; SAS provides four service routines that you can use when writing
+INFILE/FILE user exits.  These service routines allocate memory, free memory,
+access DATA step variables, or write a message to the SAS log. Whenever possible,
+use the SAS service routines instead of the routines that are supplied with
+OS/390. For example, use the ALLOC SAS service routine instead of GETMAIN.
+ When you use the ALLOC routine, SAS frees memory when you are finished with
+it.  By contrast, if you use the GETMAIN routine, cleaning up memory is your
+responsibility, so you also have to use the FREEMAIN routine.</A>
+<P>The following list describes the four SAS service routines.
+ You invoke one of these routines by loading its address from the appropriate
+field in the UEBCB and then branching to it.  All of these routines are used
+in the <A href="z-sample.htm">Sample Program</A>. 
+<DL>
+<DT><A name="z0557643">&#13;ALLOC
+routine</A></DT>
+<DD>allocates an area of memory from within
+the SAS memory pool.  This memory is automatically freed when the Close function
+is processed. The ALLOC routine takes the following parameters: 
+<P>
+<DL>
+<DT>ALCEXIT</DT>
+<DD>a pointer to the UEBCB.<P></DD>
+
+<DT>ALCPTR</DT>
+<DD>a pointer to a fullword in which the allocated
+area address will be stored.<P></DD>
+
+<DT>ALCLEN</DT>
+<DD>the amount of memory required.<P></DD>
+
+<DT>ALCFLG</DT>
+<DD>a flag byte that controls whether the memory
+is allocated above or below the 16M line.  It has the following values: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>1</TD>
+<TD align="left">allocates the memory below the 16M
+line.</TD></TR>
+
+<TR align=left valign="top">
+<TD>0</TD>
+<TD align="left">allocates the memory above the 16M
+line.</TD></TR>
+</TABLE>
+<P></DD>
+</DL>
+<P></DD>
+
+<DT><A name="z0557657">&#13;FREE
+routine</A></DT>
+<DD>frees an area of memory that was previously
+allocated by a call to the ALLOC routine. The FREE routine takes the following
+parameters: 
+<P>
+<DL>
+<DT>FREEXIT</DT>
+<DD>a pointer to the UEBCB.<P></DD>
+
+<DT>FREPTR</DT>
+<DD>a pointer to the area to be freed.<P></DD>
+
+<DT>FREFLG</DT>
+<DD>a flag byte that indicates whether the memory
+that is to be freed is above or below the 16M line.  It has the following
+values: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>1</TD>
+<TD align="left">the memory is below the 16M line.</TD></TR>
+
+<TR align=left valign="top">
+<TD>0</TD>
+<TD align="left">the memory is above the 16M
+line.</TD></TR>
+</TABLE>
+<P></DD>
+</DL>
+<P></DD>
+
+<DT><A name="z0557669">&#13;LOG
+routine</A></DT>
+<DD>prints a message to the SAS log.  The LOG
+routine takes the following parameter: 
+<P>
+<DL>
+<DT>LOGSTR</DT>
+<DD>a pointer to a character string that ends
+with a null (x'00').<P></DD>
+</DL>
+<P></DD>
+
+<DT><A name="z0557673">&#13;VARRTN
+routine</A></DT>
+<DD>defines or gets access to a SAS DATA step
+variable. The VARRTN routine takes the following parameters: 
+<P>
+<DL>
+<DT>VARNAME</DT>
+<DD>a pointer to the name of the variable.<P></DD>
+
+<DT>VARNAMEL</DT>
+<DD>the length of the variable name.<P></DD>
+
+<DT>VARTYPE</DT>
+<DD>the type of variable that is being defined.
+ It takes the following values: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>1</TD>
+<TD align="left">the variable is numeric (double precision).</TD></TR>
+
+<TR align=left valign="top">
+<TD>2</TD>
+<TD align="left">the variable is character.</TD></TR>
+</TABLE>
+<P></DD>
+
+<DT>VARSIZE</DT>
+<DD>the size of the variable, if the variable
+type is character.<P></DD>
+
+<DT>VARFLAG</DT>
+<DD>a flag byte that controls whether the variable
+is considered internal or external. It takes the following values: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>X'01'</TD>
+<TD align="left">the variable is an internal variable;
+it will not appear in any output data set.</TD></TR>
+
+<TR align=left valign="top">
+<TD>X'02'</TD>
+<TD align="left">the variable is an external variable;
+it will appear in the output data set.</TD></TR>
+</TABLE>
+<P></DD>
+
+<DT>VARADDR</DT>
+<DD>a pointer to a fullword into which SAS places
+the address at which the current value of the variable will be stored. For
+numeric variables, the value is stored as a double precision value. For character
+variables, the stored value consists of three components: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>MAXLEN</TD>
+<TD align="left">is 2 bytes and represents the maximum
+length of the character variable.</TD></TR>
+
+<TR align=left valign="top">
+<TD>CURLEN</TD>
+<TD align="left">is 2 bytes and represents the current
+length of the character variable.</TD></TR>
+
+<TR align=left valign="top">
+<TD>ADDR</TD>
+<TD align="left">is 4 bytes and is a pointer to the
+character variable string data.</TD></TR>
+</TABLE>
+<P></DD>
+</DL>
+
+<P>Here are the return codes for the VARRTN routine:
+
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>0</TD>
+<TD align="left">the routine was successful (the variable
+was created or accessed).</TD></TR>
+
+<TR align=left valign="top">
+<TD>1</TD>
+<TD align="left">the variable already exists as a
+different type.</TD></TR>
+
+<TR align=left valign="top">
+<TD>2</TD>
+<TD align="left">the variable already exists as a
+character variable, but with a shorter length.</TD></TR>
+
+<TR align=left valign="top">
+<TD>3</TD>
+<TD align="left">the variable already exists</TD></TR>
+</TABLE>
+<P></DD>
+</DL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0287581.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zuncdesc.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0325705.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zservice">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

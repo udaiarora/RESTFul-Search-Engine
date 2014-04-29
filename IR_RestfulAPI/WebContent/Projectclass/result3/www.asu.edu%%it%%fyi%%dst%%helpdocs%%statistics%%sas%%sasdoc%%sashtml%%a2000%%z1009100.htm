@@ -1,0 +1,196 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Information for the Database Administrator : How the SAS/ACCESS Interface to SYSTEM 2000 Software Works </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004458.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0989606.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1009102.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1009100">How the SAS/ACCESS Interface to SYSTEM 2000 Software Works</A></FONT></H1>
+
+
+<P><A name="z1042576">&#13;
+When you use the ACCESS procedure to create an access descriptor file,
+the SAS System calls SYSTEM 2000 software to get a description of the database.
+When you create a view descriptor file, the SAS System has information about
+the database in the access descriptor, so it does not call SYSTEM 2000 software.</A>
+<P>The ACCESS procedure writes the descriptor files to a SAS data library.
+Then, when you use a SAS procedure with a view descriptor whose data is in
+a SYSTEM 2000 database, the SAS System Supervisor calls the interface view
+engine to access the data. The engine can access a database for reading, updating,
+inserting, and deleting.
+<P>The connections between the SAS/ACCESS procedures and the SYSTEM 2000
+software are shown in <A href="#z1033998">How the SAS System Connects to SYSTEM 2000 Software</A>. 
+<P>
+<B><I><A name="z1033998">How the SAS System Connects to SYSTEM 2000 Software</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01321398.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">How the SYSTEM 2000 Interface View Engine Works</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042579">&#13;
+
+The interface view engine is a PLEX (Programming Language Extension)
+applications program, which retrieves and updates data in a SYSTEM 2000 database.
+Calls to the engine are in one of the following categories: </A>
+<P>
+<UL>
+
+<LI>calls made on behalf of the ACCESS procedure when it is creating
+an access descriptor<P>
+
+<LI>calls made on behalf of the DBLOAD procedure that reference a
+view descriptor with the VIEWDESC= option<P>
+
+<LI>calls made on behalf of the QUEST procedure to negotiate an execution
+environment<P>
+
+<LI>calls made by a SAS DATA step or by SAS procedures that reference
+a view descriptor with the DATA= option.<P>
+</UL>
+
+<P>In all situations, the same PLEX commands initiate and terminate communication
+between the interface view engine and SYSTEM 2000 software. Each time a different
+SAS procedure requires use of SYSTEM 2000 software, it makes an initialization
+call to the engine. This first call establishes communication with SYSTEM
+2000 software and opens the requested database.
+<P>The engine determines whether it must issue the START S2K command for
+a single-user job or the Multi-User environment, as specified by the calling
+SAS procedure. Then it issues an OPEN command for the specified database and
+returns control to the procedure. Additional calls to the engine perform retrieval
+and update operations required by the SAS procedure.
+<P>When the SAS procedure terminates, the engine issues a CLOSE command
+for the database that was opened. It issues the STOP S2K command only when
+the entire SAS session terminates, or when you want to run the QUEST procedure
+in the same environment (single user or Multi-User) that SAS programs have
+been running in.
+<BR><H3>Calls Made on Behalf of the ACCESS Procedure</H3>
+
+
+<P><A name="z1042587">&#13;
+
+The ACCESS procedure calls the interface view engine to retrieve item
+and record information for a specified database. The engine sends the component
+number, name, type, picture, level number, and key status (along with the
+database cycle number and so on) back to the procedure for each item and record
+in the database. The procedure stores this information in the access descriptor
+for later use when creating view descriptors.</A>
+<P>Also, if you are using the ACCESS procedure to extract information into
+a SAS data file, the ACCESS procedure calls the engine.
+<BR><H3>Calls Made on Behalf of the DBLOAD Procedure</H3>
+
+
+<P><A name="z1042589">&#13;
+
+When you create a new database, the DBLOAD procedure always creates
+an access descriptor and a view descriptor. </A>
+<P>When you insert data into an existing SYSTEM 2000 database, you must
+specify an appropriate view descriptor in the DBLOAD procedure. The view descriptor
+provides a mapping between the SAS variables containing data to be inserted
+and the SYSTEM 2000 components that will be used to insert the data into the
+database. It also contains the database name, password, and access mode to
+be used when you do inserts.
+<P>For each observation that is retrieved from the data file specified
+on the DATA= option, a corresponding call is made to the interface view engine.
+The engine inserts the data into the database identified by the view descriptor.
+The engine uses only insert mode (one at a time) for inserting new descendant
+records into existing logical entries. Also, if the DATA= option identifies
+a SYSTEM 2000 view descriptor, the interface view engine is called to read
+that view.
+<P>When you load new logical entries (starting with records at level 0)
+into a database, you can specify that you want to use an optimized loading
+process. SYSTEM 2000 software processes the new logical entries as one batch
+of inserts (PLEX load mode). This optimized load mode is faster than inserting
+records one at a time. However, it causes the software to attach the database
+with exclusive use and no other database can be open in the same execution
+environment. Therefore, if your job is using optimized load, your input cannot
+also be a SYSTEM 2000 view descriptor of a database in the same environment.
+<BR><H3>Calls Made on Behalf of the QUEST Procedure</H3>
+
+
+<P><A name="z1042593">&#13;
+
+Usually the QUEST procedure communicates directly with SYSTEM 2000 software.
+When you enter SYSTEM 2000 statements (commands), they are processed immediately,
+and the results are sent back to you interactively. However, there is one
+exception. Each time you execute the QUEST procedure, it calls the engine
+to request permission to execute. If no other SAS programs are using the engine
+in the same environment, permission is granted. Otherwise, permission to execute
+is refused. Similarly, when the QUEST procedure terminates, it calls the engine
+to signal the event so that the engine will allow other SAS programs to execute.
+The engine does not allow SAS jobs to execute in the same environment while
+the QUEST procedure is running.</A>
+<BR><H3>Calls Made by Other SAS Procedures</H3>
+
+
+<P><A name="z1042594">&#13;
+SAS procedures can access records in a SYSTEM 2000 database by referring
+to a view descriptor with the DATA= option. The SAS System examines the view
+descriptor to determine which database management system is referred to and
+passes control to the appropriate engine. The interface view engine uses information
+stored in the view descriptor (for example, access mode, password, database
+name, component numbers, levels, types, and so on) to process SYSTEM 2000
+data records as if they were observations in a SAS data file.</A>
+<P>Before doing any retrievals, the engine processes a PLEX dynamic where-clause
+(if specified) to select a subset of data records that are to be processed
+as observations. The engine constructs the dynamic where-clause from the view
+where-clause and the SAS WHERE clause (if any). If no view where-clause exists,
+a where-clause is constructed to locate all database records.
+<P>The dynamic where-clause processing returns a Locate File containing
+the addresses of database records that satisfied the selection criteria. Based
+on those addresses, the engine issues a combination of GET S2KCOUNT, GET1,
+and GETA commands to read one or more database records. Then the engine combines
+data from the records (according to the view descriptor) to form a SAS observation,
+which it passes back to the calling procedure for processing.
+<P>Based on the capabilities of the SAS procedure, the next call to the
+engine might be a request to update or delete the SAS observation that was
+just retrieved. For updates, the engine issues MODIFY, INSERT, REMOVE and
+so on for one or more data records, depending on how many records were used
+to construct the observation. Typically, the SAS procedure then calls the
+engine again to retrieve another SAS observation. If so, the engine locates
+another group of records, constructs another SAS observation, and returns
+it to the SAS procedure. This cycle continues until the SAS procedure terminates
+or until the last qualified SAS observation has been constructed and returned
+to the SAS procedure. In addition, the engine uses other commands, such as
+COMMIT, ROLLBACK, and CLEAR, to control processing.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004458.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0989606.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1009102.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1009100">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

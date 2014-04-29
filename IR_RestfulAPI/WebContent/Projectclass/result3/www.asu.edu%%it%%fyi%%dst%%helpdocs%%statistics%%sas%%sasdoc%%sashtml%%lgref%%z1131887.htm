@@ -1,0 +1,533 @@
+<HTML>
+<!-- This page produced Mon Jul 19 13:58:41 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Formats : Working with Packed Decimal and Zoned Decimal Data </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0309859.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1270373.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1213080.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Language Reference: Dictionary                                                                                        </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1131887">Working with Packed Decimal and Zoned Decimal Data</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Definitions</FONT></B></TD></TR></TABLE>
+
+<P>
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>Packed
+decimal</TD>
+<TD align="left">specifies a method of encoding decimal numbers by
+using each byte to represent two decimal digits. Packed decimal representation
+stores decimal data with exact precision. The fractional part of the number
+is determined by the informat or format because there is no separate mantissa
+and exponent. 
+<P>An advantage of using packed decimal data is that exact precision can
+be maintained. However, computations involving decimal data may become inexact
+due to the lack of native instructions.</TD></TR>
+
+<TR align=left valign="top">
+<TD>Zoned
+decimal</TD>
+<TD align="left">specifies a method of encoding decimal numbers in
+which each digit requires one byte of storage. The last byte contains the
+number's sign as well as the last digit. Zoned decimal data produces a printable
+representation. </TD></TR>
+
+<TR align=left valign="top">
+<TD>Nibble</TD>
+<TD align="left">specifies 1/2 of a byte. </TD></TR>
+</TABLE>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Types of Data</FONT></B></TD></TR></TABLE>
+
+<BR><H3>Packed Decimal Data</H3>
+
+
+<P>A
+packed decimal representation stores decimal digits in each "nibble"
+of a byte. Each byte has two nibbles, and each nibble is indicated by a hexadecimal
+digit. For example, the value 15 is stored in two nibbles, using the hexadecimal
+digits 1 and 5.
+<P>The sign indication is dependent on your operating environment. On IBM
+mainframes, the sign is indicated by the last nibble. With formats, C indicates
+a positive value, and D indicates a negative value. With informats, A, C,
+E, and F indicate positive values, and B and D indicate negative values. Any
+other nibble is invalid for signed packed decimal data. In all other operating
+environments, the sign is indicated in its own byte. If the high-order bit
+is 1, then the number is negative. Otherwise, it is positive.
+<P>The following applies to packed decimal data representation: 
+<P>
+<UL>
+
+<LI>You can use the S370FPD format on all
+platforms to obtain the
+IBM mainframe configuration.<P>
+
+<LI>You can have unsigned packed data with no sign indicator. The
+packed decimal format and informat handles the representation. It is consistent
+between ASCII and EBCDIC platforms.<P>
+
+<LI>Note that the S370FPDU format and informat expects to have an
+F in the last nibble, while packed decimal expects no sign nibble.<P>
+</UL>
+
+<BR><H3>Zoned Decimal Data</H3>
+
+
+<P>The
+following applies to zoned decimal data representation: 
+<P>
+<UL>
+
+<LI>A zoned decimal representation stores a decimal digit in the low
+order nibble of each byte. For all but the byte containing the sign, the high-order
+nibble is the numeric zone nibble (F on EBCDIC and 3 on ASCII).<P>
+
+<LI>The sign can be merged into a byte with a digit, or it can be
+separate, depending on the representation. But the standard zoned decimal
+format and informat expects the sign to be merged into the last byte.<P>
+
+<LI>The EBCDIC and ASCII zoned decimal formats produce the same printable
+representation of numbers. There are two nibbles per byte, each indicated
+by a hexadecimal digit. For example, the value 15 is stored in two bytes.
+The first byte contains the hexadecimal value F1 and the second byte contains
+the hexadecimal value C5. <P>
+</UL>
+
+<BR><H3>Packed Julian Dates</H3>
+
+
+<P>The
+following applies
+to packed Julian dates: 
+<P>
+<UL>
+
+<LI>The two formats and informats that handle Julian dates in packed
+decimal representation are PDJULI and PDJULG. PDJULI uses the IBM mainframe
+year computation, while PDJULG uses the Gregorian computation.<P>
+
+<LI>The IBM mainframe computation considers 1900 to be the base year,
+and the year values in the data indicate the offset from 1900. For example,
+98 means 1998, 100 means 2000, and 102 means 2002. 1998 would mean 3898.<P>
+
+<LI>The Gregorian computation allows for 2-digit or 4-digit years.
+If you use 2-digit years, SAS uses the setting of the YEARCUTOFF value to
+determine the true year.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Platforms Supporting Packed Decimal and Zoned Decimal Data</FONT></B></TD></TR></TABLE>
+
+<P>Some platforms have native instructions to support packed and
+ zoned decimal data, while others must use software to emulate the computations.
+For example, the IBM mainframe has an Add Pack instruction to add packed decimal
+data, but the Intel-based platforms have no such instruction and must convert
+the decimal data into some other format. 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Languages Supporting Packed Decimal and Zoned Decimal Data</FONT></B></TD></TR></TABLE>
+
+<P>Several different languages support packed decimal and zoned
+decimal data. The following table shows how COBOL picture clauses correspond
+to SAS formats and informats.
+<P> 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>IBM VS COBOL II clauses</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>Corresponding S370Fxxx formats/informats</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PIC S9(X) PACKED-DECIMAL</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FPDw.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PIC 9(X) PACKED-DECIMAL</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FPDUw.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PIC S9(W) DISPLAY</TD>
+  
+<TD  align="LEFT" valign="TOP">S370ZDw.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PIC 9(W) DISPLAY</TD>
+  
+<TD  align="LEFT" valign="TOP">S370ZDUw.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PIC S9(W) DISPLAY SIGN LEADING</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZDLw.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PIC S9(W) DISPLAY SIGN LEADING SEPARATE</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZDSw.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PIC S9(W) DISPLAY SIGN TRAILING SEPARATE</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZDTw.</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P>For the packed decimal representation listed above, X indicates the
+number of digits represented, and W is the number of bytes. For PIC S9(X)
+PACKED-DECIMAL, W is 
+
+
+<CODE><B>ceil((x+1)/2)</B></CODE>. For PIC 9(X) PACKED-DECIMAL, W is 
+
+
+<CODE><B>ceil(x/2)</B></CODE>. For example, PIC S9(5) PACKED-DECIMAL represents five digits.
+If a sign is included, six nibbles are needed. 
+
+
+<CODE><B>ceil((5+1)/2)</B></CODE> has a length of three bytes, and the value of W is 3.
+<P>Note that you can substitute COMP-3 for PACKED-DECIMAL. 
+<P>In IBM assembly language, the P directive indicates packed
+decimal,
+and the Z directive indicates zoned decimal. The following shows an excerpt
+from an assembly language listing, showing the offset, the value, and the
+DC statement:
+<P>
+<PRE>offset  value (in hex)      inst label     directive
+
++000000 00001C                2 PEX1       DC PL3'1' 
++000003 00001D                3 PEX2       DC PL3'-1'    
++000006 F0F0C1                4 ZEX1       DC ZL3'1' 
++000009 F0F0D1                5 ZEX2       DC ZL3'1'  </PRE>
+<P>In PL/I, the FIXED DECIMAL attribute is used in conjunction with packed
+decimal data. You must use the PICTURE specification to represent zoned decimal
+data. There is no standardized representation of decimal data for the FORTRAN
+or the C languages.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Summary of Packed Decimal and Zoned Decimal Formats and Informats</FONT></B></TD></TR></TABLE>
+
+<P>SAS uses a group of formats and informats to handle  packed and
+zoned decimal data. The following table lists the type of data representation
+for these formats and informats. Note that the formats and informats that
+begin with S370 refer to IBM mainframe
+representation.
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>Format</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>Type of data representation</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>Corresponding informat</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>Comments</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PD</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">PD</TD>
+  
+<TD  align="LEFT" valign="TOP">Local signed packed decimal</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PK</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">PK</TD>
+  
+<TD  align="LEFT" valign="TOP">Unsigned packed decimal; not specific to your operating environment</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">ZD</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">ZD</TD>
+  
+<TD  align="LEFT" valign="TOP">Local zoned decimal</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">none</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">ZDB</TD>
+  
+<TD  align="LEFT" valign="TOP">Translates EBCDIC blank (hex 40) to EBCDIC zero (hex F0), then corresponds
+to the informat as zoned decimal</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">none</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">ZDV</TD>
+  
+<TD  align="LEFT" valign="TOP">Non-IBM zoned decimal representation</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">S370FPD</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FPD</TD>
+  
+<TD  align="LEFT" valign="TOP">Last nibble C (positive) or D (negative)</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">S370FPDU</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FPDU</TD>
+  
+<TD  align="LEFT" valign="TOP">Last nibble always F (positive)</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">S370FZD</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZD</TD>
+  
+<TD  align="LEFT" valign="TOP">Last byte contains sign in upper nibble: C (positive) or D (negative)</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">S370FZDU</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZDU</TD>
+  
+<TD  align="LEFT" valign="TOP">Unsigned; sign nibble always F</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">S370FZDL</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZDL</TD>
+  
+<TD  align="LEFT" valign="TOP">Sign nibble in first byte in informat; separate leading sign byte of
+hex C0 (positive) or D0 (negative) in format</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">S370FZDS</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZDS</TD>
+  
+<TD  align="LEFT" valign="TOP">Leading sign of - (hex 60) or + (hex 4E)</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">S370FZDT</TD>
+  
+<TD  align="LEFT" valign="TOP">Zoned decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">S370FZDT</TD>
+  
+<TD  align="LEFT" valign="TOP">Trailing sign of - (hex 60) or + (hex 4E)</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PDJULI</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">PDJULI</TD>
+  
+<TD  align="LEFT" valign="TOP">Julian date in packed representation - IBM computation</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">PDJULG</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">PDJULG</TD>
+  
+<TD  align="LEFT" valign="TOP">Julian date in packed representation - Gregorian computation</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">none</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">RMFDUR</TD>
+  
+<TD  align="LEFT" valign="TOP">Input layout is: <I>mmssttt</I>F</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">none</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">SHRSTAMP</TD>
+  
+<TD  align="LEFT" valign="TOP">Input layout is: <I>yyyyddd</I>F<I>hhmmssth</I>, where <I>yyyyddd</I>F is the
+packed Julian date; <I>yyyy</I> is a 0-based year from
+1900</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">none</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">SMFSTAMP</TD>
+  
+<TD  align="LEFT" valign="TOP">Input layout is: <I>xxxxxxxxyyyyddd</I>F, where <I>yyyyddd</I>F is the packed Julian date;
+<I>yyyy</I>
+is a 0-based year from 1900</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">none</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">PDTIME</TD>
+  
+<TD  align="LEFT" valign="TOP">Input layout is: 0<I>hhmmss</I>F</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">none</TD>
+  
+<TD  align="LEFT" valign="TOP">Packed decimal</TD>
+  
+<TD  align="LEFT" valign="TOP">RMFSTAMP</TD>
+  
+<TD  align="LEFT" valign="TOP">Input layout is: 0<I>hhmmss</I>F<I>yyyyddd</I>F, where <I>yyyyddd</I>F is the
+packed Julian date; yyyy is a 0-based year from 1900</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0309859.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1270373.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1213080.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1131887">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

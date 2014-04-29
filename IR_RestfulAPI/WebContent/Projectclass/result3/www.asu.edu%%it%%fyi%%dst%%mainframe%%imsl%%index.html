@@ -1,0 +1,377 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html lang="en-us" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<title>IT: Mainframe MVS/TSO - FORTRAN: IMSL </title>
+
+<!-- the `base' element is only necessary if the page is aliased, i.e.,
+    accessible from more than one URL -->
+
+
+<meta http-equiv="content-style-type" content="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+<!-- include either the description and keywords `meta' elements or the robots
+    one, not both -->
+
+<meta name="description"
+        content="Information about mainframe, TSO, MVS, FORTRAN: IMSL, etc." />
+<meta name="keywords"
+        content="mainframe, TSO, MVS, FORTRAN: IMSL, etc" />
+
+<!-- adjust the the relative URLs for the CSS files if the page is more than
+    one subdirectory below FYI home -->
+
+<link rel="stylesheet" type="text/css" href="http://www.asu.edu/it/fyi/css/fyi.css" />
+<link rel="stylesheet" type="text/css" href="http://www.asu.edu/it/fyi/css/chrome.css" media="all" />
+<link rel="stylesheet" type="text/css" href="http://www.asu.edu/it/fyi/css/print.css" media="print" />
+
+</head>
+
+<body>
+
+<p class="hidden">[ <a href="#content">Skip links</a> ]</p>
+
+<table class="head" cellspacing="0" cellpadding="0" width="100%" border="0">
+    <tr>
+        <td width="65"><a href="/"><img src="/it/fyi/menus/images/asumain-s.jpg" alt="ASU Main" border="0"
+                height="55" width="65" /></a></td>
+        <td width="99%"><h1><a href="/it/" class="head">Information Technology</a><br />
+                <span class="subtitle"><a href="/it/fyi/dst/" class="head">Desktop Systems Technology
+                        (<acronym title="Desktop Systems Technology">DST</acronym>)</a></span></h1>
+        </td>
+        <td width="150"><img src="/it/fyi/menus/images/fyi-search.jpg" alt="[Search | FYI Home ]" 
+            usemap="#mapone" border="0"
+            height="55" width="150" /></td>
+    </tr>
+</table>
+
+<map id="mapone" name="mapone">
+	<area shape="circle" coords="53,27,28" href="/it/fyi/search/" alt="Search FYI" />
+    <area shape="circle" coords="117,27,28" href="/it/fyi/" alt="FYI Home" />
+</map>
+
+
+
+<a name="content" id="content"></a>
+
+<h2 class="title"><acronym
+title="Information Technology">IT</acronym>&nbsp;: Mainframe MVS/TSO &#8212;&nbsp;&nbsp; FORTRAN: IMSL </h2> 
+
+<!-- document content here -->
+<br></br>
+
+<h3>International Mathematical and
+    Statistical Library (IMSL)</h3>
+
+    <p>The IMSL Library is a collection
+    of FORTRAN subroutines and functions useful in research, mathematical
+    and statistical analysis.</p>
+
+    <p>IMSL contains three libraries:</p>
+
+    <pre>                MATH/LIBRARY         general applied mathematics
+                STAT/LIBRARY         statistics
+                SFUN/LIBRARY         special functions</pre>
+
+    <p>The single precision routine
+    names for IMSL are unique. The double precision names are formed
+    by placing a 'D' in front of the single precision name. IMSL
+    manuals are available for reference in the Customer Assistance
+    Center.</p>
+
+    <p>The default amount of work space
+    allocation for IMSL routines is 5000 single precision units (2500
+    double precision units) may be increased with the following FORTRAN
+    code:</p>
+
+    <pre>                 COMMON /WORKSP/ RWKSP  &lt;-- location of space
+                 REAL RWKSP(7000)       &lt;-- to request 7000 units
+                 CALL IWKIN(7000)       &lt;-- implement request</pre>
+
+    <p>IMSL is a library of subroutines
+    to be used within other computer programs. They are accessed
+    by calls placed in a FORTRAN program. An example is presented
+    below.</p>
+
+    <p><b>IMSL SAMPLE #1</b></p>
+
+    <p>The following IMSL routine QDAWF
+    is the single precision version and DQDAWF is the double precision
+    version. These routines compute a Fourier integral. The integral
+    that is computed is:</p>
+
+    <blockquote>
+      <p>integral from 0 to infinity of
+      x to -1/2 power times cos(pi*x/2)</p>
+    </blockquote>
+
+    <p>** NOTE **</p>
+
+    <ul>
+      <li>Printed output is sent to unit
+      6. Additional refinements of the calculation may be made by using
+      the helper routines Q2AWF/DQ2AWF. See Manual MATH/LIBRARY Volume
+      2 for further details.</li>
+    </ul>
+
+    <pre>
+// JOB
+// EXEC FORV2CLG
+//FORT.SYSIN DD *
+C JOB FOR IMSL VERSION 10.0 QDAWF (NEW ROUTINE)
+      INTEGER IWEIGH,NOUT
+      REAL A,ABS,CONST,ERRABS,ERREST,ERROR,EXACT,F,OMEGA,PI,RESULT
+      INTRINSIC ABS
+      EXTERNAL CONST,F,QDAWF,UMACH
+      CALL UMACH(2,NOUT)
+C   UMACH OBTAINS OUTPUT UNIT (6 FOR MVS)
+      A=0.0
+      IWEIGH=1
+      PI=CONST('PI')
+      OMEGA=PI/2.0
+      ERRABS=0.001
+      CALL QDAWF(F,A,IWEIGH,OMEGA,ERRABS,RESULT,ERREST)
+C  OBTAIN ANSWER FROM IMSL ROUTINE QDAWF
+      EXACT=1.0
+      ERROR=ABS(RESULT-EXACT)
+      WRITE(NOUT,99999)RESULT,EXACT,ERREST,ERROR
+99999 FORMAT(' computed =',F8.3,13X,' exact=',F8.3,/,/,
+     &amp; ' error estimate =',1PE10.3,6X, 'error=',1PE10.3)
+      STOP
+      END
+      REAL FUNCTION F(X)
+      REAL X,SQRT
+      INTRINSIC SQRT
+      IF (X.GT.0.0)THEN
+      F=1.0/SQRT(X)
+      ELSE
+      F=0.0
+      ENDIF
+      RETURN
+      END
+/*
+//</pre>
+
+    <p>OUTPUT</p>
+
+    <pre>     computed =   1.000              exact=   1.000
+
+     error estimate = 6.376E-04      error= 5.186E-06</pre>
+
+    <p><b>Calls to pre-Edition 10 routines</b></p>
+
+    <p>The naming convention for IMSL
+    subroutines changed with Edition 10. All subroutine names in
+    the standard IMSL library are different from the subroutine names
+    in versions of IMSL prior to Edition 10. The following list describes
+    the major features of the standard version of IMSL.</p>
+
+    <ul>
+      <li>There are three libraries in
+      standard IMSL: MATH, STAT, and SFUN. </li>
+      <li>The double precision version
+      of a single precision routine has a different routine name. </li>
+      <li>Many routines are easier to
+      use in standard version than in older versions. </li>
+      <li>Many areas have additional functions
+      and extended capabilities. </li>
+      <li>The MVS library SYS2.IMSL.LIB
+      contains all three of the above libraries with both single and
+      double precision routines. </li>
+    </ul>
+
+    <p>If you have any FORTRAN source
+    code which contain references to the older (now non-existant)
+    subroutine names for IMSL routines, you may use the Interface
+    Library to obtain information on what changes are required to
+    change the old IMSL calls to the standard calls.</p>
+
+    <ul>
+      <li>The IMSL interface libraries
+      are named the following: <pre>Single precision SYS2.IMSL.SPIF
+      Double precision SYS2.IMSL.DPIF </pre> </li>
+      <li>The standard IMSL library name
+      is as follows: <pre>SYS2.IMSL.LIB </pre></li>
+      <li>To use the IMSL interface library
+      with standard IMSL, use the following option on the &quot;//
+      EXEC FORV2...&quot; statement: <pre>LIBC='SYS2.IMSL.SPIF' or
+      LIBC='SYS2.IMSL.DPIF' </pre>Thus any calls to older routines
+      will be handled by the interface library. Any standard IMSL routines
+      will bypass the interface and will use the standard IMSL library. </li>
+    </ul>
+
+    <p><b>IMSL SAMPLE # 2</b></p>
+
+    <p>The following example uses the
+    interface</p>
+
+    <pre>
+// JOB
+// EXEC FORV2CLG,LIBC='SYS2.IMSL.SPIF'
+//FORT.SYSIN DD *
+C JOB TO TEST MVS STANDARD IMSL VERSION INTERFACE PROGRAM
+      INTEGER K,N,IDF,IER
+      REAL OBS(11),CELLS(2),COMP(2),CS,Q
+      EXTERNAL CDF
+      CALL UGETIO(1,NIN,NOUT)    &lt;--is UMACH in V10
+      WRITE(NOUT,*) 'THE NEW LIBRARY WAS SUCCESSFULLY ACCESSED'
+      K=2
+      DATA OBS/31.,31.4,33.3,33.4,33.5,33.7,34.4,34.9,36.3,37.,38./
+      N=11
+      IDF=0
+      CALL GFIT(CDF,K,OBS,N,CELLS,COMP,IDF,Q,IER)
+      PRINT *,CELLS
+      PRINT *,COMP
+      PRINT *,CS
+      PRINT *,IDS
+      PRINT *,Q
+      STOP
+      END
+
+      SUBROUTINE CDF(X,P)
+      X=(X-32.0)/1.8
+      P=.5*ERFC(-X*.7071068)
+      RETURN
+      END
+/*
+//</pre>
+
+    <p>The following is the output from the above job</p>
+
+    <pre>
+THE NEW LIBRARY WAS SUCCESSFULLY ACCESSED  &lt;--from UGETIO(UMACH)
+
+The following text concerns GFIT to CHIGF conversion
+
+*** TERMINAL ERROR from GFIT.  Subroutine CHIGF has replaced GFIT.
+*** To convert from GFIT to CHIGF please note the following changes:
+
+                      Conversion from GFIT to CHIGF
+
+     I. Argument Lists
+
+        CALL GFIT (CDF, K, OBS, N, CELLS, COMP, CS, IDF, Q, IER)
+
+        CALL CHIGF (IDO, CDF, NROW, X, FREQ, NCAT, RNGE, NDFEST,
+                    CUTP, COUNTS, EXPECT, CHISQ, P, DF)
+
+     II. Corresponding Variables
+
+         These variables may be passed into CHIGF without change.
+
+                    GFIT                     CHIGF
+                  ========                  =======
+
+                  -K              =         NCAT
+                  OBS             =         X
+                  N               =         NROW
+                  CELLS           =         COUNTS
+                  COMP            =         CHISQ (1,...,ABS(NCAT))
+                  CS              =         CHISQ (ABS(NCAT)+1)
+                  IDF - input     =         NDFEST
+                  IDF - output    =         INT(DF)
+                  Q               =         P
+
+     III. New Variables
+
+          These variables should be defined as follows.
+
+                           CHIGF                         VALUE
+        ======================================  ====================
+
+        IDO  - integer scalar(input)                      0
+        FREQ - real scalar(input)                        -1.0
+        RNGE - real vector of length 2(input)         (0.0,0.0)
+        CUTP - real vector of length K(output)   (not used for GFIT
+                                                  simulation)
+        EXPECT - Vector of length IABS(NCAT)      the expected count
+                                                   in each cell
+
+     IV. Change of user-supplied external
+
+         GFIT required a user-supplied subroutine, whereas CHIGF uses
+         a function.  The description of the new function is as
+         follows:
+         CDF---Theoretical cumulative distribution function. (input)
+         CDF is a user-supplied external FUNCTION which
+         provides the cumulative distribution value at points
+         Y. CDF have calling argument Y, and it must be declared in
+         an EXTERNAL statement in the calling program.  A sample call
+         to CDF by CHIGF is
+                           PROB = CDF(Y)
+         where PROB is the cumulative distribution value in the
+         range from 0 to 1 inclusive
+
+        Change the GFIT user-supplied external subroutine as follows:
+
+        a. Change &quot;SUBROUTINE CDF(Y,P)&quot; to &quot;REAL  FUNCTION CDF (Y)&quot;
+        b. Replace P with CDF throughout routine, except in REAL
+           declaration line.  On this line P should just be deleted.
+
+
+
+
+        EXAMPLE
+
+        GFIT subroutine:
+
+              SUBROUTINE CDF (Y,P)
+              REAL            Y, Y2, P
+              Y2 = (Y-32.0)/1.8
+              P  = .5*ERFC(-Y2*.7071068)
+              RETURN
+              END
+
+        CHIGF function:
+
+              REAL FUNCTION CDF (Y)
+              REAL               Y, Y2
+              Y2  = (Y-32.0)/1.8
+              CDF = .5*ERFC(-Y2*.7071068)
+              RETURN
+              END
+
+
+     V. Unused variables
+
+        The following variables are not used by CHIGF:
+
+           IER       -      Descriptive error messages are printed
+                            within the new subroutine.
+</pre>
+
+<!--End_Document_Body-->
+
+<!--Start_Document_Footer-->
+
+<div class="footstripe">
+</div>
+
+<div class="footer">
+
+<p class="nav">[ <a href="http://www.asu.edu/it/fyi/dst/"><acronym
+        title="Desktop Systems Technology">DST</acronym> Home</a> |
+        <a href="http://www.asu.edu/it/fyi/"><acronym>FYI</acronym> Home</a> |
+		<a href="http://www.asu.edu/it/fyi/search/"><acronym>FYI</acronym> Search</a> |
+		<a href="/"><acronym title="Arizona State University">ASU</acronym> Home</a> ]<br />
+        [ Seeking assistance? | <a href="mailto:helpdesk@asu.edu">E-mail Help Desk</a> ]<br />
+        [ <a href="http://www.asu.edu/it/fyi/menus/access.html">Problems viewing this page?</a> | 
+        <a href="mailto:fyi-q@asu.edu">E-mail  <acronym>FYI-Q</acronym></a> ]
+    </p>
+
+
+
+    <p class="postdate"><a href="/copyright/">&copy; 
+        2002
+        <acronym title="Arizona Board of Regents">ABOR</acronym></a>
+        &#8212; Last Modified
+        Wednesday  8 May 2002
+    </p>
+
+</div>
+</body>
+</html>

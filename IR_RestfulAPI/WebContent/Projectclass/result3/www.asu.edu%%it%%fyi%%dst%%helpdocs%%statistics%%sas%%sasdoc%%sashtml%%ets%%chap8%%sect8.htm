@@ -1,0 +1,376 @@
+<HTML>
+<HEAD>
+<TITLE>Heteroscedasticity and GARCH Models</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect7.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect9.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The AUTOREG Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Heteroscedasticity and GARCH Models  </H2>
+<P>There are several approaches to dealing with heteroscedasticity.
+If the error variance at different times is known, weighted regression
+is a good method.
+If, as is usually the case, the error variance is unknown and must be
+estimated from the data,
+you can model the changing error variance.
+<P>The <I>generalized autoregressive conditional heteroscedasticity</I>
+(GARCH) model is one approach to modeling time series with
+heteroscedastic errors.
+The GARCH regression model with autoregressive errors is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="103" HEIGHT="75"
+ SRC="images/auteq19.gif"
+ ALT="y_{t} = x_{t}' {\beta} + {\nu}_{t}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="253" HEIGHT="70"
+ SRC="images/auteq20.gif"
+ ALT="{\nu}_{t} = {\epsilon}_{t} -
+ {\varphi}_{1} {\nu}_{t-1}
+-{ ... }- {\varphi}_{m} {\nu}_{t-m}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="83" HEIGHT="78"
+ SRC="images/auteq21.gif"
+ ALT="{\epsilon}_{t} = \sqrt{ h_{t}} e_{t}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="250" HEIGHT="113"
+ SRC="images/auteq22.gif"
+ ALT="h_{t} = {\omega} +
+\sum_{i=1}^q{{\alpha}_{i} {\epsilon}_{t-i}^2} +
+\sum_{j=1}^p{{\gamma}_{j} h_{t-j}}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="96" HEIGHT="74"
+ SRC="images/auteq23.gif"
+ ALT="e_{t} \sim \rm{IN}(0,1)"></DL>
+<P>This model combines the <I>m</I>th-order autoregressive error model
+with the GARCH(<I>p</I>,<I>q</I>) variance model.
+It is denoted as the AR(<I>m</I>)-GARCH(<I>p,q</I>) regression model.
+<P>The Lagrange multiplier (LM) tests shown in <A HREF="sect7.htm#autf12">Figure 8.11</A> can help
+determine the order of the ARCH model appropriate for the data.
+The tests are significant (p&#60;.0001) through order 12,
+which indicates that a very high-order ARCH model is needed
+to model the heteroscedasticity.
+<P>The basic ARCH(<I>q</I>) model (<I>p</I>=0) is a <I>short memory</I> process in that
+only the most recent <I>q</I> squared residuals are used to estimate the
+changing variance.
+The GARCH model (<I>p</I>&#62;0) allows <I>long memory</I> processes,
+which use all the past squared residuals to estimate the current variance.
+The LM tests in <A HREF="sect7.htm#autf12">Figure 8.11</A> suggest the use of the GARCH model (<I>p</I>&#62;0)
+instead of the ARCH model.
+<P>The GARCH(<I>p</I>,<I>q</I>) model is specified with
+the GARCH=(P=<I>p</I>,Q=<I>q</I>) option in the MODEL statement.
+The basic ARCH(<I>q</I>) model is the same as the GARCH(0,<I>q</I>) model
+and is specified with the GARCH=(Q=<I>q</I>) option.
+<P>The following statements fit an AR(2)-GARCH(1,1) model
+for the Y series regressed on TIME.
+The GARCH=(P=1,Q=1) option specifies the GARCH(1,1) conditional variance model.
+The NLAG=2 option specifies the AR(2) error process.
+Only the maximum likelihood method is supported for GARCH models;
+therefore, the METHOD= option is not needed.
+The CEV= option in the OUTPUT statement stores
+the estimated conditional error variance
+at each time period in the variable VHAT in an output data set named OUT.
+<P><PRE>
+
+   proc autoreg data=a;
+      model y = time / nlag=2 garch=(q=1,p=1) maxit=50;
+      output out=out cev=vhat;
+   run;
+</PRE>
+<P>The results for the GARCH model are shown in <A HREF="sect8.htm#autf14">Figure 8.12</A>.
+(The preliminary estimates are not shown.)
+<P>
+<P><A NAME="autf14">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The AUTOREG Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=4 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>GARCH Estimates</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">218.860964</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Observations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">120</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>MSE</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.82384</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Uncond Var</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.62996534</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Log Likelihood</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-187.44013</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Total R-Square</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.9941</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>SBC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">408.392693</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AIC</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">388.88025</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Normality Test</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0839</font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Pr &gt; ChiSq</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.9589</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Variable</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>DF</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Standard Error</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br>Pr &gt; |t|</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Intercept</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">8.9301</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.7235</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">12.34</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>time</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.5075</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0107</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">47.30</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-1.2301</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1078</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-11.41</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>AR2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.5023</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1057</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4.75</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>ARCH0</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0850</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0757</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.12</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2614</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>ARCH1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.2103</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0847</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2.48</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0130</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>GARCH1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.7376</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0960</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7.68</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 8.12:</B> AR(2)-GARCH(1,1) Model</SPAN><P>
+<P>The normality test is not significant (<I>p</I> = 0.957),
+which is consistent with the hypothesis that the residuals from
+the GARCH model, <IMG WIDTH="57" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq24.gif"
+ ALT="{ {\epsilon}_{t}/\sqrt{ h_{t}} }">,
+are normally distributed.
+The parameter estimates table includes rows for the GARCH parameters.
+ARCH0 represents the estimate for the parameter <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/auteq25.gif"
+ ALT="{{\omega}}">,
+ARCH1 represents <IMG WIDTH="23" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq26.gif"
+ ALT="{ {\alpha}_{1}}">,
+and GARCH1 represents <IMG WIDTH="21" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq27.gif"
+ ALT="{ {\gamma}_{1}}">.<P>The following statements transform the estimated conditional error variance
+series VHAT to the estimated standard deviation series SHAT.
+Then, they plot SHAT together with the true standard deviation S used
+to generate the simulated data.
+<P><PRE>
+
+   data out;
+      set out;
+      shat = sqrt( vhat );
+   run;
+   
+   title &#34;Predicted and Actual Standard Deviations&#34;;
+   proc gplot data=out;
+      plot s*time=1 shat*time=2 / overlay;
+      symbol1 v=dot  i=none;
+      symbol2 v=none i = join;
+   run;
+</PRE>
+<P>The plot is shown in <A HREF="sect8.htm#autf15">Figure 8.13</A>.
+<P>
+<P><A NAME="autf15">&#13;</A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/autgs13.gif" ALT="autgs13.gif (4480 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 8.13:</B> Estimated and Actual Error Standard Deviation Series</SPAN><P>
+<P>Note that in this example the form of heteroscedasticity used in
+generating the simulated series Y does not fit the GARCH model.
+The GARCH model assumes <I>conditional</I> heteroscedasticity,
+with homoscedastic unconditional error variance.
+That is, the GARCH model assumes that the changes in variance are a
+function of the realizations of preceding errors and that these changes
+represent temporary and random departures from a constant unconditional
+variance. The data generating process used to simulate series Y,
+contrary to the GARCH model, has exogenous unconditional heteroscedasticity
+that is independent of past errors.
+<P>Nonetheless, as shown in <A HREF="sect8.htm#autf15">Figure 8.13</A>,
+the GARCH model does a reasonably good job of approximating the
+error variance in this example, and some improvement in the efficiency
+of the estimator of the regression parameters can be expected.
+<P>The GARCH model may perform better in cases where theory
+suggests that the data generating process produces true autoregressive
+conditional heteroscedasticity.
+This is the case in some economic theories of asset returns,
+and GARCH-type models are often used
+for analysis of financial markets data.
+<P><H3><I>Using the HETERO Statement with GARCH Models</I></H3>
+<A NAME="idxaut0044">&#13;</A><A NAME="idxaut0043">&#13;</A>The HETERO statement can be combined with the GARCH= option
+on the MODEL statement to include input variables in the
+GARCH conditional variance model.
+For example, the GARCH(1,1) variance model with
+two dummy input variables D1 and D2 is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="83" HEIGHT="78"
+ SRC="images/auteq21.gif"
+ ALT="{\epsilon}_{t} = \sqrt{ h_{t}} e_{t}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="338" HEIGHT="78"
+ SRC="images/auteq28.gif"
+ ALT="h_{t} = {\omega} + {\alpha}_{1} {\epsilon}^2_{t-1} + {\gamma}_{1}h_{t-1} +
+{\eta}_{1}{D1}_{t} + {\eta}_{2}{D2}_{t}"></DL>
+<P>The following statements estimate this GARCH model:
+<P><PRE>
+
+   proc autoreg data=one;
+      model y = x z / garch=(p=1,q=1);
+      hetero d1 d2;
+   run;
+</PRE>
+<P>The parameters for the variables D1 and D2 can be constrained
+using the COEF= option.
+For example, the constraints <IMG WIDTH="95" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/auteq29.gif"
+ ALT="{{\eta}_{1}={\eta}_{2}=1}">
+are imposed by the following statements:
+<P><PRE>
+
+   proc autoreg data=one;
+      model y = x z / garch=(p=1,q=1);
+      hetero d1 d2 / coef=unit;
+   run;
+</PRE>
+<P><H3><I>Limitations of GARCH and Heteroscedasticity Specifications</I></H3>
+When you specify both the GARCH= option and the HETERO statement,
+the GARCH=(TYPE=EXP) option is not valid. The COVEST= option is
+not applicable to the EGARCH model.
+<P><H3><I>EGARCH, IGARCH, GARCH-M Models</I></H3>
+<A NAME="idxaut0046">&#13;</A><A NAME="idxaut0045">&#13;</A><A NAME="idxaut0048">&#13;</A><A NAME="idxaut0047">&#13;</A><A NAME="idxaut0050">&#13;</A><A NAME="idxaut0049">&#13;</A>The AUTOREG procedure supports several variations of the
+generalized conditional heteroscedasticity model.
+<P>Using the TYPE= suboption of the GARCH= option,
+you can control the constraints placed on the estimated GARCH parameters.
+You can specify unconstrained, nonnegativity constrained (default),
+stationarity constrained, or integration constrained.
+The integration constraint produces the integrated GARCH or IGARCH model.
+<P>You can also use the TYPE= option to specify the exponential form
+of the GARCH model, called the EGARCH model.
+The MEAN suboption of the GARCH= option specifies the GARCH-in-mean
+or GARCH-M model.
+<P>The following statements illustrate the use of the TYPE= option to
+fit an AR(2)-EGARCH(1,1) model to the series Y.
+(Output is not shown.)
+<P><PRE>
+
+   proc autoreg data=a;
+      model y = time / nlag=2 garch=(p=1,q=1,type=exp);
+   run;
+</PRE>
+<P>See the section &#34;GARCH, IGARCH, EGARCH, and GARCH-M Models&#34;
+later in this chapter for details.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect7.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect9.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

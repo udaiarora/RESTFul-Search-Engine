@@ -1,0 +1,136 @@
+<HTML>
+<HEAD>
+<TITLE>Example 5.1: Using the DATA= Option</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect44.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 5.1: Using the DATA= Option  </H2>
+<P><A NAME="idxnlp0536">&#13;</A>This example illustrates the use of the DATA= option. 
+The Bard function (refer to More et al. 1981) 
+is a least-squares problem with
+<SPAN CLASS="mathfont"><I>n</I>=3</SPAN> parameters and <SPAN CLASS="mathfont"><I>m</I>=15</SPAN> functions <SPAN CLASS="mathfont"><I>f</I><SUB><I>k</I></SUB></SPAN>:
+<A NAME="idxnlp0537">&#13;</A>
+<DL CLASS="equation"><DD><IMG WIDTH="296" HEIGHT="113"
+ SRC="images/nlpeq185.gif"
+ ALT="f(x) = {1 \over 2} \sum_{k=1}^{15} f_k^2(x) ,  x = (x_1,x_2,x_3) ,"></DL>
+where
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>minf</I><sub><I>k</I></sub>(<I>x</I>) = <I>y</I><sub><I>k</I></sub> - ( <I>x<SUb>1</SUb></I> + [(<I>u</I><sub><I>k</I></sub>)/(<I>v</I><sub><I>k</I></sub> <I>x<SUb>2</SUb></I> + <I>w</I><sub><I>k</I></sub> <I>x<SUb>3</SUb></I>)] )</SPAN>
+</DL>
+with <SPAN CLASS="mathfont"><I>u</I><SUB><I>k</I></SUB>=<I>k</I></SPAN>, <SPAN CLASS="mathfont"><I>v</I><SUB><I>k</I></SUB>=16-<I>k</I></SPAN>, <SPAN CLASS="mathfont"><I>w</I><sub><I>k</I></sub> = min(<I>u</I><sub><I>k</I></sub>, <I>v</I><sub><I>k</I></sub>)</SPAN>, and
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>y</I><SUB><I>k</I></SUB>=  .14, .18,  .22,  .25,  .29,  .32,  .35,  .39,  .37,  .58,  .73,  .96,
+1.34, 2.10, 4.39 
+</SPAN>
+</DL>
+The minimum function value <SPAN CLASS="mathfont"><I>f</I>(<I>x<SUP>*</SUP></I>) = 4.107<I>e</I>-3</SPAN> is at the point
+<SPAN CLASS="mathfont">(0.08,1.13,2.34)</SPAN>. The starting point <SPAN CLASS="mathfont"><I>x<SUP>0</SUP></I> = (1,1,1)</SPAN> is used.
+<P>The following is the naive way of specifying the objective function.
+<PRE>
+proc nlp tech=levmar;
+   lsq y1-y15;
+   parms x1-x3 = 1;
+   tmp1 = 15 * x2 + min(1,15) * x3;
+   y1 = 0.14 - (x1 + 1 / tmp1);
+   tmp1 = 14 * x2 + min(2,14) * x3;
+   y2 = 0.18 - (x1 + 2 / tmp1);
+   tmp1 = 13 * x2 + min(3,13) * x3;
+   y3 = 0.22 - (x1 + 3 / tmp1);
+   tmp1 = 12 * x2 + min(4,12) * x3;
+   y4 = 0.25 - (x1 + 4 / tmp1);
+   tmp1 = 11 * x2 + min(5,11) * x3;
+   y5 = 0.29 - (x1 + 5 / tmp1);
+   tmp1 = 10 * x2 + min(6,10) * x3;
+   y6 = 0.32 - (x1 + 6 / tmp1);
+   tmp1 = 9 * x2 + min(7,9) * x3;
+   y7 = 0.35 - (x1 + 7 / tmp1);
+   tmp1 = 8 * x2 + min(8,8) * x3;
+   y8 = 0.39 - (x1 + 8 / tmp1);
+   tmp1 = 7 * x2 + min(9,7) * x3;
+   y9 = 0.37 - (x1 + 9 / tmp1);
+   tmp1 = 6 * x2 + min(10,6) * x3;
+   y10 = 0.58 - (x1 + 10 / tmp1);
+   tmp1 = 5 * x2 + min(11,5) * x3;
+   y11 = 0.73 - (x1 + 11 / tmp1);
+   tmp1 = 4 * x2 + min(12,4) * x3;
+   y12 = 0.96 - (x1 + 12 / tmp1);
+   tmp1 = 3 * x2 + min(13,3) * x3;
+   y13 = 1.34 - (x1 + 13 / tmp1);
+   tmp1 = 2 * x2 + min(14,2) * x3;
+   y14 = 2.10 - (x1 + 14 / tmp1);
+   tmp1 = 1 * x2 + min(15,1) * x3;
+   y15 = 4.39 - (x1 + 15 / tmp1);
+run;
+</PRE>
+<P>A more economical way to program this problem uses
+the DATA= option to input the 16 terms in <SPAN CLASS="mathfont"><I>f</I>(<I>x</I>)</SPAN>.
+<P><PRE>
+data bard;
+ input r @@;
+   w1 = 16. - _n_;
+   w2 = min(_n_ , 16. - _n_);
+ datalines;
+   .14  .18  .22  .25  .29  .32  .35  .39
+   .37  .58  .73  .96 1.34 2.10 4.39
+  ;
+proc nlp data=bard tech=levmar;
+   lsq y;
+   parms x1-x3 = 1.;
+   y = r - (x1 + _obs_ / (w1 * x2 + w2 * x3));
+end;
+</PRE>
+<P>Another way you can specify the objective function
+uses the ARRAY statement and an explicit do loop,
+as in the following code.
+<P><PRE>
+proc nlp tech=levmar;15] .14  .18  .22  .25  .29  .32  .35  .39  .37  .58
+               .73  .96 1.34 2.10 4.39 ;15] y1-y15;
+   lsq y1-y15;
+   parms x1-x3 = 1.;
+   do i = 1 to 15;
+     w1 = 16. - i;
+     w2 = min(i , w1);
+     w3 = w1 * x2 + w2 *i] = (x1 + i];
+   end;
+run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect44.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

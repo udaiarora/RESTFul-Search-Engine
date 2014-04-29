@@ -1,0 +1,193 @@
+<HTML>
+<HEAD>
+<TITLE>Converting MPS Format</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="lp_4c00">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect27.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect29.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The LP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Converting MPS Format</H2>
+<A NAME="idxlp70382">&#13;</A><A NAME="idxlp70383">&#13;</A>MPS input format was introduced by IBM. It has been a way of 
+creating inputs for linear and integer programs.
+SASMPSXS is a SAS marco function that converts the standard MPS 
+format to the sparse format of the LP procedure. 
+The following is an example of the MPS format:
+<P><PRE>
+NAME          EXAMPLE                                               
+* THIS IS DATA FOR THE PRODUCT MIX PROBLEM.                         
+ROWS                                                                
+ N  PROFIT                                                           
+ L  STAMP                                                            
+ L  ASSEMB                                                           
+ L  FINISH                                                           
+ N  CHNROW                                                           
+ N  PRICE                                                            
+COLUMNS                                                                                                                                          
+    DESK      STAMP          3.00000   ASSEMB        10.00000        
+    DESK      FINISH        10.00000   PROFIT        95.00000        
+    DESK      PRICE        175.00000                                 
+    CHAIR     STAMP          1.50000   ASSEMB         6.00000        
+    CHAIR     FINISH         8.00000   PROFIT        41.00000        
+    CHAIR     PRICE         95.00000                                 
+    CABINET   STAMP          2.00000   ASSEMB         8.00000        
+    CABINET   FINISH         8.00000   PROFIT        84.00000        
+    CABINET   PRICE        145.00000                                 
+    BOOKCSE   STAMP          2.00000   ASSEMB         7.00000        
+    BOOKCSE   FINISH         7.00000   PROFIT        76.00000        
+    BOOKCSE   PRICE        130.00000   CHNROW         1.00000        
+RHS                                                                 
+    TIME      STAMP        800.00000   ASSEMB       1200.0000        
+    TIME      FINISH       800.00000                                 
+RANGES                                                              
+    T1        ASSEMB       900.00000                                 
+BOUNDS                                                              
+    UP        CHAIR         75.00000                                 
+    LO        BOOKCSE       50.00000                                 
+ENDATA
+</PRE>
+<P>In this example, the company tries to find                                               
+an optimal product mix of four items: 
+a <SPAN CLASS="ssfeleven">DESK</SPAN>, a <SPAN CLASS="ssfeleven">CHAIR</SPAN>, a <SPAN CLASS="ssfeleven">CABINET</SPAN>, and a <SPAN CLASS="ssfeleven">BOOKCASE</SPAN>.                
+Each item is processed in a stamping department (<SPAN CLASS="ssfeleven">STAMP</SPAN>), an                     
+assembly department (<SPAN CLASS="ssfeleven">ASSEMB</SPAN>), and a finishing department (<SPAN CLASS="ssfeleven">FINISH</SPAN>).          
+The time each item requires in each department is given in the input            
+data. Because of resource limitations, each department has                      
+an upper limit on the time available for processing.                            
+Furthermore, because of labor constraints, the                                  
+assembly department must work at least 300 hours.                               
+Finally, marketing tells you not to make more than 75 chairs,                   
+to make at least 50 bookcases, and to find the range over which                 
+the selling price of a bookcase can vary without changing the                   
+optimal product mix.
+<P>The SASMPSXS macro function uses MPSFILE=<SPAN CLASS="ssfeleven">'FILENAME'</SPAN> as an argument
+to take an MPS input file. It then converts the file and saves the
+conversion to a default SAS data set, <SPAN CLASS="ssfeleven">PROB</SPAN>.  The <SPAN CLASS="ssfeleven">FILENAME</SPAN>
+should include the path.
+<P>Running the following statements on the preceding example
+<PRE>
+   %sasmpsxs(mpsfile='filename');
+
+   proc print data=prob;
+   run;
+</PRE>
+
+produces the sparse input form of the LP procedure:
+<P><PRE>
+ OBS    _TYPE_      _COL_      _ROW1_    _COEF1_    _ROW2_    _COEF2    _       
+                                                                                
+  1    *OW                                  .                    .              
+  2    FREE                   PROFIT        .                    .              
+  3    LE                     STAMP         .                    .              
+  4    LE                     ASSEMB        .                    .              
+  5    LE                     FINISH        .                    .              
+  6    FREE                   CHNROW        .                    .              
+  7    FREE                   PRICE         .                    .              
+  8    *OL         MNS                      .                    .              
+  9                DESK       STAMP        3.0     ASSEMB       10              
+ 10                DESK       FINISH      10.0     PROFIT       95              
+ 11                DESK       PRICE      175.0                   .              
+ 12                CHAIR      STAMP        1.5     ASSEMB        6              
+ 13                CHAIR      FINISH       8.0     PROFIT       41              
+ 14                CHAIR      PRICE       95.0                   .              
+ 15                CABINET    STAMP        2.0     ASSEMB        8              
+ 16                CABINET    FINISH       8.0     PROFIT       84              
+ 17                CABINET    PRICE      145.0                   .              
+ 18                BOOKCSE    STAMP         2      ASSEMB        7              
+ 19                BOOKCSE    FINISH        7      PROFIT       76              
+ 20                BOOKCSE    PRICE       130      CHNROW        1              
+ 21    *HS                                  .                    .              
+ 22    RHS         TIME       STAMP       800      ASSEMB     1200              
+ 23    RHS         TIME       FINISH      800                    .              
+ 24    *AN         ES                       .                    .              
+ 25    RANGE       T1         ASSEMB      900                    .              
+ 26    *OU         DS                       .                    .              
+ 27    UPPERBDD    CHAIR      UP           75                    .              
+ 28    LOWERBDD    BOOKCSE    LO           50                    .
+</PRE>
+<P>SASMPSXS recognizes four MPS row types: <SPAN CLASS="ssiten"><I>E, L, G</I></SPAN> and <SPAN CLASS="ssiten"><I>N</I></SPAN>.  
+It converts them into types <SPAN CLASS="ssiten"><I>EQ, LE, GE</I></SPAN> and <SPAN CLASS="ssiten"><I>FREE</I></SPAN>.  Since 
+objective rows, price change rows and free rows all share the
+same type <SPAN CLASS="ssiten"><I>N</I></SPAN> in the MPS format, you need a DATA step to assign proper 
+types to the objective rows and price change rows.
+<P><PRE>
+   data;
+      set prob;
+      if _type_='free' and _row1_='profit' then _type_='max';
+      if _type_='free' and _row1_='chnrow' then _type_='pricesen';
+   run;
+
+   proc lp sparsedata;
+   run;
+</PRE>
+
+<P>In the MPS format, the variable types include 
+<SPAN CLASS="ssiten"><I>LO, UP, FX, FR, MI</I></SPAN>, and <SPAN CLASS="ssiten"><I>BV</I></SPAN>.
+The SASMPSXS macro converts them into types <SPAN CLASS="ssiten"><I>LOWERBD, UPPERBD, FIXED,
+UNRESTRICTED, -INFINITY</I></SPAN>, and <SPAN CLASS="ssiten"><I>BINARY</I></SPAN>, respectively.  
+Occasionally, you may define your own variable types,
+in which case, you need to add corresponding type
+handling entries in SASMPSXS.SAS program and use the SAS %INCLUDE
+macro to include the file at the beginning of your program.
+The SASMPSXS macro function can be found in the SAS sample library.
+The information on the MPS format can be obtained from 
+Murtagh (1981).
+<P>SASMPSXS can take no arguments, or it can take one or two arguments.
+If no arguments are present, SASMPSXS assumes that the
+MPS input file has been saved to a SAS data set named <SPAN CLASS="ssfeleven">RAW</SPAN>.
+The macro then takes information from that data set and
+converts it into the sparse form of the LP procedure.  
+The <SPAN CLASS="ssfeleven">RAW</SPAN> data set should have the following six variables:
+<P><PRE>
+   data RAW;
+      infile ...;
+      input field1 $ 2-3   field2 $ 5-12
+            field3 $ 15-22 field4   25-36
+            field5 $ 40-47 field6   50-61;
+      ...
+   run;
+</PRE>
+
+<P>If the preceding MPS input data set has a name other than <SPAN CLASS="ssfeleven">RAW</SPAN>,
+you can use MPSDATA=<SPAN CLASS="ssiten"><I>SAS-data-set</I></SPAN> as an argument in
+the SASMPSXS macro function.
+If you want the converted sparse form data set to have a name 
+other than <SPAN CLASS="ssfeleven">PROB</SPAN>, you can use LPDATA=<SPAN CLASS="ssiten"><I>SAS-data-set</I></SPAN> as an argument.
+The order of the arguments in the SASMPSXS macro function
+is not important.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect27.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect29.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

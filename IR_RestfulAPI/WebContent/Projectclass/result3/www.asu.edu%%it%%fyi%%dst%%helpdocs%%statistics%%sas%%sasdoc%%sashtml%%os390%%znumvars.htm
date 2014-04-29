@@ -1,0 +1,200 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Data Representation : Representation of Numeric Variables </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217184.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zes-rexx.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-length.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="znumvars">Representation of Numeric Variables</A></FONT></H1>
+
+
+<P><A name="z0552020">&#13;The way in which
+numbers are represented in your SAS programs
+affects both the magnitude and the precision of your numeric calculations.
+The factors that affect your calculations are discussed in detail in 
+
+
+
+<B>SAS Language Reference: Dictionary</B>.
+When processing in an OS/390 environment, the most important factor you should
+be aware of is the way in which floating-point numbers and integers are stored.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-fpnums">Representation of Floating-Point Numbers</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552021">&#13;All
+numeric values are stored in SAS data sets, which are maintained
+internally in floating-point (real binary) representation, in which values
+are represented as numbers between 0 and 1 times a power of 10.  For example,
+1234 (base 10) is .1234 times 10 to the 4th power, which is the same as the
+following expression: </A>
+<P>
+<P><IMG border="0" src="./images/01328316.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Under
+OS/390, floating-point representation (unlike
+scientific notation) uses a base of 16 rather than base 10. IBM mainframe
+systems all use the same floating-point representation, which is made up of
+4, 8, or 16 bytes. SAS always uses 8 bytes, as follows:  
+
+
+
+<PRE>SEEEEEEE MMMMMMMM MMMMMMMM MMMMMMMM
+ byte 1   byte 2   byte 3   byte 4
+MMMMMMMM MMMMMMMM MMMMMMMM MMMMMMMM
+ byte 5   byte 6   byte 7   byte 8</PRE>
+<P>This representation corresponds to bytes of data, with
+each character occupying 1 bit. The S in byte 1 is the sign bit of the number.
+If the sign bit is 0, the number is positive. Conversely, if the sign bit
+is one, the number is negative. The seven E characters in byte 1 represent
+a binary integer that is known as the characteristic. The <B>characteristic</B> represents a signed exponent and is obtained by adding the bias to
+the actual exponent. The <B>bias</B> is defined as an offset that is
+used to allow for both negative and positive exponents with the bias representing
+0. If a bias was not used, an additional sign bit for the exponent would have
+to be allocated. For example, IBM mainframes employ a bias of 40 (base 16).
+A characteristic with the value 42 (base 16) represents an exponent of +2
+(base 16), whereas a characteristic of 3D (base 16)represents an exponent
+of -3 (base 16).
+<P>The remaining M characters in bytes 2 through 8 represent
+the bits of the mantissa. There is an implied radix point before the most
+significant bit of the mantissa, which also implies that the mantissa is always
+strictly less than 1. The term <B>radix point </B> is used instead of
+decimal point because decimal point implies that we are working with decimal
+(base 10) numbers, which may not be the case.
+<P>The exponent has a base associated with it. Do not confuse
+this with the base in which the exponent is represented. The exponent is always
+represented in binary, but the exponent is used to determine what power of
+the exponent's base should be multiplied by the mantissa. In the case of the
+IBM mainframes, the exponent's base is 16.
+<P>Each bit in the mantissa represents a fraction whose
+numerator is 1 and whose denominator is a power of 2. For example, the most
+significant bit in byte 2 represents 1/2**1, the next most significant bit
+represents 1/2**2, and so on. In other words the mantissa is the sum of a
+series of fractions such as 1/2, 1/4, 1/8, and so on. Therefore, in order
+for any floating-point number to be represented exactly, you must be able
+to express it as the previously mentioned sum. For example, 100 is represented
+as the following expression:
+
+
+
+<PRE>(1/4 + 1/8 + 1/64) * (16**2)</PRE>
+<P>The following two examples illustrate how the above
+expression is obtained. The first example is in base 10. In decimal notation,
+the value 100 is represented as follows:
+
+
+
+<PRE>100.</PRE>
+<P>The period in this number is the radix point. The mantissa
+must be less than 1; therefore, you normalize this value by shifting the number
+three places to the right, which produces the following value:
+
+
+
+<PRE>.100</PRE>
+<P>Because the number was shifted three places to the right,
+3 is the exponent, which results in the following expression:
+
+
+
+<PRE>.100*(10**3)=100</PRE>
+<P>The second example is in base 16. In hexadecimal notation,
+100 (base 10) is written as follows:
+
+
+
+<PRE>64.</PRE>
+<P>The period in this number is the radix point. Shifting
+the number two places to the left produces the following value:
+
+
+
+<PRE>.64</PRE>
+<P>Shifting the number two places also indicates an exponent
+of 2. Rewriting the number in binary produces the following value:
+
+
+
+<PRE>.01100100</PRE>
+<P>Finally, the value .01100100 can be represented in the
+following expression:
+
+
+
+<PRE>(1/2)**2 + (1/2)**3 + (1/2)**6 = 1/4 + 1/8 + 1/64</PRE>
+<P>In this example, the exponent is 2 (base 10). To represent
+the exponent, you add the bias of 64 (base 16) to the exponent. The hexadecimal
+representation of the resulting value, 66, is 42. The binary representation
+is as follows:
+
+
+
+<PRE>01000010 01100100 00000000 00000000
+00000000 00000000 00000000 00000000</PRE>
+<P>Floating-point numbers that have negative exponents
+are represented with characteristics that are less than 40 (base 16). When
+you subtract 40 from a number that is less than 40, the difference is a negative
+value that represents the exponent. An example of such a number is the floating-point
+representation of .03125 (base 10), which is
+
+
+
+<PRE>'3F80000000000000'x</PRE>
+<P>Subtracting 40 (base 16) from the characteristic 3F
+(base 16) gives an exponent of -1 (base 16). This exponent is applied
+to the 14-digit fraction, 80000000000000 (base 16), giving a value of .08
+(base 16), which is equal to .03125 (base 10).
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Representation of Integers</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552029">&#13;  Like other numeric values, SAS maintains integer variables
+in 8-byte floating-point (real binary) representation. But under OS/390, outside
+of SAS, integer values are typically represented as 4-byte (fixed point) binary
+values using two's complement notation. SAS can read and write these values
+using informats and formats, but it does not process them internally in this
+form. SAS uses floating-point representation internally.</A>
+<P>You can use the IB<B>w.d</B> informat and format
+to read and write the binary integer values used under OS/390.  Each integer
+uses 4 bytes (32 bits) of storage space; thus, the range of values that can
+be represented is from -2,147,483,648 to
+2,147,483,647.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217184.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zes-rexx.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-length.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#znumvars">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

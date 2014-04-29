@@ -1,0 +1,214 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>ACCESS Procedure Reference : Specifying Passwords for SAS/ACCESS Descriptors </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1030786.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1007297.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1007298.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1025692">Specifying Passwords for SAS/ACCESS Descriptors</A></FONT></H1>
+
+
+<P><A name="z1041911">&#13; The SAS/ACCESS interface requires both access descriptors and
+view descriptors to have a SYSTEM 2000 password to access the database. The
+password for the access descriptor determines the picture of the database
+used to create view descriptors. The password for the view descriptor determines
+the data you see, and your ability to subset and edit it through the descriptor.</A>
+<P>You specify the password for the access descriptor as
+part of the DATABASE statement. For the view descriptor, you have the option
+to store the SYSTEM 2000 password in the view descriptor (S2KPW statement)
+or submit it as a SAS data set option. Storing the  SYSTEM 2000 password in
+a view descriptor enables all who use it to have access to its data. Relying
+on the data set option means giving users access to database passwords.
+<P>To protect your database passwords, you may want to
+store the SYSTEM 2000 password in the view descriptor and assign one or more
+SAS passwords to control access to the descriptor file. You can also assign
+SAS passwords to control who can create view descriptors from an access descriptor.
+To access the descriptor files, you specify the SAS password as a data set
+option. For example, to create a view descriptor, you would specify the access
+descriptor password after the ACCDESC= option as follows:
+
+
+
+<PRE>  proc access dbms=s2k accdesc=mylib.employee
+    (alter=reward);
+     create vlib.customer.view;
+     select all;
+  run;</PRE>
+<P>You must first create descriptor files before assigning
+SAS passwords to them.
+<P><A href="#z0614589">Password and Descriptor Interaction</A>
+summarizes the levels of protection that SAS System passwords have and their
+effects on descriptor files.
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="z0614589">Password and Descriptor Interaction</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B><A name="z0614589">&#13;</A></B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>READ=</B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>WRITE=</B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>ALTER=</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">access descriptor</TD>
+  
+<TD  align="LEFT" valign="TOP">no effect on descriptor</TD>
+  
+<TD  align="LEFT" valign="TOP">no effect on descriptor</TD>
+  
+<TD  align="LEFT" valign="TOP">protects descriptor from being read or edited</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">view descriptor</TD>
+  
+<TD  align="LEFT" valign="TOP">protects DBMS data from being read or updated</TD>
+  
+<TD  align="LEFT" valign="TOP">protects DBMS data from being updated</TD>
+  
+<TD  align="LEFT" valign="TOP">protects descriptor from being read or
+edited</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P>For detailed information about the levels of protection
+and the types of SAS passwords you can use, refer to <B>SAS Language Reference: Dictionary</B>. For more information
+about protecting access and view descriptors, see <A href="z1010884.htm">Ensuring Data Security</A>. The following section describes how you
+assign SAS System passwords to descriptors.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Assigning SAS System Passwords</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0984764">&#13;
+  
+ You can assign,
+change, or clear a password for an access descriptor, a view descriptor, or
+another SAS file in the SAS System by using the DATASETS procedure's MODIFY
+statement. Here is the basic syntax for using PROC DATASETS to assign a password
+to an access descriptor, a view descriptor, or a SAS data file:</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>PROC DATASETS</B> LIBRARY= <I>libref</I> MEMTYPE=
+<I>member-type</I>;
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+MODIFY <I>member-name</I> (<I>password-level</I> =
+<I>password-modification</I>);
+</TD></TR></TABLE>
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+RUN;
+</TD></TR></TABLE>
+<P>In this syntax statement, the <B>password-level</B>
+argument can have one or more of the following values: READ=, WRITE=, ALTER=,
+or PW=. PW= assigns read, write, and alter privileges to a descriptor or data
+file. The <B>password-modification</B> argument enables you to assign
+a new password or to change or delete an existing password.
+<P>For example, this PROC DATASETS statement assigns the
+password REWARD with the ALTER level of protection to the access descriptor
+MYLIB.EMPLOYE: 
+
+
+
+<PRE>proc datasets library=mylib memtype=access;
+   modify employe (alter=reward);
+run;</PRE>
+<P>In this case, users are prompted for the password whenever
+they try to browse or edit the access descriptor or to create view descriptors
+that are based on MYLIB.EMPLOYE.
+<P>In the next example, the PROC DATASETS statement assigns
+the passwords MYPW and MYDEPT with READ and ALTER levels of protection to
+the view descriptor VLIB.CUSTACCT: 
+
+
+
+<PRE>proc datasets library=vlib memtype=view;
+   modify custacct (read=mypw alter=mydept);
+run;</PRE>
+<P>In this case, users are prompted for the SAS password
+when they try to read the DBMS data, or try to browse or edit the view descriptor
+VLIB.CUSTACCT itself. You need both levels to protect the data and descriptor
+from being read. However, a user could still update the data accessed by VLIB.CUSTACCT,
+for example, by using a PROC SQL UPDATE. Assign a WRITE level of protection
+to prevent data updates.
+<P>To delete a password on an access descriptor or any
+SAS data set, put a slash after the password: 
+
+
+
+<PRE>proc datasets library=vlib memtype=view;
+   modify custacct (read=mypw/ alter=mydept/);
+run;</PRE>
+<P>In the following example, PROC DATASETS sets a READ
+and ALTER password for view descriptor VLIB.CUSTINFO. PROC PRINT tries to
+use the view descriptor with both an invalid and valid password.  
+
+
+
+<PRE>/* Assign passwords */
+proc datasets library=vlib memtype=view;
+  modify custinfo (read=r2d2 alter=c3po);
+run;
+
+/* Invalid password given */
+proc print data=vlib.custinfo (pw=r2dq);
+  where ssn = '178-42-6534';
+  title2 'Data for 178-42-6534';
+run;
+
+/* Valid password given */
+proc print data=vlib.custinfo (pw=r2d2);
+  where ssn = '178-42-6534';
+  title2 'Data for 178-42-6534';
+run;</PRE>
+<P>Refer to <B>SAS Language Reference: Dictionary</B> for more examples of assigning, changing,
+deleting, and using SAS System passwords.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1030786.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1007297.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1007298.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1025692">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

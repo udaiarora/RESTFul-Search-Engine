@@ -1,0 +1,277 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS/GRAPH Output : Transporting and Converting Graphics Output </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696063.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zt-gedit.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zport-ov.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zt-trans">Transporting and Converting Graphics Output</A></FONT></H1>
+
+
+<P><A name="z0748155">&#13; You can use the following methods to transport and convert graphics
+output within the SAS System: </A>
+<P>
+<UL>
+
+<LI>Use the CPORT and CIMPORT procedures in base SAS
+software to transport catalogs that contain graphics output to other operating
+environments that are running the same version of SAS/GRAPH software.<P>
+
+<LI>Use a LIBNAME statement and the CATALOG procedure
+to convert catalogs from Version 6 to Version 7 or Version 8.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zt-cport">Transporting Catalogs across Operating Environments</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0748158">&#13;  Use the CPORT and CIMPORT procedures to transport catalogs
+and catalog entries from one machine to another machine running in a different
+operating environment.  In addition to graphics output stored in GRSEG catalog
+entries, SAS/GRAPH software produces
+several other files that you can transport from host environment to host environment.
+ These other files include </A>
+<P>
+<UL>
+
+<LI>colors
+maps<P>
+
+<LI>templates<P>
+
+<LI>fonts<P>
+
+<LI>device
+descriptions.<P>
+</UL>
+
+<P>To transport catalog entries that contain graphics output
+(catalog entries of type GRSEG), follow these steps: 
+<OL START="1" type="1">
+<LI>Use the CPORT procedure to create a transport
+file from the catalog entries in the current host environment.  A transport
+file is a sequential file that contains the catalog in SAS transport format.
+ To create a transport file, you must specify a catalog to be converted and
+a fileref for the transport file.
+<P>To retain the original order of the GRSEG entries in
+the catalog, use SELECT= in the PROC CPORT statement to export individual
+graphs in the order they were created.  Otherwise, when you use the GREPLAY
+procedure to list the graphics entries in the imported catalog, the procedure
+will list the entries in alphabetical order, rather than the order in which
+they were created. <B>Note:</B> Only the GREPLAY procedure can list
+catalog entries in the order they were created.  All other procedures list
+entries in alphabetical order.
+<P>To export a catalog that contains groups of entries
+created using the GREPLAY procedure, you must use SELECT= in the PROC CPORT
+statement to select the names of the groups, rather than the names of individual
+graphs, to be included in the transport file. If you export the entire catalog
+without using SELECT=, the groups are not maintained in the catalog created
+when you import the transport file in the new host environment.
+<P>When you use the CPORT procedure, messages in the SAS
+log identify the catalog entries that have been placed in the transport file.
+If the catalog entry was created by replaying several graphs into a template,
+the log messages list the names of all of the entries  that contributed to
+the templated graph.<P>
+
+<LI>Move the transport file to the target machine,
+if necessary. You must move the transport file in binary format. If you do
+not move the transport file in binary format, the CIMPORT procedure cannot
+read the file you create. 
+<P><B>Operating Environment Information:</B>&nbsp;&nbsp;&nbsp;Use
+communications software or tape
+to move the transport file.  Refer to the documentation for your network or
+standard procedures for using tape files.  &nbsp;&nbsp;<img border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><P>
+
+<LI>Once you have moved the transport file to the
+target machine, import the transport file into a catalog in the new host environment
+using the CIMPORT procedure. The entries are imported in the order specified
+in SELECT= in the PROC CPORT statement used to create the transport file.
+<P>The SELECT= option in the PROC CIMPORT statement does
+not affect the order of the imported entries.<P>
+</OL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You must use the CIMPORT procedure
+from the current version of the SAS System.  The CIMPORT procedure in a previous
+release cannot read a transport file created by the CPORT procedure in the
+current version. For details on using the CPORT and CIMPORT procedures, see
+the <B>SAS Procedures Guide</B>.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Example of Transporting GRSEGs</H3>
+
+
+<P><A name="z0748173">&#13;   This example
+shows how to port three entries from the catalog
+MYLIB.GRAPHS.</A>
+<P>First, the CPORT procedure writes selected graphs from
+MYLIB.GRAPHS to the transport file TRANFILE. The SELECT option names the graphs
+to be ported.  
+
+
+
+<PRE>libname mylib '<I>SAS-data-library</I>';
+filename tranfile '<I>external-file</I>';
+
+proc cport file=tranfile
+     catalog=mylib.graphs
+     select=(GPLOT.GRSEG, GPLOT1.GRSEG, GPLOT3.GRSEG);
+run;</PRE>
+<P>Once the transport file has been moved to the new host
+environment using communications software or tape, the CIMPORT procedure creates
+a new catalog called MYLIB.GRAPHS on the new machine.  
+
+
+
+<PRE>libname mylib '<I>SAS-data-library</I>';
+filename tranfile '<I>external-file</I>';
+
+proc cimport catalog=mylib.graphs
+     infile=tranfile
+     select=(GPLOT.GRSEG, GPLOT1.GRSEG, GPLOT3.GRSEG);
+run;</PRE>
+<BR><H3>Example of Transporting Color Maps and Templates</H3>
+
+
+<P><A name="z0748176">&#13;  
+To
+transport color maps (catalog entries of type CMAP) and templates (catalog
+entries of type TEMPLATE) from one host environment to another, use the CPORT
+and CIMPORT procedures.  For example, you could export a color map from the
+NEWLIB.CMAPS catalog using the following statements:  
+
+
+</A>
+<PRE>filename tranfile '<I>external-file</I>';
+libname newlib '<I>SAS-data-library</I>';
+
+proc cport file=tranfile catalog=newlib.cmaps select=(mymap.cmap);
+run;</PRE>
+<P>After moving the transport file to the new host environment,
+you can import the color map using the following statements:  
+
+
+
+<PRE>filename tranfile '<I>external-file</I>';
+libname newlib '<I>SAS-data-library</I>';
+
+proc cimport infile=tranfile catalog=newlib.cmaps;
+run;</PRE>
+<BR><H3>Example of Transporting Fonts</H3>
+
+
+<P><A name="z0748178">&#13; To transport fonts (catalog entries of
+type FONT) from one operating
+system to another, use the CPORT and CIMPORT procedures.  For example, you
+could export a font from the GFONT0.FONTS catalog using the following statements:
+ 
+
+
+</A>
+<PRE>filename tranfile '<I>external-file</I>';
+libname gfont0 '<I>SAS-data-library</I>';
+
+proc cport file=tranfile 
+     catalog=gfont0.fonts 
+     select=(figures.font);
+run;</PRE>
+<P>After moving the transport file to the new host environment,
+you can import the font using the following statements:  
+
+
+
+<PRE>filename tranfile '<I>external-file</I>';
+libname gfont0 '<I>SAS-data-library</I>';
+
+proc cimport infile=tranfile catalog=gfont0.fonts;
+run;</PRE>
+<BR><H3>Example of Transporting Device Attributes and Device Entries</H3>
+
+
+<P><A name="z0748180">&#13;  
+ To transport device entries (catalog entries of type DEV) from
+one operating environment to another, use the CPORT and CIMPORT procedures.
+ For example, you could export a device entry from the GDEVICE0.DEVICES catalog
+using the following statements:  
+
+
+</A>
+<PRE>filename tranfile '<I>external-file</I>';
+libname gdevice0 '<I>SAS-data-library</I>';
+
+proc cport file=tranfile 
+     catalog=gdevice0.devices 
+     select=(cgm.dev);
+run;</PRE>
+<P>After moving the transport file to the new host environment,
+you can import the device entry using the following statements:  
+
+
+
+<PRE>filename tranfile '<I>external-file</I>';
+libname gdevice0 '<I>SAS-data-library</I>';
+
+proc cimport infile=tranfile catalog=gdevice0.devices;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zconvert">Converting Catalogs to a Different Version of SAS</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0748182">&#13;  
+To convert catalogs to a different version of SAS, for example
+from Version 6 to Version 8, use the LIBNAME statement and the CATALOG procedure. </A>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You will not be able to use your old catalogs without
+transporting them first.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Before using PROC CATALOG, you must assign librefs to
+both catalogs and specify the Version 6 Compatibility Engine (saseb) on the
+input catalog libname.  Then use PROC CATALOG with a COPY statement to convert
+a catalog from Version 6 to Version 7 or Version 8.  For details on using
+the CATALOG procedure, see the <B>SAS Procedures Guide</B>.
+<P>For example, the following statements can be submitted
+from Version 8 to assign the Version 6 Compatibility Engine and convert a
+catalog from Version 6 to Version 8.  
+
+
+
+<PRE>libname v6lib saseb '<I>SAS-data-library</I>';
+libname v8lib '<I>SAS-data-library</I>';
+
+proc catalog catalog=v6lib.v6cat;
+   copy out=v8lib.v8cat;
+run;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696063.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zt-gedit.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zport-ov.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zt-trans">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

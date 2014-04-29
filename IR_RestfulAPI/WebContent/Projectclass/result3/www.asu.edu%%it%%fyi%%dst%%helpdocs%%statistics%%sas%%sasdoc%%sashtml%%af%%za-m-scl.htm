@@ -1,0 +1,526 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Data Set Data Model Class : Using the Data Set Data Model Class </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zmv6slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0231929.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z7hods.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="za-m-scl">Using the Data Set Data Model Class</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using SCL for Data Validation with the Data Set Data Model Class</FONT></B></TD></TR></TABLE>
+
+<P>The Data Set Data Model class allows you to use SCL to perform data
+validation in your data entry application, as well as control other aspects
+of your application.
+<BR><H3>Accessing the Column Name of the SCL Column Label</H3>
+
+
+<P>You can use the SCL variable, _column_name_, in the model SCL for data
+form objects and data table objects to get access to the name of the column
+for which the SCL column label is being run. In the DFINIT, DFTERM, INIT,
+MAIN, and TERM labels, the value for _column_name_ is _blank_. When a column
+has been modified and the label for that column is driven for the model, the
+value contained in the SCL variable called _column_name is the name of the
+column. The _column_name_ variable must be specified as a character.
+<P><B>Example</B>
+<P>The following example assumes you have created a frame with a data form.
+The table used contains columns, COLUMN1 - COLUMN5, which are all numeric.
+The following SCL code is the model SCL for the data form.  
+
+
+
+<PRE>length _column_name_ $32;
+
+column1: column2: column3:
+ column4: column5:
+   call send(_self_, '_getColumnValue',
+             _column_name_, value);
+   if (value > 9) then
+      call send(_self_, '_erroronColumn',
+                _column_name_);
+   else call send(_self_, '_erroroffColumn',
+                  _column_name_);
+   return;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Assigning an SCL Entry to an Object</FONT></B></TD></TR></TABLE>
+
+<P>You can use the _setSource method to assign an SCL catalog entry, the
+model SCL, to an instance of the Data Set Data Model class.  The SCL entry
+must have been previously compiled to assign it for use on a Data Set Data
+Model object.  The variable types in the compiled entry must match the types
+of the variables displayed in your data entry application.
+<P>You can compile your SCL entry when you assign it to a Data Set Data
+Model object using the optional parameter on the _setSource method. Compiling
+your SCL entry in this way helps you identify potential problems in your data
+entry application through compiler warnings and error messages. 
+<P><B>Note:</B>If you use the Data Form or Data Table class and you
+specify an SCL entry via the attribute windows, the _setSource method as well
+as the methods to drive the individual labels are run for you automatically.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Controlling Execution in the SCL</FONT></B></TD></TR></TABLE>
+
+<P>Program execution in the SCL entry assigned to a Data Set Data Model
+object is controlled by grouping statements into sections.  Each section of
+the program begins with an SCL label and ends with a RETURN statement.  Data
+Set Data Model object application programs can include the following six labelled
+sections: 
+<OL START="1" type="1">
+<LI><B>DFINIT</B>: an initialization phase before any rows are
+displayed, marked by the label DFINIT.  This labelled section is run when
+the _setSource method of the Data Set Data Model class is called.  This section
+is invoked only once for each SCL entry.  Typical uses of this label are to: 
+<P>
+<UL>
+
+<LI>import values through macro variables<P>
+
+<LI>display initial messages on the
+message line (using the _setMsg
+method)<P>
+
+<LI>open auxiliary tables or external files used or referenced by
+the application.<P>
+</UL>
+
+<P>You cannot assign initial values to columns (variables displayed in
+the attached viewer, whether computed columns or data set columns) in the
+DFINIT section.  Only columns which are not part of the data display can be
+initialized in this section because no rows are open during the processing
+of this block.
+<P>The FSEINIT label is synonymous with the DFINIT label; if both labels
+are present, only the DFINIT label is run.<P>
+
+<LI><B>INIT</B>: an initialization phase before each row is
+displayed, marked by the label INIT.  This section is executed once per row,
+when the _getData method is called for the row.  Typical uses of the statements
+following the INIT label are to 
+<P>
+<UL>
+
+<LI>initialize columns for the row<P>
+
+<LI>initialize computed columns.<P>
+</UL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If the
+viewer being used is a table editor,
+then the INIT label runs for each row that is displayed in the table.  For
+example, if the table displays 10 rows, then INIT runs 10 times, executing
+the SCL code in it each time.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P>
+
+<LI><B>Column Labels</B>: a processing phase that runs when
+a given column is modified, marked by a label corresponding to a column name.
+ Column labels for any modified columns are run before the MAIN processing
+phase.  Column labels allow you to separate specialized data validation code
+for each column in the table.<P>
+
+<LI><B>MAIN</B>: a phase to process user input, marked by the
+label MAIN. This section is repeated each time the user modifies a field in
+the window or the _setData method of the object is driven by the attached
+viewer.  When a field is modified, the Data Set Data Model class 
+<P>
+<UL>
+
+<LI>checks the input values for validity.  The Data Set Data Model
+class uses any column attributes assigned for the column.<P>
+
+<LI>executes the SCL statements following the MAIN label only if the
+input values are valid.  If errors are detected, then the statements are not
+executed and the class issues an error message.  When the user corrects the
+error, the MAIN section is executed.<P>
+</UL>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Column values are checked for validity only before
+the SCL program is entered, not after.  No error is detected if manipulations
+in the SCL program produce a field value that is outside the range specified
+in the MIN and MAX column attributes.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR> 
+<P>During the main processing phase, the application may interact with
+the user to accomplish specific tasks.  The SCL program can prompt the user
+for information, verify values, check data sets, and call other programs that
+prompt the user for information.<P>
+
+<LI><B>TERM</B>: a termination phase, marked by the label TERM,
+that executes before moving to another row, if the current row has been modified.
+This label is driven when the _getUpdateStatus method of the Data Set Data
+Model class is called.
+<P>A typical use of the TERM section is to update an auxiliary data set.<P>
+
+<LI><B>DFTERM</B>: a termination phase before the object terminates
+or when a new SCL entry is assigned to the object, marked by the label DFTERM.
+This section is executed when the _term method or _setSource to another source
+entry method is called.
+<P>Typical uses of the statements following the DFTERM label are to 
+<P>
+<UL>
+
+<LI>close tables or external files used or referenced by the
+application<P>
+
+<LI>export values through macro variables.<P>
+</UL>
+
+<P>The FSETERM label is synonymous with the DFTERM label; if both labels
+are present, only the DFTERM label is run.
+<P>The model SCL for a dataform accepts the following SCL CONTROL statement
+arguments:
+
+<P>
+<UL>
+
+<LI>LABEL<P>
+
+<LI>ERROR<P>
+
+<LI>ALWAYS<P>
+
+<LI>ENTER<P>
+
+<LI>TERM<P>
+</UL>
+<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Summary of SCL Label Running</FONT></B></TD></TR></TABLE>
+
+<P>The following SCL labels are run when the viewer is a data form, a form
+editor, or a subclass of the form editor: 
+<P>
+<UL>
+
+<LI>When _setSource is called, the DFINIT label is run.<P>
+
+<LI>When _term or _setSource to another entry is called,
+the DFTERM
+label is run.<P>
+
+<LI>When you scroll onto a row, the INIT label is run and the frame
+object label and frame MAIN label may also run.<P>
+
+<LI>When you modify a row, the column labels and MAIN label are run,
+along with the frame object label and frame MAIN label.<P>
+
+<LI>When you scroll off a row, the TERM label is run.<P>
+
+<LI>When you end from the frame, the TERM label
+is run.  The DFTERM
+label and the frame TERM label are also run.<P>
+</UL>
+
+<P>  The following SCL labels are run when the viewer is a data table,
+a table editor, or a subclass of the table editor: 
+<P>
+<UL>
+
+<LI>When _setSource is called, the DFINIT label is run.<P>
+
+<LI>When _term or _setSource to another entry is
+called, the DFTERM
+label is run.<P>
+
+<LI>When a row is displayed, the INIT label is run.<P>
+
+<LI>When a row is locked, the INIT label is run, and the frame object
+label and the frame MAIN label may execute.<P>
+
+<LI>When you modify a row, the column labels and MAIN label are run,
+along with the frame object label and the frame MAIN label.<P>
+
+<LI>When you unlock a row, the TERM label is run.<P>
+
+<LI>When you end from the frame, the TERM label
+is run for the locked
+row.The frame TERM label is also run.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">SCL Variables</FONT></B></TD></TR></TABLE>
+
+<P>You can use the following three types of variables in your SCL program: 
+<DL>
+<DT>column variables</DT>
+<DD>variables that correspond to columns in the table,
+and computed columns, regardless of display status.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You do not
+need to declare these in an SCL program.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR> 
+<P>Each column in the data set data model has a corresponding column variable
+in SCL.  When a user modifies the values in the columns of the object, the
+values of the corresponding SCL variables are automatically updated.  Similarly,
+when the SCL program modifies the value of a window variable, the value of
+the corresponding column in the object is updated.  If the column is for a
+data set column, the variable in the data set is updated also.<P></DD>
+
+<DT>noncolumn variables</DT>
+<DD>variables that do not correspond to columns in the
+object. These include temporary variables used in the program, such as variables
+used to hold the return codes of SCL functions.  These variables can be used
+in calculations and are treated by SCL in the same manner as column variables.
+<P>Noncolumn variables are initialized to missing values or to initial
+values given in declarative statements (such as ARRAY statements) before SCL
+is executed.<P></DD>
+
+<DT>system variables</DT>
+<DD>reserved variables such as _SELF_ provided by SCL
+to check information set by the system or to set information displayed or
+used by the system. The Data Set Data Model class defines four system variables: 
+<P>
+<UL>
+
+<LI>_SELF_, which contains the object identifier for the instance
+of the Data Set Data Model class used with the model's SCL.  Note that the
+following methods cannot be called from the model's SCL entry:
+
+<P>
+<UL>
+
+<LI>_addComputedColumn<P>
+
+<LI>_attach<P>
+
+<LI>_commitNewRow<P>
+
+<LI>_deleteComputedColumn<P>
+
+<LI>_findRow<P>
+
+<LI>_hideColumn<P>
+
+<LI>_repeatFindRow<P>
+
+<LI>_rereadAll<P>
+
+<LI>_setData<P>
+
+<LI>_setDataset<P>
+
+<LI>_setDisplayedColumns<P>
+
+<LI>_setEntry<P>
+
+<LI>_setProperties<P>
+
+<LI>_setSource<P>
+
+<LI>_select<P>
+
+<LI>_unhideColumn<P>
+</UL>
+
+<P>The
+following methods <B>must</B> be called from the model's SCL
+entry: 
+<P>
+<UL>
+
+<LI>_getViewerAttribute<P>
+
+<LI>_setViewerAttribute<P>
+</UL>
+<P>
+
+<LI>_VIEWER_, which contains the object
+identifier for the viewer
+attached to the data set data model, if any viewer is available.<P>
+
+<LI>_MSG_<P>
+
+<LI>_column_name, which contains the name of the column for which
+the SCL column label is being run. In the DFINIT, DFTERM, INIT, MAIN, and
+TERM labels, the value for _column_name is _blank_.<P>
+</UL>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Commands for the Data Set Data Model Class</FONT></B></TD></TR></TABLE>
+
+<P>The following commands are supported by the Data Set Data Model class
+through the _execCmd method. Note that SCL programs should use the method
+which corresponds to the command; commands are provided for interactive end-user
+use. Commands not understood by the Data Set Data Model class are delegated
+to the Data Set Model class. 
+<DL>
+<DT>
+ADD</DT>
+<DD>adds a pending row. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The ADD command is
+not valid when browsing a table or if the NOADD option is specified.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>By default, all values in a new row are missing. If an initial value
+has been stored for the column, the value for a new row contains the initial
+value for the column.
+<P>This command corresponds to the method
+_addRow.<P></DD>
+
+<DT>
+DROP<I>column</I>&lt;...<I>column-n</I>&gt;);</DT>
+<DD>excludes one or more columns from the display.  See
+also the _hideColumn
+method.<P></DD>
+
+<DT>
+DUP&lt;<I>n</I>&lt;<I>row</I>&gt;&gt;</DT>
+<DD>copies the current row to a pending row. In record
+level locking you must lock the row you wish to copy. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The DUP
+command is not valid when browsing a table or if the NOADD option is specified.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>By default, the row is duplicated once. To duplicate the same row again,
+leave the cursor on the command line and execute the DUP command again. Alternatively,
+you can follow the DUP command with the desired number of copies. Only the
+last added row is displayed. The rest of the rows are automatically committed
+to the table. For example, the 
+
+
+<CODE><B>dup 3</B></CODE> command duplicates
+the current row three times, committing the first two rows and leaving the
+third row in pending mode.
+<P>In member level locking, the DUP command copies the specified row <B>n</B> times and adds <B>n</B> - 1 rows to the table. The last row
+is a pending row presented for editing. If no row is specified, the current
+row is used.
+<P>You can select the row to copy by supplying its number as the <B>row</B> argument in the DUP command. To specify the <B>row</B> argument,
+you must also specify the <B>n</B> argument (the number of times you
+want the row duplicated). For example, the following command duplicates row
+5 two times:
+<P><CODE><B>dup 2 5</B></CODE>
+<P>This command corresponds to the method _copyRow.<P></DD>
+
+<DT>
+CREATE <I>dsname</I>
+&lt;REPLACE&gt;&lt;WITH &lt;ALL | <I>varlist</I>&gt;&gt;</DT>
+<DD>creates a new SAS table using some or all of the
+columns from the current table. The new table duplicates both the structure
+and contents of the current table.
+<P>If you issue the CREATE command from an attached viewer, then computed
+columns are not written to the created table. For more information, see the
+Data Set Model class.
+<P>This command corresponds to the Data Set Data Model _saveAs method.<P></DD>
+
+<DT>MOVE <B>start</B> <B>end</B>
+<B>after</B></DT>
+<DD>moves a range of columns that start with the <B>start</B> column and end with the <B>end</B> column after the <B>after</B> column.
+<P>This command
+corresponds to the method _moveColumn.<P></DD>
+
+<DT>
+PROTECT ON|OFF <I>column</I>
+&lt;...<I>column-n</I>&gt;</DT>
+<DD>protects a column or range of columns.
+<P>This command corresponds to the method _protectColumn.<P></DD>
+
+<DT>
+SHOW
+<I>column</I>&lt;...<I>column-n</I>&gt;</DT>
+<DD>redisplays dropped or hidden columns.
+<P>This command corresponds to the method _unhideColumn.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Default Pop-up Menu</FONT></B></TD></TR></TABLE>
+
+<P>The pop-up menu displayed by a viewer using the Data Set Data Model
+class is a combination of the viewer-specific items and the items listed in
+this section, which the Data Set Data Model class provides. The Data Set Data
+Model class defines and processes the following pop-up menu items via the
+_getActions method.  Note that items on the pop-up menu may be grayed depending
+on current option settings and the current state of the model.  The viewer
+is responsible for actually displaying the pop-up menu. Thus, you must have
+a viewer to have access to the pop-up menu.
+<P>The methods processed by the _getActions method must not require parameters.
+If you want to add custom actions to the pop-up, you need to have _getActions
+process your custom method to specify the parameters that need to be sent
+to the method being executed. 
+<DL>
+<DT><CODE><B>Add Row</B></CODE></DT>
+<DD>runs the _addRow method to add a pending row.<P></DD>
+
+<DT><CODE><B>Browse/Edit</B></CODE></DT>
+<DD>runs the _setOpenMode method to alternate between
+BROWSE mode and EDIT mode.<P></DD>
+
+<DT><CODE><B>Cancel Row Edits</B></CODE></DT>
+<DD>runs the _reread method to reread the current row
+from the table. If you have added or copied a row, this item cancels the add
+or copy without saving the pending row on the table.  Otherwise, this item
+cancels any edits that you have made on the locked row.<P></DD>
+
+<DT><CODE><B>Commit New Row</B></CODE></DT>
+<DD>runs the _commitNewRow method to add the pending
+row to the table if you have added or copied a row.<P></DD>
+
+<DT><CODE><B>Copy Row</B></CODE></DT>
+<DD>runs the _copyRow method to make a pending copy of
+the locked row in the table.<P></DD>
+
+<DT><CODE><B>Delete Row</B></CODE></DT>
+<DD>runs the _deleteRow method to delete the locked row
+from the table.<P></DD>
+
+<DT><CODE><B>Help</B></CODE></DT>
+<DD>runs the _columnHelpText method to obtain column
+help from the model.<P></DD>
+
+<DT><CODE><B>Override</B></CODE></DT>
+<DD>runs the _override method to override required and
+error fields. This item enables you to override a column that is in error
+if option settings allow.<P></DD>
+
+<DT><CODE><B>Record/Member</B></CODE></DT>
+<DD>runs the _setOpenMode method to change alternate
+between RECORD level locking and MEMBER level locking.<P></DD>
+
+<DT><CODE><B>Where</B></CODE></DT>
+<DD>runs the _setWhere method to open the interactive
+WHERE window to specify a WHERE clause for the data.<P></DD>
+
+<DT><CODE><B>Where Clear</B></CODE></DT>
+<DD>runs the _setWhere method to clear a WHERE clause
+for the data.<P></DD>
+</DL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zmv6slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0231929.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z7hods.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#za-m-scl">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,349 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!-- created and validated December 1 2004, Brian Rutherford-->
+
+<html lang="en-us" xmlns="http://www.w3.org/1999/xhtml">
+
+   <head>
+
+      <title>ASU IT: WebAuth</title>
+
+      <meta http-equiv="content-style-type" content="text/css" />
+      <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+      <meta name="description" content="Arizona State University Information Technology" />
+      <meta name="keywords" content="Arizona State University Information Technology" />
+      <meta name="robots" content="index, nofollow" />
+
+      <link rev="made" href="mailto:itwebmaster@asu.edu" />
+
+      <link rel="StyleSheet" type="text/css" href="/it/css/it_main.css" />
+      <link rel="StyleSheet" type="text/css" href="/it/css/print.css" media="print" />
+
+      <style type="text/css"> .center { text-align: center } </style>
+
+      <script type="text/javascript">
+	 if (top.frames.length!=0) top.location=self.document.location;
+	 </script>
+
+      </head>
+
+      <body>
+
+	 <p class="hidden"><a href="#main">Skip to Content</a></p>
+
+<div id="topbar"><img src="/it/webauth/img/it_webheaders_webauth.jpg" 
+alt="Arizona State University Information Technology: WebAuth" width="575" height="69" border="0" usemap="#Map" />
+    <map name="Map" id="Map">
+      <area shape="rect" coords="423,52,488,67" href="/it/" alt="IT Home" />
+      <area shape="rect" coords="518,53,568,67" href="/askit/" alt="Ask IT" />
+      <area shape="rect" coords="3,3,326,68" href="/it/webauth/index.html" alt="WebAuth Home" />
+	  <area shape="rect" coords="332,52,406,67" href="/it/search/" alt="IT Search" />
+  </map>
+
+  <a href="http://www.asu.edu/"><img class="asu" src="/it/img/asu.gif" alt="Arizona State University" /></a> 
+</div>
+
+
+
+	 <div id="navpanel">
+	<a class="navsubhead">Documentation</a>
+	<a href="implement.htm">How it Works</a>
+	<a href="implement.htm#examples">Code Examples</a>
+	<a href="register.htm#policies">Policies</a>
+	<a href="faq.htm">Developers FAQ</a>
+	<a href="log.htm">Change Log</a>
+	<a href="changes.htm">Future Development</a>
+	
+	<a class="navsubhead">Support</a>
+	<a href="http://lists.asu.edu/archives/asuwebauth.html">WebAuth Listserv</a>
+	<a href="register.htm">Registration</a>
+	<a href="downloads.htm">Downloads</a>
+	<a href="contact.htm">Contact Support</a>
+
+</div>
+
+<a name="main"></a>
+
+
+	 <div id="mainbody">
+
+	    <table class="layout" cellspacing="0">
+	       <tr>
+		  <td valign="top">
+		     <table cellspacing="0" cellpadding="5">
+			<tr>
+			   <td>
+
+			      <h2>WebAuth Developers FAQ</h2>
+
+			      <br /><br />
+			      <h3>Authorization</h3>
+			      <ul>
+				 <li><div class="question">
+				    <p>How do I control which users have access to pages on my web
+				    server? Where is the list kept?</p>
+				 </div>
+				 <div class="answer">
+				    <p>The WebAuth service authenticates the ASURITE UserID and it is
+				    upto the webmaster to setup a separate authentication as to which
+				    ASURITE UserIDs should access a web page. For example, when a user
+				    accesses a web page, a logon screen could then appear and ask
+				    him/her their ASURITE UserID. This UserIDX could then be authenticated
+				    against a list that the webmaster maintains and if the user is in
+				    that list, he/she could subsequently be prompted for their
+				    password. At that point the ASUWEBAUTH can be brought into the
+				    picture and asked to authenticate the ASURITE UserID/password
+				    combination.</p>
+				 </div></li>
+
+				 <li><div class="question">
+				    <p>Can I get user's affiliation information from
+				    WebAuth?</p></div>
+				 <div class="answer">
+				    <p>It is possible to get some basic affiliation information using WebAuth.
+				    However, this is not recommended for most situations.  There is a large
+				    performance penalty to WebAuth when returning affiliation information.
+				    Developers are encouraged to use the "-n" switch to explicity turn off
+				    affiliation lookup on WebAuth.  Instead, it is recommended that developers
+				    use other databases such as the Affiliate Database, Data Warehouse, or
+				    Directory Services to get additional information about users.</p>
+				   
+				    <p>IT is aware that developers need to make authorization decisions once a
+				    user is authenticated.  We are currently developing on online
+				    authorization system to meet these needs.  Further information can be
+				    found in the <a href="changes.html">Future Development
+				       section</a>.</p>
+				 </div>
+				</li>
+			      </ul>
+
+
+			      <h3>Logging Out</h3>
+			      <ul>
+				 <li><div class="question">
+				    <p>How do I implement a <em>Logout</em> function?</p>
+				 </div>
+				 <div class="answer">
+				    <p>The recommended solution is to use the WebAuth logout call:
+				    <code>https://weblogin.asu.edu/cgi-bin/login?Logout&amp;onLogoutURL=http://www.asu.edu</code>.
+				    Just replace the onLogoutURL value with the page you want the
+				    user redirected to upon logout.  This call will clear any
+				    references (e.g. credential file) on the WebAuth server, in
+				    addition to clearing the browser cookie.</p>
+				 </div>   
+				 </li>
+
+				 <li><div class="question">
+				    <p>How long do users stay logged in?  What is the lifetime of the
+				    browser cookie and Kerberos credential?</p>
+				 </div>
+				 <div class="answer">
+				    <p>The Kerberos credential lifetime is set to 9 hours on the
+				    WebAuth servers.  The cookie lifetime is for the browser session
+				    à	   only.  Once the browser is closed, the cookie is destroyed.</p>
+				    <p>So, even if your browser session has been open for, say 10
+				    hours, a "verify" of the cookie will fail since the credential
+				    file on the WebAuth server expired at 9 hours.  Upon failure, a
+				    re-authentication of the user will establish a fresh credential
+				    with a new 9 hour lifetime.</p>
+				    <p>Please note that explicitly setting an expire time for a
+				    cookie in a Set-Cookie: http header causes the cookie to be a
+				    persistent cookie (stored on disk in cookies.txt or wherever the
+				    browser keeps it) rather than a session cookie (in memory for the
+				    duration of the browser's execution life).  So trying to delete a
+				    cookie yourself by setting an expiration time that you think is
+				    in the past (but may not be if the client's clock/calendar is
+				    off) may end up committing the cookie value to disk, which is
+				    something you may not want to happen.</p>
+				 </div>
+				 </li>
+			      </ul>
+
+			      <h3>Testing</h3>
+			      <ul>
+				 <li>
+				 <div class="question">
+				    <p>How do I test my production applications against upcoming WebAuth
+				    changes?</p>
+				 </div>
+				 <div class="answer">
+				    <ol>
+				       <li>On your client machine (workstation), locate your "hosts"
+				       file. On Windows, the default location is
+				       <kbd>C:\WINNT\System32\Drivers\Etc\hosts</kbd> (although the
+				       exact location may vary depending upon how your system is
+				       configured). On UNIX, Linux, &amp; MacOSX, the location is
+				       /etc/hosts.</li>
+				       <li>Add the following line to your hosts file:<br />
+				       <kbd>129.219.134.218 weblogin.asu.edu webauth.asu.edu</kbd></li>
+				       <li>Close all open browser windows, then you can open a new
+				       browser and point to any WebAuth-enabled web application and
+				       you will be testing against the Q/A WebAuth environment.</li>
+				       <li>When you are done testing, simply comment out the above
+				       line in your hosts file (by putting a # in front). Then you
+				       can uncomment later when you wish to test again. We recommend
+				       only testing when you need to as the Q/A WebAuth environment
+				       can be more volatile than the production environment.</li>
+				    </ol>
+				 </div>
+				 </li>
+
+				 <li><div class="question">
+				    <p>For security reasons, I want to validate the contents of the
+				    ASUWEBAUTH cookie before passing it to verify.</p>
+				 </div>
+				 <div class="answer">
+				    <p>The valid encoding characters are '<kbd>A-Z</kbd>', '<kbd>a-z</kbd>', '<kbd>0-9</kbd>', '<kbd>+</kbd>', '<kbd>-</kbd>', and '<kbd>_</kbd>'.<br />
+				    The buffer size is 256. The verify client will only send a max of
+				    256 characters to the verify daemon.</p>
+				 </div></li>
+			      </ul>
+
+			      <h3>Troubleshooting</h3>
+			      <ul>		      
+				 <li><div class="question">
+				    <p>What is a "client host mismatch" and how do I resolve this issue?</p>
+				 </div></li>
+				 <li><div class="answer">
+				    <p>This means that the client address provided by your
+				    application server does not match the address of the client
+				    browser as seen by the WebAuth server.  Make sure that you use
+				    the fully qualified domain name or IP address of the client to
+				    pass on to the verify command.</p>
+				    <p>There are two main causes for this error:</p>
+				    <ol>
+				       <li><p>The user (client) is using SecuRemote and the application
+				       web server is behind an encrypted CheckPoint firewall.</p>
+				       <p>Users with SecuRemote enabled that access ASU computers
+				       have their address translated by the border firewall into an
+				       ASU address (e.g. 149.169).  However, when those same users
+				       connect to a machine behind an encrypted firewall, they
+				       connect using an encrypted tunnel.  This means that their
+				       address is not translated at the border when talking to that
+				       machine.</p>
+				       <p>So, when a user that has SecuRemote enabled goes to a
+				       web server behind a SecuRemote firewall, their IP address
+				       appears to be the actual address of their machine with no
+				       firewall translation.  However, when they are redirected to
+				       one of the WebAuth login servers, their IP address has been
+				       translated at the border firewall to an ASU (e.g. 149.169)
+				       address. After the user logs in they are redirected back to
+				       the application web server, which then verifies the
+				       authenticator by passing the authenticator and the user's IP
+				       address as seen by the application server (i.e. the "real"
+				       address of the client) to verify.  When WebAuth receives
+				       this verify call, it returns a client host mismatch error
+				       because the IP address used to created the authenticator (i.e.
+				       the translated ASU address seen by the WebAuth login
+				       servers) is different from the IP address that was passed
+				       (i.e. the "real" address seen by the application web
+				       server).</p>
+				       <p>The recommended solution to this problem is to make sure
+				       that the HTTP and HTTPS ports (80 and 443) are OUTSIDE of any
+				       CheckPoint firewall encryption (i.e. in a DMZ).  This can be
+				       accomplished by using a second dedicated web server.  This
+				       protects your application server from exposure outside the
+				       firewall.  We would like to stress ONLY the web server (HTTP
+				       and HTTPS ports) should be outside the firewall to minimize
+				       the exposure of the application server and database
+				       connections.</p>
+				       </li>
+
+				       <li><p>The user (client) is using an ISP that utilizes proxy
+				       servers.  Sometimes, the ISP's proxy server will change the
+				       address for a particular user mid-session, causing the
+				       client host mismatch error.  While it is difficult to
+				       completely eliminate this problem, there are some steps that
+				       can be taken to reduce the occurance of this situation to a
+				       minimum.</p>
+				       <ol>
+					  <li>Ensure that your web server is configured to use
+					  HTTPS.  This is a known issue with other secure sites, so
+					  many ISPs will attempt to maintain IP session affinity
+					  when the client is communicationg over a secure port.</li>
+					  <li>The problem occurs when the users IP address changes
+					  in between the time they login and the time their login is
+					  verified by your application.  A workaround for users is
+					  to have them restart their browser and login again.</li>
+				       </ol>
+				       </li>
+				    </ol>
+				    </div>
+				    </li>
+
+				    <li><div class="question">
+				       <p>The verify.exe program returns the following error:<br />
+				       <samp>9:getservbyname error: 11004<br />9:Error: 10061 in connect()</samp>
+				       </p>
+				    </div>
+				    <div class="answer">
+				       <p>Be sure you add the <kbd>webverify 3001/tcp</kbd> entry in
+				       your services file (<samp>C:\WINNT\system32\drivers\etc</samp>
+				       under Windows 2000).  Be sure the file is named
+				       <samp>services</samp> with no extension.  There is a file called
+				       <samp>services.sam</samp> which is a sample file and should be
+				       renamed.  Also, be sure you have a carriage return after the last
+				       line of the file (make sure there is a blank line or two at the
+				       end of the file).</p>
+				       <p>You shouldn't need to reboot, the change takes place
+				       immediately.  To test it, type <kbd>telnet webauth.asu.edu
+					  webverify</kbd> at the command prompt.  If you get a
+				       connection refused, try <kbd>telnet webauth.asu.edu 3001</kbd>
+				       If the first attempt is refused and the second connects, then the
+				       change to the services file did not work.</p>
+				    </div>
+				    </li>
+
+				    <li><div class="question">
+				       <p>Why is WebAuth returning <samp>1:expired</samp>?</p>
+				    </div>
+				    <div class="answer">
+				       <p>This response from Webauth indicates an expired credential.
+				       The user will need to reauthenticate.</p>
+				    </div>
+				    </li>
+
+				    <li><div class="question">
+				       <p><samp>Verify</samp> returns the same values I
+				       sent to it.</p></div>
+				    <div class="answer">
+				       <p>When you execute a 'verify' command such as:<br />
+				       <code>e:\verify -h:webauth.asu.edu -b:129.219.xxx.xxx<br />
+					  -c:IiJKhA_Bk4Q78gF3Ipd5cHfwf47x4HXJE358EMGQcu58jRrojpQotMsPtRtL8RGdjGllllllllll</code><br />
+				       you expect it to return something like:<br />
+				       <code>0:[userid]@ASU.EDU:PRIMARY:[AFFILIATION]:[DEPTCODE]</code><br />
+				       but instead it returns the values you just sent:<br />
+				       <code>IiJKhA_Bk4Q78gF3Ipd5cHfwf47x4HXJE358EMGQcu58jRrojpQotMsPtRtL8RGdjGllllllllll:129.219.xxx.xxx </code></p>
+				       <p>The server executing the 'verify' command must have its IP address registered 
+				       so that it has a DNS name.  Otherwise the reverse DNS lookup fails, causing the 'verify' command to fail.  In addition, if an invalid cookie value is passed to 'verify', it may behave similarly, i.e., it echoes back the values sent to it.</p>
+				    </div>
+				    </li>
+
+				 </ul>
+
+			      </td>
+			   </tr>
+			   <tr> 
+			      <td class="copyright" colspan="2"> <p class="postdate"><a href="/copyright/">&copy; 
+				    
+				    2006
+				    <acronym title="Arizona Board of Regents">ABOR</acronym></a> &#8212; 
+				 Last Modified 
+				 
+				 Wednesday 25 January 2006
+				 <br />
+				 <a class="email" href="mailto:itwebmaster@asu.edu">itwebmaster@asu.edu</a> 
+				 </p></td>
+			      </tr>
+			   </table>
+			</td>
+		     </tr>
+
+		  </table>
+
+	       </div>
+	    </body>
+
+	 </html>
+

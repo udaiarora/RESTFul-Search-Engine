@@ -1,0 +1,139 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The SAS Interface to REXX : Return Codes from SAS Statements Submitted by a SASMACRO </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425910.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0606459.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381020.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the CMS Environment                                                                                     </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0381016">Return Codes from SAS Statements Submitted by a SASMACRO</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">RC Variable</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0596208">&#13;   In a REXX
+program, the special variable RC is always set when
+any command string is submitted to an external environment. Ordinary execs
+submit CMS commands. When the CMS command completes and control is returned
+to REXX, the RC variable is set to the return code from the CMS command.</A>
+<P>The RC variable is set in a slightly different way for
+a SASMACRO. The strings that are submitted to SAS are not necessarily complete
+execution units.  SAS collects SAS language elements until it encounters a
+RUN statement, at which point it runs the SAS step.  The RC variable is set
+to 0 when partial program fragments are submitted.  The SAS return code is
+ assigned to the REXX variable RC only for the string that contains the RUN
+statement.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">RC Values</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0596210">&#13; The value of the REXX RC variable is set to the value of
+the
+&amp;SYSERR automatic SAS macro variable in all but four cases: </A>
+<P>
+<UL>
+
+<LI>when an attempt is made to enter the SAS subcommand
+environment recursively. In this case, the statement is ignored and the RC
+value  is set to -2.<P>
+
+<LI>when a SASMACRO is active and the SAS session
+is terminated with a BYE command, or with an ENDSAS command or statement.
+In this case, the SAS session returns control to the SASMACRO. SAS statements
+that are subsequently submitted by the SASMACRO cannot be executed, and the
+RC value is set to -3 for each.<P>
+
+<LI>when a SASMACRO is active and SAS is interrupted
+with an attention and the SAS task is cancelled. In this case SAS statements
+that are subsequently submitted by the SASMACRO are not executed, and the
+RC value is set to -4 for each.<P>
+
+<LI>when an attempt is made to submit a command string
+that is longer than 132  characters.  In this case, the statement is ignored
+and the RC value is  set to -5.  An error message and the first 132
+characters of the string are written to the SAS log.<P>
+</UL>
+
+<P>The following RCTEST SASMACRO demonstrates when the
+REXX variable RC gets set:    
+
+<PRE>/* RCTEST SASMACRO - a SAS REXX macro */
+/* Show SAS statements in the log */
+'++SASLOG'                 
+'data x;'
+'do i = 1 to 10;'
+'output;'
+/* show rc in the SAS log */
+'++SASLOG The RC value is:' rc
+'run;'
+/* show rc in the SAS log */
+'++SASLOG The RC value is:' rc
+exit</PRE>
+<P><A href="#zrexx-o2">SAS Log for RCTEST</A>
+shows the resulting SAS log. 
+
+<P>
+<B><I><A name="zrexx-o2">SAS Log for RCTEST</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>     
+  1    rctest;
+  ++++ data x;
+  ++++ do i = 1 to 10;
+  ++++ output;
+  ++++ The RC value is:  0
+  ++++ run;
+
+  5    run;
+         -
+         117
+  ERROR 117-185:  There were 1 unclosed DO blocks.
+
+  NOTE:  The SAS System stopped processing this step because of errors.
+  WARNING:  The data set WORK.X may be incomplete.  When this step was stopped,
+            there were 0 observations and 1 variables.
+  ++++   The RC value is: 1012</PRE></TD></TR></TABLE>
+
+<P>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425910.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0606459.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381020.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0381016">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

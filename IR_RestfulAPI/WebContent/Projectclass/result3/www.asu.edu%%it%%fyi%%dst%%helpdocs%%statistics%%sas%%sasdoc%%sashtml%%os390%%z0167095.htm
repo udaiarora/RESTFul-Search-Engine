@@ -1,0 +1,148 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Accessing BMDP, SPSS, and OSIRIS Files : Accessing OSIRIS Files </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0165487.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0167097.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217282.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0167095">Accessing OSIRIS Files</A></FONT></H1>
+
+
+<P>Although OSIRIS runs only under OS/390 and CMS, the
+SAS OSIRIS engine accepts an OS/390 data dictionary from any other operating
+environment that is running the SAS System.  The layout of an OSIRIS data
+dictionary is the same on all operating environments. The data dictionary
+and data files should not be converted between EBCDIC and ASCII, however,
+because the OSIRIS engine expects EBCDIC data.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Assigning a Libref to an OSIRIS File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549333">&#13;  
+In order to access an OSIRIS file, you must use the LIBNAME statement or LIBNAME
+function to assign a libref to the file. Specify the OSIRIS engine in the
+LIBNAME statement as follows:</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+LIBNAME  <I>libref</I>  OSIRIS  '<I>physical-filename </I>' 
+DICT='<I>dictionary-file-name</I>';
+</TD></TR></TABLE> 
+<DL>
+<DT><B>libref</B></DT>
+<DD>is a SAS libref.<P></DD>
+
+<DT>OSIRIS</DT>
+<DD>is the OSIRIS engine.<P></DD>
+
+<DT><B>physical-filename</B></DT>
+<DD>is the physical file name of the data file.<P></DD>
+
+<DT><B>dictionary-file-name</B></DT>
+<DD>is the physical file name of the dictionary
+file.  The <B>dictionary-file-name</B> can also be a DDname. However,
+if you use a DDname for the <B>dictionary-file-name</B>, do not use
+quotes.<P></DD>
+</DL>
+Specify the OSIRIS engine in the
+LIBNAME function as follows: 
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+LIBNAME(<I>libref</I>, '<I>physical-filename </I>',
+'OSIRIS', "DICT='<I>dictionary-file-name</I>'"); 
+</TD></TR></TABLE>You do not need to use a LIBNAME statement or function before running
+PROC CONVERT if you are using PROC CONVERT to convert an OSIRIS file to a
+SAS data file. (See <A href="zconvert.htm">CONVERT</A>.)
+<P>If you previously used a TSO ALLOC command or a JCL
+DD statement to assign a DDname to the OSIRIS file, you can omit the <B>physical-filename</B> in the LIBNAME statement or function. However, you
+must still use the DICT= option, because the engine requires both files. (See <A href="#z0167095">Accessing OSIRIS Files</A>.)
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Referencing OSIRIS Files</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549345">&#13; OSIRIS data files do not have individual
+names. Therefore, for
+these files you can use a member name of your choice in SAS programs. You
+can also use the member name _FIRST_ for an OSIRIS file.</A>
+<P>Under OSIRIS, the contents of the dictionary file determine
+the file layout of the data file.  A data file has no other specific layout.
+<P>You can use a dictionary file with an OSIRIS data file
+only if the data file conforms to the format that the dictionary file describes.
+Generally, each data file should have its own DICT file.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Examples of Accessing OSIRIS Files</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549348">&#13; Suppose you want to read the data
+file MY.OSIRIS.DATA, and the
+data dictionary is MY.OSIRIS.DICT.  The following statements assign a libref
+to the data file and then run PROC CONTENTS and PROC PRINT on the file:  
+
+
+</A>
+<PRE>libname xxx osiris 'my.osiris.data'
+   dict='my.osiris.dict';
+proc contents data=xxx._first_;
+proc print data=xxx._first_;
+run;</PRE>
+<P>The next example uses JCL. In this example, the DD statements
+can be omitted if the physical names are referenced in the LIBNAME statement.
+ 
+
+
+
+<PRE>//JOBNAME JOB
+//STEP1   EXEC  SAS
+//OSIR    DD  DSN=MY.OSIRIS.DATA,DISP=SHR
+//DICT    DD  DSN=MY.OSIRIS.DICT,DISP=SHR
+//SYSIN   DD  *
+  /* Any one of the following libname */
+  /* statements can be used.          */
+libname osir osiris dict=dict;
+libname xxx osiris 'my.osiris.data' dict=dict;
+libname osir osiris dict='my.osiris.dict';
+  /* Use this if the osir libref is used */
+proc print data=osir._first_;
+  /* Use this if the xxx libref is used  */
+proc print data=xxx._first_;
+//</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0165487.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0167097.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217282.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0167095">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

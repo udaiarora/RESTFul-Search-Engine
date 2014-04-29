@@ -1,0 +1,235 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Sign-on Script Files : TCPWIN.SCR Script </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381713.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zsanstso.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0381714">TCPWIN.SCR Script</A></FONT></H1>
+
+
+<P>The
+following script signs on and signs off a Windows NT or a Windows 95 remote
+host with the TCP/IP access method.  
+
+
+
+<PRE>/* trace on; */
+/* echo  on; */
+/*-------------------------------------------------------------------*/
+/*--            Copyright (C) 1996 by SAS Institute Inc., Cary NC  --*/
+/*--                                                               --*/
+/*-- name:      tcpwin.scr                                         --*/
+/*--                                                               --*/
+/*-- purpose:   SAS/CONNECT SIGNON/SIGNOFF script for connecting   --*/
+/*--            to either a Windows 95 or a Windows NT host by     --*/
+/*--            means of the TCP/IP access method.                 --*/
+/*--                                                               --*/
+/*-- notes:   1. You must have the spawner program executing on    --*/
+/*--             the remote Windows 95 or Windows NT workstation   --*/
+/*--             in order for the local session to be able to      --*/
+/*--             establish the connection.  If the spawner is      --*/
+/*--             running on the remote node, you will receive a    --*/
+/*--             message telling you that the connection has       --*/
+/*--             been refused.                                     --*/
+/*--                                                               --*/
+/*--          2. You must have specified OPTIONS COMAMID=TCP       --*/
+/*--             in the local SAS session before using the SIGNON  --*/
+/*--             command.                                          --*/
+/*--                                                               --*/
+/*-- assumes: 1. The command to execute SAS in your remote         --*/
+/*--             (Windows 95 or Windows NT) environment is "sas".  --*/
+/*--             If this is incorrect for your site, change the    --*/
+/*--             contents of the line that contains:               --*/                                                      
+/*--             type 'sas ...                                     --*/
+/*--                                                               --*/
+/*-- support:   SAS Institute staff                                --*/
+/*--                                                               --*/
+/*-------------------------------------------------------------------*/
+
+<B>[1]</B> log "NOTE: Script file 'tcpwin.scr' entered.";
+
+     if not tcp then goto notcp;
+<B>[2]</B> if signoff then goto signoff;
+
+     /* --------------- TCP/IP SIGNON ---------------------------------*/
+
+<B>[3]</B> waitfor 'Username:'
+           , 'Hello>'                :  ready
+           , 'access denied'         :  nouser
+           , 120 seconds             :  noprompt
+           ;
+<B>[4]</B> input 'Userid?';
+     type LF;
+<B>[5]</B> waitfor 'Password:' , 120 seconds: nolog;
+     input nodisplay 'Password?';
+     type LF;
+
+<B>[6]</B> waitfor 'Hello>'
+           , 'access denied'         :  nouser
+           , 120 seconds             :  timeout
+           ;
+
+  ready:
+     log 'NOTE: Logged onto Windows... Starting remote SAS now.';
+     /* NOTERMINAL suppresses prompts from remote SAS session.    */
+     /* NO$SYNTAXCHECK prevents remote side from going into syntax */
+     /* checking mode when a syntax error is encountered.          */
+<B>[7]</B> type 'sas -dmr -comamid tcp -device grlink -noterminal -no$syntaxcheck' LF;
+<B>[8]</B> waitfor 'SESSION ESTABLISHED', 120 seconds : nosas;
+
+<B>[9]</B> log 'NOTE: SAS/CONNECT conversation established.';
+     stop;
+
+
+/*---------------- TCP/IP SIGNOFF -----------------------------------*/
+
+<B>[1</B><B>0]</B> signoff:
+     log 'NOTE: SAS/CONNECT conversation terminated.';
+     stop;
+
+/*--------------- SUBROUTINES -----------------------------------*/
+
+
+/*--------------- ERROR ROUTINES --------------------------------*/
+<B>[1</B><B>1]</B>
+  notcp:
+     log 'ERROR: Incorrect communications access method.';
+     log 'NOTE: You must set "OPTIONS COMAMID=TCP;" before using this';
+     log '      script file.';
+     abort;
+
+  noprompt:
+     log 'ERROR: Did not receive userid prompt.';
+     log 'NOTE:  Ensure spawner process is running on remote node.';
+     abort;
+
+  nolog:
+     log 'ERROR: Did not receive password prompt.';
+     abort;
+
+
+  nouser:
+     log 'ERROR: Unrecognized userid or password.';
+     abort;
+
+  nosas:
+     log 'ERROR: Did not get SAS software startup messages.';
+     abort;
+
+  timeout:
+     log 'ERROR: Timeout waiting for remote session response.';
+     abort;</PRE>
+
+
+ 
+<OL START="1" type="1">
+<LI>The LOG statement sends the enquoted message to the log file or
+to the LOG window of the local SAS session.  Although it is not necessary
+to include LOG statements in your script file, the LOG statements keep the
+user informed about the progress of the connection.<P>
+
+<LI>The IF/THEN statement detects whether the script was called by
+the SIGNON statement or by the  SIGNOFF  statement. When you sign off, the
+IF/THEN statement directs script processing to the statement that is labeled
+SIGNOFF. See step 10.<P>
+
+<LI>The WAITFOR statement awaits the login prompt from the remote
+host and branches to various error handles if this prompt is not displayed.<P>
+
+<LI>The INPUT statement displays a window with the text 
+
+
+<CODE><B>Userid?</B></CODE> to allow the user
+to enter a remote host logon userid. The TYPE statement sends a line feed
+to the remote host to enter the userid to the remote host.<P>
+
+<LI>The WAITFOR statement awaits the password prompt from the remote
+host and branches to the NOLOG label if it is not received within 120 seconds.
+The INPUT statement that follows the WAITFOR statement displays a window in
+which the user enters a password.<P>
+
+<LI>The WAITFOR statement awaits the "Hello > " prompt that it expects
+to see from the PC spawner. If the statement does not receive the prompt within
+120 seconds, it directs script processing to branch to the statement that
+is labeled TIMEOUT.<P>
+
+<LI>The TYPE statement invokes SAS on the remote host. The DMR option
+is necessary to invoke a special processing mode for SAS/CONNECT.
+The COMAMID= option specifies the access method that is used to make the connection.<P>
+
+<LI>The message 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> is displayed when a SAS session
+is started on the remote host with the DMR and COMAMID=TCP options. The WAITFOR
+statement awaits the display of the message 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> to be issued by
+the remote host. If the 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> response is received within 120
+seconds, processing continues with the next LOG statement. If the 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> response
+does not occur within 120 seconds, the script assumes that the remote SAS
+session has not started and processing branches to the statement labeled NOSAS.<P>
+
+<LI>After the connection has been successfully established, the user
+must stop the rest of the script from processing.  Without this STOP statement,
+processing continues through the remaining statements in the script.<P>
+
+<LI>This section of code is executed when the script is invoked to
+terminate the link.  The IF statement (see step 2) sends processing to this
+section of the script when the script is invoked by a SIGNOFF statement. Before
+it stops the link, the script issues a LOG statement to notify the user that
+the link is terminated.<P>
+
+<LI>These statements are processed only if the prompts expected in
+the previous steps are not received. This section of the script issues messages
+to the local SAS log and then abnormally ends the script processing as well
+as the SIGNON.<P>
+</OL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381713.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zsanstso.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0381714">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

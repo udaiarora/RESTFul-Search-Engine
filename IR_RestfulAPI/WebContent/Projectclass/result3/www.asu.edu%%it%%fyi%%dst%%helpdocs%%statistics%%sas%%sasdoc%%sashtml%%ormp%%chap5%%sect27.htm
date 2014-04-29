@@ -1,0 +1,809 @@
+<HTML>
+<HEAD>
+<TITLE>Optimization Algorithms</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="nlpoa">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect26.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect28.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Optimization Algorithms</H2>
+<A NAME="idxnlp0397">&#13;</A><A NAME="idxnlp0398">&#13;</A>There are three groups of optimization techniques available
+in PROC NLP. A particular optimizer can be selected with the 
+TECH=<SPAN CLASS="mathfont"><I>name</I></SPAN> option in the PROC NLP statement.
+<P><DIV ALIGN="CENTER">
+<TABLE COLS=2 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL ALIGN=CENTER><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Algorithm</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">TECH=</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Linear Complementary Problem</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>LICOMP</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Quadratic Active Set Technique</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>QUADAS</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Trust-Region Method</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>TRUREG</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Newton-Raphson Method With Line-Search</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>NEWRAP</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Newton-Raphson Method With Ridging</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>NRRIDG</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Quasi-Newton Methods (DBFGS, DDFP, BFGS, DFP)</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>QUANEW</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Double-Dogleg Method (DBFGS, DDFP)</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>DBLDOG</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Conjugate Gradient Methods (PB, FR, PR, CD)</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>CONGRA</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Nelder-Mead Simplex Method</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>NMSIMP</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Levenberg-Marquardt Method</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>LEVMAR</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>Hybrid Quasi-Newton Methods (DBFGS, DDFP)</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>HYQUAN</TD></TR></TBODY>
+</TABLE></DIV>
+<P>Since no single optimization technique is
+invariably superior to others, PROC NLP provides a variety
+of optimization techniques that work well in various
+circumstances. However, it possible to devise problems for which
+none of the techniques in PROC NLP can find the correct solution.
+Moreover, nonlinear optimization can be computationally expensive
+in terms of time and memory, so care must be taken when matching
+an algorithm to a problem.
+<P>All optimization techniques in PROC NLP use <SPAN CLASS="mathfont"><I>O</I>(<I>n<SUP>2</SUP></I>)</SPAN> memory
+except the conjugate gradient methods, which use only <SPAN CLASS="mathfont"><I>O</I>(<I>n</I>)</SPAN>
+memory and are designed to optimize problems with many
+variables.
+Since the techniques are iterative, they
+require the repeated computation of
+<UL>
+<LI> the function value (optimization criterion)
+<LI> the gradient vector (first-order partial derivatives)
+<LI> for some techniques, the (approximate) Hessian matrix
+   (second-order partial derivatives)
+<LI> values of linear and nonlinear constraints
+<LI> the first-order partial derivatives (Jacobian) of
+       nonlinear constraints
+</UL>
+<P>However, since each of the optimizers requires different
+derivatives and supports different types of constraints,
+some computational efficiencies can be gained.
+The following table shows, for each optimization technique,
+which derivatives are needed (FOD: first-order derivatives;
+SOD: second-order derivatives) and what kind of constraints
+(BC: boundary constraints; LIC: linear constraints; NLC:
+nonlinear constraints) are supported.
+<P><A NAME="idxnlp0399">&#13;</A><A NAME="idxnlp0400">&#13;</A><DIV ALIGN="CENTER">
+<TABLE COLS=6 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Algorithm</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">FOD</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">SOD</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">BC</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">LIC</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">NLC</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>LICOMP</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>QUADAS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>TRUREG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>NEWRAP</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>NRRIDG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>QUANEW</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>DBLDOG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>CONGRA</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>NMSIMP</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>LEVMAR</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>HYQUAN</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR></TBODY>
+</TABLE></DIV>
+<P><H3><I>Preparation for Using Optimization Algorithms</I></H3>
+It is rare that a problem is submitted to an optimization algorithm 
+&#34;as is.&#34;  By making a few changes in  your problem, you can reduce 
+its complexity, that would increase the chance of convergence 
+and save execution time.
+<P><UL>
+<LI> Whenever possible, use linear
+functions instead of nonlinear functions. PROC NLP will 
+reward you with faster and more accurate solutions.
+<LI> Most optimization algorithms 
+are based on quadratic approximations to nonlinear functions.
+You should try to avoid the use of funcions that cannot be properly 
+approximated by quadratic functions.  Try to avoid the use 
+of rational functions.  For example,the constraint
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="84" HEIGHT="96"
+ SRC="images/nlpeq92.gif"
+ ALT="{ sin(x) \over x+1 } \gt 0 "></DL>
+<P>should be replaced by the equivalent constraint
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>sin</I>(<I>x</I>)(<I>x</I>+1) &#62; 0 </SPAN>
+</DL>
+<P>and the constraint
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="83" HEIGHT="96"
+ SRC="images/nlpeq93.gif"
+ ALT="{ sin(x) \over x+1 } = 1 "></DL>
+<P>should be replaced by the equivalent constraint
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>sin</I>(<I>x</I>) - (<I>x</I>+1) = 0 </SPAN>
+</DL>
+<LI> Try to avoid the use of exponential functions, if possible.
+<LI> If you can reduce the complexity of your function by
+the addition of a small number of variables, that may 
+help the algorithm avoid stationary points.
+<LI> Provide the best starting point you can.  A good starting 
+point leads to better quadratic approximations and faster convergence.
+<P></UL>
+<P><H3><I>Choosing an Optimization Algorithm</I></H3>
+<A NAME="idxnlp0401">&#13;</A>The factors that go into choosing a particular optimizer for
+a particular problem are complex and may involve trial and
+error. 
+The following should be taken into account:
+First, the structure of the problem has to be considered:
+Is it quadratic? least-squares?  Does it have 
+linear or nonlinear constraints? 
+Next, it is important to consider the type of derivatives of
+the objective function and the constraints that are needed and whether these
+are analytically tractable or not. 
+This section provides some guidelines for making
+the right choices.
+<P>For many optimization problems, computing the gradient takes
+more computer time than computing the function value, and
+computing the Hessian sometimes takes <EM>much</EM> more computer
+time and memory than computing the gradient, especially when
+there are many decision variables. Optimization
+techniques that do not use the Hessian usually require more
+iterations than techniques that do use Hessian approximations
+(such as finite differences or BFGS update)
+and so are often slower. Techniques that do not use Hessians at all
+tend to be slow and less reliable.
+<P>The derivative compiler is not efficient in the computation 
+second-order derivatives. For large problems, memory and
+computer time can be saved by programming your own derivatives
+using the GRADIENT, JACOBIAN, CRPJAC, HESSIAN, and JACNLC
+statements. If you are not able or willing 
+to specify first- and second-order
+derivatives of the objective function, you 
+can rely on finite difference gradients and Hessian update formulas. 
+This combination is frequently used and works very well for small 
+and medium size problems.
+For large size problems, you are advised not
+to use an optimization technique that requires the computation
+of second derivatives.
+<P>The following provides some guidance for matching an algorithm
+to a particular problem.
+<P><UL>
+<LI> Quadratic Programming
+   <UL>
+<LI> <B>QUADAS</B>
+<LI> <B>LINCOMP</B>
+   </UL>
+<LI> General Nonlinear Optimization
+   <UL>
+<LI> Nonlinear Constraints
+     <UL>
+<LI> <B>Small Problems: NMSIMP</B> <BR>Not suitable for highly nonlinear
+        problems or for problems with <SPAN CLASS="mathfont"><I>n</I> &#62; 20</SPAN>.
+<LI> <B>Medium Problems: QUANEW</B> <BR>
+     </UL>
+<LI> Only Linear Constraints
+     <UL>
+<LI> <B>Small Problems: TRUREG (NEWRAP, NRRIDG)</B> <BR>
+        (<IMG WIDTH="57" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq47.gif"
+ ALT="n \leq 40">) where the
+        Hessian matrix is not expensive to compute.
+        Sometimes NRRIDG can be faster than TRUREG, but TRUREG
+        can be more stable. NRRIDG needs only
+        one matrix with <SPAN CLASS="mathfont"><I>n</I>(<I>n</I>+1)/2</SPAN> double words; TRUREG
+        and NEWRAP need two such matrices.
+<LI> <B>Medium Problems: QUANEW (DBLDOG)</B> <BR>
+        (<IMG WIDTH="66" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq94.gif"
+ ALT="n \leq 200">)        where the objective function and the gradient
+        are much faster to evaluate than the Hessian.
+        QUANEW and DBLDOG in general need more iterations
+        than TRUREG, NRRIDG, and NEWRAP, but each iteration
+        can be much faster. QUANEW and DBLDOG need only the
+        gradient to update an approximate Hessian. QUANEW and
+        DBLDOG need slightly less memory than TRUREG or NEWRAP
+        (essentially one matrix with <SPAN CLASS="mathfont"><I>n</I>(<I>n</I>+1)/2</SPAN> double words).
+<LI> <B>Large Problems: CONGRA</B> <BR>
+        (<SPAN CLASS="mathfont"><I>n</I> &#62; 200</SPAN>) where the objective
+        function and the gradient can be computed much faster
+        than the Hessian and where too much memory is needed
+        to store the (approximate) Hessian. CONGRA in general
+        needs more iterations than QUANEW or DBLDOG, but each
+        iteration can be much faster. Since CONGRA needs only a
+        factor of <SPAN CLASS="mathfont"><I>n</I></SPAN> double-word memory, many large applications
+        of PROC NLP can be solved only by CONGRA.
+<LI> <B>No Derivatives: NMSIMP</B> <BR>
+        (<IMG WIDTH="57" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq95.gif"
+ ALT="n \leq 20">) where derivatives are not
+        continuous or are very difficult to compute.
+     </UL></UL>
+<LI> Least-Squares Minimization
+    <UL>
+<LI> <B>Small Problems: LEVMAR (HYQUAN)</B> <BR>
+      (<IMG WIDTH="57" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq96.gif"
+ ALT="n \leq 60">) where the crossproduct
+      Jacobian matrix is easy and inexpensive to compute.
+      In general, LEVMAR is more reliable, but there are
+      problems with high residuals where HYQUAN can be faster
+      than LEVMAR.
+<LI> <B>Medium Problems: QUANEW (DBLDOG)</B> <BR>
+      (<IMG WIDTH="66" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq94.gif"
+ ALT="n \leq 200">)      where the objective function and the gradient are much
+      faster to evaluate than the crossproduct Jacobian.
+      QUANEW and DBLDOG in general need more iterations
+      than LEVMAR or HYQUAN, but each iteration
+      can be much faster.
+<LI> <B>Large Problems: CONGRA</B> <BR>
+<LI> <B>No Derivatives: NMSIMP</B> <BR>
+    </UL></UL>
+<P><H3><I><A NAME="nlpqom">Quadratic Programming Method</A></I></H3>
+<A NAME="idxnlp0402">&#13;</A><A NAME="idxnlp0403">&#13;</A>The QUADAS and LICOMP algorithms can be used to minimize or
+maximize a quadratic objective function,
+
+<DL CLASS="equation"><DD><IMG WIDTH="340" HEIGHT="92"
+ SRC="images/nlpeq97.gif"
+ ALT="f(x) = {1 \over 2} x^T G x + g^T x + c,
+  {with}  G^T = G "></DL>
+with linear or boundary constraints
+
+<DL CLASS="equation"><DD><IMG WIDTH="211" HEIGHT="74"
+ SRC="images/nlpeq98.gif"
+ ALT="A x \geq b  { or }  l_j \leq x_j \leq u_j  "></DL>
+where <SPAN CLASS="mathfont"><I>x</I> = (<I>x<SUb>1</SUb></I>, ... ,<I>x</I><sub><I>n</I></sub>)<sup><I>T</I></sup></SPAN>, <SPAN CLASS="mathfont"><I>g</I> = (<I>g<SUb>1</SUb></I>, ... ,<I>g</I><sub><I>n</I></sub>)<sup><I>T</I></sup></SPAN>,
+<SPAN CLASS="mathfont"><I>G</I></SPAN> is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I></SPAN> symmetric matrix, <SPAN CLASS="mathfont"><I>A</I></SPAN> is an <SPAN CLASS="mathfont"><I>m</I> &times;<I>n</I></SPAN>
+matrix of general linear constraints, and <SPAN CLASS="mathfont"><I>b</I> = (<I>b<SUb>1</SUb></I>, ... ,<I>b</I><sub><I>m</I></sub>)<sup><I>T</I></sup></SPAN>.
+The value of <SPAN CLASS="mathfont"><I>c</I></SPAN> modifies only the value of the objective function,
+not its derivatives, and the location of the optimizer <SPAN CLASS="mathfont"><I>x<SUP>*</SUP></I></SPAN> does
+not depend on the value of the constant term <SPAN CLASS="mathfont"><I>c</I></SPAN>. For QUADAS or
+LICOMP, the objective function must be specified
+using the MINQUAD or MAX QUAD statement or using an INQUAD= data
+set. 
+In this case, derivatives do not need to be specified.
+because the gradient vector 
+
+<DL CLASS="equation"><DD><IMG WIDTH="129" HEIGHT="74"
+ SRC="images/nlpeq99.gif"
+ ALT="\nabla f(x) = G x + g"></DL>
+and the <SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I></SPAN> Hessian matrix
+
+<DL CLASS="equation"><DD><IMG WIDTH="95" HEIGHT="76"
+ SRC="images/nlpeq100.gif"
+ ALT="\nabla^2 f(x) = G"></DL>
+are easily obtained from the data input.
+<P>Simple boundary and general linear constraints can be specified
+using the BOUNDS or LINCON statement or an INQUAD= or
+INEST= data set.
+<P><H4><I>General Quadratic Programming (QUADAS)</I></H4>
+<P><A NAME="idxnlp0404">&#13;</A><A NAME="idxnlp0405">&#13;</A>The QUADAS algorithm is an active set method that iteratively
+updates the <SPAN CLASS="mathfont"><I>QT</I></SPAN> decomposition of the matrix <SPAN CLASS="mathfont"><I>A</I><SUB><I>k</I></SUB></SPAN> of active
+linear constraints and the Cholesky factor of the projected
+Hessian <SPAN CLASS="mathfont"><I>Z</I><SUP><I>T</I></SUP><I>GZ</I></SPAN> simultaneously. The update of active
+boundary and linear constraints is done separately; 
+refer to Gill et al. (1984). Here
+<SPAN CLASS="mathfont"><I>Q</I></SPAN> is an <SPAN CLASS="mathfont"><I>n</I><sub><I>free</I></sub> &times;<I>n</I><sub><I>free</I></sub></SPAN> orthogonal matrix
+composed of vectors spanning the null space <SPAN CLASS="mathfont"><I>Z</I></SPAN> of <SPAN CLASS="mathfont"><I>A</I><SUB><I>k</I></SUB></SPAN> 
+in its first <SPAN CLASS="mathfont"><I>n</I><SUB><I>free</I></SUB> - <I>n</I><SUB><I>alc</I></SUB></SPAN>
+columns and range space <SPAN CLASS="mathfont"><I>Y</I></SPAN> in its last <SPAN CLASS="mathfont"><I>n</I><SUB><I>alc</I></SUB></SPAN> columns;
+<SPAN CLASS="mathfont"><I>T</I></SPAN> is an <SPAN CLASS="mathfont"><I>n</I><sub><I>alc</I></sub> &times;<I>n</I><sub><I>alc</I></sub></SPAN> triangular matrix of
+special form, <SPAN CLASS="mathfont"><I>t</I><SUB><I>ij</I></SUB>=0</SPAN> for <SPAN CLASS="mathfont"><I>i</I> &#60; <I>n</I>-<I>j</I></SPAN>, where <SPAN CLASS="mathfont"><I>n</I><SUB><I>free</I></SUB></SPAN> is
+the number of free parameters (<SPAN CLASS="mathfont"><I>n</I></SPAN> minus the number of active
+boundary constraints), and <SPAN CLASS="mathfont"><I>n</I><SUB><I>alc</I></SUB></SPAN> is the number of active
+linear constraints. The Cholesky factor of the projected Hessian
+matrix <SPAN CLASS="mathfont"><I>Z</I><SUP><I>T</I></SUP><SUB><I>k</I></SUB><I>GZ</I><SUB><I>k</I></SUB></SPAN> and the <SPAN CLASS="mathfont"><I>QT</I></SPAN> decomposition are updated
+simultaneously when the active set changes.
+<P><H4><I><A NAME="nlpflincomp">Linear Complementarity (LICOMP)</A></I></H4>
+<P><A NAME="idxnlp0406">&#13;</A><A NAME="idxnlp0407">&#13;</A>The LICOMP technique solves a quadratic problem as 
+a linear complementarity problem.
+It can be used only if <SPAN CLASS="mathfont"><I>G</I></SPAN> is positive (negative)
+      semi-definite for minimization (maximization) and
+if the parameters are restricted to be positive.
+<P>This technique finds a point that meets the 
+Karush-Kuhn-Tucker conditions by
+solving the linear complementary problem
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>w</I> = <I>M z</I> + <I>q</I>
+</SPAN>
+</DL>
+with constraints
+
+<DL CLASS="equation"><DD><IMG WIDTH="207" HEIGHT="76"
+ SRC="images/nlpeq101.gif"
+ ALT="w^T z \geq 0 ,  w \geq 0,  z \geq 0  "></DL>
+where
+
+<DL CLASS="equation"><DD><IMG WIDTH="357" HEIGHT="101"
+ SRC="images/nlpeq102.gif"
+ ALT="z = [ x \ \lambda \ ] 
+ M = [ G & -A^T \ A & 0 \ ] 
+ q = [ g \ -b \ ]"></DL>
+Only the LCEPSILON= option can be used to specify a
+tolerance used in computations.
+<P><H3><I>General Nonlinear Optimization</I></H3>
+<H4><I>Trust-Region Optimization (TRUREG)</I></H4>
+<P><A NAME="idxnlp0408">&#13;</A><A NAME="idxnlp0409">&#13;</A>The trust-region method uses the gradient <SPAN CLASS="mathfont"><I>g</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN>
+and Hessian matrix <SPAN CLASS="mathfont"><I>G</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN> and thus
+requires that the objective function <SPAN CLASS="mathfont"><I>f</I>(<I>x</I>)</SPAN> have
+continuous first- and second-order derivatives inside
+the feasible region.
+<P>The trust-region method iteratively optimizes a quadratic
+approximation to the nonlinear objective function within a
+hyperelliptic trust region with radius <IMG WIDTH="19" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq103.gif"
+ ALT="\Delta"> that
+constrains the step size corresponding to the quality of
+the quadratic approximation. The trust-region method is
+implemented using Dennis, Gay, &#38; Welsch (1981), Gay (1983),
+<A NAME="idxnlp0410">&#13;</A>and Mor<IMG WIDTH="11" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq36.gif"
+ ALT="\acute{e}"> &#38; Sorensen (1983)
+<A NAME="idxnlp0411">&#13;</A><A NAME="idxnlp0412">&#13;</A>.
+<P>The trust region method performs well for small to medium-sized
+problems and does not require many function, gradient, and Hessian
+calls. If the computation of the Hessian matrix is
+computationally expensive, use the UPDATE= option for update formulas
+(that gradually build the second-order information in the Hessian).
+For larger problems,  the conjugate gradient algorithm may be more appropriate.
+<P><H4><I>Newton-Raphson Optimization With Line-Search (NEWRAP)</I></H4>
+<P><A NAME="idxnlp0413">&#13;</A><A NAME="idxnlp0414">&#13;</A>The NEWRAP technique uses the gradient <SPAN CLASS="mathfont"><I>g</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN>
+and Hessian matrix <SPAN CLASS="mathfont"><I>G</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN> and thus
+requires that the objective function have continuous first-
+and second-order derivatives inside the feasible region.
+If second-order derivatives are computed efficiently
+and precisely, the NEWRAP method may perform well for
+medium-sized to large problems, and it does not need many
+function, gradient, and Hessian calls.
+<P>This algorithm uses a pure Newton step when the Hessian
+is positive definite and when the Newton step reduces the
+value of the objective function successfully. Otherwise,
+a combination of ridging and line-search is done to
+compute successful steps. If the Hessian is not positive
+definite, a multiple of the identity matrix is added to
+the Hessian matrix to make it positive definite (Eskow
+and Schnabel 1991).
+<P>In each iteration, a line-search is done along the search
+direction to find an approximate optimum of the objective
+function. The default line-search method uses quadratic
+interpolation and cubic extrapolation (LIS=2).
+<P><H4><I>Newton-Raphson Ridge Optimization (NRRIDG)</I></H4>
+<P><A NAME="idxnlp0415">&#13;</A><A NAME="idxnlp0416">&#13;</A><A NAME="idxnlp0417">&#13;</A>The NRRIDG technique uses the gradient <SPAN CLASS="mathfont"><I>g</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN>
+and Hessian matrix <SPAN CLASS="mathfont"><I>G</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN> and thus
+requires that the objective function have continuous first-
+and second-order derivatives inside the feasible region.
+<P>This algorithm uses a pure Newton step when the Hessian
+is positive definite and when the Newton step reduces the
+value of the objective function successfully.
+If at least one of these two conditions is not satisfied,
+a multiple of the identity matrix is added to the Hessian
+matrix.
+If this algorithm is used for least-squares problems, it performs
+a ridged Gauss-Newton minimization.
+<P>The NRRIDG method performs well for small to medium-sized
+problems and does not need many function, gradient, and
+Hessian calls. However, if the computation of the Hessian
+matrix is computationally expensive, one of the (dual)
+quasi-Newton or conjugate gradient algorithms may be more
+efficient.
+<P>Since NRRIDG uses an
+orthogonal decomposition of the approximate Hessian, each iteration
+of NRRIDG can be slower than that of NEWRAP, that
+works with Cholesky decomposition. However, usually NRRIDG
+needs fewer iterations than NEWRAP.
+<P><H4><I>Quasi-Newton Optimization (QUANEW)</I></H4>
+<P><A NAME="idxnlp0418">&#13;</A><A NAME="idxnlp0419">&#13;</A><A NAME="idxnlp0420">&#13;</A>The (dual) quasi-Newton method uses the gradient <SPAN CLASS="mathfont"><I>g</I>(<I>x</I><SUP>(<I>k</I>)</SUP>)</SPAN>
+and does not need to compute second-order derivatives 
+since they are approximated.
+It works well for medium to moderately large optimization
+problems where the objective function and the gradient
+are much faster to compute than the Hessian,
+but in general it requires more iterations than the techniques
+TRUREG, NEWRAP, and NRRIDG, which compute second-order
+derivatives.
+<P>The QUANEW algorithm depends on whether or not there are nonlinear
+constraints.
+<P><B CLASS="ssbiten"><I></I></B>[cnlpfunorlin]Unconstrained or Linearly Constrained Problems
+<P><A NAME="idxnlp0421">&#13;</A><A NAME="idxnlp0422">&#13;</A><A NAME="idxnlp0423">&#13;</A><A NAME="idxnlp0424">&#13;</A>If there are no nonlinear constraints, QUANEW is either
+<UL>
+<LI> the original quasi-Newton algorithm that updates
+      an approximation of the inverse Hessian
+<LI> the dual quasi-Newton algorithm that updates the
+      Cholesky factor of an approximate Hessian (default)
+</UL>
+depending upon the value of the UPDATE= options.
+For problems with general linear inequality constraints,
+the dual quasi-Newton methods can be more efficient than
+the original ones.
+<P><A NAME="idxnlp0425">&#13;</A><A NAME="idxnlp0426">&#13;</A><A NAME="idxnlp0427">&#13;</A>Four update formulas can be specified with the <I>UPDATE=</I> option:
+<DL>
+<DT>DBFGS
+<DD>performs the dual BFGS (Broyden, Fletcher,
+             Goldfarb, &#38; Shanno) update of the Cholesky
+             factor of the Hessian matrix.
+             This is the default.
+<DT>DDFP
+<DD>performs the dual DFP (Davidon, Fletcher,
+            &#38; Powell) update of the Cholesky factor of
+            the Hessian matrix.
+<A NAME="idxnlp0393">&#13;</A><DT>BFGS
+<DD>performs the original BFGS (Broyden, Fletcher,
+            Goldfarb, &#38; Shanno) update of the inverse
+            Hessian matrix.
+<DT>DFP
+<DD>performs the original DFP (Davidon, Fletcher,
+           &#38; Powell) update of the inverse Hessian matrix.
+</DL><BR>In each iteration, a line-search is done along the search
+direction to find an approximate optimum.
+The default line-search method uses quadratic
+interpolation and cubic extrapolation to obtain a step
+size <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> satisfying the Goldstein conditions. One
+of the Goldstein conditions can be violated if the feasible
+region defines an upper limit of the step size. Violating
+the left side Goldstein condition can affect the positive
+definiteness of the quasi-Newton update. In those cases,
+either the update is skipped or the iterations are restarted
+with an identity matrix resulting in the steepest descent
+or ascent search direction. Line-search algorithms other
+than the default one can be specified with the LIS= option.
+<BR><BR><B CLASS="ssbiten"><I></I></B>[cnlpfconstrained]Nonlinearly Constrained Problems
+<BR><BR><A NAME="idxnlp0428">&#13;</A><A NAME="idxnlp0429">&#13;</A>The algorithm used for nonlinearly constrained quasi-Newton
+optimization is an efficient modification of Powell's
+(1978, 1982) <I>Variable Metric Constrained WatchDog</I>
+(VMCWD)<A NAME="idxnlp0430">&#13;</A>algorithm. A similar but older
+algorithm (VF02AD)
+is part of the Harwell library. Both VMCWD and VF02AD
+use Fletcher's VE02AD algorithm (part of the Harwell
+library) for positive definite quadratic programming.
+The PROC NLP QUANEW implementation uses a quadratic
+programming subroutine that updates and downdates the
+approximation of the Cholesky factor when the active
+set changes. The nonlinear QUANEW algorithm is not a
+feasible point algorithm, and the value of the objective
+function need not decrease (minimization) or increase
+(maximization) monotonically. Instead, the algorithm
+tries to reduce a linear combination of the objective
+function and constraint violations, called the <I>merit
+function</I>.
+<BR><BR>The following are similarities and differences between this
+algorithm and the VMCWD algorithm:
+<UL>
+<LI> A modification of this algorithm can be performed by
+      specifying VERSION=1, that replaces the
+      update of the Lagrange vector <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq8.gif"
+ ALT="\mu"> with the original
+      update of Powell (1978)
+      <A NAME="idxnlp0394">&#13;</A>that is used
+      in VF02AD. This can be helpful for some applications
+      with linearly dependent active constraints.
+<LI> If the VERSION option is not specified or if VERSION=2 is specified,
+      the evaluation of the Lagrange vector <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq8.gif"
+ ALT="\mu"> is
+      performed in the same way as Powell (1982) describes.
+<LI> Instead of updating an approximate Hessian matrix,
+      this algorithm uses the dual BFGS (or DFP) update that
+      updates the Cholesky factor of an approximate Hessian.
+      If the condition of the updated matrix gets too bad,
+      a restart is done with a positive diagonal matrix.
+      At the end of the first iteration after each restart,
+      the Cholesky factor is scaled.
+<LI> The Cholesky factor is loaded into the quadratic
+      programming subroutine, automatically ensuring
+      positive definiteness of the problem. During the
+      quadratic programming step, the Cholesky factor of
+      the projected Hessian matrix <SPAN CLASS="mathfont"><I>Z</I><SUP><I>T</I></SUP><SUB><I>k</I></SUB><I>GZ</I><SUB><I>k</I></SUB></SPAN> and the <SPAN CLASS="mathfont"><I>QT</I></SPAN>
+      decomposition are updated simultaneously when the
+      active set changes. Refer to Gill dt al. (1984) 
+      for more information.
+<LI> The line-search strategy is very similar to that of
+      Powell (1982). However, this algorithm does not call for
+      derivatives during the line-search, so the
+      algorithm generally needs fewer derivative
+      calls than function calls. VMCWD always requires the
+      same number of derivative and function calls.
+      Sometimes Powell's line-search method uses
+      steps that are too long.
+      In these cases, use the INSTEP= option
+      to restrict the step length <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha">.<LI> The watchdog strategy is similar to that of
+<A NAME="idxnlp0395">&#13;</A>Powell (1982); however, it doesn't return
+      automatically after a fixed number of iterations to
+      a former better point. A return here is further
+      delayed if the observed function reduction is close
+      to the expected function reduction of the quadratic
+      model.
+<LI> The Powell termination criterion still is used
+      (as FTOL2) but the QUANEW implementation uses two additional
+      termination criteria (GTOL and ABSGTOL).
+</UL>
+<BR><BR>The nonlinear QUANEW algorithm needs
+the Jacobian matrix of the first-order derivatives (constraints
+normals) of the constraints <SPAN CLASS="mathfont"><I>CJ</I>(<I>x</I>)</SPAN>.
+<BR><BR>You can specify two update formulas with the UPDATE=option:
+<UL>
+<LI> UPDATE=DBFGS performs the dual BFGS update of
+       the Cholesky factor of the Hessian matrix.
+       This is the default.
+<LI> UPDATE=DDFP performs the dual DFP update of
+       the Cholesky factor of the Hessian matrix.
+</UL>
+This algorithm uses its own line-search technique. All
+options and parameters (except the INSTEP= option) controlling
+the line-search in the other algorithms do not apply here. In
+several applications, large steps in the first iterations were
+troublesome. You can use the INSTEP= option to impose an upper
+bound for the step size <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> during the first five
+iterations. You may also use the INHESSIAN[=r] option to
+specify a different starting approximation for the Hessian.
+Choosing simply the INHESSIAN option will use the Cholesky
+factor of a (possibly ridged) finite difference approximation
+of the Hessian to initialize the quasi-Newton update process.
+The values of the LCSINGULAR=, LCEPSILON=, and LCDEACT= options,
+which control the processing of linear and boundary constraints,
+are valid only for the quadratic programming subroutine used in
+each iteration of the nonlinear constraints QUANEW algorithm.
+<BR><BR><H4><I>Double Dogleg Optimization (DBLDOG)</I></H4>
+<BR><BR><A NAME="idxnlp0431">&#13;</A><A NAME="idxnlp0432">&#13;</A><A NAME="idxnlp0433">&#13;</A>The double dogleg optimization method combines the
+ideas of quasi-Newton and trust region methods.
+The double dogleg algorithm computes in each iteration
+the step <SPAN CLASS="mathfont"><I>s</I><SUP>(<I>k</I>)</SUP></SPAN> as the linear combination of the
+steepest descent or ascent search direction <SPAN CLASS="mathfont"><I>s<SUB>1</SUB></I><SUP>(<I>k</I>)</SUP></SPAN>
+and a quasi-Newton search direction <SPAN CLASS="mathfont"><I>s<SUB>2</SUB></I><SUP>(<I>k</I>)</SUP></SPAN>,
+
+<DL CLASS="equation"><DD><IMG WIDTH="166" HEIGHT="80"
+ SRC="images/nlpeq104.gif"
+ ALT="s^{(k)} = \alpha_1 s_1^{(k)} + \alpha_2 s_2^{(k)} "></DL>
+The step is requested to remain within a prespecified trust
+region radius, refer to
+       Fletcher (1987, p. 107). Thus, the
+DBLDOG subroutine uses the dual quasi-Newton update but
+does not perform a line-search. Two update formulas can
+be specified with the UPDATE= option:
+<DL>
+<DT>DBFGS
+<DD>performs the dual BFGS (Broyden, Fletcher,
+             Goldfarb, &#38; Shanno) update of the Cholesky
+             factor of the Hessian matrix.
+             This is the default.
+<DT>DDFP
+<DD>performs the dual DFP (Davidon, Fletcher,
+            &#38; Powell) update of the Cholesky factor of
+            the Hessian matrix.
+</DL><BR>The double dogleg optimization technique works well for
+medium to moderately large optimization problems where the
+objective function and the gradient are much faster to
+compute than the Hessian. The implementation is based on
+Dennis &#38; Mei (1979) and Gay (1983)
+<A NAME="idxnlp0434">&#13;</A><A NAME="idxnlp0435">&#13;</A>but is extended for dealing with boundary and
+linear constraints. DBLDOG generally needs more iterations
+than the techniques TRUREG, NEWRAP, or NRRIDG that need
+second-order derivatives, but each of the DBLDOG iterations
+is computationally cheap. Furthermore, DBLDOG needs
+only gradient calls for the update of the Cholesky
+factor of an approximate Hessian.
+<BR><BR><H4><I>Conjugate Gradient Optimization (CONGRA)</I></H4>
+<BR><BR><A NAME="idxnlp0436">&#13;</A><A NAME="idxnlp0437">&#13;</A><A NAME="idxnlp0438">&#13;</A>Second-order derivatives are not used by CONGRA.
+The CONGRA algorithm can be expensive in function and gradient
+calls but needs only <SPAN CLASS="mathfont"><I>O</I>(<I>n</I>)</SPAN> memory for unconstrained optimization.
+In general, many iterations are needed to obtain a precise
+solution, but each of the CONGRA iterations is computationally
+cheap. Four different update formulas for generating the conjugate
+directions can be specified using the UPDATE= option:
+<DL>
+<DT><STRONG>PB</STRONG>
+<DD>performs the automatic restart update method of
+Powell (1977) and Beale (1972). This is the default.
+<DT><STRONG>FR</STRONG>
+<DD>performs the Fletcher-Reeves update (Fletcher 1987).
+<DT><STRONG>PR</STRONG>
+<DD>performs the Polak-Ribiere update (Fletcher 1987).
+<DT><STRONG>CD</STRONG>
+<DD>performs a conjugate-descent update of Fletcher (1987).
+</DL><BR><A NAME="idxnlp0439">&#13;</A><A NAME="idxnlp0440">&#13;</A><A NAME="idxnlp0441">&#13;</A>The default value is UPDATE=PB, since it behaved best in most test
+examples. You are advised to avoid the option UPDATE=CD,
+that behaved worst in most test examples.
+<BR><BR>The CONGRA subroutine should be used for optimization
+problems with large <SPAN CLASS="mathfont"><I>n</I></SPAN>. For the unconstrained or boundary
+constrained case, CONGRA needs only <SPAN CLASS="mathfont"><I>O</I>(<I>n</I>)</SPAN> bytes of
+working memory, whereas all other optimization methods
+require order <SPAN CLASS="mathfont"><I>O</I>(<I>n<SUP>2</SUP></I>)</SPAN> bytes of working memory. During <SPAN CLASS="mathfont"><I>n</I></SPAN>
+successive iterations, uninterrupted by restarts or changes
+in the working set, the conjugate gradient algorithm
+computes a cycle of <SPAN CLASS="mathfont"><I>n</I></SPAN> conjugate search directions.
+In each iteration, a line-search is done along the search
+direction to find an approximate optimum of the objective
+function. The default line-search method uses quadratic
+interpolation and cubic extrapolation to obtain a step
+size <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> satisfying the Goldstein conditions. One
+of the Goldstein conditions can be violated if the
+feasible region defines an upper limit for the step
+size. Other line-search algorithms can be specified
+with the LIS= option.
+<BR><BR><H4><I>Nelder-Mead Simplex Optimization (NMSIMP)</I></H4>
+<BR><BR><A NAME="idxnlp0442">&#13;</A><A NAME="idxnlp0443">&#13;</A><A NAME="idxnlp0444">&#13;</A><A NAME="idxnlp0445">&#13;</A>The Nelder-Mead simplex method does not use any derivatives
+and does not assume that the objective function
+has continuous derivatives. The objective function itself
+needs to be continuous. This technique requires a large number
+of function evaluations.  It is unlikely to give accurate 
+results for <IMG WIDTH="61" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq105.gif"
+ ALT="n \gg 40">.<BR><BR>Depending on the kind of constraints, one of the following
+Nelder-Mead simplex algorithms is used:
+<UL>
+<LI> unconstrained or only boundary constrained
+      problems<BR><BR>The original Nelder-Mead simplex algorithm is
+      implemented and extended to boundary constraints.
+      This algorithm does not compute the objective for
+      infeasible points. This algorithm is automatically
+      invoked if the LINCON or NLINCON statement is not
+      specified.
+<LI> general linearly constrained or nonlinearly
+      constrained problems<BR><BR>A slightly modified version of Powell's (1992)
+      COBYLA (Constrained Optimization BY Linear
+      Approximations) implementation is used. This
+      algorithm is automatically invoked if either the
+      LINCON or the NLINCON statement is specified.
+<BR><BR><A NAME="idxnlp0396">&#13;</A></UL>
+The original Nelder-Mead algorithm cannot be used for
+general linear or nonlinear constraints but can be faster
+for the unconstrained or boundary constrained case. The
+original Nelder-Mead algorithm changes the shape of the
+simplex adapting the nonlinearities of the objective
+function which contributes to an increased speed of
+convergence. The two NMSIMP subroutines use special
+sets of termination criteria. For more details, refer to the section <A HREF="sect31.htm#nlptc">&#34;Termination Criteria&#34;</A>.
+<BR><BR><B CLASS="ssbiten"><I></I></B>[cnlpfcoby]Powell's COBYLA Algorithm (COBYLA)
+<BR><BR><A NAME="idxnlp0446">&#13;</A>Powell's COBYLA algorithm is a sequential trust-region
+algorithm (originally with a monotonically decreasing
+<A NAME="idxnlp0447">&#13;</A>radius <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq106.gif"
+ ALT="\rho"> of a spheric trust region) that tries to
+maintain a regular-shaped simplex over the iterations.
+A small modification was made to the original algorithm,
+that permits an increase of the trust-region radius
+<IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq106.gif"
+ ALT="\rho"> in special situations. A sequence of iterations
+is performed with a constant trust-region radius <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq106.gif"
+ ALT="\rho">until the computed objective function reduction is much
+less than the predicted reduction.
+Then, the trust-region radius <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq106.gif"
+ ALT="\rho"> is reduced.
+The trust-region radius is increased only if the computed
+function reduction is relatively close to the predicted
+reduction and the simplex is well-shaped. The start
+radius <IMG WIDTH="33" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq107.gif"
+ ALT="\rho_{beg}"> and the final radius <IMG WIDTH="36" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq108.gif"
+ ALT="\rho_{end}">can be specified using <I><IMG WIDTH="33" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq107.gif"
+ ALT="\rho_{beg}">=INSTEP</I> and
+<I><IMG WIDTH="36" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq108.gif"
+ ALT="\rho_{end}">=ABSXTOL</I>. The convergence to small
+values of <IMG WIDTH="36" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq108.gif"
+ ALT="\rho_{end}"> (high precision) may take many
+calls of the function and constraint modules and may
+result in numerical problems. There are two main reasons
+for the slow convergence of the COBYLA algorithm:
+<UL>
+<LI> Only linear approximations of the objective and
+      constraint functions are used locally.
+<LI> Maintaining the regular-shaped simplex and not
+      adapting its shape to nonlinearities yields very
+      small simplexes for highly nonlinear functions
+      (for example, fourth-order polynomials).
+</UL>
+<BR><BR><H3><I>Nonlinear Least-Squares Optimization</I></H3>
+<H4><I>Levenberg-Marquardt Least-Squares Method (LEVMAR)</I></H4>
+<BR><BR><A NAME="idxnlp0448">&#13;</A><A NAME="idxnlp0449">&#13;</A><A NAME="idxnlp0450">&#13;</A>The Levenberg-Marquardt method is a modification of the
+trust-region method for nonlinear least-squares problems
+and is implemented as in Mor<IMG WIDTH="11" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq36.gif"
+ ALT="\acute{e}"> (1978).
+<BR><BR><A NAME="idxnlp0451">&#13;</A>This is the
+recommended algorithm for small- to medium-sized
+least-squares problems. Large least-squares problems
+can be transformed into minimization problems, which can be
+processed with conjugate gradient or (dual) quasi-Newton
+techniques. In each iteration, LEVMAR solves a quadratically
+constrained quadratic minimization problem that restricts
+the step to stay at the surface of or inside an <SPAN CLASS="mathfont"><I>n</I></SPAN>
+dimensional elliptical (or spherical) trust region.
+In each iteration, LEVMAR uses the crossproduct 
+Jacobian matrix <SPAN CLASS="mathfont"><b>J</b><sup><I>T</I></sup><b>J</b></SPAN> as an approximate Hessian matrix.
+<BR><BR><H4><I>Hybrid Quasi-Newton Least-Squares Methods (HYQUAN)</I></H4>
+<BR><BR><A NAME="idxnlp0452">&#13;</A><A NAME="idxnlp0453">&#13;</A><A NAME="idxnlp0454">&#13;</A>In each iteration of one of the Fletcher and Xu (1987)
+<A NAME="idxnlp0455">&#13;</A>(refer also to AlBaali and Fletcher 1985, 1986)
+<A NAME="idxnlp0456">&#13;</A>hybrid quasi-Newton
+methods, a criterion is used to decide whether a Gauss-Newton
+or a dual quasi-Newton search direction is appropriate. The
+VERSION= option can be used to choose one of three criteria
+(HY1, HY2, HY3) proposed by Fletcher and Xu (1987). The default
+is VERSION=2; that is, HY2. In each iteration, HYQUAN computes
+the crossproduct Jacobian (used for the Gauss-Newton step),
+updates the Cholesky factor of an approximate Hessian (used
+for the quasi-Newton step), and does a line-search to compute
+an approximate minimum along the search direction. The default
+line-search technique used by HYQUAN is especially designed
+for least-squares problems (refer to Lindstr<IMG WIDTH="12" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq43.gif"
+ ALT="\ddot{o}">m and Wedin
+1984 and AlBaali and Fletcher, 1986). Using the LIS= option
+you can choose a different line-search algorithm than the
+default one.<A NAME="idxnlp0457">&#13;</A><A NAME="idxnlp0458">&#13;</A>Two update formulas can be specified with the UPDATE= option:
+<DL>
+<DT>DBFGS
+<DD>performs the dual BFGS (Broyden, Fletcher,
+             Goldfarb, and Shanno) update of the Cholesky
+             factor of the Hessian matrix.
+             This is the default.
+<DT>DDFP
+<DD>performs the dual DFP (Davidon, Fletcher,
+            and Powell) update of the Cholesky factor of
+            the Hessian matrix.
+</DL>
+<P>The HYQUAN subroutine needs about the same amount of working
+memory as the LEVMAR algorithm. In most applications, LEVMAR 
+seems to be superior to HYQUAN, and using HYQUAN is recommended
+only when problems are experienced with the performance
+of LEVMAR.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect26.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect28.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

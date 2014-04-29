@@ -1,0 +1,305 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The GDEVICE Procedure : Concepts </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0727621.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zgdevice.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z2ntax.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The GDEVICE Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zice-con">Concepts</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-devcat">About Device Catalogs</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0756827">&#13; Device entries are stored in SAS
+catalogs that are named <B>libref.</B>DEVICES. Device entries for your operating environment that
+are supplied with SAS/GRAPH software
+are stored in the Institute-supplied catalog, SASHELP.DEVICES.</A>
+<P>Custom device entries are typically stored in a catalog
+named GDEVICE<B>n</B>.DEVICES (where <I>n</I>
+can be any number from 0 to 9). However, device entries that have been created
+or modified by a system administrator specifically for your site also may
+be stored in SASHELP.DEVICES.  (On multi-user systems, the SAS Support Consultant
+is usually the person who has write access to the SASHELP.DEVICES catalog
+and makes any changes.)
+<BR><H3><A name="z-curcat">About the Current Catalog</A></H3>
+
+
+<P>When the GDEVICE procedure determines which catalog
+it should use, it searches for the catalog in the following order: 
+<OL START="1" type="1">
+<LI>the catalog name specified in the CATALOG= option
+in the PROC GDEVICE statement<P>
+
+<LI>the catalog associated with the GDEVICE0 libref,
+if the libref has been assigned<P>
+
+<LI>the Institute-supplied catalog, SASHELP.DEVICES.
+(SASHELP.DEVICES is usually write-protected and is opened in browse mode.)<P>
+</OL>
+
+<P>The first catalog it finds becomes the current
+catalog.
+<P>You can specify the current catalog by 
+<P>
+<UL>
+
+<LI>using the CATALOG= option in the PROC GDEVICE
+statement (this is required to open a driver entry in update mode)<P>
+
+<LI>assigning  the GDEVICE0 libref to the appropriate
+catalog.<P>
+</UL>
+
+<BR><H3><A name="z-search">Search Order of Device Catalogs</A></H3>
+
+
+<P>When you specify a device driver, SAS/GRAPH software
+looks only into catalogs with certain librefs and names to find a device entry
+for that driver.  It searches these catalogs sequentially in the following
+order: 
+<OL START="1" type="1">
+<LI>If the libref GDEVICE0 has been assigned to a
+SAS library, SAS/GRAPH software looks
+in that library for a catalog named DEVICES. If the GDEVICE0.DEVICES catalog
+exists, it is checked for the specified device entry.  If the device entry
+is not there, SAS/GRAPH software looks
+next for a library with the libref GDEVICE1 and for a catalog named DEVICES
+in that library.  The search is repeated for the sequence of librefs through
+GDEVICE9.<P>
+
+<LI>If SAS/GRAPH fails
+to find the specified device entry in any DEVICES catalog in the libraries
+GDEVICE0 through GDEVICE9, or if before locating the specified device entry
+it encounters in that sequence an undefined libref or a library that does
+not contain a DEVICES catalog, it jumps to SASHELP.DEVICES to search for the
+device entry.  For example, if a GDEVICE0 libref is allocated but this library
+does not contain a DEVICES catalog, SAS/GRAPH software
+jumps to the SASHELP.DEVICES catalog, without searching for a GDEVICE1.DEVICES
+catalog, even if it exists.  (SASHELP.DEVICES is the device catalog supplied
+with SAS/GRAPH software. SASHELP is
+one of the standard librefs defined automatically whenever you start your
+SAS session; you do not need to issue a LIBNAME statement to define it.)<P>
+
+<LI>If the specified device entry is not found in
+the SASHELP.DEVICES catalog, you receive an error message.<P>
+</OL>
+
+<P>Since the GDEVICE0.DEVICES catalog is the first place
+that SAS/GRAPH software looks, you
+always should assign that libref to the library containing your personal catalog
+of device entries, if you have one. If for some reason you have personal device
+catalogs in more than one SAS data library, assign them librefs in the sequence
+GDEVICE0, GDEVICE1, GDEVICE2, and so on. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;As stated
+above, the search for entries terminates if there is a break in the sequence;
+the catalog GDEVICE1.DEVICES is not checked if the libref GDEVICE0 is undefined,
+or if GDEVICE0 does not contain a catalog named DEVICES.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>To cancel or redefine the libref GDEVICE<I>n</I>, first clear the current
+graphics options:  
+
+
+
+<PRE>goptions reset=all;</PRE>
+<P>You can then redefine the libref with another LIBNAME
+statement. To cancel a libref, use a null LIBNAME statement.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1hods">Ways to Use the GDEVICE Procedure</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0756845">&#13; There are two ways
+to use the GDEVICE procedure: </A>
+<P>
+<UL>
+
+<LI>browse or edit the fields in the GDEVICE procedure
+windows (windowing mode)<P>
+
+<LI>submit GDEVICE procedure statements in a SAS program
+(program mode).<P>
+</UL>
+
+<P>If you run SAS software in a windowing environment (the
+SAS Display Manager System, for example), you can use either the GDEVICE procedure
+windows or the GDEVICE procedure statements.  In a windowing environment,
+the GDEVICE procedure automatically opens the GDEVICE procedure windows.
+<P>If you run SAS software in a non-windowing environment
+(such as line-mode or batch), you can use only GDEVICE procedure statements.
+In a non-windowing environment, the GDEVICE procedure automatically uses program
+mode.
+<P>Both methods provide identical functionality and allow
+you to display or modify device parameters, or create new device entries.
+<BR><H3><A name="zwinmode">Windowing Mode</A></H3>
+
+
+<P><A name="z0756851">&#13;  In a windowing environment, open the GDEVICE windows by submitting
+the PROC GDEVICE statement without the NOFS option:  
+
+
+</A>
+<PRE>proc gdevice;</PRE>
+<P><A name="z0756852">&#13; This opens the DIRECTORY window
+in browse mode.  This window lists all of the device entries in the current
+catalog.  (See </A><A href="#z-curcat">About the Current Catalog</A>.)
+<P><A name="z0756853">&#13; To open the DIRECTORY window in edit
+mode, or to specify a different catalog, include the CATALOG= option in the
+PROC GDEVICE statement.</A>
+<P>From the DIRECTORY window you can select the device
+entry you want to work with and open other GDEVICE windows in which you can
+view or modify device parameters. For more information, see <A href="ze-using.htm#zwindows">Using the GDEVICE Windows</A>.
+<P>In a windowing
+environment, you can switch between the
+GDEVICE windows and program statements while you are running the procedure.
+ See the <A href="zvice-fs.htm">FS Statement</A>
+and the NOFS window command in the SAS Help facility for SAS/GRAPH.
+<P>To exit the GDEVICE windows, submit the End command
+or close the window.
+<BR><H3><A name="zrogmode">Program Mode</A></H3>
+
+
+<P><A name="z0756857">&#13; If you are in a non-windowing or batch
+environment, the GDEVICE
+procedure automatically starts in program mode.  If you are in a windowing
+environment, specify the NOFS option to start the GDEVICE procedure in program
+mode:  
+
+
+</A>
+<PRE>proc gdevice nofs;</PRE>
+<P>By default, the GDEVICE procedure accesses the current
+catalog in browse mode and prompts you in the LOG to enter additional program
+statements.  (See <A href="#z-curcat">About the Current Catalog</A>.)
+To specify the current catalog, include the CATALOG= option in the PROC GDEVICE
+statement.
+<P>Once you start the GDEVICE procedure, you can enter
+and run additional statements without re-entering the PROC GDEVICE statement.
+For example, the following statement generates a listing of the device parameters
+for the PSCOLOR device entry that is stored in the Institute-supplied catalog,
+SASHELP.DEVICES:  
+
+
+
+<PRE>list pscolor;</PRE>
+<P><A name="z0756860">&#13;  PROC GDEVICE procedure output is displayed in the Output window. </A><A href="#zlisting">Sample Device Entry Listing Generated in Program Mode</A>
+shows the listing generated by the LIST statement. 
+
+<P>
+<B><I><A name="zlisting">Sample Device Entry Listing Generated in Program Mode</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                             GDEVICE procedure
+                Listing from SASHELP.DEVICES - Entry PSCOLOR
+
+  Orig Driver: PSCOLOR            Module:   SASGDPSL  Model:     1251
+  Description: PostScript color--RGB color defs            Type: PRINTER
+  *** Institute-supplied ***
+  Lrows:   0  Xmax:   8.500 IN    Hsize:    8.000 IN  Xpixels:       2550
+  Lcols:   0  Ymax:  11.000 IN    Vsize:    8.500 IN  Ypixels:       3300
+  Prows:  68                      Horigin:  0.218 IN
+  Pcols:  80                      Vorigin:  1.496 IN
+  Aspect:   0.000                 Rotate:
+  Driver query: Y                 Queued messages: N
+                                  Paperfeed:   0.000 IN
+
+  OPTIONS
+
+  Erase:                   Autofeed:      Y         Chartype:    1
+  Swap:                    Cell:                    Maxcolors: 256
+  Autocopy:                Characters:              Repaint:     0
+  Handshake:     XONXOFF   Circlearc:               Gcopies:     0
+                           Dash:                    Gsize:       0
+  Prompt - startup:        Fill:                    Speed:       0
+         end graph:        Piefill:                 Fillinc:     0
+         mount pen:        Polyfill:                Maxpoly:  1450
+         chg paper:        Symbol:                  Lfactor:     0
+                           Pensort:       N
+  Promptchars:  '000A010D05000000'X
+  Devopts:      'FD9230402C130000'X
+  UCC:      '0001'X
+
+  Cback:      WHITE
+  Color list:
+
+    BLACK     RED       GREEN     BLUE      CYAN
+    MAGENTA   YELLOW    GRAY
+
+  CHARTYPE RECORDS
+
+  Chartype Rows  Cols                  Font Name                 Scalable
+       1     89    85   Courier                                      Y
+       2     89    85   Courier-Oblique                              Y
+       .
+       {ob ...more hardware fonts...}
+       .
+      34     89    85   Bookman-LightItalic                          Y
+      35     89    85   Bookman-DemiItalic                           Y
+  Gend:     '0A'X
+
+  FILE INFORMATION
+
+  Gaccess:    sasgastd>sasgraph.ps
+  Gsfname:                        Gsfmode:  PORT      Gsflen:       0
+  Trantab:                        Devmap:
+  Devtype:    DISK
+  Gprotocol:
+  Fileclose:  DRIVERTERM
+  Hostspec:
+
+  HOST INFORMATION</PRE></TD></TR></TABLE>
+
+<P>
+<P><A name="z0756861">&#13; You can exit the GDEVICE procedure in these three ways:
+</A>
+<P>
+<UL>
+
+<LI>Submit the END, QUIT, or STOP statement.<P>
+
+<LI>Submit another PROC statement or DATA
+step.<P>
+
+<LI>Exit your SAS session.<P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0727621.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zgdevice.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z2ntax.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zice-con">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,280 @@
+<HTML>
+<HEAD>
+  <META NAME="GENERATOR" CONTENT="Adobe PageMill 3.0 Win">
+  <TITLE>IT: MVS FORTRAN: OSL: Sample OSL Batch Job</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<H3><FONT SIZE="+0" FACE="Arial">Sample OSL Batch Job</FONT></H3>
+
+<PRE>
+// JOB
+//STEP1 EXEC FORV2CLG,LIBB='SYS2.EKKLIB'
+//FORT.SYSIN DD *
+C********************************************************************
+C
+C                       EXDSCB
+C
+C  This program solves the following maximization problem:
+C
+C  Maximize  4*x4 + 0.1*x5 + 6*x10 + 0.15*x11 + 8*x16 + 0.15*x17
+C                 + 6*x22 + 0.15*x23 + 3*x26 + 0.1*x27
+C                 + 3*x29 + 0.1*x30
+C
+C  Subject to:  Dx  = b
+C                x &gt;= 0
+C
+C  where trans(b) = (100,50,0,0,0,0,0,0,0,0,0,0), and the
+C  matrix D has the form:
+C
+C        --------
+C        |  A   |
+C        |      |
+C        -------+-------
+C        |      |  A   |
+C        |  B   |      |
+C        |      |------+-------
+C        |      |      |  A   |
+C        -------|  B   |      |
+C               |      |------+-------
+C               |      |      |  A   |
+C               -------|  B   |      |
+C                      |      |------+---------
+C                      |      |      |        |
+C                      -------|  B   |    C   |
+C                             |      |        |
+C                             |      |        |
+C                             -----------------
+C
+C             A is a 2 X 6 matrix stored by indices.
+C                __                     __
+C                | 1   1   1   1   0   0 |
+C            A = |                       |
+C                | 3   0   0   0   1   1 |
+C                --                     --
+C
+C             B is a 4 X 6 matrix stored by columns.
+C                __                     __
+C                | 0   0  -1   0   0   0 |
+C                |                       |
+C                | 0   0   0   0   0  -1 |
+C            B = |                       |
+C                |-4  -1   0   0   0   0 |
+C                |                       |
+C                | 0 -10   0   0   0   0 |
+C                --                     --
+C             C is a 4 X 6 matrix stored by indices.
+C                __                     __
+C                | 1   1   0   0   0   0 |
+C                |                       |
+C                | 0   0   1   1   0   0 |
+C            C = |                       |
+C                |-1   0   0   0   1   0 |
+C                |                       |
+C                | 0   0   0  -1   0   1 |
+C                --                     --
+C
+C  NROW  is the total number of rows in the composite matrix.
+C  NCOL  is the total number of columns in the composite matrix.
+C  NA    is the number of elements in A.
+C  NACOL is the number of columns in A.
+C  A     is the matrix elements of block A.
+C  IA    is the row indices of block A.
+C  JA    is the column indices of block A.
+C  NB    is the number of elements in B.
+C  NBCOL is the number of columns in B.
+C  B     is the matrix elements of block B.
+C  IB    is the row indices of block B.
+C  JB    is the column starts of block B.
+C  NC    is the number of elements in C.
+C  NCCOL is the number of columns in C.
+C  C     is the matrix elements of block C.
+C  IC    is the row indices of block C.
+C  JC    is the column indices of block C.
+C  DOBJ  is the objective row.
+C  DRLO  is the row lower bounds.
+C  DRUP  is the row upper bounds.
+C  DCLO  is the column lower bounds.
+C  DCUP  is the column upper bounds.
+C
+C********************************************************************
+C
+      PROGRAM MAIN
+C
+C  Bring in the include files with control variable definitions.
+C  Notice the INCLUDE statements!
+C
+      INCLUDE 'SYS2.EKKINCF(OSLR)'
+      INCLUDE 'SYS2.EKKINCF(OSLI)'
+C
+C  Space to Use
+      PARAMETER          (MAXSPC=15000)
+      REAL*8       DSPACE(MAXSPC)
+      COMMON /BIG/ DSPACE
+C
+      INTEGER*4 IA(10), JA(10)
+      INTEGER*4 IB(10), JB(10)
+      INTEGER*4 IC(10), JC(10)
+      REAL*8 A(10), B(10), C(10)
+      REAL*8 DRLO(15), DRUP(15), DCLO(30), DCUP(30), DOBJ(30)
+      INTEGER*4 RTCOD
+C
+      DATA NROW, NCOL /12, 30/
+      DATA NACOL, NA, IATYPE /6, 7, 1/
+      DATA NBCOL, NB, IBTYPE /6, 5, 2/
+      DATA NCCOL, NC, ICTYPE /6, 8, 1/
+C
+C  Matrix Elements
+      DATA A /1.0D0,3.0D0,5*1.0D0,3*0.0D0/
+      DATA B /-4.0D0,-1.0D0,-1.0D1,2*-1.0D0,5*0.0D0/
+      DATA C /1.0D0,-1.0D0,3*1.0D0,-1.0D0,2*1.0D0,2*0.0D0/
+C
+C  Row Indices
+      DATA IA /1,2,3*1,2*2,3*0/
+      DATA IB /3,3,4,1,2,5*0/
+      DATA IC /1,3,1,2,2,4,3,4,2*0/
+C
+C  Column Indices (Starts)
+      DATA JA /1,1,2,3,4,5,6,3*0/
+      DATA JB /1,2,4,5,5,5,6,3*0/
+      DATA JC /1,1,2,3,4,4,5,6,2*0/
+C
+C   Lower Bounds on Row Activities
+      DATA DRLO /1.0D02,5.0D01,13*0.0D0/
+C
+C   Upper Bounds on Row Activities
+      DATA DRUP /1.0D02,5.0D01,13*0.0D0/
+C
+C   Lower Bounds on Columns
+      DATA DCLO /30*0.0D0/
+C
+C   Upper Bounds on Columns
+      DATA DCUP /30*1.0D31/
+C
+C   Objective Function Coefficients
+      DATA DOBJ /3*0.0D0,4.0D0,1.0D-1,4*0.0D0,6.0D0,1.5D-1,
+     &amp;           4*0.0D0,8.0D0,1.5D-1,4*0.0D0,6.0D0,1.5D-1,
+     &amp;           2*0.0D0,3.0D0,1.0D-1,0.0D0,3.0D0,1.0D-1/
+C
+C   Describe work space and allow room for one matrix.
+      CALL EKKDSCA(RTCOD,DSPACE,MAXSPC,1)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKDSCA',RTCOD)
+C
+C   Describe the model as having 9 blocks.
+      CALL EKKDSCM(RTCOD,DSPACE,1,9)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKDSCM',RTCOD)
+C
+C   Set to maximization problem.
+      CALL EKKRGET(RTCOD,DSPACE,OSLR,OSLRLN)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKRGET',RTCOD)
+        RMAXMIN=-1.0D0
+      CALL EKKRSET(RTCOD,DSPACE,OSLR,OSLRLN)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKRSET',RTCOD)
+C
+C   Set up the model.
+      CALL EKKLMDL(RTCOD,DSPACE,1,NROW,NCOL,0,DOBJ,DRLO,DRUP,
+     &amp;             DCLO,DCUP,0,0,0)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKLMDL',RTCOD)
+C
+C   Describe A blocks.
+      DO 100 I=1,4
+        CALL EKKDSCB(RTCOD,DSPACE,IATYPE,0,IA,JA,A,
+     &amp;               (I-1)*2,(I-1)*6,NACOL,NA)
+          IF (RTCOD.GT.0) CALL CHKRT('EKKDSCB',RTCOD)
+ 100  CONTINUE
+C
+C   Describe B blocks.
+      DO 200 I=1,4
+        CALL EKKDSCB(RTCOD,DSPACE,IBTYPE,0,IB,JB,B,
+     &amp;              I*2,(I-1)*6,NBCOL,NB)
+          IF (RTCOD.GT.0) CALL CHKRT('EKKDSCB',RTCOD)
+ 200  CONTINUE
+C
+C   Describe C block.
+      CALL EKKDSCB(RTCOD,DSPACE,ICTYPE,0,IC,JC,C,
+     &amp;             8,24,NCCOL,NC)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKDSCB',RTCOD)
+C
+C   Create a column copy of the matrix.
+      CALL EKKNWMT(RTCOD,DSPACE,2)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKNWMT',RTCOD)
+C
+C   Write the model in MPS format.
+      CALL EKKBCDO(RTCOD,DSPACE,18,1,2)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKBCDO',RTCOD)
+C
+C   Solve LP using vectorized simplex method.
+      CALL EKKSSLV(RTCOD,DSPACE,1,2)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKSSLV',RTCOD)
+C
+C   Set to print only columns with nonzero activities.
+      CALL EKKIGET(RTCOD,DSPACE,OSLI,OSLILN)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKIGET',RTCOD)
+        IPRTMTRXMASK=6
+      CALL EKKISET(RTCOD,DSPACE,OSLI,OSLILN)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKISET',RTCOD)
+C
+C    Print the solution.
+      CALL EKKPRTS(RTCOD,DSPACE)
+        IF (RTCOD.GT.0) CALL CHKRT('EKKPRTS',RTCOD)
+C
+      STOP
+      END
+C
+C********************************************************************
+C  This subroutine prints a nonzero return code and stops if the
+C  return code is large enough to indicate that an error or severe
+C  error has occurred.
+C********************************************************************
+C
+      SUBROUTINE CHKRT(RTNAME,RTCOD)
+      CHARACTER*7 RTNAME
+      INTEGER*4   RTCOD
+C
+      WRITE(6,9000) RTNAME,RTCOD
+      IF (RTCOD.GE.200) STOP 16
+      RTCOD = 0
+C
+9000  FORMAT (1X,'********** ',A7,' return code of ',I4,' **********')
+      RETURN
+      END
+/*
+//GO.FT18F001 DD DSN=&amp;&amp;TEMP,DISP=(NEW,PASS),UNIT=SYSDA,
+// SPACE=(TRK,(200,20),RLSE),
+// DCB=(RECFM=FB,LRECL=80)
+//* The temporary file is used by OSL and it needs to be
+//* specified before the run.  If you experience any
+//* problems with openning an unit not defined in your
+//* FORTRAN program, the unit is used by the OSL
+//* library and you need to add JCL statements similar to the
+//* previous three JCL lines.
+//*
+//</PRE>
+
+<P><BR>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

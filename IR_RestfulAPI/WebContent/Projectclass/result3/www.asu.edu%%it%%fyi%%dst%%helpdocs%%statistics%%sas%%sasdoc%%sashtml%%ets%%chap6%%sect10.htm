@@ -1,0 +1,198 @@
+<HTML>
+<HEAD>
+<TITLE>Example 6.5: Creating an Output Data Set from an ODS Table</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="odsex05">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect9.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="../chap7/index.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Using the Output Delivery System</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 6.5: Creating an Output Data Set from an ODS Table</H2>
+<P><A NAME="idxods0048">&#13;</A><A NAME="idxods0049">&#13;</A>The ODS OUTPUT statement creates SAS data sets from ODS tables.  In the
+following example, the AUTOREG procedure is invoked to estimate 
+a large number of 
+Dickey-Fuller type regressions and part of the resulting procedure 
+output is output to a SAS data set.  The Dickey-Fuller t-statistic
+is then calculated and PROC MEANS is used to calculate the
+empirical critical values.
+<P>The data set <SPAN CLASS="ssfeleven">UNITROOT</SPAN> contains 10,000 unit root time series.
+<P><PRE>
+
+   data unitroot;
+     YLag = 0;
+     do rep = 1 to 10000;
+       do time = -50 to 100;
+         Y = YLag + rannor(123);
+         if time &#62; 0 then output;
+         YLag = Y;
+       end;
+     end;
+   run;
+</PRE>
+<P><H3><I>Determining the Names of the ODS Tables</I></H3>
+<A NAME="idxods0050">&#13;</A>The purpose of the following statements is to obtain the names of the
+output tables produced in this PROC AUTOREG run.  Note that a smaller data
+set, <SPAN CLASS="ssfeleven">test</SPAN>, is used for this trial run.
+The ODS TRACE statement lists the trace record, and the SAS listing
+destination is closed so that no output is displayed.
+<P><PRE>
+
+   data test;
+     YLag = 0;
+       do time = -50 to 100;
+         Y = YLag + rannor(123);
+         if time &#62; 0 then output;
+         YLag = Y;
+       end;
+   run;
+
+   ods trace on;
+   ods listing close;
+   proc autoreg data=test;
+      model Y = YLag;
+   run;
+   ods trace off;
+   ods listing;
+</PRE>
+<P></P><A NAME="odsex05a"><SPAN CLASS="ssften"><B>Output 6.5.1:</B> The ODS TRACE: Partial Contents of the SAS Log</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><table border=0>
+<tr><td>
+<pre>
+     ods trace on;
+     ods listing close;
+     proc autoreg data=test;
+        model Y = YLag;
+     run;
+
+
+Output Added:
+-------------
+Name:       Dependent
+Label:      Dependent Variable
+Template:   ets.autoreg.Dependent
+Path:       Autoreg.Model1.Dependent
+-------------
+
+.
+.
+.
+
+Output Added:
+-------------
+Name:       ParameterEstimates
+Label:      Parameter Estimates
+Template:   ets.autoreg.ParameterEstimates
+Path:       Autoreg.Model1.OLSEst.ParameterEstimates
+-------------
+</pre>
+</td></tr></table>
+</TD></TR></TABLE></CENTER><BR><A NAME="idxods0051">&#13;</A>By default, the trace record is written to the SAS log, as displayed
+in <A HREF="sect10.htm#odsex05a">Output 6.5.1</A>.  Note that you can alternatively specify that the
+information be interleaved with the procedure output in the SAS
+listing (see <A HREF="sect8.htm">Example 6.3</A>).
+<P><H3><I>Creating the Output Data Set</I></H3>
+In the statements that follow, the ODS OUTPUT statement writes the ODS
+table &#34;ParameterEstimates&#34; to a SAS data set called <SPAN CLASS="ssfeleven">myParms</SPAN>.
+All of the usual data set options, such as the KEEP= or WHERE= options, 
+can be used in the ODS OUTPUT statement.
+Thus, to modify the 
+<SPAN CLASS="ssfeleven">ParameterEstimates</SPAN> data set so that it contains only
+certain variables, you can use the data set options as follows.
+<A NAME="idxods0052">&#13;</A><PRE>
+
+   ods output ParameterEstimates = myParms
+              (keep=Variable Estimate StdErr
+               where=(Variable='YLag')) ;
+
+   ods exclude all;
+   proc autoreg data=unitRoot;
+      by rep;
+      model Y = YLag;
+   run;
+</PRE>
+<P><A NAME="idxods0053">&#13;</A>The KEEP= option in the ODS OUTPUT statement specifies that only the
+variables <SPAN CLASS="ssfeleven">Variable</SPAN>, <SPAN CLASS="ssfeleven">Estimate</SPAN>, and <SPAN CLASS="ssfeleven">StdErr</SPAN> are 
+written to the data set.  The WHERE= option selects the specific
+variable in which we are interested , <SPAN CLASS="ssfeleven">YLag</SPAN>.
+The AUTOREG procedure is again invoked.
+In order to limit the amount of displayed output, the
+ODS exclusion list is set to ALL.
+<P>In the following statements, the output data set <SPAN CLASS="ssfeleven">myParms</SPAN> is
+used to create the data set <SPAN CLASS="ssfeleven">TDISTN</SPAN> which contains the Dickey-Fuller
+t-statistics. PROC MEANS is then utilized to tabulate the empirical
+1, 5, and 10 percent critical values.
+The results are displayed in <A HREF="sect10.htm#odsex05b">Output 6.5.2</A>.
+<P><PRE>
+
+   data tdistn;
+     set myParms;
+     tStat = (Estimate-1)/StdErr;
+   run;
+
+   ods select Means.Summary;
+   proc means data=tDistn P1 P5 P10 fw=5;
+      var tStat;
+      title 'Simulated Dickey-Fuller Critical Values';
+   run;
+</PRE>
+<P></P><A NAME="odsex05b"><SPAN CLASS="ssften"><B>Output 6.5.2:</B> The Empirical Critical Values, Tabulated by PROC MEANS</SPAN></A>
+<CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><table border=0>
+<tr><td>
+<pre>
+                    Simulated Dickey-Fuller Critical Values                     
+
+                              The MEANS Procedure
+
+                           Analysis Variable : tStat
+
+                              1st      5th     10th
+                             Pctl     Ptcl     Pctl
+                            -----------------------
+                            -3.51    -2.90    -2.59
+                            -----------------------
+</pre>
+</td></tr></table>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect9.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="../chap7/index.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

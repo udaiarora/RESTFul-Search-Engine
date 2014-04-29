@@ -1,0 +1,157 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>OS/390: XMS Access Method : System Configuration for the XMS Access Method </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381396.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381397.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381609.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zsconfig">System Configuration for the XMS Access Method</A></FONT></H1>
+
+
+<DL>
+<DT><B>Network Administrator Tasks</B></DT>
+<DD> To configure the OS/390 system for the XMS access method,
+perform the following tasks: 
+<OL START="1" type="1">
+<LI>Install the SASVXMS load module.<P>
+
+<LI>Define an anchor
+point.<P>
+</OL>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Installing the SASVXMS Load Module</FONT></B></TD></TR></TABLE>
+
+<P>To use the XMS access method for communication between a SAS/SHARE server
+and a client, you must copy the module SASVXMS0 from the SAS load library
+data set into an authorized link list library.  You must then rename this
+module SASVXMS by removing the 0.
+<P>When SAS/SHARE loads the module
+SASVXMS, it must find that module to be marked authorized, re-entrant, and
+reusable and to have been loaded from an authorized library.
+<P>The version of SASVXMS that is distributed with each maintenance release
+of SAS/SHARE software can be used only
+with that maintenance release.
+<P>Detailed procedures on how to install the SASVXMS load module follow: 
+<OL START="1" type="1">
+<LI>Copy SASVXMS0 into an authorized link list
+library.
+<P>You can copy the module SASVXMS0 into any authorized library that is
+part of the link list.  Alternatively, you can install this module into the
+link pack area.  You can use any standard utility program to copy the module
+SASVXMS0 from your <B>HLQ.</B>LIBRARY data set to your link list library.<P>
+
+<LI>Rename SASVXMS0.
+<P>After copying SASVXMS0 into the appropriate library, you must
+rename
+it. You can use any standard utility to rename the module.
+<P>If you do not have a previous release of SAS/SHARE installed,
+rename SASVXMS0 to SASVXMS.  Specify the communications access method as XMS
+in the SAS configuration file for batch processing and in the TSO CLIST.
+<P>See <A href="z0382081.htm#z1amid">Specifying the APPC Communications Access Method</A>
+for details about specifying the access method.
+<P>If you have a previous release of SAS/SHARE installed,
+rename SASVXMS0 to SASVXMS<B>n</B>, where <B>n</B> is the last
+digit of the release of SAS.  Specify the communications access method as
+XMS<B>n</B>.
+<P>For example, for Release 6.08, rename SASVXMS0 to SASVXMS8 and specify
+the access method as XMS8. See <A href="z0382081.htm#z1amid">Specifying the APPC Communications Access Method</A>
+for details about specifying the access method.<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining an Anchor Point</FONT></B></TD></TR></TABLE>
+
+<P>To use the default
+XMS access method for communication between
+a SAS/SHARE server and a client, you
+must define an anchor point.  The anchor point is a place in common memory
+that can be located by servers and clients and that is used to store and retrieve
+cross-memory communication information.  If you have defined an anchor point
+for a previous release of SAS/SHARE software,
+it is not necessary to repeat this step now.
+<P>Detailed procedures on defining an anchor point follow:
+<OL START="1" type="1">
+<LI>Define an inactive OS/390
+subsystem.
+<P>The anchor point is specified by defining an inactive OS/390 subsystem.
+Doing this causes OS/390 to create a subsystem communications vector table
+(SSCVT) at IPL time. The SSCVT chain is in common memory and easily accessible
+to the cross-memory access method routines.  The SSCTSUSE field of the SSCVT
+is available to these routines and is used as the anchor point for their control
+blocks.
+<P>Although you define a subsystem to OS/390, the subsystem will never
+be considered active and will provide no system services because the SSCTSSVT
+field of the SSCVT will never be non-zero.
+<P>You can define the inactive subsystem by adding an entry to any of the
+following: 
+<P>
+<UL>
+
+<LI>the SCHEDULER SYSGEN macro instruction<P>
+
+<LI>the IEFJSSNT member of 'SYS1.LINKLIB'<P>
+
+<LI>an IEFSSN<B>xx</B> member of
+'SYS1.PARMLIB'.<P>
+</UL>
+
+<P>Consult OS/390 system initialization and tuning documentation for details
+about each option.
+<P>Regardless of which method you choose, you must include the subsystem
+name, but you must not specify an initialization routine name. Use the name
+SAS0 unless it conflicts with standards or conventions at your site.<P>
+
+<LI>Set the SAS option SUBSYSID to specify the inactive subsystem
+that you defined.
+<P>The name that you specify for the inactive subsystem that is defined
+as the anchor point for the XMS access method must also be specified as the
+value of the SAS option SUBSYSID. See <A href="z0381397.htm#xmsvar">SUBSYSID Option</A>
+for information about setting this SAS option.<P>
+</OL>
+
+<P>You have completed the configuration of the XMS subsystem for
+SAS/SHARE.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381396.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381397.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381609.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zsconfig">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

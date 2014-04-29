@@ -1,0 +1,176 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS/GRAPH Statements : Example 5.  Filling the Area between Plot Lines </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0724351.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z8n12-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z8n06-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z8n11-ex">Example 5.  Filling the Area between Plot Lines</A></FONT></H1>
+
+
+<P><A name="z0752082">&#13;<B>Features:</B>
+
+
+</A>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>AXIS statement option:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>  ORDER=</TD></TR></TABLE></TD></TR>
+<TR valign="top"><TD></TD><TD>SYMBOL statement options:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD> CO=</TD></TR>
+<TR valign="top"><TD></TD><TD> CV=</TD></TR>
+<TR valign="top"><TD></TD><TD> INTERPOL=</TD></TR></TABLE></TD></TR></TABLE>
+<P><B>Sample library member:</B>
+GR08N05
+<P>
+<P>
+<P><IMG border="0" src="./images/01329141.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>This
+example shows how to fill the area between two
+plot lines by concatenating two data sets into one to form a polygon with
+the data points. It uses a SYMBOL statement to specify a pattern to fill the
+polygon and to determine the color of the area fill and the outline around
+the area.
+<P>The example plots yearly highs and lows for the Dow
+Jones Industrial Average. It separates the dependent variables HIGH and LOW
+to produce an upper plot line and a lower plot line. The dependent variable
+is named VALUE and the independent variable is named YEAR.  When concatenated
+into one data set, AREA, the data sets form the polygon.  
+<P><B>Set the graphics environment.</B>
+
+
+
+<PRE>goptions reset=global gunit=pct border cback=white
+         colors=(black blue green red)
+         ftext=swissb htitle=6 htext=3;</PRE>
+<P>  <B>Create the data set.</B> STOCKS contains
+yearly highs and lows for the Dow Jones Industrial Average, and the dates
+of the high and low values each year.
+
+
+
+<PRE>data stocks;
+   input year @7 hdate date9. @17 high
+         @26 ldate date9. @36 low;
+   format hdate ldate date9.;
+   datalines;
+1955  30DEC1955  488.40  17JAN1955 388.20
+1956  06APR1956  521.05  23JAN1956  462.35
+...<I>more data lines</I>...
+1994  31JAN1994 3978.36  04APR1994 3593.35
+1995  13DEC1995 5216.47  30JAN1995 3832.08
+;</PRE>
+<P>  <B>Restructure the data so that it defines a closed
+area. Create the temporary data sets HIGH and LOW.</B>
+
+
+
+<PRE>data high(keep=year value)
+     low(keep=year value);
+     set stocks;
+     value=high; output high;
+     value=low; output low;
+run;</PRE>
+<P>  <B>Reverse order of the observations in LOW.</B>
+
+
+
+<PRE>proc sort data=low;
+   by descending year;</PRE>
+<P> <B>Concatenate HIGH and LOW to create data set AREA.</B> 
+
+
+
+<PRE>data area;
+   set high low;</PRE>
+<P>  <B>Define titles and footnote.</B>
+
+
+
+<PRE>title1 'Dow Jones Industrial Average';
+title2  h=4 'Highs and Lows From 1955 to 1995';
+footnote j=l ' Source: 1997 World Almanac'
+         j=r 'GR08N05  ';</PRE>
+<P>  <B>Define symbol characteristics.</B> INTERPOL=
+specifies a map/plot pattern to fill the polygon formed by the data points.
+The pattern consists of medium-density parallel lines at 90 degrees. CV= colors
+the pattern fill. CO= colors the outline of the area. (If CO= were not used,
+the outline would be the color of the area.)
+
+
+
+<PRE>symbol interpol=m3n90
+       cv=red
+       co=blue;</PRE>
+<P>  <B>Define axis characteristics.</B> ORDER= places
+the major tick marks at 5-year intervals.
+
+
+
+<PRE>axis1 order=(1955 to 1995 by 5)
+      label=none
+      major=(height=2)
+      minor=(number=4 height=1)
+      offset=(2,2)
+      width=3;
+axis2 order=(0 to 5500 by 500)
+      label=none
+      major=(height=1.5) offset=(0,0)
+      minor=(number=1 height=1);</PRE>
+<P>  <B>Generate the plot using data set AREA.</B>
+
+
+
+<PRE>proc gplot data=area;
+   plot value*year / haxis=axis1
+                     vaxis=axis2
+                     vref=(1000 3000 5000);
+run;
+quit;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0724351.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z8n12-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z8n06-ex.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z8n11-ex">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

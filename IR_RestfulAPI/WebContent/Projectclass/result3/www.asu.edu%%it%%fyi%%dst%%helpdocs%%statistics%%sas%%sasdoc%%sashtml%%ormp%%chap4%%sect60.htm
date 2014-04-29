@@ -1,0 +1,1800 @@
+<HTML>
+<HEAD>
+<TITLE>Linear Programming Models: Interior Point Algorithm</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect59.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect61.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NETFLOW Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Linear Programming Models: Interior Point Algorithm  </H2>
+<P><A NAME="idxnet1555">&#13;</A><A NAME="idxnet1556">&#13;</A><A NAME="idxnet1557">&#13;</A><A NAME="idxnet1558">&#13;</A><A NAME="idxnet1559">&#13;</A><A NAME="idxnet1560">&#13;</A>By default, the Interior Point algorithm is used for problems without a network 
+component, that is, a Linear Programming problem.
+You do not need to specify the
+<A HREF="sect30.htm#netflowintpoint">INTPOINT</A> option in the 
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement (although you will do no harm if you do).
+<P>Data for a linear programming problem resembles the data for side constraints
+and nonarc variables supplied to PROC NETFLOW when solving a constrained network problem.
+It is also very similar to the data required by the LP procedure.
+<P><H3><I><A NAME="netflowlplplp">Mathematical Description of LP</A></I></H3>
+<A NAME="netflowlpnpsc">&#13;</A>
+<A NAME="idxnet1561">&#13;</A><A NAME="idxnet1562">&#13;</A><A NAME="idxnet1563">&#13;</A><A NAME="idxnet1564">&#13;</A><A NAME="idxnet1565">&#13;</A><A NAME="idxnet1566">&#13;</A>If the network component of <A HREF="sect6.htm#netflownpsc">NPSC</A> is removed,
+the result is the mathematical description of the 
+Linear Programming problem.
+If an LP has
+<SPAN CLASS="mathfont"><I>g</I></SPAN> variables, and
+<SPAN CLASS="mathfont"><I>k</I></SPAN> constraints, then
+the formal statement of the problem solved by PROC NETFLOW is
+<DL>
+<DT>
+<DD><SPAN CLASS="mathfont">min {<I>d</I><sup><I>T</I></sup> <I>z</I>}</SPAN>
+<DT>subject to
+<DD><IMG WIDTH="104" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq23.gif"
+ ALT="Q z \geq, =, \leq r"><DT>
+<DD><IMG WIDTH="87" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq5.gif"
+ ALT="m \leq z \leq v"><DT>
+<DD><DT>where
+<DD></DL>
+
+<DL>
+<DT><DD>
+<SPAN CLASS="mathfont"><I>d</I></SPAN>
+is the <SPAN CLASS="mathfont"><I>g</I></SPAN> x <SPAN CLASS="mathfont">1</SPAN> objective function coefficient of
+variables vector.
+<DT><DD>
+<SPAN CLASS="mathfont"><I>z</I></SPAN>
+is the <SPAN CLASS="mathfont"><I>g</I></SPAN> x <SPAN CLASS="mathfont">1</SPAN> variable value vector.
+<DT><DD>
+<SPAN CLASS="mathfont"><I>Q</I></SPAN>
+is the <SPAN CLASS="mathfont"><I>k</I></SPAN> x <SPAN CLASS="mathfont"><I>g</I></SPAN> constraint coefficient matrix for
+variables, where
+<SPAN CLASS="mathfont"><I>Q</I><SUB><I>i</I>,<I>j</I></SUB></SPAN> is the coefficient of variable <SPAN CLASS="mathfont"><I>j</I></SPAN> in the <SPAN CLASS="mathfont"><I>i</I></SPAN>th
+constraint.
+<DT><DD>
+<SPAN CLASS="mathfont"><I>r</I></SPAN>
+is the <SPAN CLASS="mathfont"><I>k</I></SPAN> x <SPAN CLASS="mathfont">1</SPAN> side constraint right-hand-side vector.
+<DT><DD>
+<SPAN CLASS="mathfont"><I>m</I></SPAN> is the <SPAN CLASS="mathfont"><I>g</I></SPAN> x <SPAN CLASS="mathfont">1</SPAN> variable value lower bound
+vector.
+<DT><DD>
+<SPAN CLASS="mathfont"><I>v</I></SPAN> is the <SPAN CLASS="mathfont"><I>g</I></SPAN> x <SPAN CLASS="mathfont">1</SPAN> variable
+value upper bound vector.
+</DL><BR><H3><I><A NAME="netflowipad">Interior Point Algorithmic Details</A></I></H3>
+<A NAME="idxnet1567">&#13;</A><A NAME="idxnet1568">&#13;</A>After preprocessing, the Linear Program to be solved is
+<DL>
+<DT>
+<DD><SPAN CLASS="mathfont">min {<I>c</I><sup><I>T</I></sup> <I>x</I>}</SPAN>
+<DT>subject to
+<DD><SPAN CLASS="mathfont"><I>A x</I> = <I>b</I></SPAN>
+<DT>
+<DD><IMG WIDTH="47" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq24.gif"
+ ALT="x \geq 0"></DL>
+
+This is the 
+<I>primal</I> problem.
+The matrices of <SPAN CLASS="mathfont"><I>d</I></SPAN> <SPAN CLASS="mathfont"><I>z</I></SPAN> <SPAN CLASS="mathfont"><I>Q</I></SPAN> of <A HREF="sect60.htm#netflowlplplp">NP</A> have been renamed
+<SPAN CLASS="mathfont"><I>c</I></SPAN> <SPAN CLASS="mathfont"><I>x</I></SPAN> and <SPAN CLASS="mathfont"><I>A</I></SPAN> respectively, as these symbols are by convention 
+used more, the problem to be solved is different from the original because of 
+preprocessing, 
+and there has been a change of primal variable to transform the 
+LP into one whose variables have zero lower bounds. 
+To simplify the algebra here, assume that variables have infinite bounds,
+and constraints are equalities.
+(Interior Point algorithms do efficiently handle finite bounds, and
+it is easy to introduce primal slack variables to change inequalities into
+equalities.) The problem has <SPAN CLASS="mathfont"><I>n</I></SPAN> variables. <SPAN CLASS="mathfont"><I>i</I></SPAN> is a variable number.
+<SPAN CLASS="mathfont"><I>k</I></SPAN> is an iteration number, and if used as a subscript or superscript
+denotes &#34;of iteration <SPAN CLASS="mathfont"><I>k</I></SPAN>&#34;.
+<BR><BR>There exists an equivalent problem, the <I>dual</I> problem, stated as
+<DL>
+<DT>
+<DD><SPAN CLASS="mathfont">max {<I>b</I><sup><I>T</I></sup> <I>y</I>}</SPAN>
+<DT>subject to
+<DD><SPAN CLASS="mathfont"><I>A</I><SUP><I>T</I></SUP> <I>y</I> + <I>s</I> = <I>c</I></SPAN>
+<DT>
+<DD><IMG WIDTH="45" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq25.gif"
+ ALT="s \geq 0"><DT>where
+<DD>y are dual variables, and s are dual constraint slacks
+</DL><BR>What the Interior Point has to do is solve the system of equations to
+satisfy the Karush-Kuhn-Tucker (KKT) conditions for optimality:
+<A NAME="idxnet1569">&#13;</A><A NAME="idxnet1570">&#13;</A><DL>
+<DT>
+<DD><SPAN CLASS="mathfont"><I>A x</I> = <I>b</I></SPAN>
+<DT>
+<DD><SPAN CLASS="mathfont"><I>A</I><SUP><I>T</I></SUP> <I>y</I> + <I>s</I> = <I>c</I></SPAN>
+<DT>
+<DD><SPAN CLASS="mathfont"><I>x</I><SUP><I>T</I></SUP> <I>s</I> = 0</SPAN>
+<DT>
+<DD><IMG WIDTH="47" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq24.gif"
+ ALT="x \geq 0"><DT>
+<DD><IMG WIDTH="45" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq25.gif"
+ ALT="s \geq 0"></DL><BR>These are the conditions for feasibility, with the <I>complementarity</I> 
+condition <SPAN CLASS="mathfont"><I>x</I><SUP><I>T</I></SUP> <I>s</I> = 0</SPAN> added. <SPAN CLASS="mathfont"><I>c</I><SUP><I>T</I></SUP> <I>x</I> = <I>b</I><SUP><I>T</I></SUP> <I>y</I></SPAN> must occur at the optimum.
+Complementarity forces the optimal objectives of the primal and dual 
+to be equal, <SPAN CLASS="mathfont"><I>c</I><SUP><I>T</I></SUP> <I>x</I><SUB><I>opt</I></SUB> = <I>b</I><SUP><I>T</I></SUP> <I>y</I><SUB><I>opt</I></SUB></SPAN>, as
+<DL>
+<DT>
+<DD><SPAN CLASS="mathfont">0 = <I>x</I><SUP><I>T</I></SUP><SUB><I>opt</I></SUB> <I>s</I><SUB><I>opt</I></SUB> = <I>s</I><SUP><I>T</I></SUP><SUB><I>opt</I></SUB> <I>x</I><SUB><I>opt</I></SUB> = (<I>c</I> - <I>A</I><SUP><I>T</I></SUP> <I>y</I><SUB><I>opt</I></SUB>)<SUP><I>T</I></SUP> <I>x</I><SUB><I>opt</I></SUB> = <I>c</I><SUP><I>T</I></SUP> <I>x</I><SUB><I>opt</I></SUB> - 
+<I>y</I><SUP><I>T</I></SUP><SUB><I>opt</I></SUB> (<I>A x</I><SUB><I>opt</I></SUB>) = <I>c</I><SUP><I>T</I></SUP> <I>x</I><SUB><I>opt</I></SUB> - <I>b</I><SUP><I>T</I></SUP> <I>y</I><SUB><I>opt</I></SUB></SPAN>
+<DT>
+<DD><SPAN CLASS="mathfont">0 = <I>c</I><SUP><I>T</I></SUP> <I>x</I><SUB><I>opt</I></SUB> - <I>b</I><SUP><I>T</I></SUP> <I>y</I><SUB><I>opt</I></SUB></SPAN></DL><BR>Before the optimum is reached, a solution <SPAN CLASS="mathfont">(<I>x</I>, <I>y</I>, <I>s</I>)</SPAN> may not satisfy the KKT conditions.
+<UL>
+<LI> Primal constraints can be broken, <IMG WIDTH="176" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq26.gif"
+ ALT="infeas_b = b - A x \neq 0">.<A NAME="netflowinfeasb">&#13;</A><LI> Dual constraints can be broken, <IMG WIDTH="218" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq27.gif"
+ ALT="infeas_c = c - A^T y - s \neq 0">.<A NAME="netflowinfeasc">&#13;</A><LI> Complementarity is unsatisfied, <IMG WIDTH="171" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq28.gif"
+ ALT="x^T s = c^T x - b^T y \neq 0">.This is called the <I>duality gap</I>.
+<A NAME="netflowdualgap">&#13;</A></UL>
+<BR><BR>Interior Point algorithm works by using Newtons method to find a 
+direction 
+<A NAME="netflowdirection">&#13;</A>to move <IMG WIDTH="133" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq29.gif"
+ ALT="(\Delta x^k, \Delta y^k, \Delta s^k)"> 
+from the current solution <SPAN CLASS="mathfont">(<I>x</I><SUP><I>k</I></SUP>, <I>y</I><SUP><I>k</I></SUP>, <I>s</I><SUP><I>k</I></SUP>)</SPAN> toward a better solution.
+<DL>
+<DT>
+<DD><IMG WIDTH="414" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq9.gif"
+ ALT="(x^{k+1}, y^{k+1}, s^{k+1}) = (x^k, y^k, s^k) + \alpha 
+(\Delta x^k, \Delta y^k, \Delta s^k)"></DL>
+<IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq13.gif"
+ ALT="\alpha"> is the <I>step length</I> and is assigned a value as large as possible but <IMG WIDTH="46" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq14.gif"
+ ALT="\leq 1.0"> and not so
+large that a <SPAN CLASS="mathfont"><I>x</I><SUP><I>k</I>+1</SUP><SUB><I>i</I></SUB></SPAN> or <SPAN CLASS="mathfont"><I>s</I><SUP><I>k</I>+1</SUP><SUB><I>i</I></SUB></SPAN> 
+is &#34;too close&#34; to zero.
+The direction in which to move is found using
+<DL>
+<DT>
+<DD><IMG WIDTH="151" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq30.gif"
+ ALT="A \Delta x^k = -infeas_b"><DT>
+<DD><IMG WIDTH="216" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq31.gif"
+ ALT="A^T \Delta y^k + \Delta s^k = -infeas_c"><DT>
+<DD><IMG WIDTH="230" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq32.gif"
+ ALT="S^k \Delta x^k + X^k \Delta s^k = - X^k S^k e"><DT>where
+<DD>S = diag(s), X = diag(x), and e = vector with all elements = 1
+</DL>
+
+To greatly improve performance, the third equation is changed to
+<DL>
+<DT>
+<DD><IMG WIDTH="299" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq33.gif"
+ ALT="S^k \Delta x^k + X^k \Delta s^k = - X^k S^k e + \sigma_k \mu_k e"><DT>where
+<DD><IMG WIDTH="130" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq34.gif"
+ ALT="\mu_k = 1/n X^k S^k e">, the average complementarity, and
+<DT>
+<DD><IMG WIDTH="89" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq35.gif"
+ ALT="0 \leq \sigma_k \leq 1"></DL>
+The effect now is to find a direction in which to move to reduce 
+infeasibilities and to reduce the complementarity toward zero, 
+but if any
+<SPAN CLASS="mathfont"><I>x</I><SUP><I>k</I></SUP><SUB><I>i</I></SUB> <I>s</I><SUP><I>k</I></SUP><SUB><I>i</I></SUB></SPAN> is too close to zero, it is &#34;nudged out&#34; to <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq36.gif"
+ ALT="\mu">,any
+<SPAN CLASS="mathfont"><I>x</I><SUP><I>k</I></SUP><SUB><I>i</I></SUB> <I>s</I><SUP><I>k</I></SUP><SUB><I>i</I></SUB></SPAN> that is larger than <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq36.gif"
+ ALT="\mu"> is &#34;nudged into&#34; <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq36.gif"
+ ALT="\mu">.A <IMG WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq37.gif"
+ ALT="\sigma_k"> close to or equal to 0.0 biases a direction toward the 
+optimum,
+and a value for <IMG WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq37.gif"
+ ALT="\sigma_k"> close to or equal to 1.0 &#34;centers&#34; the 
+direction toward a point where all pairwise products <IMG WIDTH="75" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq38.gif"
+ ALT="x^k_i s^k_i = \mu">.Such points make up the <I>Central Path</I> in the interior.
+<A NAME="idxnet1571">&#13;</A><A NAME="idxnet1572">&#13;</A>Although centering directions make little, if any, progress in reducing 
+<IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq36.gif"
+ ALT="\mu"> and moving the solution closer to the optimum, 
+substantial progress toward the optimum can usually be made in 
+the next iteration.
+<BR><BR>The Central Path is crucial to why the Interior Point algorithm is so 
+efficient. This path &#34;guides&#34;
+the algorithm to the optimum through the interior of feasible space.
+Without centering, the algorithm would find a series of solutions near each other
+close to the boundary of feasible space.
+Step lengths along the direction
+would be small and many
+more iterations would probably be required to reach the optimum.
+<BR><BR>That in a nutshell is the Primal-Dual Interior Point algorithm.
+Varieties of the algorithm differ in the way <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq13.gif"
+ ALT="\alpha"> and <IMG WIDTH="22" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq37.gif"
+ ALT="\sigma_k">are chosen 
+and the direction adjusted each iteration.
+A wealth of information can be found in the texts by Roos, Terlaky, and Vial 1997, 
+Wright 1996, and Ye 1996.
+<BR><BR>The calculation of the direction is the most time-consuming step
+of the Interior Point algorithm.
+Assume the <SPAN CLASS="mathfont"><I>k</I></SPAN>th iteration is being performed,
+so the subscript and superscript <SPAN CLASS="mathfont"><I>k</I></SPAN> can be dropped from the algebra.
+<DL>
+<DT>
+<DD><IMG WIDTH="142" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq39.gif"
+ ALT="A \Delta x = -infeas_b"><DT>
+<DD><IMG WIDTH="199" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq40.gif"
+ ALT="A^T \Delta y + \Delta s = -infeas_c"><DT>
+<DD><IMG WIDTH="232" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq41.gif"
+ ALT="S \Delta x + X \Delta s = - X S e + \sigma \mu e"></DL>
+
+Rearranging the second equation
+<DL>
+<DT>
+<DD><IMG WIDTH="199" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq42.gif"
+ ALT="\Delta s = -infeas_c - A^T \Delta y"></DL>
+Rearranging the third equation
+<DL>
+<DT>
+<DD><IMG WIDTH="265" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq43.gif"
+ ALT="\Delta s = X^{-1}(- S \Delta x - X S e + \sigma \mu e)"><DT>
+<DD><IMG WIDTH="236" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq44.gif"
+ ALT="\Delta s = - \Theta \Delta x - S e + X^{-1} \sigma \mu e"><DT>where
+<DD><IMG WIDTH="89" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq45.gif"
+ ALT="\Theta = S X^{-1}"></DL>
+
+Equating these two expressions for <IMG WIDTH="27" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq46.gif"
+ ALT="\Delta s"> and rearranging
+<DL>
+<DT>
+<DD><IMG WIDTH="360" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq47.gif"
+ ALT="-\Theta \Delta x - S e + X^{-1} \sigma \mu e = -infeas_c - A^T \Delta y"><DT>
+<DD><IMG WIDTH="345" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq48.gif"
+ ALT="-\Theta \Delta x = S e - X^{-1} \sigma \mu e - infeas_c - A^T \Delta y"><DT>
+<DD><IMG WIDTH="378" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq49.gif"
+ ALT="\Delta x = \Theta^{-1}(-S e + X^{-1} \sigma \mu e + infeas_c + A^T \Delta y)"><DT>
+<DD><IMG WIDTH="167" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq50.gif"
+ ALT="\Delta x = \rho + \Theta^{-1} A^T \Delta y"><DT>where
+<DD><IMG WIDTH="291" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq51.gif"
+ ALT="\rho = \Theta^{-1}(-S e + X^{-1} \sigma \mu e + infeas_c)"></DL>
+
+Substituting into the first direction equation
+<DL>
+<DT>
+<DD><IMG WIDTH="142" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq39.gif"
+ ALT="A \Delta x = -infeas_b"><DT>
+<DD><IMG WIDTH="245" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq52.gif"
+ ALT="A (\rho + \Theta^{-1} A^T \Delta y) = -infeas_b"><DT>
+<DD><IMG WIDTH="244" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq53.gif"
+ ALT="A \Theta^{-1} A^T \Delta y = -infeas_b - A \rho"><DT>
+<DD><IMG WIDTH="292" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq54.gif"
+ ALT="\Delta y = (A \Theta^{-1} A^T)^{-1}(-infeas_b - A \rho)"></DL>
+
+<IMG WIDTH="18" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq55.gif"
+ ALT="\Theta">, <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq56.gif"
+ ALT="\rho">, <IMG WIDTH="28" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq57.gif"
+ ALT="\Delta y">, <IMG WIDTH="29" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq58.gif"
+ ALT="\Delta x"> and <IMG WIDTH="27" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq46.gif"
+ ALT="\Delta s"> are calculated
+in that order.
+The hardest term is the factorization of the 
+<IMG WIDTH="89" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq59.gif"
+ ALT="(A \Theta^{-1} A^T)"> matrix 
+<A NAME="netflowaat">&#13;</A>to determine <IMG WIDTH="28" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq57.gif"
+ ALT="\Delta y">. 
+Fortunately, although the <EM>values</EM> of <IMG WIDTH="89" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq59.gif"
+ ALT="(A \Theta^{-1} A^T)"> is
+different each iteration,
+the <EM>locations</EM> of the nonzeroes in this matrix remain fixed; the 
+nonzero locations is the same as those in the matrix <SPAN CLASS="mathfont">(<I>A A</I><SUP><I>T</I></SUP>)</SPAN>.
+This is due to <IMG WIDTH="108" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq60.gif"
+ ALT="\Theta^{-1} = X S^{-1}"> being a diagonal
+matrix that has the effect of merely scaling the columns of <SPAN CLASS="mathfont">(<I>A A</I><SUP><I>T</I></SUP>)</SPAN>.
+<BR><BR>The fact that the nonzeroes in <IMG WIDTH="75" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/neteq61.gif"
+ ALT="A \Theta^{-1} A^T"> has a constant pattern is exploited by all
+Interior Point algorithms, and is a major reason for their
+excellent performance.
+Before iterations begin, <SPAN CLASS="mathfont"><I>A A</I><SUP><I>T</I></SUP></SPAN> is examined and it's rows and 
+columns permutated so that during Cholesky Factorization, the number of
+<I>fillins</I> created is smaller.
+A list of arithmetic operations to perform the factorization is saved
+in concise computer data structures (working with
+memory locations rather than actual numerical values).
+This is called <I>symbolic factorization</I>.
+<A NAME="netflowsymbolic">&#13;</A>During iterations, when memory has been initialized with numerical values,
+the operations list is performed sequentially.
+Determining how the factorization should be performed again and again
+is unnecessary.
+<BR><BR><H3><I><A NAME="netflowgettingstarted8">Getting Started: 
+Linear Programming Models: Interior Point algorithm</A></I></H3>
+<A NAME="idxnet1573">&#13;</A><A NAME="idxnet1574">&#13;</A>To solve linear programming problem using
+PROC NETFLOW, you save a representation of the variables
+and the constraints in one or two SAS data sets. These
+data sets are then passed to PROC NETFLOW for solution.
+There are various forms that a problem's data can take.
+You can use any one or a combination of several of these forms.
+<BR><BR><A NAME="idxnet1575">&#13;</A><A NAME="idxnet1576">&#13;</A>The <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set contains information about the variables
+of the problem.
+Although this data set is called ARCDATA, it contains data for no arcs.
+Instead, all data in this data set are related
+to variables.
+<BR><BR>The <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set can be used to specify information about
+variables, including objective function coefficients,
+lower and upper value bounds, and names.
+These data are the elements of the vectors
+<SPAN CLASS="mathfont"><I>d</I></SPAN>, <SPAN CLASS="mathfont"><I>m</I></SPAN>, and <SPAN CLASS="mathfont"><I>v</I></SPAN> in problem (<A HREF="sect60.htm#netflowlplplp">NP</A>).
+Data for an variable can be given in more than
+one observation.
+<BR><BR>When the data for a constrained network problem is being provided,
+the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set always contains 
+information necessary for arcs, their tail and head nodes, and optionally
+the supply and demand information of these nodes.
+When the data for a linear programming problem is being provided,
+none of this information is present, as the model has no arcs.
+This is the way PROC NETFLOW decides which type of problem it is to solve.
+<BR><BR>PROC NETFLOW was originally designed to solve models with networks, so an
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set is always expected.
+If an <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set 
+is not specified, by default the last data set created before
+PROC NETFLOW is envoked is assumed to be an
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set.
+However, these characteristics of PROC NETFLOW are not helpful when a 
+Linear Programming problem is being solved and all data is provided in a 
+single data set specified by the
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set, 
+and that data set is not the last data set created before PROC NETFLOW starts.
+In this case, you must specify that an 
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set and 
+a <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set are both equal to 
+the input data set.
+PROC NETFLOW then knows that a Linear Programming problem is to be solved,
+and the data reside in one data set.
+<BR><BR><A NAME="idxnet1577">&#13;</A><A NAME="idxnet1578">&#13;</A>The <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set describes 
+the constraints and
+their right-hand-sides. These data are elements of the matrix
+<SPAN CLASS="mathfont"><I>Q</I></SPAN> and
+the vector <SPAN CLASS="mathfont"><I>r</I></SPAN>.
+<BR><BR>Constraint types are also specified in the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set.
+You can include in this data set variable data such as upper bound values,
+lower value bounds, and objective function
+coefficients.  It is possible to give all information about
+some or all variables in the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set.
+<BR><BR>A variable is identified in this data set by its name.
+<A NAME="idxnet1579">&#13;</A><A NAME="idxnet1580">&#13;</A>If you
+specify a variable's name in the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set, then this
+name is used to associate data in the 
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set with
+that variable.
+<BR><BR>If you use the <A HREF="sect42.htm#netflowdenseformat">dense</A> constraint input format,
+<A NAME="idxnet1581">&#13;</A><A NAME="idxnet1582">&#13;</A>these variable names are names of SAS variables in the 
+<A HREF="sect40.htm#netflowvar">VAR</A> list of the
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set.
+<BR><BR>If you use the <A HREF="sect42.htm#netflowsparseformat">sparse</A> constraint input format,
+<A NAME="idxnet1583">&#13;</A><A NAME="idxnet1584">&#13;</A>these variable names are values of the <A HREF="sect18.htm#netflowcolumn">COLUMN</A>
+list SAS variable of
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set.
+<A NAME="idxnet1585">&#13;</A><A NAME="idxnet1586">&#13;</A>When using the Interior Point algorithm, the execution of PROC NETFLOW 
+has two stages.
+<A NAME="idxnet1587">&#13;</A><A NAME="idxnet1588">&#13;</A>In the preliminary
+(zeroth) stage, the data
+are read from the
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set (if used) and the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set.
+<A NAME="idxnet1589">&#13;</A><A NAME="idxnet1590">&#13;</A><A NAME="idxnet1591">&#13;</A><A NAME="idxnet1592">&#13;</A>Error checking is performed.
+In the next stage, the Linear Program is preprocessed, then the optimal optimal solution to 
+the Linear Program is found.
+The solution is saved in the
+<A HREF="sect15.htm#netflowconout">CONOUT</A>= data set.
+<A NAME="idxnet1593">&#13;</A><A NAME="idxnet1594">&#13;</A>This data set is also named in the 
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A>,  
+<A HREF="sect30.htm#netflowreset">RESET</A>, and
+<A HREF="sect34.htm#netflowsave">SAVE</A> statements.
+<BR><BR>See the <A HREF="sect59.htm#netflowgettingstarted9">&#34;Getting Started: Network Models: Interior Point algorithm&#34;</A> section for a fuller description
+of the stages of the Interior Point algorithm.
+<BR><BR><H3><I>Introductory Example: 
+Linear Programming Models: Interior Point algorithm</I></H3>
+<A NAME="idxnet1595">&#13;</A><A NAME="idxnet1596">&#13;</A>Consider the Linear Programming problem in the <A HREF="../chap3/sect3.htm#lp_2a00">&#34;An Introductory Example&#34;</A> section
+in the chapter on the LP procedure.
+<BR><BR><PRE>
+data dcon1;
+   input _id_ $14.
+         a_light a_heavy brega naphthal naphthai 
+         heatingo jet_1 jet_2
+         _type_ $ _rhs_;
+   datalines;
+profit         -175 -165 -205  0  0  0 300 300 max     .
+naphtha_l_conv .035 .030 .045 -1  0  0   0   0  eq     0
+naphtha_i_conv .100 .075 .135  0 -1  0   0   0  eq     0
+heating_o_conv .390 .300 .430  0  0 -1   0   0  eq     0
+recipe_1          0    0    0  0 .3 .7  -1   0  eq     0
+recipe_2          0    0    0 .2  0 .8   0  -1  eq     0
+available       110  165   80  .  .  .   .   . upperbd .
+;
+</PRE>
+
+<BR><BR>To find the minimum cost solution
+and to examine all or parts of the optimum, you use 
+<A HREF="sect28.htm#netflowprint">PRINT</A> statements.
+<UL>
+<LI> <B>print problem/short;</B> outputs information for all 
+variables and all constraint coefficients. See <A HREF="sect60.htm#netfo71">Figure 4.19</A>.
+<LI> <B>print some_variables(j:)/short;</B> is information about a set of variables,
+(in this case, those with names that start with the character string (here, the single character &#34;j&#34; (without the quotes))
+preceeding the colon.
+See <A HREF="sect60.htm#netfo72">Figure 4.20</A>.
+<LI> <B>print some_cons(recipe_1)/short;</B> is information about a set of constraints 
+(here, that set only has one member, the constraint called recipe_1).
+See <A HREF="sect60.htm#netfo73">Figure 4.21</A>.
+<LI> <B>print con_variables(_all_,brega)/short;</B> lists the constraint information for a set of variables
+(here, that set only has one member, the variable called brega).
+See <A HREF="sect60.htm#netfo74">Figure 4.22</A>.
+<LI> <B>print con_variables(recipe:,n: jet_1)/short;</B> coefficient information 
+for those in a set of constraints belonging to a set of variables.
+See <A HREF="sect60.htm#netfo75">Figure 4.23</A>.
+</UL>
+<BR><BR><PRE>
+   proc netflow
+      condata=dcon1
+      conout=solutn1;
+   run;
+print problem/short;
+print some_variables(j:)/short;
+print some_cons(recipe_1)/short;
+print con_variables(_all_,brega)/short;
+print con_variables(recipe:,n: jet_1)/short;
+</PRE>
+
+<BR><BR>The following messages, that appear on the SAS log, summarize
+the model as read by PROC NETFLOW and note the progress toward a
+solution:
+<PRE>
+NOTE: Number of variables= 8 .
+NOTE: Number of &#60;= constraints= 0 .
+NOTE: Number of == constraints= 5 .
+NOTE: Number of &#62;= constraints= 0 .
+NOTE: Number of constraint coefficients= 18 .
+NOTE: 0 columns, 0 rows and 0 coefficients were added
+      to the problem to handle unrestricted variables, 
+      variables that are split, and constraint slack or 
+      surplus variables.
+NOTE: There are 8 nonzero elements in A * A transpose.
+NOTE: Number of fill-ins=0.
+NOTE: Of the 5 rows and columns, 0 are sparse.
+NOTE: There are 0 nonzero elements in the sparse rows of 
+      the factored A * A transpose. This includes fill-ins 
+      in the sparse rows.
+NOTE: There are 0 operations of the form 
+      u[i,j]=u[i,j]-u[q,j]*u[q,i]/u[q,q] to factorize the 
+      sparse rows of A * A transpose.
+NOTE: Constraint feasibility attained by iteration 3.
+NOTE: Bound feasibility attained by iteration 3.
+NOTE: Dual feasibility attained by iteration 3.
+NOTE: Primal-Dual Predictor-Corrector Interior point 
+      algorithm performed 8 iterations.
+NOTE: Objective = 1544.0000121.
+NOTE: The data set WORK.SOLUTN1 has 8 observations and 
+      6 variables.
+</PRE>
+<BR><BR><A NAME="netfo71">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>NETFLOW PROCEDURE</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_N_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_OBJFN_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_UPPERBD</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_LOWERBD</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_VALUE_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_heavy</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">5.583E-7</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_light</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-175</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heatingo</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">77.3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">60.65</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">63.33</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthai</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">21.8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthal</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">7.45</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><BR><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>NETFLOW PROCEDURE</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_N_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_id_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_type_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_rhs_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COST_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_CAPAC_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_LO_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_VALUE_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COEF_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heating_o_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_heavy</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">5.583E-7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heating_o_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_light</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-175</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.39</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heating_o_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.43</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>4</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heating_o_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heatingo</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">77.3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>5</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_i_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_heavy</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">5.583E-7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.075</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>6</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_i_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_light</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-175</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>7</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_i_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.135</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>8</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_i_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthai</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">21.8</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>9</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_l_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_heavy</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">5.583E-7</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.03</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>10</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_l_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_light</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-175</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.035</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>11</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_l_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.045</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>12</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_l_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthal</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">7.45</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>13</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heatingo</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">77.3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.7</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>14</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">60.65</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>15</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthai</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">21.8</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>16</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heatingo</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">77.3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.8</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>17</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">63.33</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>18</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthal</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">7.45</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.2</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 4.19:</B> print problem/short;</SPAN><BR><BR><A NAME="netfo72">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>NETFLOW PROCEDURE</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_N_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COST_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_CAPAC_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_LO_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_VALUE_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">60.65</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_2</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">63.33</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 4.20:</B> print some_variables(j:)/short;</SPAN><BR><BR><A NAME="netfo73">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>NETFLOW PROCEDURE</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_N_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_id_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_type_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_rhs_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COST_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_CAPAC_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_LO_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_VALUE_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COEF_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heatingo</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">77.3</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.7</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">60.65</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthai</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">21.8</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.3</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 4.21:</B> print some_cons(recipe_1)/short;</SPAN><BR><BR><A NAME="netfo74">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>NETFLOW PROCEDURE</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_N_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_id_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_type_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_rhs_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COST_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_CAPAC_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_LO_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_VALUE_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COEF_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heating_o_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.43</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_i_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.135</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphtha_l_conv</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.045</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 4.22:</B> print con_variables(_all_,brega)/short;</SPAN><BR><BR><A NAME="netfo75">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<!--BEGINTITLE1--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>NETFLOW PROCEDURE</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE1--><CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_N_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_id_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_type_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_rhs_</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COST_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_CAPAC_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_LO_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_VALUE_</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COEF_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>1</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_1</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">60.65</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>2</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthai</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">21.8</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>3</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">recipe_2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">EQ</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthal</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">7.45</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0.2</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 4.23:</B> print con_variables(recipe:,n: jet_1)/short;</SPAN><BR><BR>Unlike PROC LP, that displays the solution and other information as output,
+PROC NETFLOW saves the optimum in output SAS data sets you specify.
+For this example, the solution is saved in the SOLUTION data set. It can be
+displayed with PROC PRINT as
+<PRE>
+   proc print data=solutn1;
+      var _name_ _cost_ _capac_ _lo_ _flow_ _fcost_;
+      sum _fcost_;
+      title3 'LP Optimum'; run;
+</PRE>
+
+<BR><BR>Notice, in the CONOUT=SOLUTION (<A HREF="sect60.htm#netfo70">Figure 4.24</A>), the optimal value 
+through each variable in the Linear program
+is given in the variable named <SPAN CLASS="ssfeleven">_FLOW_</SPAN>, and the cost of value
+for each variable is given in the variable <SPAN CLASS="ssfeleven">_FCOST_</SPAN>.
+<A NAME="idxnet1597">&#13;</A><A NAME="idxnet1598">&#13;</A><BR><BR><A NAME="netfo70">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX"></A>
+<P>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 rules=NONE frame=VOID border=0 width=100% cellpadding=1>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>LP Optimum</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+<!--ENDTITLE--></i></b></font></CENTER>
+<CENTER>
+<!--BEGINTABLE--> 
+<TABLE  cellspacing=1 rules=GROUPS frame=BOX border=1 cellpadding=7>
+<thead>
+<TR>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>Obs</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_NAME_</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_COST_</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_CAPAC_</b></font></TD>
+ <TD ALIGN=CENTER bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_LO_</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_FLOW_</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>_FCOST_</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">1</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_heavy </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">     165</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">  0.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">    -0.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">2</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">a_light </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-175</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">     110</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">110.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-19250.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">3</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">brega   </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-205</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">      80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 80.000</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">-16400.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">4</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">heatingo</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">   0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 77.300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">     0.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">5</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_1   </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 60.650</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 18195.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">6</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">jet_2   </font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 300</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 63.330</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 18999.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">7</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthai</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">   0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000"> 21.800</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">     0.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">8</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">naphthal</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">   0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">99999999</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">0</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">  7.450</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, Helv" size="2" color="#000000">     0.00</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>&nbsp;</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, Helv" size="2" color="#0033AA"><b>  1544.00</b></font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+<!--ENDTABLE--></CENTER>
+<P>
+</FONT>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 4.24:</B> CONOUT=SOLUTN1</SPAN><BR><BR>The same model can be specified in the <A HREF="sect42.htm#netflowsparseformat">sparse</A> format as in the 
+following <SPAN CLASS="ssfeleven">scon2</SPAN> dataset.
+This format enables you to omit the zero coefficients.
+<BR><BR><PRE>
+data scon2;
+   input _type_ $ @10 _col_ $13. @24 _row_ $16. _coef_;
+   datalines;
+max      .             profit                    .
+eq       .             napha_l_conv              .
+eq       .             napha_i_conv              .
+eq       .             heating_oil_conv          .
+eq       .             recipe_1                  .
+eq       .             recipe_2                  .
+upperbd  .             available                 .
+.        a_light       profit                 -175
+.        a_light       napha_l_conv           .035
+.        a_light       napha_i_conv           .100
+.        a_light       heating_oil_conv       .390
+.        a_light       available               110
+.        a_heavy       profit                 -165
+.        a_heavy       napha_l_conv           .030
+.        a_heavy       napha_i_conv           .075
+.        a_heavy       heating_oil_conv       .300
+.        a_heavy       available               165
+.        brega         profit                 -205
+.        brega         napha_l_conv           .045
+.        brega         napha_i_conv           .135
+.        brega         heating_oil_conv       .430
+.        brega         available                80
+.        naphthal      napha_l_conv             -1
+.        naphthal      recipe_2                 .2
+.        naphthai      napha_i_conv             -1
+.        naphthai      recipe_1                 .3
+.        heatingo      heating_oil_conv         -1
+.        heatingo      recipe_1                 .7
+.        heatingo      recipe_2                 .8
+.        jet_1         profit                  300
+.        jet_1         recipe_1                 -1
+.        jet_2         profit                  300
+.        jet_2         recipe_2                 -1
+;
+</PRE>
+
+<BR><BR>To find the minimum cost solution, invoke PROC NETFLOW 
+(note the <A HREF="sect15.htm#netflowscdata">SPARSECONDATA</A> option which must be specified) as follows:
+<PRE>
+   proc netflow
+      sparsecondata
+      condata=scon2
+      conout=solutn2;
+   run;
+</PRE>
+
+<BR><BR>A data set that is used as an 
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set
+can be initialized as follows:
+<PRE>
+data vars3;
+   input _name_ $ profit available;
+   datalines;
+a_heavy  -165 165
+a_light  -175 110
+brega    -205  80
+heatingo    0   .
+jet_1     300   .
+jet_2     300   .
+naphthai    0   .
+naphthal    0   .
+;
+</PRE>
+
+<BR><BR>The following <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set is the original
+<A HREF="sect42.htm#netflowdenseformat">dense</A> format <A HREF="sect15.htm#netflowcondata">CONDATA</A>= dcon1 data set
+with the variable information removed. 
+(You could have left some or all of that information in 
+CONDATA as PROC NETFLOW &#34;merges&#34; data, but doing that and checking for 
+consistency uses time.)
+<PRE>
+data dcon3;
+   input _id_ $14.
+         a_light a_heavy brega naphthal naphthai 
+         heatingo jet_1 jet_2
+         _type_ $ _rhs_;
+   datalines;
+naphtha_l_conv .035 .030 .045 -1  0  0   0   0  eq     0
+naphtha_i_conv .100 .075 .135  0 -1  0   0   0  eq     0
+heating_o_conv .390 .300 .430  0  0 -1   0   0  eq     0
+recipe_1          0    0    0  0 .3 .7  -1   0  eq     0
+recipe_2          0    0    0 .2  0 .8   0  -1  eq     0
+;
+</PRE>
+
+<BR><BR>It is important to note that it is now necessary to specify the 
+<A HREF="sect15.htm#netflowmaximize">MAXIMIZE</A> option; otherwise, PROC NETFLOW will
+optimize to the minimum 
+(which, incidently, has a total objective = -3539.25).
+You must indicate that the SAS variable profit in the
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= vars3 data set has values that are
+objective function coefficients, by specifying the 
+<A HREF="sect20.htm#netflowcost">OBJFN</A> statement.
+The <A HREF="sect16.htm#netflowcapacity">UPPERBD</A> must be specified as the SAS
+variable available that has as values upper bounds.
+<PRE>
+proc netflow
+   maximize             /* ***** necessary ***** */
+   arcdata=vars3
+   condata=dcon3
+   conout=solutn3;
+objfn profit;
+upperbd available;
+run;
+</PRE>
+
+<BR><BR>The <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>=vars3 data set can become more concise by noting that the model variables
+heatingo, naphthai, and naphthal have zero objective function coefficients
+(the default) and
+default upper bounds, so those observations need not be present.
+<BR><BR><PRE>
+data vars4;
+   input _name_ $ profit available;
+   datalines;
+a_heavy  -165 165
+a_light  -175 110
+brega    -205  80
+jet_1     300   .
+jet_2     300   .
+;
+</PRE>
+
+<BR><BR>The <A HREF="sect15.htm#netflowcondata">CONDATA</A>=dcon3 data set can become more 
+concise by noting that all the constraints have the same type (eq) and zero
+(the default) rhs values.
+This model is a good candidate for using the 
+<A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>= options.
+<BR><BR>The <A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>= option 
+can be useful not only when 
+<EM>all</EM> constraints have the same type as is the case here, but also 
+when <EM>most</EM> constraints have the same type or, if when you prefer
+to change the default type from <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq7.gif"
+ ALT="\leq"> to = or <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq15.gif"
+ ALT="\geq">.The essential constraint type data in 
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set is that which overrides the 
+<A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>= type you specified.
+<BR><BR><PRE>
+data dcon4;
+   input _id_ $14.
+         a_light a_heavy brega naphthal naphthai 
+         heatingo jet_1 jet_2;
+   datalines;
+naphtha_l_conv .035 .030 .045 -1  0  0   0   0
+naphtha_i_conv .100 .075 .135  0 -1  0   0   0
+heating_o_conv .390 .300 .430  0  0 -1   0   0
+recipe_1          0    0    0  0 .3 .7  -1   0
+recipe_2          0    0    0 .2  0 .8   0  -1
+;
+</PRE>
+
+<BR><BR><PRE>
+proc netflow
+   maximize defcontype=eq
+   arcdata=vars3
+   condata=dcon3
+   conout=solutn3;
+objfn profit;
+upperbd available;
+run;
+</PRE>
+
+<BR><BR>Several different ways of using an <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>=
+data set
+and a <A HREF="sect42.htm#netflowsparseformat">sparse</A> format 
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set for this 
+<A NAME="idxnet1599">&#13;</A><A NAME="idxnet1600">&#13;</A>Linear Program follows.
+The following <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set is the result of
+removing the profit and available data from the original
+<A HREF="sect42.htm#netflowsparseformat">sparse</A> format <A HREF="sect15.htm#netflowcondata">CONDATA</A>=scon2 data set.
+<BR><BR><PRE>
+data scon5;
+   input _type_ $ @10 _col_ $13. @24 _row_ $16. _coef_;
+   datalines;
+eq       .             napha_l_conv              .
+eq       .             napha_i_conv              .
+eq       .             heating_oil_conv          .
+eq       .             recipe_1                  .
+eq       .             recipe_2                  .
+.        a_light       napha_l_conv           .035
+.        a_light       napha_i_conv           .100
+.        a_light       heating_oil_conv       .390
+.        a_heavy       napha_l_conv           .030
+.        a_heavy       napha_i_conv           .075
+.        a_heavy       heating_oil_conv       .300
+.        brega         napha_l_conv           .045
+.        brega         napha_i_conv           .135
+.        brega         heating_oil_conv       .430
+.        naphthal      napha_l_conv             -1
+.        naphthal      recipe_2                 .2
+.        naphthai      napha_i_conv             -1
+.        naphthai      recipe_1                 .3
+.        heatingo      heating_oil_conv         -1
+.        heatingo      recipe_1                 .7
+.        heatingo      recipe_2                 .8
+.        jet_1         recipe_1                 -1
+.        jet_2         recipe_2                 -1
+;
+</PRE>
+
+<BR><BR><PRE>
+proc netflow
+   maximize
+   sparsecondata
+   arcdata=vars3        /* or arcdata=vars4 */
+   condata=scon5
+   conout=solutn5;
+objfn profit;
+upperbd available;
+run;
+</PRE>
+
+<BR><BR>The <A HREF="sect15.htm#netflowcondata">CONDATA</A>=scon5 data set can become more 
+concise by noting that all the constraints have the same type (eq) and zero
+(the default) rhs values.
+Use the <A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>= option again.
+Once the first 5 observations of the 
+<A HREF="sect15.htm#netflowcondata">CONDATA</A>=scon5 data set are removed,
+the <SPAN CLASS="ssfeleven">_type_</SPAN> SAS variable has values that are missing in the 
+remaining observations. Therefore, this SAS variable can be removed.
+<BR><BR><PRE>
+data scon6;
+   input _col_ $ _row_&#38;$16. _coef_;
+   datalines;
+a_light  napha_l_conv           .035
+a_light  napha_i_conv           .100
+a_light  heating_oil_conv       .390
+a_heavy  napha_l_conv           .030
+a_heavy  napha_i_conv           .075
+a_heavy  heating_oil_conv       .300
+brega    napha_l_conv           .045
+brega    napha_i_conv           .135
+brega    heating_oil_conv       .430
+naphthal napha_l_conv             -1
+naphthal recipe_2                 .2
+naphthai napha_i_conv             -1
+naphthai recipe_1                 .3
+heatingo heating_oil_conv         -1
+heatingo recipe_1                 .7
+heatingo recipe_2                 .8
+jet_1    recipe_1                 -1
+jet_2    recipe_2                 -1
+;
+</PRE>
+
+<BR><BR><PRE>
+proc netflow
+   maximize
+   defcontype=eq
+   sparsecondata
+   arcdata=vars4        /* or arcdata=vars4 */
+   condata=scon6
+   conout=solutn6;
+objfn profit;
+upperbd available;
+run;
+</PRE>
+
+<BR><BR><H3><I>Interactivity: 
+Linear Programming Models: Interior Point algorithm</I></H3>
+<A NAME="idxnet1601">&#13;</A><A NAME="idxnet1602">&#13;</A>PROC NETFLOW can be used interactively.  You begin by giving the
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement, and
+<A NAME="idxnet1603">&#13;</A><A NAME="idxnet1604">&#13;</A>you must specify the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set.
+<A NAME="idxnet1605">&#13;</A><A NAME="idxnet1606">&#13;</A>If necessary, specify the <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set.
+<A NAME="idxnet1607">&#13;</A><A NAME="idxnet1608">&#13;</A>The variable lists should be given next.
+If you have variables in the input data sets that have 
+special names (for example, a variable in the 
+<A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set named <SPAN CLASS="ssfeleven">_COST_</SPAN>
+<A NAME="idxnet1609">&#13;</A>that has objective function coefficients as values), it may not be necessary
+to have many or any variable lists.
+<BR><BR>The <A HREF="sect28.htm#netflowprint">PRINT</A>, <A HREF="sect29.htm#netflowquit">QUIT</A>, 
+<A HREF="sect34.htm#netflowsave">SAVE</A>, <A HREF="sect35.htm#netflowshow">SHOW</A>, 
+<A HREF="sect30.htm#netflowreset">RESET</A>, and <A HREF="sect33.htm#netflowrun">RUN</A>
+statements follow and can be listed in any order.
+<A NAME="idxnet1610">&#13;</A><A NAME="idxnet1611">&#13;</A><A NAME="idxnet1612">&#13;</A><A NAME="idxnet1613">&#13;</A><A NAME="idxnet1614">&#13;</A><A NAME="idxnet1615">&#13;</A><A NAME="idxnet1616">&#13;</A><A NAME="idxnet1617">&#13;</A><A NAME="idxnet1618">&#13;</A><A NAME="idxnet1619">&#13;</A><A NAME="idxnet1620">&#13;</A><A NAME="idxnet1621">&#13;</A>The <A HREF="sect29.htm#netflowquit">QUIT</A> statements can be
+used only once. The others can be used
+as many times as needed.
+<BR><BR>The
+<A HREF="sect19.htm#netflowconopt">CONOPT</A> and <A HREF="sect27.htm#netflowpivot">PIVOT</A> are 
+not relevant to the Interior Point algorithm and should not be used.
+<A NAME="idxnet1622">&#13;</A><A NAME="idxnet1623">&#13;</A><A NAME="idxnet1624">&#13;</A><A NAME="idxnet1625">&#13;</A>Use the <A HREF="sect30.htm#netflowreset">RESET</A> or <A HREF="sect34.htm#netflowsave">SAVE</A> statement to
+change the name of the output data set. 
+There is only one output data set, the <A HREF="sect15.htm#netflowconout">CONOUT</A>= data set.
+With the <A HREF="sect30.htm#netflowreset">RESET</A> statement,
+you can also indicate the reasons why optimization should stop,
+(for example, you can indicate the
+maximum number of iterations that can be performed).
+PROC NETFLOW then has a chance to either execute the next statement
+or, if the next statement is one that PROC NETFLOW does not recognize
+(the next PROC or DATA step in the
+SAS session), do any allowed optimization and finish.
+If no new statement has been submitted, you are prompted
+for one.
+Some options of the <A HREF="sect30.htm#netflowreset">RESET</A> 
+statement enable you to control
+aspects of the Interior Point algorithm. Specifying
+certain values for these options can reduce the time it takes to solve
+a problem. Note that any of the <A HREF="sect30.htm#netflowreset">RESET</A> options can be specified in the
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement.
+<BR><BR>The <A HREF="sect33.htm#netflowrun">RUN</A> statement starts optimization.
+Once the optimization has started, it runs until the optimum is reached.
+The RUN statement should be specified at most once.
+<BR><BR>The <A HREF="sect29.htm#netflowquit">QUIT</A> statement immediately stops PROC NETFLOW.
+The <A HREF="sect34.htm#netflowsave">SAVE</A> statement has options that enable you 
+to name the output data set;
+information about the current solution is saved in this output 
+data set. 
+Use the <A HREF="sect35.htm#netflowshow">SHOW</A> statement if you want to examine
+the values of options of other statements. Information about
+the amount of optimization that has been done and
+the <A HREF="sect35.htm#netflowshowstatus">STATUS</A> of the current solution can also be
+displayed using the <A HREF="sect35.htm#netflowshow">SHOW</A> statement.
+<BR><BR>The <A HREF="sect28.htm#netflowprint">PRINT</A> statement instructs PROC NETFLOW to display 
+parts of the problem.
+The ways the <A HREF="sect28.htm#netflowprint">PRINT</A> statements are specified are
+identical whether the Interior Point algorithm or the Simplex 
+algorithm is used; however, there are minor differences in what is 
+displayed for each variable or constraint coefficient.
+<BR><BR><A HREF="sect28.htm#netflowprintnonarcs">PRINT VARIABLES</A> produces information on all
+arcs. <A HREF="sect28.htm#netflowprintsomenonarcs">PRINT SOME_VARIABLES</A> limits this output to a subset of variables.
+There are similar <A HREF="sect28.htm#netflowprint">PRINT</A> statements for variables and
+constraints:
+<PRE>
+   PRINT CONSTRAINTS;
+   PRINT SOME_CONS;
+</PRE>
+
+<A HREF="sect28.htm#netflowprintconnonarcs">PRINT CON_VARIABLES</A> enables you to limit constraint information that is
+obtained to members of a set of variables that have
+nonzero constraint coefficients in a set of constraints.
+<BR><BR>For example, an interactive PROC NETFLOW run might look something like this:
+<PRE>
+   proc netflow
+          condata=data set
+          other options;
+      variable list specifications;     /* if necessary */
+      reset options;
+      print options;    /* look at problem              */
+   run;                 /* do some optimization         */
+      print options;    /* look at the optimal solution */
+      save options;     /* keep optimal solution        */
+</PRE>
+
+If you are interested only in finding the optimal
+solution,
+have used SAS variables that have special names in the input
+data sets, and want to use default setting for everything, then
+the following statement is all you need:
+<BR><BR><DL><DD><B CLASS="ssbeleven">proc netflow condata=</B> <I CLASS="ssieleven">data set options <SPAN CLASS="ssbeleven"><B>;</B></SPAN></I></DL><BR><H3><I>Functional Summary:
+Linear Programming Models: Interior Point algorithm</I></H3>
+The following tables outline the options available for the NETFLOW procedure
+when the Interior Point algorithm is being used to solve a linear programming problem,
+classified by function.
+<BR><BR><A NAME="idxnet1626">&#13;</A><A NAME="idxnet1627">&#13;</A><A NAME="idxnet1628">&#13;</A><A NAME="idxnet1629">&#13;</A><A NAME="idxnet1630">&#13;</A><A NAME="idxnet1631">&#13;</A><A NAME="idxnet1632">&#13;</A><A NAME="idxnet1633">&#13;</A><BR><BR></P><A NAME="netflowfunctab8a"><SPAN CLASS="ssften"><B>Table 4.36:</B> Input Data Set Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>arcs input data set</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowarcdata">ARCDATA</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>constraint input data set</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowcondata">CONDATA</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8b"><SPAN CLASS="ssften"><B>Table 4.37:</B> Options for Networks</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>default variable objective function coefficient</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowdefcost">DEFCOST</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>default variable upper bound</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowdefcapacity">DEFCAPACITY</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>default variable lower bound</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowdefminflow">DEFMINFLOW</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8c"><SPAN CLASS="ssften"><B>Table 4.38:</B> Miscellaneous Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>infinity value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowinfinity">INFINITY</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>do constraint row and/or variable column coefficient</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowscale">SCALE</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>scaling, or neither</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>maximization instead of minimization</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowmaximize">MAXIMIZE</A></TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8d"><SPAN CLASS="ssften"><B>Table 4.39:</B> Data Set Read Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowcondata">CONDATA</A> has <A HREF="sect42.htm#netflowsparseformat">sparse</A> data format</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowscdata">SPARSECONDATA</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>default constraint type</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowdefcontype">DEFCONTYPE</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>special <A HREF="sect18.htm#netflowcolumn">COLUMN</A> variable value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowtypeobs">TYPEOBS</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>special <A HREF="sect18.htm#netflowcolumn">COLUMN</A> variable value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowrhsobs">RHSOBS</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>data for an constraint found in only one obs of <A HREF="sect15.htm#netflowcondata">CONDATA</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowcsingleobs">CON_SINGLE_OBS</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>data for a coefficient found once in <A HREF="sect15.htm#netflowcondata">CONDATA</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownonreplic">NON_REPLIC</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>data is grouped, exploited during data read</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowgrouped">GROUPED</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8e"><SPAN CLASS="ssften"><B>Table 4.40:</B> Problem Size (approx.) Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>number of variables</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownnas">NNAS</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>number of coefficients</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowncoefs">NCOEFS</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>number of constraints</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowncons">NCONS</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8f"><SPAN CLASS="ssften"><B>Table 4.41:</B> Memory Control Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>issue memory usage messages to SASLOG</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowmemrep">MEMREP</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>number of bytes to use for main memory</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowbytes">BYTES</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>proportion of memory used by frequently</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowcorefactor">COREFACTOR</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>accessed arrays</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>maximum bytes for a single array</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowmaxarraybytes">MAXARRAYBYTES</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8g"><SPAN CLASS="ssften"><B>Table 4.42:</B> Output Data Set Options: RESET</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>solution data set</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowconout">CONOUT</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8h"><SPAN CLASS="ssften"><B>Table 4.43:</B> PRINT Statement Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>display everything</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprintproblem">PROBLEM</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>display variables information</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprintnonarcs">VARIABLES</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>display constraint information</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprintconstraints">CONSTRAINTS</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>display information for some variables</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprintsomenonarcs">SOME_VARIABLES</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>display information for some constraints</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprintsomecons">SOME_CONS</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>display information for some constraints</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprintconnonarcs">CON_VARIABLES</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>associated with some variables</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8i"><SPAN CLASS="ssften"><B>Table 4.44:</B> PRINT Statement Qualifiers</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>produce a short report</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>/ SHORT</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>produce a long report</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>/ LONG</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>only variables with zero value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>/ ZERO</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>only variables with nonzero value</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect28.htm#netflowprint">PRINT</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>/ NONZERO</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8j"><SPAN CLASS="ssften"><B>Table 4.45:</B> SHOW Statement Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>show problem, optimization status</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect35.htm#netflowshow">SHOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect35.htm#netflowshowstatus">STATUS</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>show LP model parameters</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect35.htm#netflowshow">SHOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>NETSTMT</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>show data sets that have, will be created</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect35.htm#netflowshow">SHOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect35.htm#netflowshowdatasets">DATA SETS</A></TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8k"><SPAN CLASS="ssften"><B>Table 4.46:</B> Output Data Set Options: SAVE</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>constrained solution data set</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect34.htm#netflowsave">SAVE</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflowconout">CONOUT</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR></P><A NAME="netflowfunctab8l"><SPAN CLASS="ssften"><B>Table 4.47:</B> Interior Point algorithm Options</SPAN></A>
+<TABLE COLS=3 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Description            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Statement            </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>use Interior Point algorithm</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect15.htm#netflownetflow">NETFLOW</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowintpoint">INTPOINT</A></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>allowed amount of dual infeasibility</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowtoldinf">TOLDINF</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>allowed amount of primal infeasibility</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowtolpinf">TOLPINF</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>cut-off tolerance for Cholesky factorization</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowcholtinytol">CHOLTINYTOL</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>density threshold for Cholesky processing</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowdensethr">DENSETHR</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>maximum number of Interior Point algorithm iterations</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowmaxiterb">MAXITERB</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>Primal-Dual (Duality) gap tolerance</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowpdgaptol">PDGAPTOL</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>step-length multiplier</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowpdstepmult">PDSTEPMULT</A>=</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>preprocessing type</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowreset">RESET</A></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><A HREF="sect30.htm#netflowprsltype">PRSLTYPE</A>=</TD></TR></TBODY>
+</TABLE>
+<BR><BR><!--NOHELPTOC-->
+<H3><I>Syntax: 
+Linear Programming Models: Interior Point algorithm</I></H3>
+<!--NOHELPTOC--><A NAME="idxnet1634">&#13;</A><A NAME="idxnet1635">&#13;</A><A NAME="idxnet1636">&#13;</A><A NAME="idxnet1637">&#13;</A>Below are statements used in PROC NETFLOW, listed
+in alphabetical order as they appear in the text that
+follows.
+<DL CLASS="ssfeleven">
+<DT><SPAN CLASS="ssbeleven"><B><A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A></B></SPAN> options <SPAN CLASS="ssbeleven"><B>;</B></SPAN>
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect16.htm#netflowcapacity">CAPACITY</A></B></SPAN> variable <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect17.htm#netflowcoef">COEF</A></B></SPAN> variables <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect18.htm#netflowcolumn">COLUMN</A></B></SPAN> variable <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect20.htm#netflowcost">COST</A></B></SPAN> variable <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect21.htm#netflowdemand">DEMAND</A></B></SPAN> variable <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect23.htm#netflowid">ID</A></B></SPAN> variables <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect24.htm#netflowlo">LO</A></B></SPAN> variable <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect25.htm#netflowname">NAME</A></B></SPAN> variable <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect28.htm#netflowprint">PRINT</A></B></SPAN> options <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect29.htm#netflowquit">QUIT</A>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect30.htm#netflowreset">RESET</A></B></SPAN> options <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect32.htm#netflowrow">ROW</A></B></SPAN> variables <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect31.htm#netflowrhs">RHS</A></B></SPAN> variables <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect33.htm#netflowrun">RUN</A>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect34.htm#netflowsave">SAVE</A></B></SPAN> options <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect39.htm#netflowtype">TYPE</A></B></SPAN> variable <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+<DD><SPAN CLASS="ssbeleven"><B><A HREF="sect40.htm#netflowvar">VAR</A></B></SPAN> variables <SPAN CLASS="ssbeleven"><B>;</B></SPAN> 
+</DL><BR>
+<DL CLASS="equation"><DD><IMG WIDTH="514" HEIGHT="733"
+ SRC="images/neteq6.gif"
+ ALT="{ . {PROC \; NETFLOW {\: options};}. } &
+ { {\rm required \: statement}
+ } \ & \...
+ ...\\;\;\;\;\;\;\;\;\;\;\: \} } &
+ { {\rm optional \:interactive \:statements}
+ } \"></DL>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect59.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect61.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

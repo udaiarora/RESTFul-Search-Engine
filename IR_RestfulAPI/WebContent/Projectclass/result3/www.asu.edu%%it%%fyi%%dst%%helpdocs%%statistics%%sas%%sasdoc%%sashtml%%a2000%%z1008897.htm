@@ -1,0 +1,215 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Defining SAS/ACCESS Descriptor Files : Creating Descriptor Files </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1016365.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1008863.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0989584.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1008897">Creating Descriptor Files</A></FONT></H1>
+
+
+<P>You define descriptor files with the ACCESS procedure. You can define
+access descriptor files and view descriptor files in the same PROC ACCESS
+execution or in separate executions. Within an execution, you can define multiple
+descriptor files of the same and different types.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Creating Access and View Descriptors in One PROC Step</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042797">&#13;
+
+Perhaps the most common way to use the ACCESS procedure statements,
+especially in batch mode, is to create an access descriptor and one or more
+view descriptors based on this access descriptor in a single PROC ACCESS execution.
+The following example shows how to do this. First, an access descriptor is
+created (MYLIB.EMPLOYE). Then two view descriptors are created (VLIB.EMPPOS
+and VLIB.EMPSKIL). Each statement is then explained in the order it appears
+in the example program. 
+
+
+</A>
+<PRE>proc access dbms=s2k;
+   create mylib.employe.access;
+      database=employee s2kpw=demo mode=multi;
+      assign=yes;
+      drop c110 c120;
+      rename forename=firstnme office_e=phone
+             yearsofe=years gender=sex
+             degree_c=degree;
+      length firstnme=13 lastname=13 c101=16;
+      list all;
+
+   create vlib.emppos.view;
+      select lastname firstnme position departme 
+         manager;
+      subset "order by lastname";
+      list all;
+
+   create vlib.empskil.view;
+      select c2 c3 c201 c203;
+      subset "ob skilltyp";
+      s2kpw=demo mode=multi;
+      list view;
+run;</PRE>
+<P>Here is an explanation of the statements in this example: 
+<DL>
+<DT><CODE><B>proc access dbms=s2k;</B></CODE></DT>
+<DD>invokes the ACCESS procedure for the SAS/ACCESS interface
+to SYSTEM 2000 software.<P></DD>
+
+<DT><CODE><B>create mylib.employe.access;</B></CODE></DT>
+<DD>identifies the access descriptor, MYLIB.EMPLOYE, that you
+want to create. The MYLIB libref must be associated with the SAS data library
+before you can specify it in this statement.<P></DD>
+
+<DT><CODE><B>database=employee s2kpw=demo mode=multi;</B></CODE></DT>
+<DD>indicates the access descriptor is for the EMPLOYEE database,
+specifies the password, DEMO, required to access the database definition,
+and indicates the database is in the Multi-User environment.<P></DD>
+
+<DT><CODE><B>assign=yes;</B></CODE></DT>
+<DD>generates unique SAS variable names based on the first eight
+non-blank characters of the item names. Variable names and attributes can
+be changed in this access descriptor but not in any view descriptors created
+from this access descriptor.<P></DD>
+
+<DT><CODE><B>drop c110 c120;</B></CODE></DT>
+<DD>marks the records associated with C-numbers C110 and C120
+as non-display. Because these two C-numbers indicate records, all the items
+in each record are marked as non-display. Therefore, all the items in the
+two records associated with these numbers do not appear in any view descriptor
+created from this access descriptor.<P></DD>
+
+<DT><CODE><B>rename forename=firstnme office_e=phone yearsofe=years gender=sex
+degree_c=degree;</B></CODE></DT>
+<DD>renames the default SAS variable names associated with the
+FORENAME, OFFICE_E, YEARSOFE, GENDER, and DEGREE_C SAS names. Specify the
+default SAS variable name on the left side of the equal sign (=) and the new
+name on the right. Because the ASSIGN=YES statement is specified, any view
+descriptors created from this access descriptor automatically use the new
+SAS variable names.<P></DD>
+
+<DT><CODE><B>length firstnme=13 lastname=13 c101=16;</B></CODE></DT>
+<DD>changes the field width for the items associated with FIRSTNME
+and LASTNAME to 13 characters and the field width for the item associated
+with C-number C101 (the POSITION SAS name) to 16 characters.<P></DD>
+
+<DT><CODE><B>list all;</B></CODE></DT>
+<DD>lists the access descriptor's item identifier numbers, C-numbers,
+SAS variable names, SAS formats, SAS informats, and SAS variable lengths.
+The list includes any associated BY key information and is written to the
+SAS log. Any items that have been dropped from display (using the DROP statement)
+have *NON-DISPLAY* next to them.<P></DD>
+
+<DT><CODE><B>create vlib.emppos.view;</B></CODE></DT>
+<DD>writes the access descriptor to the library associated with
+MYLIB and identifies the view descriptor, VLIB.EMPPOS, that you want to create.
+The VLIB libref must be associated with a SAS data library before you can
+specify it in this statement.<P></DD>
+
+<DT><CODE><B>select lastname firstnme position departme manager;</B></CODE></DT>
+<DD>selects the items associated with the LASTNAME, FIRSTNME,
+POSITION, DEPARTME, and MANAGER SAS names for inclusion in the view descriptor.
+The SELECT statement is required to create the view unless a RENAME, FORMAT,
+INFORMAT, LENGTH, or BYKEY statement is specified.<P></DD>
+
+<DT><CODE><B>subset "order by lastname";</B></CODE></DT>
+<DD>specifies you want the names in the output to be ordered
+by last name. Using the word WHERE is optional. Use the SAS/ACCESS interface
+to SYSTEM 2000 syntax in the SUBSET statement.<P></DD>
+
+<DT><CODE><B>list all;</B></CODE></DT>
+<DD>lists all the available item identifier numbers, C-numbers,
+SAS variable names, SAS formats, SAS informats, and SAS variable lengths on
+which the view descriptor is based; items that have been dropped from the
+display have *NON-DISPLAY* next to them. Any associated BY key information
+is also listed. Selection criteria specified in the view descriptor are listed.
+Items that have been selected for the view have *SELECTED* next to them. The
+list is written to the SAS log.<P></DD>
+
+<DT><CODE><B>create vlib.empskil.view;</B></CODE></DT>
+<DD>writes the first view descriptor to the library associated
+with VLIB and identifies the next view descriptor, VLIB.EMPSKIL, that you
+want to create.<P></DD>
+
+<DT><CODE><B>select c2 c3 c201 c203;</B></CODE></DT>
+<DD>selects the four items associated with C-numbers C2, C3,
+C201 and C203 for inclusion in the view descriptor. The SELECT statement is
+required to create the view unless a RENAME, FORMAT, INFORMAT, LENGTH, or
+BYKEY statement is specified.<P></DD>
+
+<DT><CODE><B>subset "ob skilltyp";</B></CODE></DT>
+<DD>specifies you want the observations to be sorted by skill
+type. Refer to <A href="z1026670.htm">SUBSET</A>
+for syntax information.<P></DD>
+
+<DT><CODE><B>s2kpw=demo mode=multi;</B></CODE></DT>
+<DD>specifies the password required to access the data and indicates
+the database is in the Multi-User environment. This information is stored
+in the view descriptor. To override this password, or to specify a SYSTEM
+2000 password for view descriptor VLIB.EMPPOS, which omits the S2KPW statement,
+you can use the S2KPW data set option. For more information, see <A href="z1010937.htm">Data Set Options</A>.<P></DD>
+
+<DT><CODE><B>list view;</B></CODE></DT>
+<DD>lists the item identifier numbers, the C-numbers, the SAS
+variable names, the SAS formats, the SAS informats, and the SAS variable lengths
+that have been selected for the view descriptor. Any associated BY key information
+is also listed. Selection criteria specified in the view descriptor are listed.
+The list is written to the SAS log.<P></DD>
+
+<DT><CODE><B>run;</B></CODE></DT>
+<DD>writes the last view descriptor when the RUN statement is
+processed.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Creating Access and View Descriptors in Separate PROC Steps</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042835">&#13;
+
+Examples of how to create the MYLIB.EMPLOYE access descriptor and VLIB.EMPOS
+and VLIB.EMPSKIL view descriptors in separate PROC ACCESS executions are provided
+in </A><A href="z1003281.htm">Example Data</A>.
+<P>When you use a separate PROC ACCESS execution to create a view descriptor,
+note that you must use the ACCDESC= option to specify an existing access descriptor
+from which the view descriptor will be derived. 
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1016365.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1008863.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0989584.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1008897">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,121 @@
+<HTML>
+<HEAD>
+<TITLE>Stationarity and Differencing</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect15.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect17.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The STATESPACE Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Stationarity and Differencing  </H2>
+<P>The state space model used by the STATESPACE procedure assumes
+that the time series are stationary.
+Hence, the data should be checked for stationarity.
+One way to check for stationarity is to plot the series.
+A graph of series over time can show a time trend or variability changes.
+<P>You can also check stationarity by using the sample autocorrelation functions
+displayed by the ARIMA procedure.
+The autocorrelation functions of nonstationary series tend to decay slowly.
+See <A HREF="../chap7/index.htm">Chapter 7, &#34;The ARIMA Procedure,&#34;</A> for more information.
+<P>Another alternative is to use the STATIONARITY= option on the 
+IDENTIFY statement in PROC ARIMA to
+apply Dickey-Fuller tests for unit roots in the time series.
+See <A HREF="../chap7/index.htm">Chapter 7, &#34;The ARIMA Procedure,&#34;</A> for more information on
+Dickey-Fuller unit root tests.
+<P>The most popular way to transform a nonstationary series
+to stationarity is by differencing.
+Differencing of the time series is specified in the VAR statement.
+For example, to take a simple first difference of
+the series X, use this statement:
+<P><PRE>
+   var x(1);
+</PRE>
+<P>In this example, the change in X from one period to the next is analyzed.
+When the series has a seasonal pattern,
+differencing at a period equal to the length of the seasonal cycle
+may be desirable.
+For example, suppose the variable X is measured quarterly
+and shows a seasonal cycle over the year.
+You can use the following statement to
+analyze the series of changes from the same quarter in the previous year:
+<P><PRE>
+   var x(4);
+</PRE>
+<P>To difference twice, add another differencing period to the list.
+For example, the following statement
+analyzes the series of second differences
+<SPAN CLASS="mathfont">(<I>X</I><SUB><I>t</I></SUB>-<I>X</I><SUB><I>t</I>-1</SUB>) - (<I>X</I><SUB><I>t</I>-1</SUB>-<I>X</I><SUB><I>t</I>-2</SUB>) = <I>X</I><SUB><I>t</I></SUB>-2<I>X</I><SUB><I>t</I>-1</SUB>+<I>X</I><SUB><I>t</I>-2</SUB></SPAN>:
+<P><PRE>
+   var x(1,1);
+</PRE>
+<P>The following statement analyzes the seasonal second difference series:
+<P><PRE>
+   var x(1,4);
+</PRE>
+<P>The series modeled is the 1-period difference
+of the 4-period difference:
+<SPAN CLASS="mathfont">(<I>X</I><SUB><I>t</I></SUB>-<I>X</I><SUB><I>t</I>-4</SUB>) - (<I>X</I><SUB><I>t</I>-1</SUB>-<I>X</I><SUB><I>t</I>-5</SUB>) = <I>X</I><SUB><I>t</I></SUB>-<I>X</I><SUB><I>t</I>-1</SUB>-<I>X</I><SUB><I>t</I>-4</SUB>+<I>X</I><SUB><I>t</I>-5</SUB></SPAN>.
+<P>Another way to obtain stationary series is to use a regression on time
+to de-trend the data.
+If the time series has a deterministic linear trend,
+regressing the series on time produces residuals
+that should be stationary.
+The following statements write residuals of X and Y to
+the variable RX and RY in the output data set DETREND.
+<P><PRE>
+   data a;
+      set a;
+      t=_n_;
+   run;
+   
+   proc reg data=a;
+      model x y = t;
+      output out=detrend r=rx ry;
+   run;
+</PRE>
+<P>You then use PROC STATESPACE to forecast the de-trended series
+RX and RY.
+A disadvantage of this method is that you need to add the trend back
+to the forecast series in an additional step.
+A more serious disadvantage of the de-trending method is that it
+assumes a deterministic trend.
+In practice, most time series appear to have a stochastic rather
+than a deterministic trend.
+Differencing is a more flexible and often more appropriate method.
+<P>There are several other methods to handle nonstationary time series.
+For more information and examples, refer to Brockwell and Davis (1991).
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect15.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect17.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

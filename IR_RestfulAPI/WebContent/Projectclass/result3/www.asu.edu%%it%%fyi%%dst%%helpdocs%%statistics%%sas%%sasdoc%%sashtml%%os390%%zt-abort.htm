@@ -1,0 +1,152 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Statements : ABORT </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0216681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0216683.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-attrib.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">ABORT</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zt-abort">ABORT</A></FONT></H1>
+
+<P><HR><BR><B>Stops the execution of the current DATA step, SAS job, or SAS
+session</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Valid:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">in a DATA step
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>OS/390 specifics:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">action of ABEND and RETURN, maximum
+value of <B>n</B>
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="zt-abort.htm#znid-214"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zt-abort.htm#z0216687"><FONT size="2"><B>Details</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="zt-abort.htm#z0216689"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="znid-214">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>ABORT</B> &lt;ABEND | RETURN&gt;
+&lt;<I>n</I>&gt;;
+</TD></TR></TABLE><A name="znid-215">&#13;</A>
+<P><A name="z0553353">&#13; 
+  The following options are used primarily in batch
+processing, although they can be used with any method of running SAS.  These
+options have host-specific characteristics. </A>
+<DL>
+<DT><B><A name="z0553354">&#13;ABEND</A></B></DT>
+<DD>causes abnormal termination of the current
+SAS job or session.  This also terminates the step in your OS/390 job stream
+that was used to execute your SAS job. Because the step terminates abnormally,
+the physical files that were allocated to the step are handled as specified
+by the abnormal-termination condition of the DISP parameter for those data
+sets.  (The DISP parameter is specified in the JCL DD statement or the TSO
+ALLOCATE command, in the SAS FILENAME or LIBNAME statement, or in the SAS
+FILENAME or LIBNAME function.)<P></DD>
+
+<DT><B><A name="z0553356">&#13;RETURN</A></B></DT>
+<DD>causes an immediate normal termination of
+the SAS job or session. The step return code (condition code) should be used
+to indicate the error. To pass the specific return code back to the operating
+environment, use the <I><B>n </B></I> option. You can then use this return
+code in your JCL to conditionally execute later steps in your OS/390 job stream.<P></DD>
+
+<DT><B><B><I>n</I></B></B></DT>
+<DD>enables you to specify an ABEND code or
+a condition code that SAS returns to the operating environment when it stops
+executing. The value of <I><B>n</B></I> must be an integer. Under OS/390, the
+range of acceptable values is from 1 to 4095.  If you do not specify a value
+for <I><B>n</B></I>, an ABORT ABEND statement returns a user abend 999; an
+ABORT RETURN statement returns condition code 20.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0216687">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>You can use the ABORT statement to control
+the conditional execution of OS/390 job steps. For example, depending on the
+result of the OS/390 job step that executes your SAS program, you may need
+to either bypass or execute later steps. To do this you can establish a variable
+in your SAS DATA step program that is set to a particular value whenever an
+error occurs; in the following example, we use a variable named ERRCODE that
+is set to 16 if an error occurs in the DATA step.  You can choose any variable
+name and value that are required by your program. Then, use the following
+ABORT statement, coded in the THEN clause of an IF statement, to cause the
+OS/390 job step to ABEND if ERRCODE=16:  
+
+
+
+<PRE>if errcode=16 then abort abend;</PRE>
+<P>When the OS/390 job step that is used to execute your
+SAS job ends (either normally or abnormally), the next OS/390 job step is
+processed.  You could then use the following EXEC statement to conditionally
+execute that job step if an ABEND occurs. If ERRCODE is not set to 16, then
+the ABORT statement is not executed, and because an ABEND did not occur the
+job step is bypassed.  
+
+
+
+<PRE>//<I>stepname</I> EXEC PGM=<I>your-program</I>,COND=ONLY</PRE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0216689">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<P>
+<UL>
+
+<LI>
+
+<B>SAS Language Reference: Dictionary</B><P>
+
+<LI><B>OS/390 JCL Reference</B> from IBM<P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0216681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0216683.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-attrib.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zt-abort">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

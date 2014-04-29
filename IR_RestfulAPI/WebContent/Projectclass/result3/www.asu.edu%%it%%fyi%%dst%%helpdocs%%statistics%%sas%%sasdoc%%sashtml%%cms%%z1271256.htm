@@ -1,0 +1,568 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Allocating External Files : Sending E-Mail from Within SAS </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425866.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zileattr.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0606442.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the CMS Environment                                                                                     </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1271256">Sending E-Mail from Within SAS</A></FONT></H1>
+
+
+<P><A name="z0503167">&#13;SAS lets you send electronic
+mail (e-mail) by using the DATA
+step, procedures, or SCL. Sending e-mail from within SAS allows you to</A>
+<P>
+<UL>
+
+<LI>use the logic of the DATA step or SCL to subset
+e-mail distribution based on a large data set of e-mail addresses<P>
+
+<LI>send e-mail automatically upon completion of a
+SAS program that you submitted for batch processing<P>
+
+<LI>direct output through e-mail based on the results
+of processing.<P>
+</UL>
+
+<P>SAS e-mail is implemented in the following language elements:
+<P>
+<UL>
+
+<LI>The EMAILSYS= system option, which specifies the name
+of the external
+CMS pipeline stage that delivers mail messages to the host mail system. See <A href="#z1274493">Using the Mail System Interface and the EMAILSYS= System Option</A> for details.<P>
+
+<LI>The FILE and
+FILENAME statements, which are used to specify the
+name of an e-mail fileref and the mailing instructions, or directives, that
+are used to send it. See <A href="#z1274558">FILENAME Statement Syntax for Electronic Mail</A>
+for details.<P>
+
+<LI>The PUT statement, which is used in the DATA step or SCL to create
+the e-mail message and to specify or change mailing directives. See <A href="#z1274641">PUT Statement Syntax for E-Mail</A> for details.<P>
+</UL>
+To send an e-mail
+message from a SAS session, use these e-mail
+language elements in a DATA step, in a procedure, or in SCL code (see <A href="#z0386650">Using the DATA Step, Procedures, or SCL Code to Send E-Mail</A>).
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1274493">Using the Mail System Interface and the EMAILSYS= System Option</A></FONT></B></TD></TR></TABLE>
+
+<P>SAS
+sends all e-mail through an external CMS pipeline stage that is written as
+a REXX exec. The name of the exec is SASMAIL REXX, and it is stored on the
+SAS system disk.
+<P>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The SASMAIL REXX exec may need to be customized with site-specific
+information that is pertinent to your mail system. Comments at the beginning
+of the exec guide you through the customizations. Work with your system administrator
+and local SAS Support Consultant as needed.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>You can use your own CMS pipeline stage instead of SASMAIL by specifying
+the name of your exec as the value of the EMAILSYS= system option. You can
+specify a value for EMAILSYS= in your SAS configuration file, in your SAS
+invocation command, or during your SAS session by using the OPTIONS statement
+or OPTIONS window. The syntax of the OPTIONS statement is as follows:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>EMAILSYS</B>='<I>stage-specification</I>'
+</TD></TR></TABLE>The stage
+specification can be of the form <B>filename filetype
+filemode</B>. If the filetype is omitted, SAS assumes a filetype of REXX.
+If the filemode is omitted, SAS assumes a filemode of `*'. Quotes are required
+around the entire specification if anything more than a filename is specified.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1274558">FILENAME Statement Syntax for Electronic Mail</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0503185">&#13;To send electronic mail from within a SAS session, issue a FILENAME
+statement of the following form:</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>FILENAME</B>  <I>fileref</I> EMAIL '<I>address</I>'
+&lt;<I>e-mail-options</I>&gt;;
+</TD></TR></TABLE>The arguments are defined as follows:
+
+<DL>
+<DT><I>fileref</I></DT>
+<DD>is a valid fileref.<P></DD>
+
+<DT>'<I>address</I>'</DT>
+<DD>is the e-mail address of the user to whom
+you want to send e-mail. This argument is optional, but you must specify at
+least one address, either here or with the TO= option or with the !EM_TO!
+PUT directive.<P></DD>
+
+<DT><I>e-mail-options</I></DT>
+<DD>can be any of the following: 
+<P>
+<DL>
+<DT>TO=<I>to-address</I></DT>
+<DD>specifies the primary recipients of the
+e-mail message. If an address contains special characters or more than one
+word, enclose the address in single or double quotes, as follows:  
+
+<PRE>to='joe@hisplace.org'</PRE>
+  To specify more than one address, enclose the group of addresses
+in parentheses and each address in single or double quotes, as follows:   
+
+<PRE>to=('joe@hisplace.org' 'jane@herplace.org')</PRE>
+  To specify the recipient's
+name along with the address, enclose the address in angle brackets, as follows:
+ 
+
+<PRE>to="Joseph Smith &lt;joe@hisplace.org>"</PRE>A recipient
+can also be specified as a nickname to be resolved from your NAMES file.
+<P>Specifying the TO= option overrides the <B>address</B>
+argument.<P></DD>
+
+<DT>CC=<I>cc-address</I></DT>
+<DD>specifies the copy recipients of the e-mail
+message.  If an address contains special characters or more than one word,
+enclose it in single or double quotes, as follows:   
+
+<PRE>cc='joe@hisplace.org'</PRE>
+  To specify more than one address, enclose the group of addresses
+in parentheses and each address in single or double quotes, as follows:  
+
+<PRE>cc=('joe@hisplace.org' 'jane@herplace.org')</PRE>
+  To specify the recipient's
+name along with the address, enclose the address in angle brackets, as follows:
+ 
+
+<PRE>cc="Joseph Smith &lt;joe@hisplace.org>"</PRE>A recipient
+can also be specified as a nickname to be resolved from your NAMES file.<P></DD>
+
+<DT>SUBJECT='<I>subject</I>'</DT>
+<DD>specifies the subject of the message.  If
+the subject text contains special characters or is longer than one word, enclose
+it in single or double quotes, as follows:  
+
+<PRE>subject=Sales</PRE>
+    
+
+<PRE>subject='June Report'</PRE>
+  Any subject not enclosed in quotes is converted
+to uppercase.<P></DD>
+
+<DT>ATTACH='<I>file-specification</I>'</DT>
+<DD>specifies, inside single or double quotes,
+one or more files to attach to the message. Specify filename and filetype
+and either the filemode or SFS directory name, as follows:  
+
+<PRE>attach='opinion txt'</PRE>
+  The filemode is `*' by default. To attach more than one file, enclose
+the group of file specifications in parentheses, as follows:  
+
+<PRE>attach=('june98 txt .reports.june' 'july98 txt .reports.july')</PRE>
+   <P></DD>
+
+<DT>TYPE='<B>content-type</B>'</DT>
+<DD>specifies the content-type of the message, as follows:  
+
+<PRE>type='text/plain'
+type='text/html'
+type='image/gif'</PRE>
+<P>The TYPE value must be enclosed in quotes.<P></DD>
+
+<DT>EMAILSYS='<B>stage-specification</B>'</DT>
+<DD>specifies the name of a CMS pipeline stage to be used to
+send e-mail. This FILENAME option overrides the value of the EMAILSYS= system
+option, which is SASMAIL REXX by default.<P></DD>
+
+<DT>EMAILID='<B>from-user</B>'</DT>
+<DD>specifies the e-mail address that will appear on the From:
+header of the e-mail message. The default value is the userid and host name
+of the user running SAS. You may prefer to specify a different address for
+a server application. If the e-mail address contains special characters or
+more than one word, enclose the entire specification in quotes. To specify
+a name along with the address, enclose the address in angle brackets, as follows:
+ 
+
+<PRE>emailid='Joseph Smith &lt;joe@hisplace.org>'</PRE><P></DD>
+</DL>
+<P></DD>
+</DL>
+
+<P>You can also specify the <I>e-mail-options</I> in the FILE statement inside
+the DATA step. Options that you
+specify in the FILE statement override any corresponding options that you
+specified in the FILENAME statement.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1274641">PUT Statement Syntax for E-Mail</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0503203">&#13;In
+your DATA step, after using the FILE statement to define your e-mail fileref
+as the output destination, use PUT statements to define the body of the message.</A>
+<P>You can also use PUT statements to specify e-mail directives
+that change the attributes of your electronic message or perform actions with
+it. Specify only one directive in each PUT statement; each PUT statement can
+contain only the text that is associated with the directive that it specifies.
+<P>The directives that change the attributes of your message
+are as follows:
+<DL>
+<DT> !EM_TO! <I>addresses</I></DT>
+<DD>replaces the current primary recipient addresses
+with <I>addresses</I>. For example:  
+
+<PRE>PUT "!EM_TO!" "joe@hisplace.org";</PRE>or:  
+
+<PRE>user="joe@hisplace.org";
+put '!EM_TO!' user;</PRE>
+<P>To specify more than one address, enclose the list of addresses in parentheses
+and enclose each address in single or double quotes, as follows:  
+
+<PRE>PUT "EM_TO!" '("joe@hisplace.org" "jane@herplace.org")';</PRE>or:  
+
+<PRE>list='("joe@hisplace.org" "jane@herplace.org")';
+put "!EM_TO!" list;</PRE>
+<P>If you want to specify a recipient's name along with the e-mail address,
+include the address in angle brackets, as follows:  
+
+<PRE>user='Joseph Smith &lt;joe@hisplace.org>'
+PUT "EM_TO!" user;</PRE>
+<P>A recipient can also be specified as a nickname that will be resolved
+from your NAMES file.<P></DD>
+
+<DT> !EM_CC! <I>addresses</I></DT>
+<DD>replace the current copied recipient addresses
+with <I>addresses</I>. For example:  
+
+<PRE>PUT "!EM_CC!" "joe@hisplace.org";</PRE>or:  
+
+<PRE>user="joe@hisplace.org";
+put '!EM_CC!' user;</PRE>
+<P>To specify more than one current copied recipient, enclose a list of
+addresses in parentheses and enclose each address in single or double quotes,
+as follows:  
+
+<PRE>PUT "!EM_CC!" '("joe@hisplace.org" "jane@herplace.org")';</PRE>or:  
+
+<PRE>list='("joe@hisplace.org" "jane@herplace.org")';
+put '!EM_CC!' list;</PRE>
+<P>If you want to specify a recipient's name along with the address, enclose
+the address in angle brackets, as follows:  
+
+<PRE>ccuser='Joseph Smith &lt;joe@hisplace.org>';
+PUT "!EM_CC!" ccuser;</PRE>
+<P>A recipient can also be specified as a nickname that will be resolved
+from your NAMES file.<P></DD>
+
+<DT> !EM_SUBJECT! <I>subject</I></DT>
+<DD>replaces the current subject of the message
+with <I>subject</I>.<P></DD>
+
+<DT>!EM_CONTENTTYPE! <I>content-type</I></DT>
+<DD>replaces the current content-type of the message with <I>content-type</I>.<P></DD>
+
+<DT> !EM_ATTACH!
+<I>file-specifications</I></DT>
+<DD>replaces the names of any attached files
+with <I>file-specifications</I>. For each attachment,
+specify filename and filetype and either the filemode or the SFS directory
+name. The default filemode is `*', as follows:  
+
+<PRE>PUT '!EM_ATTACH!' 'opinion txt';</PRE>
+<P>To attach more than one file, enclose each file specification in single
+or double quotes and enclose the list of file specifications in parentheses,
+as follows:  
+
+<PRE>mycfg='sasv8 config *';
+syscfg='sasv8sys config *';
+PUT '!EM_ATTACH!' '("'mycfg'"'  '"'syscffg'")';</PRE><P></DD>
+</DL>
+
+<P>The directives that perform actions are as follows:
+<DL>
+<DT> !EM_SEND!</DT>
+<DD>sends the message with the current attributes.
+By default, the message is automatically sent at the end of the DATA step.
+ If you use this directive, SAS sends the message when it encounters the directive,
+and sends it again at the end of the DATA step.<P></DD>
+
+<DT> !EM_ABORT!</DT>
+<DD>aborts the current message.  You can use
+this directive to stop SAS from automatically sending the message at the end
+of the DATA step.<P></DD>
+
+<DT> !EM_NEWMSG!</DT>
+<DD>clears all attributes of the current message,
+including TO, CC, SUBJECT, TYPE, ATTACH, and the message body.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0386650">Using the DATA Step, Procedures, or SCL Code to Send E-Mail</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0503180">&#13;In general, a DATA step, procedure, or SCL
+code that sends e-mail has the following components: </A>
+<P>
+<UL>
+
+<LI>a FILENAME statement that specifies the EMAIL
+device-type<P>
+
+<LI>FILENAME or FILE statements that contain e-mail
+options that indicate the e-mail recipients, subject, and any attached files<P>
+
+<LI>for a DATA step or in SCL code, PUT statements
+that create the body of the message<P>
+
+<LI>for a DATA step or in SCL code, PUT statements
+that contain special e-mail directives that can override the e-mail attributes
+(TO, CC, SUBJECT, ATTACH) or perform actions (such as SEND, ABORT, and start
+a NEWMSG)<P>
+
+<LI>for procedures, ODS statements or graphics options that direct
+output to the EMAIL fileref.<P>
+</UL>
+
+<BR><H3>Sending E-Mail from the DATA Step</H3>
+
+
+<P><A name="z0503221">&#13;Suppose
+that you want to share a copy of your SASV8 CONFIG file with your coworker
+Jim, whose user ID is JBrown. You could send it by submitting the following
+DATA step:    
+</A>
+<PRE>filename mymail email 'JBrown' 
+         subject='My SASV8 CONFIG file'
+         attach='sasv8 config';
+
+data _null_;
+   file mymail;
+   put 'Jim,';
+   put 'This is my SASV8 CONFIG file.';
+   put 'I think you might like the 
+       new options I added.';
+run;</PRE>
+<P>The following example sends a message and two attached
+files to multiple recipients. It specifies the e-mail options in the FILE
+statement instead of in the FILENAME statement:    
+
+<PRE>filename outbox email 'ron@acme.com';
+
+data _null_;
+   file outbox
+      to=('ron@acme.com' 'lisa@acme.com')
+      /* Overrides value in */
+      /* filename statement */
+
+      cc=('margaret@yourcomp.com' 
+         'steve@abc.com')
+      subject='My SAS output'
+      attach=('results listing' 'code sas')
+      ;
+   put 'Folks,';
+   put 'Attached is my output from the 
+      SAS program I ran last night.';
+   put 'It worked great!';
+run;</PRE>
+<P>You can use conditional logic in the DATA step to send
+multiple messages and to control which recipients get which message.  For
+example, suppose that you want to send customized reports to members of two
+different departments. Your DATA step might look like the following:   
+
+<PRE>filename reports email 'Jim';
+
+data _null_;
+   file reports;
+   infile cards eof=lastobs;
+   length name dept $ 21;
+   input name dept;
+   
+   /* Assign the TO attribute           */ 
+   put '!EM_TO!' name;
+   
+   /* Assign the SUBJECT attribute      */
+   put '!EM_SUBJECT! Report for ' dept;  
+   put name ',';
+   put 'Here is the latest report for ' dept '.';
+   
+   /* ATTACH the appropriate report     */
+   if dept='marketing' then
+      put '!EM_ATTACH! mktrept txt';
+   else                                  
+      put '!EM_ATTACH! devrept txt';
+                        
+   /* Send the message */
+   put '!EM_SEND!';
+
+   /* Clear the message attributes       */
+   put '!EM_NEWMSG!';
+   return;
+
+ /* Abort the message before the RUN     */ 
+ /* statement causes it to be sent again */
+lastobs: put '!EM_ABORT!';              
+
+  datalines;
+Susan          marketing
+Jim            marketing
+Rita           development
+Herb           development
+;
+run;</PRE>
+<P>The resulting e-mail message and its attachments are
+dependent on the department to which the recipient belongs. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You must use the !EM_NEWMSG! directive to clear the message attributes between
+recipients. The !EM_ABORT! directive prevents the message from being automatically
+sent at the end of the DATA step.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Sending Procedure Output as E-Mail</H3>
+
+
+<P>Procedures
+that write to filerefs can be used to send e-mail. The following example shows
+how to use the Output Delivery System (ODS) to send HTML output in e-mail:
+ 
+
+<PRE>filename outbox email
+   to=susan
+   type='text/html'
+   subject='Temperature conversions'
+   ;
+
+data temperatures
+   do centigrade = -40 to 100 by 10;
+      fahrenheit = centigrade*9/5+32;
+      output;
+   end;
+run;
+
+ods html
+   body=outbox /* Mail it! */
+   rs=none;
+
+title 'Centigrade to Fahrenheit Conversion Table';
+proc print;
+id centigrade;
+var fahrenheit;
+run;
+
+ods html close;</PRE>
+<P>The following example shows how to create and send a GIF image in e-mail.
+ 
+
+<PRE>filename gsasfile email
+   to=Jim
+   type='image/gif'
+   subject="SAS/GRAPH output"
+   ;
+
+goptions dev=gif gsfname=gsasfile;
+
+proc gtestit pic=1; run;</PRE>
+<BR><H3>Sending E-Mail Using SCL Code</H3>
+
+
+<P><A name="z0503227">&#13;The
+following example is the SCL code behind a frame entry design for e-mail.
+ The frame entry includes the following text entry fields that let the user
+enter information: </A>
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD><I>mailto</I></TD>
+<TD align="left">the user ID to send mail to</TD></TR>
+
+<TR align=left valign="top">
+<TD><I>copyto</I></TD>
+<TD align="left">the user ID to copy (CC) the mail
+to</TD></TR>
+
+<TR align=left valign="top">
+<TD><I>attach</I></TD>
+<TD align="left">the name of a file to attach</TD></TR>
+
+<TR align=left valign="top">
+<TD><I>subject</I></TD>
+<TD align="left">the subject of the mail</TD></TR>
+
+<TR align=left valign="top">
+<TD><I>line1</I></TD>
+<TD align="left">the text of the message</TD></TR>
+</TABLE>
+
+<P>The frame entry also contains a pushbutton called SEND
+that causes this SCL code (marked by the   
+<CODE><B>send:</B></CODE> label) to execute.
+   
+
+<PRE>send:
+
+   /* set up a fileref */
+
+   rc = filename('mailit','userid','email');
+
+   /* if the fileref was successfully set up 
+      open the file to write to */
+
+   if rc = 0 then do;
+      fid = fopen('mailit','o');
+      if fid > 0 then do;
+
+         /* fput statements are used to 
+            write the mail and the components,
+            such as subject, address, etc. */
+
+         fputrc1  = fput(fid,line1);
+         rc = fwrite(fid);
+
+         fputrc2  = fput(fid,'!EM_TO! '||mailto);
+         rc = fwrite(fid);
+         fputrc3  = fput(fid,'!EM_CC! '||copyto);
+         rc = fwrite(fid);
+
+         fputrc4  = fput(fid,'!EM_ATTACH! '||attach);
+         rc = fwrite(fid);
+         fputrc5  = fput(fid,'!EM_SUBJECT! '||subject);
+         rc = fwrite(fid);
+
+         closerc  = fclose(fid);
+      end;
+   end;
+return;
+
+cancel:
+   call execcmd('end');
+return;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425866.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zileattr.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0606442.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1271256">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

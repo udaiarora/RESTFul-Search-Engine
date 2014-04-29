@@ -1,0 +1,297 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Allocating SAS Data Libraries : Allocating Multivolume SAS Data Libraries </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217297.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zsas-gdg.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217303.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zultivol">Allocating Multivolume SAS Data Libraries</A></FONT></H1>
+
+
+<P><A name="z0550073">&#13;A non-HFS SAS data
+library on disk that was created in Version 6 or later may span more than
+one volume. The operating environment data set that contains the SAS data
+library may exist on multiple DASD volumes, but it is processed by SAS software
+as one logical entity. This capability greatly increases the storage capacity
+of a data library.</A>
+<P>There is no SAS limit on the number of DASD volumes
+that a data library may occupy. You will likely take one of two general approaches
+to allocating new multivolume libraries, depending on why you need them. If
+you have an extremely large data library, requiring more than one DASD volume,
+you will probably want to preallocate the library on the desired volumes,
+most likely in full volume increments. If you have medium to large libraries
+requiring less than a full volume of space, and you need multivolume support
+because your available DASD space is fragmented across many volumes, then
+you will probably want to allocate them dynamically. Both allocation methods
+are described below.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">General Guidelines</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0550075">&#13; When creating a
+multivolume SAS data library, observe
+the following guidelines: </A>
+<P>
+<UL>
+
+<LI>A data library can span as many volumes as the
+operating environment will allow. See your IBM documentation for details.<P>
+
+<LI>When you first allocate a data library, you are
+not required to specify all of the volumes that the library will ever occupy.
+You can add more volumes as a data library grows.<P>
+
+<LI>A multivolume data library must be allocated on
+devices of the same type (for example, all 3380s or all 3390s). However, the
+control units that are attached to the devices may support a mix of standard
+CKD and extended CKD (ECKD) capabilities.  SAS software optimizes I/O operations
+at the device level by exploiting the capabilities of the primary control
+unit that is attached to the volume that is being accessed.<P>
+
+<LI>To maintain the integrity of your multivolume
+libraries, it is extremely important to ensure that they are backed up, migrated,
+and restored properly. The most failsafe method of backing up and restoring
+a multivolume library is to use the COPY procedure for both the backup and
+restore operations, specifying DISP=OLD on the multivolume library allocation.
+You can also use IEBGENER or an equivalent utility with an exclusive allocation
+of the multivolume library.<P>
+
+<LI>If your installation runs periodic full-volume
+backups, you must ensure that the other volumes in a multivolume data library
+are not updated while a backup of one of the volumes is running; otherwise,
+data integrity cannot be guaranteed if you attempt to restore the library
+from the full-volume backups.  The best way to ensure data integrity is to
+back up the data library as a complete unit in volume sequence order and to
+restrict data library access to "read only" during the backup
+operation.  This ensures integrity if a restore operation is required, because
+the data library can be restored logically in volume sequence order.<P>
+
+<LI>When restoring a multivolume data library, you
+do not need to restore the library to the same volumes on which it previously
+existed. A data library can even be restored to multiple volumes of a different
+device type than it previously existed on, as long as the restore utility
+places the maximum number of blocks of the given block size on each track
+of the new device.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Preallocating New Multivolume Libraries</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1096431">&#13;These examples show
+some typical multivolume preallocations. They all show full-volume space allocations
+for a 3390, because this would be a typical case for preallocating large data
+libraries, but any allocation size will work. Note that multivolume libraries
+are not required to consume whole volumes. Also, because SAS will attempt
+to acquire secondary space allocations only on the last volume of a multivolume
+data library, you should not specify secondary space allocations on preallocated
+libraries. (IEFBR14 is an IBM utility program that simply returns immediately,
+allowing you to force the system through normal batch step allocation/deallocation
+processing.)</A>
+<P>The following JCL will prealocate a three-volume 3390
+data library:
+
+
+
+<PRE>//ALLOC   EXEC PGM=IEFBR14
+//VOL1     DD  DSN=MY.PAYROLL.LIBRARY,DISP=(NEW,KEEP),
+//             DCB=(DSORG=PS,RECFM=FS,LRECL=27648,
+//             BLKSIZE=27648),UNIT=3390,
+//             SPACE=(CYL,1113),VOL=SER=PR0001
+//VOL2     DD  DSN=MY.PAYROLL.LIBRARY,DISP=(NEW,KEEP),
+//             DCB=(DSORG=PS,RECFM=FS,LRECL=27648,
+//             BLKSIZE=27648),UNIT=3390,
+//             SPACE=(CYL,1113),VOL=SER=PR0002
+//VOL3     DD  DSN=MY.PAYROLL.LIBRARY,DISP=(NEW,KEEP),
+//             DCB=(DSORG=PS,RECFM=FS,LRECL=27648,
+//             BLKSIZE=27648),UNIT=3390,
+//             SPACE=(CYL,1113),VOL=SER=PR0003
+//CATDD    DD  DSN=MY.PAYROLL.LIBRARY,
+//             DISP=(OLD,CATLG),UNIT=3390,
+//             VOL=SER=(PR0001,PR0002,PR0003)</PRE>
+<P>The following JCL will add a fourth volume to the library
+allocated in the previous example. Notice that you must maintain the original
+sequence for the volume serial numbers when recataloging the data library.
+
+
+
+<PRE>//ALLOC   EXEC PGM=IEFBR14
+//UNCATDD  DD  DSN=MY.PAYROLL.LIBRARY,
+//             DISP=(OLD,UNCATLG)
+//NEWVOL   DD  DSN=MY.PAYROLL.LIBRARY,
+//             DISP=(NEW,KEEP_,DCB=(DSORG=PS,
+//             RECFM=FS,LRECL=27648,
+//             BLKSIZE=27648),UNIT=3390,
+//             SPACE=(CYL,1113),VOL=SER=PR0004
+//CATDD    DD  DSN=MY.PAYROLL.LIBRARY,
+//             DISP=(OLD,CATLG),UNIT=3390,
+//             VOL=SER=(PR0001,PR0002,PR0003,
+//             PR0004)</PRE>
+<P>The following JCL will preallocate a three-volume data
+library in an SMS environment. Note that the SMS STORCLAS specified must allow
+multiunit allocations and have the GUARANTEED SPACE attribute. Your SMS system
+administrator will need to set up the specified storage class for you. The
+SASMV storage class name is used only as an example. The GUARANTEED SPACE
+attribute causes the system to allocate the primary space amount on each volume
+when the library is allocated.
+
+
+
+<PRE>//ALLOC   EXEC PGM=IEFBR14
+//DD1      DD  DSN=MY.PAYROLL.LIBRARY,
+//             DISP=(NEW,CATLG),DCB=(DSORG=PS,
+//             RECFM=FS,LRECL=27648,
+//             BLKSIZE=27648),SPACE=(CYL,1113),
+//             UNIT=(DISK,3),STORCLAS=SASMV
+//             </PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Dynamically Allocating New Multivolume Data Libraries</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1096435">&#13;These examples show
+typical dynamic multivolume allocations for SAS direct access bound data libraries.
+The resulting data libraries will contain only as many volumes as the application
+requires. Only the primary space allocation amount will be obtained at allocation
+time. SAS will acquire the secondary allocations as they are required, just
+as with a single-volume data library, but additional volumes will also be
+acquired whenever secondary allocations are no longer possible on the (current)
+last volume.</A>
+<P>The following JCL allocates a large direct access bound
+library, using up to three volumes, if required. Note that there must be three
+available units in the system for this example to work, even if the data library
+does not require space on all three volumes, because the system chooses the
+candidate volumes at allocation time.
+
+
+
+<PRE>//SAS     EXEC SAS
+//WORK     DD  DSN=MY.MASTER.LIBRARY,DISP=(NEW,CATLG,DELETE),
+//             UNIT=(DISK,3),SPACE=(CYL,(300,100))</PRE>
+<P>The following LIBNAME statement allocates a temporary
+library of up to three volumes.
+
+
+
+<PRE>libname tmp '&amp;&amp;LIB' unit=(sysda,3) space=(cyl,(300,100));</PRE>
+<P>In an SMS environment, you will need to specify a data
+class with the DATACLAS parameter, which includes a volume count attribute
+high enough to satisfy your needs. Note that an SMS storage class wtih the
+GUARANTEED SPACE atttribute is not required as it is when you are preallocating
+data libraries.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Dynamically Extending Data Libraries to New Volumes</FONT></B></TD></TR></TABLE>
+
+<P>The following JCL example allocates an existing cataloged library
+that occupies an unspecified and possibly unknown number of volumes that is
+less than 50. If the original library allocation did not include a secondary
+allocation amount, then it should be specified here.
+<P>For this example to work, there must be 50 available units in the system,
+even if less than 50 of them are used.
+
+
+
+<PRE>//SAS       EXEC SAS
+//PAYROLL    DD  DSN=MY.PAYROLL.LIBRARY,DISP=OLD,
+//               UNIT=(,50)</PRE>
+<P>The following LIBNAME statement accomplishes the same thing as the previous
+JCL example:
+
+
+
+<PRE>libname payroll 'MY.PAYROLL.LIBRARY' disp=old unit=(,50);</PRE>
+<P>This next LIBNAME statement uses the EXTEND option, which is equivalent
+to UNIT=(,<B>n</B>), where <B>n</B> is one more than the current
+number of volumes in the existing library:
+
+
+
+<PRE>libname payroll 'MY.PAYROLL.LIBRARY' disp=old extend;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Allocating an Existing Multivolume SAS Data Library</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0550086">&#13;After a multivolume SAS
+data library has been initially allocated or extended to additional DASD volumes,
+any of the following statements can be used for allocation as long as the
+data library is cataloged in volume sequence order.  
+
+
+</A>
+<PRE>libname usevols 'sas.mvdatlib';
+//USEVOLS   DD DSN=SAS.MVDATLIB,DISP=OLD
+x alloc fi(usevols) da('sas.mvdatlib') shr;</PRE>
+<P>Cataloging a multivolume SAS data library ensures that
+SAS can process it properly without requiring the VOL=SER= list each time
+the library is allocated for use.
+<P>The information in this section applies to the SMS environment
+as well. There are no special requirements for allocating existing multivolume
+data libraries in the SMS environment.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zultigdg">Allocating a Multivolume Generation Data Group</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0550098">&#13;  As explained in
+</A><A href="zexf-gdg.htm">Allocating Generation Data Sets</A>, a SAS data library
+can be stored and managed as a generation data group (GDG).  To allocate a
+GDG that spans multiple volumes, use either of the following methods: 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>SMS</TD>
+<TD align="left">Define the GDG with a standard IDCAMS
+job. Ensure that the job does not contain a DD card for the data set; otherwise,
+the DEFINE GENERATION DATA GROUP statement generates duplicate data set messages
+and fails. (If you use the GUARANTEED SPACE attribute in an SMS environment,
+data set information is allocated on all designated packs; the DEFINE recognizes
+that information has been duplicated and fails.) When creating a new generation,
+use the relative form of the data set name in your DD card.</TD></TR>
+
+<TR align=left valign="top">
+<TD>IEFBR14</TD>
+<TD align="left">Define the GDG with a standard IDCAMS
+job. When creating a new generation, observe the guidelines provided in <A href="#zultivol">Allocating Multivolume SAS Data Libraries</A>
+and use the absolute form of the data set name (for example, 
+
+
+<CODE><B>DSN=XXX.MULTI.GDG.G0001V00</B></CODE>).</TD></TR>
+</TABLE>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217297.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zsas-gdg.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217303.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zultivol">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

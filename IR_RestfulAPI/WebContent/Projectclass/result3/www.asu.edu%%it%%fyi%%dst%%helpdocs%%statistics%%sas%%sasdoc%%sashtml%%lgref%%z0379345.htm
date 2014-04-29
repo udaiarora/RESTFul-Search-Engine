@@ -1,0 +1,599 @@
+<HTML>
+<!-- This page produced Mon Jul 19 13:58:41 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>DATA Step Debugger : Examples </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0510023.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0379339.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0379386.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Language Reference: Dictionary                                                                                        </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0379345">Examples</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example 1: Debugging a Simple DATA Step</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0919545">&#13;This example shows how to debug a DATA step when output is
+missing. </A>
+<BR><H3>Discovering a Problem</H3>
+
+
+<P>This program creates information about a travel tour
+group.  The data files contain two types of records. One type contains the
+tour code, and the other type contains customer information. The program creates
+a report listing tour number, name, age, and sex for each customer. 
+
+
+
+
+
+
+<PRE>/* first execution */
+data tours (drop=type);
+   input @1 type $ @;
+   if type='H' then do;
+      input @3 Tour $20.;
+      return;
+      end;
+   else if type='P' then do;
+      input @3 Name $10. Age 2. +1 Sex $1.;
+      output;
+      end;
+   datalines;
+H Tour 101
+P Mary E    21 F
+P George S  45 M
+P Susan K    3 F
+H Tour 102
+P Adelle S  79 M
+P Walter P  55 M
+P Fran I    63 F
+;
+
+proc print data=tours;
+   title 'Tour List';
+run;</PRE>
+
+
+
+
+<P>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                           Tour List                           1
+             Obs    Tour      Name      Age    Sex
+
+              1             Mary E       21     F 
+              2             George S     45     M 
+              3             Susan K       3     F 
+              4             Adelle S     79     M 
+              5             Walter P     55     M 
+              6             Fran I       63     F </PRE></TD></TR></TABLE>
+
+<P>The program executes without error, but the output is unexpected.
+The output does not contain values for the variable Tour. Viewing the SAS
+log will not help you debug the program because the data are valid and no
+errors appear in the log. To help identify the logic error, run the DATA step
+again using the DATA step debugger.
+<BR><H3>Using the DEBUG Option</H3>
+
+
+<P><A name="z0919547">&#13;To invoke the DATA step
+debugger, add the DEBUG option to the
+DATA statement and resubmit the DATA step:  
+
+
+</A>
+<PRE>data tours (drop=type) / debug;</PRE>
+<P>The following display shows the resulting two debugger
+windows.           
+ 
+<P>
+<P><IMG border="0" src="./images/01332665.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The upper window is the
+DEBUGGER LOG window. Issue debugger
+commands in this window by typing commands on the debugger command line (the
+bottom line, marked by a >). The debugger displays the command and results
+in the upper part of the window.
+<P>The lower window is the DEBUGGER SOURCE window. It displays
+the DATA step submitted with the DEBUG option. Each line in the DATA step
+is numbered with the same line number used in the SAS log. One line appears
+in reverse video (or other highlighting, depending on your monitor). DATA
+step execution pauses <B>just before</B> the execution of the highlighted
+statement. 
+<P>At the beginning of your debugging session, the first
+executable line after the DATA statement is highlighted. This means that SAS
+has compiled the step and will begin to execute the step at the top of the
+DATA step loop.
+<BR><H3>Examining Data Values after the First Iteration</H3>
+
+
+<P>To debug a DATA step, create a hypothesis about the
+logic error and test it by examining the values of variables at various points
+in the program. For example, issue the EXAMINE command from the debugger command
+line to display the values of all variables in the program data vector before
+execution begins:            
+
+
+
+
+<PRE>examine _all_</PRE>
+
+
+
+<P>
+<P><IMG border="0" src="./images/01332666.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Most debugger commands have
+abbreviations, and you can
+assign commands to function keys. The examples in this section, however, show
+the full command name to help you find the commands in <A href="z0379386.htm#z0379387">Debugger Commands by Category</A>.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>When you
+press ENTER, the following display appears:           
+
+<P>
+<P><IMG border="0" src="./images/01332667.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The values of all variables
+appear in the DEBUGGER LOG
+window. SAS has compiled, but not yet executed, the INPUT statement.
+<P>Use the STEP command to execute the DATA step statements
+one at a time. By default, the STEP command is assigned to the ENTER key.
+Press ENTER repeatedly to step through the first iteration of the DATA step,
+and stop when the RETURN statement in the program is highlighted in the DEBUGGER
+SOURCE window. 
+<P>Because Tour information was missing in the program
+output, enter the EXAMINE command to view the value of the variable Tour for
+the first iteration of the DATA step.           
+
+
+
+
+<PRE>examine tour</PRE>
+<P>The following display shows the
+results:
+<P>
+<P><IMG border="0" src="./images/01332668.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The variable Tour
+contains the value Tour 101, showing
+you that Tour was read. The first iteration of the DATA step worked as intended.
+Press ENTER to reach the top of the DATA step. 
+<BR><H3>Examining Data Values after the Second Iteration</H3>
+
+
+<P>You can use the BREAK command (also known as <B>setting a breakpoint</B>) to
+suspend DATA step execution at a particular
+line you designate. In this example, suspend execution before executing the
+ELSE statement by setting a breakpoint at line 7.  
+
+
+
+<PRE>break 7</PRE>
+<P>When you press ENTER, an exclamation point appears at
+line 7 in the DEBUGGER SOURCE window to mark the breakpoint:           
+
+<P>
+<P><IMG border="0" src="./images/01332669.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Execute the GO command to
+continue DATA step execution
+until it reaches the breakpoint (in this case, line 7):           
+
+
+
+
+<PRE>go</PRE>
+<P>The following display shows the result:
+
+<P>
+<P><IMG border="0" src="./images/01332670.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>SAS suspended execution
+<B>just before</B> the
+ELSE statement in line 7. Examine the values of all the variables to see their
+status at this point.  
+
+
+
+<PRE>examine _all_</PRE>
+<P>The following display shows the values:           
+
+<P>
+<P><IMG border="0" src="./images/01332671.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>You expect to see a value for
+Tour, but it does not
+appear. The program data vector gets reset to missing values at the beginning
+of each iteration and therefore does not retain the value of Tour. To solve
+the logic problem, you need to include a RETAIN statement in the SAS program. 
+<BR><H3>Ending the Debugger</H3>
+
+
+<P>To end the debugging session,  issue the QUIT command
+on the debugger command line:  
+
+
+
+<PRE>quit</PRE>
+<P>The debugging windows disappear, and the original SAS
+session resumes. 
+<BR><H3>Correcting the DATA Step</H3>
+
+
+<P>Correct the original program by adding the RETAIN statement.
+Delete the DEBUG option from the DATA step, and resubmit the program:
+<P>
+
+
+
+<PRE>   /* corrected version */
+data tours (drop=type);
+   retain Tour;
+   input @1 type $ @;
+   if type='H' then do;
+      input @3 Tour $20.;
+      return;
+      end;
+   else if type='P' then do;
+      input @3 Name $10. Age 2. +1 Sex $1.;
+      output;
+      end;
+datalines;
+H Tour 101
+P Mary E    21 F
+P George S  45 M
+P Susan K    3 F
+H Tour 102
+P Adelle S  79 M
+P Walter P  55 M
+P Fran I    63 F
+;
+
+run;
+
+proc print;
+   title 'Tour List';
+run;</PRE>
+<P>The values for Tour now appear in the output: 
+<P>
+<P>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                           Tour List                           1
+           Obs      Tour        Name      Age    Sex
+
+            1     Tour 101    Mary E       21     F 
+            2     Tour 101    George S     45     M 
+            3     Tour 101    Susan K       3     F 
+            4     Tour 102    Adelle S     79     M 
+            5     Tour 102    Walter P     55     M 
+            6     Tour 102    Fran I       63     F </PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example 2: Working with Formats</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0919571">&#13;This example shows how to debug a program when you use format
+statements to format dates. The following program creates a report that lists
+travel tour dates for specific countries.  
+
+
+
+
+
+</A>
+<PRE>options yearcutoff=1920;
+
+data tours;
+  length Country $ 10;
+  input Country $10. Start : mmddyy. End : mmddyy.;
+  Duration=end-start;
+datalines;
+Italy       033000 041300
+Brazil      021900 022800
+Japan       052200 061500
+Venezuela   110300 11800
+Australia   122100 011501
+;
+
+proc print data=tours;
+   format start end date9.;
+   title 'Tour Duration';
+run;</PRE>
+<P>
+<P>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                         Tour Duration                         1
+
+     Obs    Country          Start          End    Duration
+
+      1     Italy        30MAR2000    13APR2000        14  
+      2     Brazil       19FEB2000    28FEB2000         9  
+      3     Japan        22MAY2000    15JUN2000        24  
+      4     Venezuela    03NOV2000    18JAN2000      -290  
+      5     Australia    21DEC2000    15JAN2001        25  </PRE></TD></TR></TABLE>
+
+<P>
+<P> The value of Duration for the tour to Venezuela shows
+a negative number, -290 days. To help identify the error, run the DATA step
+again using the DATA step debugger. SAS displays the following debugger windows:
+           
+
+<P>
+<P><IMG border="0" src="./images/01332672.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>At the DEBUGGER LOG
+command line, issue the EXAMINE
+command to display the values of all variables in the program data vector
+before execution begins: 
+
+
+
+<PRE>examine _all_</PRE>
+<P>Initial values of all variables appear in the DEBUGGER
+LOG window. SAS has not yet executed the INPUT statement. 
+<P>Press ENTER to issue the STEP command. SAS executes
+the INPUT statement, and the assignment statement is now highlighted.
+<P>Issue the EXAMINE command to display the current value
+of all variables: 
+
+
+
+<PRE>examine _all_</PRE>
+
+
+ 
+<P>The following display shows the results:           
+
+<P>
+<P><IMG border="0" src="./images/01332673.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Because a problem
+exists with the Venezuela tour, suspend
+execution before the assignment statement when the value of Country equals
+Venezuela. Set a breakpoint to do this:  
+
+
+
+<PRE>break 4 when country='Venezuela'</PRE>
+
+
+ 
+<P>Execute the GO command to resume program execution: 
+
+
+
+<PRE>go</PRE>
+<P>SAS stops execution when the country name is Venezuela.
+You can examine Start and End tour dates for the Venezuela trip. Because the
+assignment statement is highlighted (indicating that SAS has not yet executed
+that statement), there will be no value for Duration.
+<P>Execute the EXAMINE command to view the value of the
+variables after execution:  
+
+
+
+<PRE>examine _all_</PRE>
+
+
+  
+<P>The following display shows the results:           
+
+<P>
+<P><IMG border="0" src="./images/01332674.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To view formatted SAS
+dates, issue the EXAMINE command
+using the DATE<B>w</B>. format:  
+
+
+
+<PRE>examine start date7. end date7.</PRE>
+<P>The following display shows the results:           
+
+<P>
+<P><IMG border="0" src="./images/01332675.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>Because the tour ends
+on November 18, 2000, and not
+on January 18, 2000, there is an error in the variable End. Examine the source
+data in the program and notice that the value for End has a typographical
+error. By using the SET command, you can temporarily set the value of End
+to November 18 to see if you get the anticipated result.  Issue the SET command
+using the DDMMMYY<B>w</B>. format:
+
+
+
+<PRE>set end='18nov00'd</PRE>
+
+
+ 
+<P>Press ENTER to issue the STEP command and execute the
+assignment statement.
+<P>Issue the EXAMINE command to view the tour date and
+Duration fields:    
+
+
+
+<PRE>examine start date7. end date7. duration</PRE>
+
+
+ 
+<P>The following display shows the results:           
+
+<P>
+<P><IMG border="0" src="./images/01332676.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The Start, End, and
+Duration fields contain correct
+data. 
+<P>End the debugging session by issuing the QUIT command
+on the DEBUGGER LOG command line. Correct the original data in the SAS program,
+delete the DEBUG option, and resubmit the program.  
+<P>
+
+
+
+<PRE>   /* corrected version */
+options yearcutoff=1920;
+
+data tours;
+  length Country $ 10;
+  input Country $10. Start : mmddyy. End : mmddyy.;
+  duration=end-start;
+datalines;
+Italy       033000 041300
+Brazil      021900 022800
+Japan       052200 061500
+Venezuela   110300 111800
+Australia   122100 011501
+;
+
+proc print data=tours;
+   format start end date9.;
+   title 'Tour Duration';
+run;</PRE>
+
+
+
+
+<P>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                         Tour Duration                         1
+
+     Obs    Country          Start          End    duration
+
+      1     Italy        30MAR2000    13APR2000       14   
+      2     Brazil       19FEB2000    28FEB2000        9   
+      3     Japan        22MAY2000    15JUN2000       24   
+      4     Venezuela    03NOV2000    18NOV2000       15   
+      5     Australia    21DEC2000    15JAN2001       25   </PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example 3: Debugging DO Loops</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0919592">&#13;An iterative DO, DO WHILE, or DO UNTIL statement can iterate
+many times during a single iteration of the DATA step. When you debug DO loops,
+you can examine several iterations of the loop by using the AFTER option in
+the BREAK command. The AFTER option requires a number that indicates how many
+times the loop will iterate before it reaches the breakpoint. The BREAK command
+then suspends program execution. For example, consider this data set: </A>
+<P>
+<PRE>data new / debug;
+   set old;
+   do i=1 to 20;
+      newtest=oldtest+i;
+      output;
+   end;
+run;</PRE>
+<P>To set a breakpoint at the assignment statement (line
+4 in this example) after every 5 iterations of the DO loop, issue this command: 
+
+
+
+<PRE>break 4 after 5</PRE>
+<P>When you issue the GO commands, the debugger suspends
+execution when I has the values of 5, 10, 15, and 20 in the DO loop
+iteration.
+<P>In
+an iterative DO loop, select a value for the AFTER
+option that can be divided evenly into the number of iterations of the loop.
+For example, in this DATA step, 5 can be evenly divided into 20. When the
+DO loop iterates the second time, I again has the values of 5, 10, 15, and
+20. 
+<P>If you do not select a value that can be evenly divided
+(such as 3 in this example), the AFTER option causes the debugger to suspend
+execution when I has the values of 3, 6, 9, 12, 15, and 18. When the DO loop
+iterates the second time, I has the values of 1, 4, 7, 10, 13, and 16. 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example 4: Examining Formatted Values of Variables</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0919598">&#13;You can use a SAS format or a user-created format when you display
+a value with the EXAMINE command. For example, assume the variable BEGIN contains
+a SAS date value. To display the day of the week and date, use the SAS WEEKDATE<B>w</B>. format with EXAMINE: 
+
+
+</A>
+<PRE>examine begin weekdate17.</PRE>
+<P>When the value of BEGIN is 033001, the debugger displays
+
+
+
+<PRE>Sun, Mar 30, 2001</PRE>
+
+
+ 
+<P>As another example, you can create a format named SIZE:
+
+
+
+<PRE>proc format;
+   value size 1-5='small'
+              6-10='medium'
+             11-high='large';
+run;</PRE>
+<P>To debug a DATA step that applies the format SIZE. to
+the variable STOCKNUM, use the format with EXAMINE:
+
+
+
+<PRE>examine stocknum size.</PRE>
+<P>When the value of STOCKNUM is 7, for example, the debugger
+displays
+
+
+
+<PRE>STOCKNUM = medium</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0510023.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0379339.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0379386.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0379345">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

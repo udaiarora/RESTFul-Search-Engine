@@ -1,0 +1,557 @@
+<html>
+
+<head>
+<title>ALTDSD</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h3>ALTDSD</h3>
+
+<PRE>
+HELP ALTDSD
+
+FUNCTION
+          5740-XXH  (c) Copyright IBM Corp. 1987
+
+  The ALTDSD command is used to modify the RACF description of one or
+  more generic and/or discrete data set profiles.
+
+  In order to specify a data set:
+        - You must have group-SPECIAL authority and (1) the data set
+          must be owned by the group or by a userid owned by the group
+          or (2) the data set high-level qualifier must be the group
+          name or a userid owned by the group, or
+        - You must be the owner of the profile, have the SPECIAL
+          attribute, or your userid must match the first qualifier of
+          the profile, or (for discrete names only)
+        - If you are explicitly authorized to the data set you must
+          have ALTER authority, or
+        - If your current connect group is explicitly authorized to
+          the data set, the authority must be ALTER, or
+        - The universal access of the data set must be ALTER, or
+        - You must have the AUDITOR attribute.
+  To specify the GLOBALAUDIT keyword, you must have the AUDITOR
+  attribute or group-AUDITOR authority over the data set.
+
+
+SYNTAX
+
+ ALTDSD   (profile-name...)
+          OWNER(userid or group-name)
+          UACC(ALTER | CONTROL | UPDATE | READ | NONE)
+          AUDIT(NONE | ALL | SUCCESS | FAILURES | (access-type))
+          GLOBALAUDIT(NONE | ALL | SUCCESS | FAILURES | (access-type))
+          NOTIFY(userid)
+          NONOTIFY
+          ERASE
+          NOERASE
+          LEVEL(nn)
+          ADDVOL(volume-serial) | DELVOL(volume-serial)
+          VOLUME(volume-serial)
+          ALTVOL(old-volume-serial new-volume-serial)
+          UNIT(type)
+          SET | NOSET | GENERIC
+          DATA('installation-defined-data') | NODATA
+          WARNING | NOWARNING
+          RETPD(nnnnn)
+          ADDCATEGORY(category-name ...) |
+             DELCATEGORY(category-name ...|*)
+          SECLEVEL(seclevel-name) |
+             NOSECLEVEL
+
+   REQUIRED - profile-name - At least one name must be entered
+   DEFAULTS - SET
+   ALIAS    - ALD
+
+
+OPERANDS
+
+  profile-name...
+      Specifies the names of the generic and/or discrete data set
+      profiles that are to be modified.  If a data set is password
+      protected, you can specify the password as part of the data set
+      name.  The password is needed only if the ADDVOL and set
+      operands are used for a volume of a multi-volume password
+      protected data set.  The write level password must then be
+      available.  If the data set is protected and no password is
+      supplied, the logon password is used.
+
+  OWNER(userid or group-name)
+      Specifies the userid of a user or a group name defined to RACF
+      that is to be made the profile owner.  If the owner is a user,
+      he must have at least USE authority in the group specified by
+      the first-level qualifier of the data set name.  To change the
+      owner of a profile, the user must be the current owner, have
+      group-SPECIAL authority over the profile, or have the SPECIAL
+      attribute.  The user or group specified as the owner does not
+      automatically have access to the data set.  Use the PERMIT
+      command to add the owner to the access list as desired.
+
+  UACC(ALTER | CONTROL | UPDATE | READ | NONE)
+      Specifies the new universal access for the data set.
+
+      The valid subfields are:
+
+            ALTER    - ALTER access authority
+            CONTROL  - CONTROL access authority
+            UPDATE   - UPDATE access authority
+            READ     - READ access authority
+            NONE     - No access authority
+
+  AUDIT(NONE | ALL | SUCCESS | FAILURES | (access-type))
+      Specifies  when logging is to occur for the profile.
+
+      The valid subfields are:
+
+            NONE     - Do not log
+
+      or one of the following:
+
+            ALL      - Log all accesses
+            FAILURES - Log only access failures
+            SUCCESS  - Log only successful accesses
+
+      optionally followed by an access type in parentheses:
+
+            READ     - Log all access types
+            UPDATE   - Log UPDATE, CNTROL, and ALTER access types
+            CONTROL  - Log CONTROL and ALTER access types
+            ALTER - Log only ALTER access types
+
+  GLOBALAUDIT(NONE | ALL | SUCCESS | FAILURES | (access-type))
+      Specifies which access attempts the user wants to log, in
+      addition to logging requested by the AUDIT operand.  Only users
+      with the AUDITOR attribute or group-AUDITOR authority over the
+      data set may specify GLOBALAUDIT.
+
+      The valid subfields are:
+
+            NONE     - Do not log
+
+      or one of the following:
+
+            ALL      - Log all accesses
+            FAILURES - Log only access failures
+            SUCCESS  - Log only successful accesses
+
+      optionally followed by an access type in parentheses:
+
+            READ     - Log all access types
+            UPDATE   - Log UPDATE, CONTROL, and ALTER access types
+            CONTROL  - Log CONTROL and ALTER access types
+            ALTER    - Log only ALTER access types
+
+  NOTIFY(userid)
+      Specifies a RACF-defined user to be notified when this profile
+      denies access to a resource.  If notify is entered with no
+      userid, the command issuer will be notified.
+
+  NONOTIFY
+      Specifies that a user will not be notified when this profile
+      denies access to a data set.
+
+  ERASE
+      Indicates that the data set will be erased by by data management
+      if the ERASE-ON-SCRATCH facility is active when the data set is
+      scratched.  ERASE is not valid with tape.
+
+  NOERASE
+      Indicates that the data set will not be erased by data
+      management when it is scratched.
+
+  LEVEL(nn)
+      A new level indicator, where nn is an integer from 0 to 99.  It
+      is included in all records that log the accesses to the data set
+      and in the output of the LISTDSD command.
+
+  ADDVOL(volume-serial)
+      The volume specified is added to the profile.  Depending on
+      whether SET is specified, the DSCB for the data set will be RACF
+      indicated on this volume.  This operand applies only to non-VSAM
+      data sets.  This operand is ignored for generic names.
+
+  DELVOL(volume-serial)
+      The volume specified is deleted from the profile.  Depending on
+      whether set is specified, the RACF indicator bit in the DSCB of
+      this data set on the volume is turned off.  The volume specified
+      may not be the last volume in the profile.  This operand applies
+      only to non-VSAM data sets.  This operand is ignored for generic
+      names.
+
+  VOLUME(volume-serial)
+      The volume serial of the volume on which the data set resides
+      (or where the VSAM catalog resides, for VSAM data sets).
+      Required only if more than one data set with the same name has
+      been defined to RACF.  This operand is ignored for generic
+      names.
+
+  ALTVOL(old-volume-serial new-volume-serial)
+      Specifies that you want to change the volume serial number in
+      the data set profile.  This operand can be specified for both
+      VSAM and non-VSAM data sets.  If ALTVOL is specified, the SET
+      and NOSET operands are ignored.  When ALTVOL is specified, the
+      data set profile is modified but RACF indicator processing is
+      not performed.  This operand is ignored for generic names.
+
+  UNIT(type)
+      Specifies the unit type to be added to the data set profile on
+      which a non-VSAM data set resides.  You may specify an
+      installation-defined group name, a generic device type, or a
+      specific device address.  This operand is ignored for generic
+      names.
+
+  SET
+      Together with ADDVOL and DELVOL, indicates that the RACF
+      indicator bit in the data set's DSCB should be changed.  This
+      operand is ignored if neither ADDVOL nor DELVOL is specified, or
+      if the name is generic.
+
+  NOSET
+      Together with ADDVOL and DELVOL, indicates that no change should
+      be made in the DSCB for this data set.  This operand is ignored
+      if neither ADDVOL nor DELVOL is specified, or if the name is
+      generic.  In order to specify NOSET, you must have the SPECIAL
+      attribute or your userid must match the data set's first-level
+      qualifier.
+
+  GENERIC
+      Indicates that the profile-name should be trated as a generic
+      name, even if it does not contain any generic characters.
+
+  DATA('installation-defined-data')
+      Specifies a quoted string whose contents are to be stored in the
+      data set profile.  A maximum length of 255 characters will be
+      stored.
+
+  NODATA
+      Specifies that the installation data information contained in
+      the data set profile should be deleted.
+
+  WARNING
+      Specifies that a warning message should be issued if access
+      authority is insufficient, but access should be allowed.
+
+  NOWARNING
+      Specifies that access should not be allowed (rather than allowed
+      with a warning message) if access authority is insufficient.
+
+  RETPD(nnnnn)
+      Specifies, for tape data sets, the number of days the data set
+      must be kept before it can be deleted or written over by another
+      data set.  nnnnn is a 1 to 5 digit number in the range of
+      1-65533 or 99999 for tape data sets which never expire.
+
+  ADDCATEGORY(category-name ...)
+      Specifies one or more installation defined category names.  The
+      arguments for this keyword must be members of the category
+      profile in the SECDATA class.
+
+  DELCATEGORY(category-name ...|*)
+      Specifies one or more category names to be deleted from the
+      profile.  If DELCATEGORY(*) is specified all category names will
+      be deleted.  If DELCATEGORY is specified without any category
+      names, all undefined category names will be deleted.
+
+  SECLEVEL(seclevel-name)
+      Specifies an installation-defined security level name.  The
+      argument must be in the member list of the SECLEVEL profile in
+      the SECDATA class.
+
+  NOSECLEVEL
+      Specifies that the security level name will be deleted for this
+      profile.
+
+  ICH22001I dsname NOT DEFINED TO RACF
+
+            Explanation:  The named data set is not defined to RACF
+            and cannot be altered.  Processing continues with the next
+            data set.
+
+  ICH22002I NOT AUTHORIZED TO SPECIFY OWNER
+
+            Explanation:  You do not have sufficient authority to
+            specify the OWNER keyword.
+
+            System Action:  The owner field is not changed.
+            Processing continues with the next operand of the ALTDSD
+            command.
+
+  ICH22003I NOT AUTHORIZED TO ISSUE ALTDSD
+
+            Explanation:  You are not defined to RACF and cannot issue
+            the ALTDSD command, or RACF is not active.
+
+            System Action:  RACF terminates the command.
+
+  ICH22004I COMMAND ENDED DUE TO ERROR
+
+            Explanation:  A RACF manager error occurred.  This message
+            is accompanied by a message explaining the error.
+
+  ICH22005I NOT AUTHORIZED TO ALTER dsname
+
+            Explanation:  You are not authorized to alter the named
+            data set.
+
+            System Action:  The data set is not altered.  Processing
+            continues with the next data set.
+
+  ICH22006I OWNER SPECIFIED NOT DEFINED TO RACF
+
+            Explanation:  The userid or group name specified on the
+            OWNER operand is not a RACF-defined user.
+
+            System Action:  Command processing continues with the next
+            operand.
+
+  ICH22007I OWNER SPECIFIED NOT AUTHORIZED TO GROUP
+
+            Explanation:  The userid specified on the OWNER keyword
+            does not have sufficient authority to the group whose name
+            is the first level qualifier of the data set being
+            altered.
+
+            System Action:  Command processing continues with the next
+            operand.
+
+  ICH22008I ADDVOL/DELVOL NOT ALLOWED FOR VSAM DATA SET
+
+            Explanation:  The ADDVOL and DELVOL operands apply only to
+            non-VSAM data sets.
+
+            System Action:  The ADDVOL or DELVOL operand is ignored.
+            Command processing continues with the next operand.
+
+  ICH22009I VOLUME SPECIFIED ALREADY EXISTS IN DATA SET PROFIILE
+
+            Explanation:  ADDVOL or ALTVOL was specified which
+            requests a volume to be added to the data set profile but
+            the volume already exists in the profile.
+
+            System Action:  RACF terminates processing for the ADDVOL
+            or ALTVOL operand.
+
+  ICH22010I VOLUME SPECIFIED DOES NOT EXIST IN DATA SET PROFILE
+
+            Explanation:  DELVOL or ALTVOL was specified which
+            requests a volume to be deleted from the data set profile
+            but the volume does not exist in the profile.
+
+            System Action:  RACF terminates processing for the DELVOL
+            or ALTVOL operand.
+
+  ICH22011I VOLUME SPECIFIED IS LAST VOLUME IN DATA SET PROFILE.
+            NO CHANGE MADE
+
+            Explanation:  DELVOL was specified which requested that
+            the last volume be deleted from the data set profile.
+            This is not a valid request for the ALTDSD command.
+
+            System Action:  Processing for the DELVOL operand is
+            terminated.
+
+  ICH22012I NOT AUTHORIZED TO SPECIFY NOSET/ALTVOL
+
+            Explanation:  You do not have sufficient authority to
+            specify the NOSET or ALTVOL operand.
+
+            System Action:  The NOSET, ADDVOL, ALTVOL, and DELVOL
+            operands are ignored.
+
+  ICH22013I ADDVOL/DELVOL NOT PROCESSED
+
+            Explanation:  While adding or deleting a volume, the
+            command processor could not establish the required ESTAE
+            environment.  Other operands have already been processed.
+
+  ICH22014I NOT AUTHORIZED TO SPECIFY GLOBALAUDIT FOR entity-name;
+            OPERAND IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify the GLOBALAUDIT operand for the indicated entity
+            name.
+
+            System Action:  RACF ignores the operand for the indicated
+            entity name.
+
+  ICH22015I AUTHORIZED TO ISSUE ONLY GLOBALAUDIT FOR entity-name;
+            REMAINING OPERANDS IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify any operand except GLOBALAUDIT for the indicated
+            entity name.  RACF ignores all other operands for the
+            indicated entity name.
+
+  ICH22016I VOLUME SPECIFIED ALREADY EXISTS IN ANOTHER PROFILE FOR
+            SAME DATASET NAME
+
+            Explanation:  An ADDVOL or ALTVOL request was specified,
+            but the volume serial number to be added to the data set
+            profile specified is already defined in another data set
+            profile of the same name.
+
+            System Action:  The volume serial number is not added.
+
+  ICH22017I ALTVOL PROCESSING ENDED DUE TO ERROR
+
+            Explanation:  While processing the ALTVOL operand, the
+            command processor encountered an error which caused
+            processing to be terminated.  Other operands have already
+            been processed.
+
+  ICH22018I INSTALLATION EXIT FAILED ALTER REQUEST FOR data-set-name
+
+            Explanation:  The command preprocessing exit routine
+            ICHCNX00 issued a return code of 4, indicating that RACF
+            should fail the ALTDSD request for the dataset indicated
+            in the message.
+
+            System Action:  The command terminates.
+
+            User Response:  Report this message to the system
+            programmer.
+
+  ICH22020I GENERIC INVALID, GENERIC COMMAND PROCESSING NOT ACTIVE
+
+            Explanation:  Because the generic command processing
+            facility is inactive, the GENERIC operand is invalid.
+
+            System Action:  The command is terminated.
+
+  ICH22021I category ALREADY DEFINED TO profile-name.
+
+            Explanation:  The specified category has already been
+            defined in this profile.
+
+            System Action:  RACF ignores the category.  Command
+            processing continues with the next option.
+
+  ICH22022I category NOT DEFINED TO profile-name.
+
+            Explanation:  The specified category has not been defined
+            in this profile; therefore, deletion is impossible.
+
+            System Action:  RACF ignores the category.  Command
+            processing continues with the next option.
+
+  ICH22023I 'NOTIFY IGNORED' SPECIFIED USER IS NOT DEFINED TO RACF
+
+            Explanation:  The userid specified for the NOTIFY operand
+            is not a RACF-defined userid.
+
+            System Action:  Command processing continues with the next
+            option.
+
+  ICH22024I NOT AUTHORIZED TO USE VOLUME volume.
+
+            Explanation:  You do not have allocation authority to the
+            volume specified.
+
+            System Action:  RACF terminates command processing.
+
+  ICH22025I UNABLE TO LOCATE TAPE VOLUME ENTRY FOR TAPE DATA SET
+
+            Explanation:  The tape volume profile for the indicated
+            tape data set could not be located.  This error indicates
+            a problem with the RACF data base.
+
+            System Action:  Command processing continues with the next
+            data set.
+
+            User Response:  Contact the RACF security administrator or
+            the system programmer.
+
+  ICH22026I TVTOC UPDATE FOR DATA SET dsname BYPASSED.
+            UNABLE TO LOCATE ENTRY.
+
+            Explanation:  A TVTOC entry could not be located after a
+            discrete profile for a tape data set was found.
+
+            System Action:  Command processing continues with the next
+            data set.
+
+            User Response:  Contact your systems programmer.
+
+  ICH22027I ALTVOL OPERAND INCONSISTENT WITH TAPE DS PROFILE FOR
+            DATA SET dsname.
+
+            Explanation:  A tape data set profile was found when an
+            ALTVOL request was entered.  ALTVOL processing for tape
+            data sets is not supported by RACF processing.
+
+            System Action:  ALTVOL processing continues with the next
+            data set.
+
+  ICH22028I TAPE DATA SET SPECIFIED NOT LAST ON VOLUME -
+            ADDVOL/DELVOL IGNORED
+
+            Explanation:  The ADDVOL or DELVOL operand was entered for
+            a tape data set that is not the last one on the tape
+            volume set.
+
+            System Action:  RACF ignores the operand.  Command
+            processing continues with the next data set name.
+
+  ICH22029I TVTOC UPDATE FAILED. ADDVOL/DELVOL BYPASSED FOR DATA SET
+            PROFILE dsname
+
+            Explanation:  When ADDVOL or DELVOL operand processing
+            attempted to update the tape data set entry in the TVTOC
+            of the TAPEVOL profile, a RACF manager error occurred.
+
+            System Action:  RACF does not update the TVTOC.  Command
+            processing continues with the next data set name.
+
+  ICH22030I VOLSER LIST INCONSISTENT WITH ADDVOL/DELVOL OPERAND
+            TAPE DATA SET dsname
+
+            Explanation:  For ADDVOL, the VOLSER specified in the
+            command was found in the tape volume list.  For DELVOL,
+            the VOLSER specified in the command was not found in the
+            list.
+
+            System Action:  ADDVOL/DELVOL for this data set will be
+            bypassed.  Command processing continues with the next data
+            set name.
+
+  ICH22031I COMMAND PROCESSING TERMINATED.  NO (SECLEVELS |
+            CATEGORIES) FOUND
+
+            Explanation:  RACF could not validate the name you
+            specified on the SECLEVEL or ADDCATEGORY keyword. This
+            happened for one of two reasons:
+
+            o   There is no SECLEVEL or CATEGORY profile.
+            o   A profile is defined, but it doesn't contain any
+                members.
+
+            System Action:  RACF terminates the command.
+</PRE>
+<br>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

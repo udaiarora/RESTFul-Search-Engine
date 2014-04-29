@@ -1,0 +1,259 @@
+<HTML>
+<HEAD>
+<TITLE>IDENTIFY Statement</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="ariidentifystmt">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect20.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect22.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>IDENTIFY Statement</H2>
+<P><DL><DD><B CLASS="ssbeleven">IDENTIFY</B> <I CLASS="ssieleven"> VAR=variable options;</I></DL>
+<A NAME="idxari0121">&#13;</A>The IDENTIFY statement specifies the time series to be modeled,
+differences the series if desired,
+and computes statistics to help identify models to fit.
+Use an IDENTIFY statement for each time series that you want to model.
+<BR><BR>If other time series are to be used as inputs in a subsequent
+ESTIMATE statement, they must be listed in a CROSSCORR= list in the
+IDENTIFY statement.
+<BR><BR>The following options are used in the IDENTIFY statement.
+The VAR= option is required.
+<BR><BR><DL>
+<DT CLASS="ssbten"><B CLASS="ssbten">ALPHA= <I>significance-level</I></B></DT>
+<DD CLASS="sasop"><A NAME="idxari0096">&#13;</A>The ALPHA= option specifies the significance level for tests
+in the IDENTIFY statement. The default is 0.05.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">CENTER</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0097">&#13;</A>centers each time series by subtracting its sample mean.
+The analysis is done on the centered data.
+Later, when forecasts are generated, the mean is added back.
+Note that centering is done after differencing.
+The CENTER option is normally used in conjunction with the
+NOCONSTANT option of the ESTIMATE statement.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">CLEAR</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0098">&#13;</A>deletes all old models.
+This option is useful when you want to delete old models so that the
+input variables are not prewhitened.
+(See the section &#34;Prewhitening&#34; later in this chapter for more information.)
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">CROSSCORR= <I>variable</I> (<I>d11, d12, ..., d1k</I>)</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0099">&#13;</A></DD><DT CLASS="ssbten"><B CLASS="ssbten">CROSSCORR= (<I>variable</I> (<I>d11, d12, ..., d1k</I>) ...
+<I>variable</I> (<I>d21, d22, ..., d2k</I>)) </B></DT>
+<DD CLASS="sasop">names the variables cross correlated with the response variable given by the
+VAR= specification.
+<BR><BR>Each variable name can be followed by a list of differencing lags
+in parentheses, the same as for the VAR= specification.
+If differencing is specified for a variable in the CROSSCORR= list,
+the differenced series is cross correlated with the VAR= option series,
+and the differenced series is used when the ESTIMATE statement
+INPUT= option refers to the variable.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">DATA= <I>SAS-data-set</I></B></DT>
+<DD CLASS="sasop"><A NAME="idxari0100">&#13;</A>specifies the input SAS data set containing the time series.
+If the DATA= option is omitted,
+the DATA= data set specified in the PROC ARIMA statement is
+used; if the DATA= option is omitted from the PROC ARIMA statement as well,
+the most recently created data set is used.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">ESACF</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0101">&#13;</A>computes the extended sample autocorrelation
+function and uses these estimates to tentatively identify the
+autoregressive and moving average orders of mixed models.
+<BR><BR>The ESACF option generates two tables. The first table displays 
+extended sample autocorrelation estimates, and the second table 
+displays probability values that can be used to test
+the significance of these estimates.
+The P=<SPAN CLASS="mathfont">(<I>p</I><SUB><I>min</I></SUB>: <I>p</I><SUB><I>max</I></SUB>)</SPAN> and 
+Q=<SPAN CLASS="mathfont">(<I>q</I><SUB><I>min</I></SUB>: <I>q</I><SUB><I>max</I></SUB>)</SPAN>
+options determine the size of the table.
+<BR><BR>The autoregressive and moving average orders are tentatively identified
+by finding a triangular pattern in which all values are 
+insignificant.  The ARIMA procedure finds these patterns based on the
+IDENTIFY statement ALPHA= option and displays possible 
+recommendations for the orders.
+<BR><BR>The following code generates an ESACF table with 
+dimensions of p=(0:7) and q=(0:8). 
+<PRE>
+
+   proc arima data=test;
+      identify var=x esacf p=(0:7) q=(0:8);
+   run;
+</PRE>
+<BR><BR>See the <A HREF="sect28.htm#ariesacf">&#34;The ESACF Method&#34;</A> section for more information.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">MINIC</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0102">&#13;</A>uses information criteria or penalty
+functions to provide tentative ARMA order identification.
+The MINIC option generates a table containing the computed
+information criterion associated with various ARMA model orders.
+The PERROR=<IMG WIDTH="126" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq40.gif"
+ ALT="{(p_{{\epsilon},min}: p_{{\epsilon},max})}"> option determines
+the range of the autoregressive model orders used to estimate
+the error series.
+The P=<SPAN CLASS="mathfont">(<I>p</I><SUB><I>min</I></SUB>: <I>p</I><SUB><I>max</I></SUB>)</SPAN> and 
+Q=<SPAN CLASS="mathfont">(<I>q</I><SUB><I>min</I></SUB>: <I>q</I><SUB><I>max</I></SUB>)</SPAN>
+options determine the size of the table.
+The ARMA orders are tentatively identified by those orders that
+minimize the information criterion.
+<BR><BR>The following code generates a MINIC table with 
+default dimensions of p=(0:5) and q=(0:5) and with the error series
+estimated by an autoregressive model with an order, <IMG WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq41.gif"
+ ALT="{p_{{\epsilon}}}">,
+that minimizes the AIC in the range from 8 to 11.
+<PRE>
+
+   proc arima data=test;
+      identify var=x minic perror=(8:11);
+   run;
+</PRE>
+<BR><BR>See the <A HREF="sect29.htm#ariminic">&#34;The MINIC Method&#34;</A> section for more information.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">NLAG= <I>number</I></B></DT>
+<DD CLASS="sasop"><A NAME="idxari0103">&#13;</A>indicates the number of lags to consider in computing the
+autocorrelations and cross correlations.
+To obtain preliminary estimates of an ARIMA(<I>p</I>,<I>d</I>,<I>q</I>) model,
+the NLAG= value must be at least <I>p</I>+<I>q</I>+<I>d</I>.
+The number of observations must be greater than or equal to the NLAG= value.
+The default value for NLAG= is 24 or one-fourth the number of
+observations, whichever is less.  Even though the NLAG= value is specified,
+the NLAG= value can be changed according to the data set.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">NOMISS</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0104">&#13;</A>uses only the first continuous sequence of data with no missing values.
+By default, all observations are used.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">NOPRINT</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0105">&#13;</A>suppresses the normal printout
+(including the correlation plots)
+generated by the IDENTIFY statement.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">OUTCOV= <I>SAS-data-set</I></B></DT>
+<DD CLASS="sasop"><A NAME="idxari0106">&#13;</A>writes the autocovariances, autocorrelations,
+inverse autocorrelations, partial autocorrelations, and
+cross covariances to an output SAS data set.
+If the OUTCOV= option is not specified,
+no covariance output data set is created.
+See the section &#34;OUTCOV= Data Set&#34; later in this chapter for more information.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">P= (<SPAN CLASS="mathfont"><I>p</I><SUB><I>min</I></SUB>: <I>p</I><SUB><I>max</I></SUB></SPAN>)</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0107">&#13;</A>see the ESCAF, MINIC, and SCAN options for details.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">PERROR= (<IMG WIDTH="112" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq42.gif"
+ ALT="{p_{{\epsilon},min}: p_{{\epsilon},max}}">)</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0108">&#13;</A>see the ESCAF, MINIC, and SCAN options for details.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">Q= (<SPAN CLASS="mathfont"><I>q</I><SUB><I>min</I></SUB>: <I>q</I><SUB><I>max</I></SUB></SPAN>)</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0109">&#13;</A>see the ESACF, MINIC, and SCAN options for details.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">SCAN</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0110">&#13;</A>computes estimates of the squared canonical
+correlations and uses these estimates to tentatively identify the
+autoregressive and moving average orders of mixed models.
+<BR><BR>The SCAN option generates two tables. The first table
+displays squared canonical correlation estimates, and the second
+table displays probability values that can be used to test
+the significance of these estimates.
+The P=<SPAN CLASS="mathfont">(<I>p</I><SUB><I>min</I></SUB>: <I>p</I><SUB><I>max</I></SUB>)</SPAN> and Q=<SPAN CLASS="mathfont">(<I>q</I><SUB><I>min</I></SUB>: <I>q</I><SUB><I>max</I></SUB>)</SPAN>
+options determine the size of each table.
+<BR><BR>The autoregressive and moving average orders are tentatively identified
+by finding a rectangular pattern in which all values  are 
+insignificant.  The ARIMA procedure finds these patterns based on the
+IDENTIFY statement ALPHA= option and displays possible recommendations
+for the orders.
+<BR><BR>The following code generates a SCAN table with
+default dimensions of p=(0:5) and q=(0:5).  
+The recommended orders are based on a significance 
+level of 0.1.
+<PRE>
+
+   proc arima data=test;
+      identify var=x scan alpha=0.1;
+   run;
+</PRE>
+<BR><BR>See the <A HREF="sect30.htm#ariscan">&#34;The SCAN Method&#34;</A> section for more information.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">STATIONARITY=</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0111">&#13;</A><A NAME="idxari0112">&#13;</A>performs stationarity tests.  Stationarity tests can be used
+to determine whether differencing terms should be included in
+the model specification. In each stationarity test, the autoregressive
+orders can be specified by a range, <I>test=</I><SPAN CLASS="mathfont"><I>ar</I><SUB><I>max</I></SUB></SPAN>, or
+as a list of values, <I>test=</I><SPAN CLASS="mathfont">(<I>ar<SUB>1</SUB></I>,.., <I>ar</I><SUB><I>n</I></SUB>)</SPAN>, where <I>test</I>
+is ADF, PP, or RW.
+The default is (0,1,2).
+<BR><BR>See the <A HREF="sect31.htm#aristaytest">&#34;Stationarity Tests&#34;</A> section for more information.
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">STATIONARITY=(ADF= <I>AR orders</I> DLAG= <I>s</I>)</B></DT>
+<DT CLASS="ssbten"><B CLASS="ssbten">STATIONARITY=(DICKEY= <I>AR orders</I> DLAG= <I>s</I>)</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0113">&#13;</A><A NAME="idxari0114">&#13;</A><A NAME="idxari0115">&#13;</A>performs augmented Dickey-Fuller tests. If the DLAG=<SPAN CLASS="mathfont"><I>s</I></SPAN>
+option specified with <SPAN CLASS="mathfont"><I>s</I></SPAN> is greater than one,
+seasonal Dickey-Fuller tests are performed. The maximum
+allowable value of <SPAN CLASS="mathfont"><I>s</I></SPAN> is 12. The default value of <SPAN CLASS="mathfont"><I>s</I></SPAN> is one.
+The following code performs augmented Dickey-Fuller
+tests with autoregressive orders 2 and 5.
+<BR><BR><PRE>
+
+   proc arima data=test;
+      identify var=x stationarity=(adf=(2,5));
+   run;
+</PRE>
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">STATIONARITY=(PP= <I>AR orders</I>)</B></DT>
+<DT CLASS="ssbten"><B CLASS="ssbten">STATIONARITY=(PHILLIPS= <I>AR orders</I>)</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0116">&#13;</A><A NAME="idxari0117">&#13;</A>performs Phillips-Perron tests.
+The following code performs Augmented Phillips-Perron
+tests with autoregressive orders ranging from 0 to 6.
+<BR><BR><PRE>
+
+   proc arima data=test;
+      identify var=x stationarity=(pp=6);
+   run;
+</PRE>
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">STATIONARITY=(RW= <I>AR orders</I>)</B></DT>
+<DT CLASS="ssbten"><B CLASS="ssbten">STATIONARITY=(RANDOMWALK= <I>AR orders</I>)</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0118">&#13;</A><A NAME="idxari0119">&#13;</A>performs random-walk with drift tests.
+The following code performs random-walk with drift
+tests with autoregressive orders ranging from 0 to 2.
+<BR><BR><PRE>
+
+   proc arima data=test;
+      identify var=x stationarity=(rw);
+   run;
+</PRE>
+<BR><BR></DD><DT CLASS="ssbten"><B CLASS="ssbten">VAR= <I>variable</I></B></DT>
+<DT CLASS="ssbten"><B CLASS="ssbten">VAR= <I>variable</I> ( <I>d1, d2, ..., dk</I> )</B></DT>
+<DD CLASS="sasop"><A NAME="idxari0120">&#13;</A>names the variable containing the time series to analyze.
+The VAR= option is required.
+<BR><BR>A list of differencing lags can be placed in parentheses
+after the variable name to request that the series be differenced
+at these lags.
+For example, VAR=X(1) takes the first differences of X.
+VAR=X(1,1) requests that X be differenced twice,
+both times with lag 1, producing a second difference series, which
+is <SPAN CLASS="mathfont">(<I>X</I><SUB><I>t</I></SUB>-<I>X</I><SUB><I>t</I>-1</SUB>)-(<I>X</I><SUB><I>t</I>-1</SUB>-<I>X</I><SUB><I>t</I>-2</SUB>)=<I>X</I><SUB><I>t</I></SUB>-2<I>X</I><SUB><I>t</I>-1</SUB>+<I>X</I><SUB><I>t</I>-2</SUB> </SPAN>.
+<BR><BR>VAR=X(2) differences X once at lag two <SPAN CLASS="mathfont">(<I>X</I><SUB><I>t</I></SUB>-<I>X</I><SUB><I>t</I>-2</SUB>)</SPAN> .
+<BR><BR>If differencing is specified, it is the differenced series
+that is processed by any subsequent ESTIMATE statement.
+<BR><BR></DD>
+</DL><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect20.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect22.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

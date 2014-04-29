@@ -1,0 +1,340 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The DATA Step Graphics Interface : Using the DATA Step Graphics Interface </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1060954.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1045630.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1045641.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1045633">Using the DATA Step Graphics Interface</A></FONT></H1>
+
+
+<P><A name="z1082002">&#13; The
+following sections provide general information
+about using DSGI, including general steps for using DSGI, how to produce and
+store graphs, how the data sets used with DSGI are structured, how SAS/GRAPH global
+statements can be used with DSGI, and how to debug DSGI programs. The sections
+also explain some of the basic concepts of DSGI, including information about
+operating states and windowing systems.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Summary of Use</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1082003">&#13; To generate graphics
+output using DSGI,
+you generally follow these steps: </A>
+<OL START="1" type="1">
+<LI>On a grid that matches the dimensions of the graphics
+output, sketch the output you want to produce.<P>
+
+<LI>Determine the coordinates of each graphics element.<P>
+
+<LI>In the DATA step,
+write the program to generate
+the graphics output. The basic steps are to 
+<OL START="1" type="a">
+<LI>initialize DSGI<P>
+
+<LI>open a graphics
+segment<P>
+
+<LI>generate graphics elements<P>
+
+<LI>close the graphics segment<P>
+
+<LI>end
+DSGI.<P>
+</OL>
+<P>
+
+<LI>Submit the DATA step with a final RUN statement
+to display the output.<P>
+</OL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;<A name="z1082013">&#13;  The DISPLAY graphics option must be in effect
+for the
+graphics output to be displayed.  See </A><A href="z0713550.htm">Graphics Options and Device Parameters Dictionary</A> for more information about the DISPLAY
+graphics option.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Producing and Storing DSGI Graphs</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1082014">&#13;
+  When you create or enhance
+graphs with DSGI, the DSGI graphics are displayed and stored as part of the
+graphics output.  When you execute the DATA step, DSGI creates a catalog entry
+using the name from the GRAPH('CLEAR', . . . ) function.</A>
+<P>By default, DSGI uses the name DSGI if you have not
+specified a name with the GRAPH('CLEAR', . . . ) function. By default, the
+catalog entry is stored in WORK.GSEG unless you specify another catalog with
+the GSET('CATALOG', . . . ) function.
+<P>If you generate another graph using a name that matches
+an existing catalog entry in the current catalog, DSGI uses the default naming
+conventions for the catalog entry. See <A href="zatalogs.htm#zrynames">Names and Descriptions of Catalog Entries</A> for a description of the conventions
+used to name catalog entries.
+<P><A name="z1082017">&#13; If you want to store your output in
+a permanent library or in a different temporary catalog, you must use the
+GSET('CATALOG', . . . ) function. This function allows you to specify the
+libref and catalog name for the output catalog.  Before you use the GSET('CATALOG',
+. . . ) function, you must allocate the libref using a LIBNAME statement.</A>
+<P>You can redisplay DSGI graphics output stored in catalog
+entries using the GREPLAY procedure or the GRAPH window.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Structure of DSGI Data Sets</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1082019">&#13;
+The DSGI DATA step is usually
+not written to produce an output data set.  Unlike data sets created by the
+Annotate facility, which contain observations for each graphics element drawn,
+DSGI does not usually create an observation for each graphics primitive. Only
+variables created in the DATA step are written to the output data set.</A>
+<P><A name="z1082020">&#13; You can output as many
+observations to the data set as you want.
+ To output these values, you must use the OUTPUT statement.  You can also
+use any other valid SAS DATA step statements in a DSGI DATA step. See 
+
+
+
+<B>SAS Language Reference: Dictionary</B>
+for information about the statements used in the DATA step.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using SAS/GRAPH  Global Statements with DSGI</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1082021">&#13;     You can use some SAS/GRAPH 
+global statements with DSGI programs. DSGI recognizes FOOTNOTE, GOPTIONS,
+and TITLE statements; however, it ignores AXIS, LEGEND, NOTE, PATTERN, and
+SYMBOL statements.</A>
+<P>FOOTNOTE and TITLE statements affect DSGI graphics output
+the same way as they affect other SAS/GRAPH 
+procedure output. When TITLE and FOOTNOTE statements are used, the output
+from DSGI statements is placed in the procedure output area. See <A href="zprocout.htm#zs-drawn">Placement of Graphic Elements in the Graphics Output Area</A> for an explanation
+of how space in graphics output is allocated to titles and footnotes.
+<P><A name="z1082023">&#13;
+ 
+         Some DSGI functions override the graphics
+options. The following
+table lists the DSGI functions that directly override graphics options.  For
+details about the graphics options, see </A><A href="z0713550.htm">Graphics Options and Device Parameters Dictionary</A>. 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="0">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  colspan="2" align="LEFT" valign="BOTTOM" ><B>DSGI Function </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Graphics Option That Is Overridden </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('CBACK', . . . )    </TD>
+  
+<TD  align="LEFT" valign="TOP">CBACK=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('COLREP', . . . )   </TD>
+  
+<TD  align="LEFT" valign="TOP">COLORS=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('DEVICE', . . . )   </TD>
+  
+<TD  align="LEFT" valign="TOP">DEVICE=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('HPOS', . . . )     </TD>
+  
+<TD  align="LEFT" valign="TOP">HPOS=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('HSIZE', . . . )    </TD>
+  
+<TD  align="LEFT" valign="TOP">HSIZE=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('VPOS', . . . )     </TD>
+  
+<TD  align="LEFT" valign="TOP">VPOS=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('VSIZE',    . . . )    </TD>
+  
+<TD  align="LEFT" valign="TOP">VSIZE=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('TEXCOLOR', . . . )  </TD>
+  
+<TD  align="LEFT" valign="TOP">CTEXT=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('TEXFONT', . . . )  </TD>
+  
+<TD  align="LEFT" valign="TOP">FTEXT=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">GSET('TEXHEIGHT', . . . )  </TD>
+  
+<TD  align="LEFT" valign="TOP">HTEXT=</TD>
+</TR>
+
+</TABLE>
+
+<BR>  
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1045638">Operating States</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1082068">&#13; The operating state
+of DSGI determines
+which functions and routines may be issued at any point in the DATA step.
+You can only submit a function or routine when the operating state is appropriate
+for it. See </A><A href="z1045641.htm#z1045539">How Operating States Control the Order of DSGI Statements</A>
+for a discussion of how functions and routines should be ordered within the
+operating states.
+<P><A name="z1082069">&#13; The operating states defined by DSGI are
+</A>
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD><A name="z1082070">&#13; GKCL</A></TD>
+<TD align="left">facility closed, the initial state
+of DSGI. No graphical resources have been allocated.</TD></TR>
+
+<TR align=left valign="top">
+<TD><A name="z1082072">&#13; GKOP</A></TD>
+<TD align="left">facility open.  When DSGI is open,
+you may check the settings of the attributes.</TD></TR>
+
+<TR align=left valign="top">
+<TD><A name="z1082074">&#13; SGOP</A></TD>
+<TD align="left">segment open.  At this point, graphics
+output primitives may be generated.</TD></TR>
+
+<TR align=left valign="top">
+<TD><A name="z1082076">&#13; WSAC</A></TD>
+<TD align="left">workstation active.  When the workstation
+is active, it can receive DSGI statements.</TD></TR>
+
+<TR align=left valign="top">
+<TD><A name="z1082078">&#13; WSOP</A></TD>
+<TD align="left">workstation open.  In this implementation,
+the graphics catalog, either the default or the one specified through the
+GSET('CATALOG', . . . ) command, is opened or created.</TD></TR>
+</TABLE>
+
+<P>Refer to individual functions and routines in
+<A href="z1060538.htm">DATA Step Graphics Interface Dictionary</A> for the
+operating states from which that function or routine can be issued.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1045639">The Current Window System</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1082081">&#13;   When DSGI draws graphics, it evaluates
+<B>x</B> and <B>y</B> coordinates in terms of the <B>current window
+system</B>, either a window you have defined or the default window system.
+Unless you define and activate a different window, DSGI uses the default window
+system.</A>
+<P><A name="z1082082">&#13;  The default
+window system assigns two arbitrary systems of units to the <B>x</B>
+and <B>y</B> axes.  The default window guarantees a range of 0 through
+100 in one direction (usually the <B>y</B> direction) and at least 0
+through 100 in the other (usually the <B>x</B> direction). The ranges
+depend on the dimensions of your device. You can use the GASK('WINDOW', .
+. . ) routine to determine the dimensions of your default window system.</A>
+<P>You can define the <B>x</B> and <B>y</B>
+ranges to be any numeric range.  For example, you can use - 1000 to
++2000 on the <B>x</B> axis and 30 to 35 on the <B>y</B> axis.
+ The units used are arbitrary.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Debugging DSGI Programs</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1082084">&#13;
+  When DSGI encounters an
+error
+in a program, it flags the statement in the SAS log and displays a description
+of the error. (To receive SAS System messages, GSET('MESSAGE', . . . ) must
+be ON.) The description provides you with an explanation of the error. The
+description may also provide a return code. If you get a return code, you
+can refer to </A><A href="z1047187.htm">Return Codes for DSGI Routines and Functions</A>
+for a description of the error and why it might have occurred.
+<P>Some of the most common errors in DSGI programs are 
+<P>
+<UL>
+
+<LI>syntax
+errors<P>
+
+<LI>an invalid number of arguments for the function
+or routine<P>
+
+<LI>a function or routine being executed in an operating
+state that is not correct for the function or routine.<P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1060954.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1045630.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1045641.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1045633">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,230 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Histogram Control : Using a Color Variable in a Histogram Control </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zm-c-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0612116.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1240184.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1240173">Using a Color Variable in a Histogram Control</A></FONT></H1>
+
+
+<P>The default color is
+yellow for all of the bars in a histogram.
+To make color a response variable in the graph, you can specify a numeric
+variable whose values are indexed into the defined color range to determine
+the colors to use in the graph. 
+<P>To assign the color variable, use the colorVariable attribute. The colors
+can represent the Sum, Mean, or Frequency statistic for the dependent variables.
+To specify the statistic represented by the color variable, use the colorVariableStatistic
+attribute.
+<P>For a Histogram control named histogram1, the following code sets the
+colorVariable to Sales and the colorVariableStatistic to Sum:
+
+
+
+<PRE>histogram1.colorVariable = 'sales';
+histogram1.colorVariableStatistic = 'sum';</PRE>
+<P>The color is applied in a color range from yellow to red, with yellow
+representing the lowest values of the color variable and red representing
+the highest:
+<P>
+<P>
+<P><IMG border="0" src="./images/01333115.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To change the default color values that
+represent a
+color variable's
+values, you can define an alternative color range in either of two ways:
+<P>
+<UL>
+
+<LI>Define a different color list on the colorList attribute, and
+set the colorSource attribute to ColorList (the default). For details, see <A href="#z1240177">Creating a Color List in a Histogram Control</A>.<P>
+
+<LI>Assign an existing Range
+entry's color ranges to the color variable's
+values. To assign the Range entry, identify the entry on the colorRangeObject
+attribute, and set the colorSource attribute to ColorRangeObject. For details,
+see <A href="#z1240181">Using a Range Entry in a Histogram Control</A>.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1240177">Creating a Color List in a Histogram Control</A></FONT></B></TD></TR></TABLE>
+
+<P>To supply your own color
+list of up to 64 colors:
+<P>
+<UL>
+
+<LI>specify the colors on an unnamed SCL list. The list's data type
+should be character. For the list entries, use either standard SAS color names
+such as Red, Yellow, and Green, or color values in hex format.  Pure red in
+this format would be CXFF0000.<P>
+
+<LI>assign the list to the control's colorList attribute, and set
+the colorSource attribute to ColorList (the default).<P>
+</UL>
+
+<P>In build mode, you can define a color list by selecting the colorList
+attribute, and then selecting the button that appears in the Value column.
+This opens the List Editor so that you can define the list of colors.
+<P>To define a color list in SCL code, make an SCL list, populate it with
+the list of color values, and then assign the list to the control's colorList
+attribute. Your code might resemble the following for a control named histogram1:
+
+
+
+<PRE>/* Make the list */
+clist = makelist(3);
+rc = setitemc(clist,'Red',1);
+rc = setitemc(clist,'Yellow',2);
+rc = setitemc(clist,'Green',3);
+
+/* varName is the color variable's name */
+histogram1.colorVariable='varName';
+histogram1.colorList=clist;</PRE>
+<P>The colors in your specified list are distributed evenly across the
+range of values in the color variable. Thus, if you define three colors in
+the list, only three bar colors are used. The first color in the list represents
+the lowest third of the color variable's values, the second color in the list
+represents the middle third of the color variable's values, and the third
+color represents the highest third.
+<P>You can also create a list of blended colors. The following code creates
+a color series that ranges from red to blue:
+
+
+
+<PRE>rcolor= ' ';
+gcolor = ' ';
+bcolor = ' ';
+r = 255;
+g = 0;
+b = 0;
+fmt = 'hex2.';
+clist = makelist(16);
+do i = 1 to 16;
+  rcolor = putn(r,fmt);
+  gcolor = putn(g, fmt);
+  bcolor = putn(b, fmt);
+  cval = 'CX' || rcolor || gcolor || bcolor;
+  retc = setitemc(clist,cval,i);
+  r = r - 14;
+  b = b + 14;
+end;
+
+/* varName is the color variable's name */
+histogram1.colorVariable='varName';
+histogram1.colorList=clist;</PRE>
+<P>The colors in the list are distributed evenly across the range of values
+in the color variable:
+<P>
+<P>
+<P><IMG border="0" src="./images/01333116.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To return to using the default
+colors,
+assign an empty list to the colorList
+attribute:
+
+
+
+<PRE>clist = makelist();
+/* varName is the color variable's name */
+histogram1.colorVariable='varName';
+histogram1.colorList=clist;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1240181">Using a Range Entry in a Histogram Control</A></FONT></B></TD></TR></TABLE>
+
+<P>You can use a Range entry
+as the color source for a Histogram
+control. A Range entry is a catalog entry of type RANGE. The entry defines
+a range having up to 24 <B>segments</B>, each of which is assigned a
+numeric range, a color, and an attribute. For example, segment 1 might be
+assigned the numeric range from 0 to 5, the color Blue, and the attibute Blinking;
+segment 2 might be assigned the numeric range from 6 to 10, the color Green,
+and the attribute Highlight; and so on. A Histogram control supports the numeric
+ranges and the colors assigned to the segments, but it does not support the
+attributes (Blinking, Highlight, Reverse, Underline, and Hirev).
+<P>When used with a Histogram control, the numeric ranges that are defined
+in the Range entry's segments are indexed into the values of the color variable
+that is assigned to the Histogram control. So, using the segments defined
+above, the values from 0 to 5 in the color variable will be represented by
+Blue in the graph, and the values from 6 to 10 will be represented by Green,
+and so on.
+<P>To use a Range entry, you must do all of the following:
+<P>
+<UL>
+
+<LI>create the Range entry if it does not exist<P>
+
+<LI>assign a color variable
+to the control by naming it on the colorVariable
+attribute<P>
+
+<LI>specify that the Range entry is the source of color by setting
+the colorSource attribute to ColorRangeObject<P>
+
+<LI>specify the Range entry's three- or four-level name on the colorRangeObject
+attribute.<P>
+</UL>
+
+<P>To create a Range entry, use the Range Entry window, which you can open
+from the SAS command line. If you need help defining the segments, use the
+window's Help button to get help. The following command opens the Range Entry
+window to create a temporary Range entry in the WORK library:
+
+
+
+<PRE>build work.color.myrange.range</PRE>
+<P> After creating the Range entry, you can use its color definitions as
+the color source in a Histogram control. For example, if you used the command
+above to create a Range entry, the following code applies that entry's colors
+to a Histogram control named histogram1:
+
+
+
+<PRE>/* varName is the color variable's name */
+histogram1.colorVariable='varName';
+histogram1.colorSource='ColorRangeObject';
+histogram1.colorRangeObject='work.color.myrange.range';</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zm-c-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0612116.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1240184.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1240173">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

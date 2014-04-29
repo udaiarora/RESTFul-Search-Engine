@@ -1,0 +1,185 @@
+<HTML>
+<HEAD>
+<TITLE>Language Differences</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect66.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect68.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Language Differences  </H2>
+<A NAME="idxmod0658">&#13;</A><A NAME="idxmod0657">&#13;</A>For the most part, PROC MODEL programming statements work the same
+as they do in the DATA step
+as documented in <I>SAS Language: Reference</I>.
+However, there are several differences that should be noted.
+<P><H3><I>DO Statement Differences</I></H3>
+<A NAME="idxmod0659">&#13;</A>The DO statement in PROC MODEL does not allow a character index variable.
+Thus, the following DO statement is not valid in PROC MODEL, 
+although it is supported in the DATA step:
+<P><PRE>
+   do i = 'A', 'B', 'C';         /* invalid PROC MODEL code */
+</PRE>
+<P><H3><I>IF Statement Differences</I></H3>
+<A NAME="idxmod0660">&#13;</A>The IF statement in PROC MODEL does not allow a character-valued condition.
+For example, the following IF statement is not supported by PROC MODEL:
+<P><PRE>
+   if 'this' then  statement;
+</PRE>
+<P>Comparisons of character values are supported in IF statements,
+so the following IF statement is acceptable:
+<P><PRE>
+   if 'this' &#60; 'that' then  statement};
+</PRE>
+<P>PROC MODEL allows for embedded conditionals in expressions. For example
+the following two statements are equivalent:
+<PRE>
+   flag = if time = 1 or time = 2 then conc+30/5 + dose*time
+              else if time &#62; 5 then (0=1) else (patient * flag);
+</PRE>
+<PRE>
+   if time = 1 or time = 2 then flag= conc+30/5 + dose*time;
+          else if time &#62; 5 then flag=(0=1); else flag=patient*flag;
+</PRE>
+Note that the ELSE operator only involves the first object or token
+after it so that the following assignments are not equivalent:
+<PRE>
+   total = if sum &#62; 0 then sum else sum + reserve;
+   total = if sum &#62; 0 then sum else (sum + reserve);
+</PRE>
+The first assignment makes TOTAL always equal to SUM plus RESERVE.
+<P><H3><I>PUT Statement Differences</I></H3>
+<A NAME="idxmod0661">&#13;</A>The PUT statement, mostly used in PROC MODEL for program debugging,
+only supports some of the features of the DATA step PUT statement.
+It also has some new features that the DATA step PUT statement does not
+support.
+<P>The PROC MODEL PUT statement does not support line pointers,
+factored lists, iteration factors, overprinting,
+the _INFILE_ option, or the colon (:) format modifier.
+<P>The PROC MODEL PUT statement does support expressions
+but an expression must be enclosed in parentheses.
+For example, the following statement prints the square root of x:
+<P><PRE>
+   put (sqrt(x));
+</PRE>
+<P>Subscripted array names must be enclosed in parentheses.
+For example, the following statement
+prints the <I>i</I>th element of the array A:
+<P><PRE>
+   put (a i);
+</PRE>
+<P>However, the following statement is an error:
+<P><PRE>
+   put a i;
+</PRE>
+<P>The PROC MODEL PUT statement supports the print item _PDV_
+to print a formatted listing of all the variables in the program.
+For example, the following statement prints a much more 
+readable listing of the variables than does the _ALL_ print item:
+<P><PRE>
+   put _pdv_;
+</PRE>
+<P>To print all the elements of the array A, 
+use the following statement:
+<P><PRE>
+   put a;
+</PRE>
+<P>To print all the elements of A with each value labeled
+by the name of the element variable, use the statement
+<P><PRE>
+   put a=;
+</PRE>
+<P><H3><I>ABORT Statement Difference</I></H3>
+<A NAME="idxmod0662">&#13;</A>In the MODEL procedure, the ABORT statement does not allow any arguments.
+<P><H3><I>SELECT/WHEN/OTHERWISE Statement Differences</I></H3>
+<A NAME="idxmod0663">&#13;</A><A NAME="idxmod0664">&#13;</A><A NAME="idxmod0665">&#13;</A>The WHEN and OTHERWISE statements allow more than one target statement.
+That is, DO groups are not necessary for multiple statement WHENs.
+For example in PROC MODEL, the following syntax is valid:
+<P><PRE>
+   select;
+      when(exp1) 
+         stmt1;
+         stmt2;
+      when(exp2) 
+         stmt3;
+         stmt4;
+   end;
+</PRE>
+<P><H3><I>The ARRAY Statement</I></H3>
+<DL><DD><B CLASS="ssbeleven">ARRAY</B> <I CLASS="ssieleven">arrayname [{dimensions}]
+ [$  [length]] [ variables and constants];</I></DL><BR>The ARRAY statement is used to associate a name
+with a list of variables and constants.
+The array name can then be used with subscripts in the model
+program to refer to the items in the list.
+<BR><BR>In PROC MODEL, the ARRAY statement does not support all
+the features of the DATA step ARRAY statement. 
+Implicit indexing cannot be used;
+all array references must have explicit subscript expressions.
+Only exact array dimensions are allowed; lower-bound specifications
+are not supported.
+A maximum of six dimensions is allowed.
+<BR><BR>On the other hand, the ARRAY statement supported by PROC MODEL
+does allow both variables and constants to be used as array elements.
+You cannot make assignments to constant array elements.
+Both dimension specification and the list of elements are optional,
+but at least one must be supplied.
+When the list of elements is not given
+or fewer elements than the size of the array are listed,
+array variables are created by suffixing element numbers to
+the array name to complete the element list.
+<BR><BR>The following are valid PROC MODEL array statements:
+<PRE>
+   array x[120];           /* array X of length 120            */
+   array q[2,2];           /* Two dimensional array Q          */
+   array b[4] va vb vc vd; /* B[2] = VB, B[4] = VD             */
+   array x x1-x30;         /* array X of length 30, X[7] = X7  */ 
+   array a[5] (1 2 3 4 5); /* array A initialized to 1,2,3,4,5 */
+</PRE>
+<BR><BR><H3><I>RETAIN Statement</I></H3>
+<DL><DD><B CLASS="ssbeleven">RETAIN</B> <I CLASS="ssieleven">  variables initial-values ;</I></DL>
+<A NAME="idxmod0666">&#13;</A>The RETAIN statement causes a program variable to hold its
+value from a previous observation until the variable is reassigned.
+The RETAIN statement can be used to 
+initialize program variables.
+<P>The RETAIN statement does not work for model variables,
+parameters, or control variables
+because the values of these variables are under the control of
+PROC MODEL and not programming statements.
+Use the PARMS and CONTROL statements to initialize
+parameters and control variables.
+Use the VAR, ENDOGENOUS, or EXOGENOUS statement to
+initialize model variables.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect66.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect68.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

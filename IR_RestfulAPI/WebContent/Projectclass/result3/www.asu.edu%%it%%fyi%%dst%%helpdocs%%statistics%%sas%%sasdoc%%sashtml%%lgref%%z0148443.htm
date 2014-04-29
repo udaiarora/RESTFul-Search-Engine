@@ -1,0 +1,169 @@
+<HTML>
+<!-- This page produced Mon Jul 19 13:58:41 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Functions and CALL Routines : VARTYPE </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0245969.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0245970.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">VARTYPE</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0148443">VARTYPE</A></FONT></H1>
+
+<P><HR><BR><B>Returns the data type of a SAS data set variable</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Category:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">SAS File I/O
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z0148443.htm#zid-1752"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0148443.htm#zid-1753"><FONT size="2"><B>Arguments</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0148443.htm#z0226660"><FONT size="2"><B>Details</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0148443.htm#z0226661"><FONT size="2"><B>Examples</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0148443.htm#z0226663"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="zid-1752">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>VARTYPE</B>(<I>data-set-id</I>,<I>var-num</I>)
+</TD></TR></TABLE>
+<BR><H3><A name="zid-1753">Arguments</A></H3>
+
+<P><A name="z0846978">&#13;</A>
+<DL>
+<DT><B><B><I>data-set-id</I></B></B></DT>
+<DD>specifies the data set identifier that the
+OPEN function returns.<P></DD>
+
+<DT><B><B><I>var-num</I></B></B></DT>
+<DD>specifies the number of the variable's position
+in the SAS data set. 
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="left" bgcolor="#F5F5F5" width="95" nowrap><B>Tip:</B></TD>
+<TD align="left" bgcolor="#F5F5F5">This number is next to the
+variable in the list that is produced by the CONTENTS procedure.</TD>
+</TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="left" bgcolor="#F5F5F5" width="95" nowrap><B>Tip:</B></TD>
+<TD align="left" bgcolor="#F5F5F5">The VARNUM function returns
+this number.</TD>
+</TABLE>
+<P></DD>
+</DL>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0226660">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>VARTYPE returns
+C for a character variable or N for a numeric variable.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0226661">Examples</A></FONT></B></TD></TR></TABLE>
+
+<P>
+<P>
+<UL>
+
+<LI>This example places the names of all the numeric
+variables of the SAS data set MYDATA into a macro variable.
+
+
+
+<PRE>%let dsid=%sysfunc(open(mydata,i));
+%let varlist=;
+%do i=1 %to %sysfunc(attrn(&amp;dsid,nvars));
+  %if (%sysfunc(vartype(&amp;dsid,&amp;i)) = N) %then
+     %let varlist=&amp;varlist %sysfunc(varname
+                                 (&amp;dsid,&amp;i));
+%end;
+%let rc=%sysfunc(close(&amp;dsid));</PRE><P>
+
+<LI>This example creates a data set that contains
+the name and formatted contents of each character variable in the SAS data
+set MYDATA. 
+
+
+
+
+<PRE>data vars;
+   length name $ 8 content $ 20;
+   drop dsid i num fmt rc;
+   dsid=open("mydata","i");
+   num=attrn(dsid,"nvars");
+   do while (fetch(dsid)=0);
+      do i=1 to num;
+         name=varname(dsid,i);
+         fmt=varfmt(dsid,i);
+         if (vartype(dsid,i)='C') then do;
+            content=getvarc(dsid,i);
+            if (fmt ne '' ) then
+             content=left(putc(content,fmt));
+            output;
+            end;
+      end;
+   end;
+   rc=close(dsid);
+run;</PRE><P>
+</UL>
+
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0226663">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>Function:
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><A href="z0148439.htm">VARNUM</A></TD></TR></TABLE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0245969.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0245970.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0148443">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

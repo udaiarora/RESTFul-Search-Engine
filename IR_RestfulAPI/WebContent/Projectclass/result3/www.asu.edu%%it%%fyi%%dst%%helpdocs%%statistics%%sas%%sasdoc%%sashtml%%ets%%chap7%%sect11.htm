@@ -1,0 +1,137 @@
+<HTML>
+<HEAD>
+<TITLE>Subset, Seasonal, and Factored ARMA Models</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect10.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect12.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Subset, Seasonal, and Factored ARMA Models  </H2>
+<P>The simplest way to specify an ARMA model is to
+give the order of the AR and MA parts with the P= and Q= options.
+When you do this, the model has parameters for the AR and MA parts
+for all lags through the order specified.
+However, you can control the form of the ARIMA model exactly
+as shown in the following section.
+<P><H3><I>Subset Models</I></H3>
+You can control which lags have parameters
+by specifying the P= or Q= option as a list of lags in parentheses.
+A model like this that includes parameters for only some lags is
+sometimes called a <I>subset</I> or <I>additive model</I>.
+<A NAME="idxari0033">&#13;</A><A NAME="idxari0032">&#13;</A><A NAME="idxari0035">&#13;</A><A NAME="idxari0034">&#13;</A><A NAME="idxari0037">&#13;</A><A NAME="idxari0036">&#13;</A>For example, consider the following two ESTIMATE statements:
+<P><PRE>
+
+   identify var=sales;
+   estimate p=4;
+   estimate p=(1 4);
+</PRE>
+<P>Both specify AR(4) models, but the first has parameters for lags
+1, 2, 3, and 4, while the second has parameters for lags 1 and 4,
+with the coefficients for lags 2 and 3 constrained to 0.
+The mathematical form of the autoregressive models produced by these
+two specifications is shown in <A HREF="sect11.htm#arisubset">Table 7.1</A>.
+<P></P><A NAME="arisubset"><SPAN CLASS="ssften"><B>Table 7.1:</B> Saturated versus Subset Models</SPAN></A>
+<TABLE COLS=2 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Autoregressive Operator </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>P=4</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="273" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq28.gif"
+ ALT="{(1-{\phi}_{1}B-{\phi}_{2}B^2-{\phi}_{3}B^3-{\phi}_{4}B^4) }"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>P=(1 4)</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="146" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq29.gif"
+ ALT="{(1-{\phi}_{1}B-{\phi}_{4}B^4) }"></TD></TR></TBODY>
+</TABLE>
+<P><H3><I>Seasonal Models</I></H3>
+One particularly useful kind of subset model is a <I>seasonal model</I>.
+<A NAME="idxari0039">&#13;</A><A NAME="idxari0038">&#13;</A><A NAME="idxari0041">&#13;</A><A NAME="idxari0040">&#13;</A>When the response series has a seasonal pattern,
+the values of the series at the same time of year in previous
+years may be important for modeling the series.
+For example, if the series SALES is observed monthly, the statements
+<P><PRE>
+
+   identify var=sales;
+   estimate p=(12);
+</PRE>
+<P>model SALES as an average value plus some fraction of its
+deviation from this average value
+a year ago, plus a random error.
+Although this is an AR(12) model, it has only one autoregressive parameter.
+<P><H3><I>Factored Models</I></H3>
+<A NAME="idxari0043">&#13;</A><A NAME="idxari0042">&#13;</A><A NAME="idxari0045">&#13;</A><A NAME="idxari0044">&#13;</A><A NAME="idxari0047">&#13;</A><A NAME="idxari0046">&#13;</A>A factored model (also referred to as a multiplicative model) 
+represents the ARIMA model as a product of simpler ARIMA models.
+For example, you might model SALES as a combination of an AR(1) process
+reflecting short term dependencies and an AR(12) model reflecting
+the seasonal pattern.
+<P>It might seem that the way to do this is with the option P=(1 12),
+but the AR(1) process also operates in past years;
+you really need autoregressive parameters at lags 1, 12, and 13.
+You can specify a subset model with separate parameters at these lags,
+or you can specify a factored model that represents the model as the
+product of an AR(1) model and an AR(12) model.
+Consider the following two ESTIMATE statements:
+<P><PRE>
+
+   identify var=sales;
+   estimate p=(1 12 13);
+   estimate p=(1)(12);
+</PRE>
+<P>The mathematical form of the autoregressive models
+produced by these two specifications are shown in <A HREF="sect11.htm#arifactored">Table 7.2</A>.
+<P></P><A NAME="arifactored"><SPAN CLASS="ssften"><B>Table 7.2:</B> Subset versus Factored Models</SPAN></A>
+<TABLE COLS=2 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Option </B></FONT></B></TH><TH BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B><FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Autoregressive Operator </B></FONT></B></TH></TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>P=(1 12 13)</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="238" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq30.gif"
+ ALT="{(1-{\phi}_{1}B-{\phi}_{12}B^{12}-{\phi}_{13}B^{13})}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>P=(1)(12)</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="183" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/arieq31.gif"
+ ALT="{(1-{\phi}_{1}B)(1-{\phi}_{12}B^{12})}"></TD></TR></TBODY>
+</TABLE>
+<P>Both models fit by these two ESTIMATE statements predict SALES
+from its values 1, 12, and 13 periods ago,
+but they use different parameterizations.
+The first model has three parameters,
+whose meanings may be hard to interpret.
+<P>The factored specification P=(1)(12) represents the model 
+as the product of two different AR models.
+It has only two parameters: one that corresponds to recent effects
+and one that represents seasonal effects.
+Thus the factored model is more parsimonious,
+and its parameter estimates are more clearly interpretable.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect10.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect12.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

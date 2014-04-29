@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+<TITLE>Forecasting with Input Variables</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect14.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect16.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Forecasting with Input Variables  </H2>
+<P>To forecast a response series using an ARIMA model with inputs,
+you need values of the input series for the forecast periods.
+You can supply values for the input variables for the
+forecast periods in the DATA= data set,
+or you can have PROC ARIMA forecast the input variables.
+<P>If you do not have future values of the input variables in the
+input data set used by the FORECAST statement,
+the input series must be forecast before the ARIMA procedure
+can forecast the response series.
+If you fit an ARIMA model to each of the input series for which 
+you need forecasts before fitting the model for the response series,
+the FORECAST statement automatically uses the ARIMA models for the
+input series to generate the needed forecasts of the inputs.
+<P>For example, suppose you want to forecast SALES for the next 12 months.
+In this example, we predict the change in SALES as a function of the
+lagged change in PRICE, plus an ARMA(1,1) noise process.
+To forecast SALES using PRICE as an input,
+you also need to fit an ARIMA model for PRICE.
+<P>The following statements fit an AR(2) model to the change in PRICE
+before fitting and forecasting the model for SALES.
+The FORECAST statement automatically forecasts PRICE using this AR(2) model
+to get the future inputs needed to produce the forecast of SALES.
+<P><PRE>
+
+   proc arima data=a;
+      identify var=price(1);
+      estimate p=2;
+      identify var=sales(1) crosscorr=price(1);
+      estimate p=1 q=1 input=price;
+      forecast lead=12 interval=month id=date out=results;
+   run;
+</PRE>
+<P>Fitting a model to the input series is also important for
+identifying transfer functions.
+(See the section &#34;Prewhitening&#34; later in this chapter for more
+information.)
+<P>Input values from the DATA= data set and input values forecast
+by PROC ARIMA can be combined.
+For example, a model for SALES might have three input series:
+PRICE, INCOME, and TAXRATE.
+For the forecast, you assume that the tax rate will be unchanged.
+You have a forecast for INCOME from another source but only for
+the first few periods of the SALES forecast you want to make.
+You have no future values for PRICE, which needs to be forecast
+as in the preceding example.
+<P>In this situation, you include observations in the input data set
+for all forecast periods, with SALES and PRICE set to a missing value,
+with TAXRATE set to its last actual value,
+and with INCOME set to forecast values for the periods you have forecasts
+for and set to missing values for later periods.
+In the PROC ARIMA step, you estimate ARIMA models for PRICE and INCOME
+before estimating the model for SALES, as shown in the following
+statements:
+<P><PRE>
+
+   proc arima data=a;
+     identify var=price(1);
+     estimate p=2;
+     identify var=income(1);
+     estimate p=2;
+     identify var=sales(1) crosscorr=( price(1) income(1) taxrate );
+     estimate p=1 q=1 input=( price income taxrate );
+     forecast lead=12 interval=month id=date out=results;
+     run;
+</PRE>
+<P>In forecasting SALES, the ARIMA procedure uses as inputs
+the value of PRICE forecast by its ARIMA model,
+the value of TAXRATE found in the DATA= data set,
+and the value of INCOME found in the DATA= data set, or,
+when the INCOME variable is missing,
+the value of INCOME forecast by its ARIMA model.
+(Because SALES is missing for future time periods,
+the estimation of model parameters is not affected by the
+forecast values for PRICE, INCOME, or TAXRATE.)
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect14.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect16.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

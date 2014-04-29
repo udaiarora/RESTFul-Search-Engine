@@ -1,0 +1,211 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Creating and Loading SYSTEM 2000 Databases : Introduction </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003239.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1005334.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1024342.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1003238">Introduction</A></FONT></H1>
+
+
+<P><A name="z1042969">&#13;
+
+
+The DBLOAD procedure enables you to create and load a SYSTEM 2000 database
+from a SAS data set. Optionally, you can create the database definition only
+and do one or more incremental loads later. </A>
+<P>The DBLOAD procedure constructs SYSTEM 2000 statements to create the
+database definition. You can load new logical entries into the database, or
+you can insert new records into existing logical entries. The data can come
+from a SAS data file, from a view created with the SQL procedure, or from
+a SYSTEM 2000 database or another DBMS (using a view created with the ACCESS
+procedure).
+<P>The procedure associates each SAS variable in the input data with a
+SYSTEM 2000 item and assigns a default item name, number, and type to each
+item. By default, items are non-key at level 0. You can use the defaults or
+change the names, key/non-key status, and level numbers as necessary. When
+you are finished customizing the items, the DBLOAD procedure creates the SYSTEM
+2000 database.
+<P>The DBLOAD procedure can run in interactive line and batch modes.
+<P>This chapter presents examples of creating and loading a
+database. The
+examples create a database named BANKING, with input data that resides in
+the SAS data file TRANS.BANKING, shown in <A href="z1011624.htm#z1011648">TRANS.BANKING Data File</A>. The data contain information regarding
+individual checking and savings account transactions. Also, the section <A href="z1005668.htm">Incremental Load Example</A> shows
+a sample incremental load for an existing database.
+<P>Refer to <A href="z1030792.htm">DBLOAD Procedure Reference</A>
+for reference information on the DBLOAD procedure. 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">SYSTEM 2000 BANKING Database Definition</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042975">&#13;
+
+The examples of the DBLOAD procedure given in this chapter create a
+BANKING database and load data into it. In this new database, each logical
+entry contains data for one customer.</A>
+<P>The ENTRY schema record at level 0 contains two items: the customer
+name and customer ID. There is one schema record at level 1; it contains information
+about the customer's checking and savings accounts. The schema record at level
+2 contains information about the transactions for each account. 
+<P>After you create the BANKING database, you can use the QUEST procedure
+to issue a SYSTEM 2000 DESCRIBE statement, which would produce <A href="#z1023995">BANKING Database Definition</A>, showing the database
+definition.
+
+<P>
+<B><I><A name="z1023995">BANKING Database Definition</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>  SYSTEM RELEASE NUMBER  12.1
+  DATA BASE NAME IS      BANKING
+  DEFINITION NUMBER             1
+  DATA BASE CYCLE NUMBER       18
+       1*  CUSTNAME (CHAR X(20))
+       2*  CUSTID (CHAR X(7))
+     100*  RECORD_LEVEL_1 (RECORD)
+       101*  ACCOUNT NUMBER (INTEGER NUMBER 9999 IN 100)
+       102*  ACCOUNT TYPE (CHAR X IN 100)
+       200*  RECORD_LEVEL_2 (RECORD IN 100)
+         201*  TRANS TYPE (CHAR X IN 200)
+         202*  TRANS AMOUNT (NON-KEY MONEY $9(7).99 IN 200)
+         203*  TRANS DATE (DATE IN 200)</PRE></TD></TR></TABLE>
+
+<P>
+<P>Notice that the records are stair-stepped down and to the right, reflecting
+the record relationships.  That is, record C200 is related to record C100,
+which is related to the level 0 record.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">SYSTEM 2000 BANKING Data</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042979">&#13;
+
+The input SAS data file for the examples is shown in </A><A href="z1011624.htm#z1011648">TRANS.BANKING Data File</A>. If you want to run the
+examples, be sure that you sort the observations before you use the DBLOAD
+procedure. Sorting groups the observations by accounts for each customer,
+which produces data in the sequence required for loading the three-level BANKING
+database.
+<P>Each observation in the input data file represents one transaction.
+For example, John Booker has four transactions, two for each of his accounts.
+ His name and account numbers are repeated in each observation as shown in <A href="#z1024002">Sample SAS TRANS.BANKING Data File</A>.
+
+<P>
+<B><I><A name="z1024002">Sample SAS TRANS.BANKING Data File</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>OBS  CUSTNAME       CUSTID   ACCTNUM  ACCTTYP  TRANSTYP  TRANSAMT  TRANSDAT
+
+  <I>1  BOOKER, JOHN   74-9838   8349       S         D       $40.00  05JUN89</I>
+  2  LOPEZ, PAT     38-7274   9896       S         D       $15.67  23JUN89
+  3  JONES, APRIL   85-4941   4141       C         W      $213.78  29JUN89
+ <I> 4  BOOKER, JOHN   74-9838   8349       S         I       $34.76  30JUN89</I>
+  5  MILLER, NANCY  07-6163   7890       S         I       $53.98  30JUN89
+  6  LOPEZ, PAT     38-7274   9896       S         I       $16.43  30JUN89
+  7  JONES, APRIL   85-4941   4141       C         W      $354.70  30JUN89
+  8  MILLER, NANCY  07-6163   7890       S         D    $1,245.87  01JUL89
+  9  JONES, APRIL   85-4941   4141       C         D    $2,298.65  01JUL89
+ 10  MILLER, NANCY  07-6163   3876       C         W       $45.98  08JUL89
+ 11  ROGERS, MIKE   96-5052   4576       C         D       $75.00  10JUL89
+ <I>12  BOOKER, JOHN   74-9838   3673       C         D      $150.00  10JUL89</I>
+ 13  LOPEZ, PAT     38-7274   9896       S         D       $50.00  10JUL89
+ <I>14  BOOKER, JOHN   74-9838   3673       C         W       $65.43  13JUL89</I>
+ 15  ROGERS, MIKE   96-5052   4576       C         W       $12.34  13JUL89
+ 16  ROGERS, MIKE   96-5052   4576       C         W       $45.67  13JUL89
+ 17  MILLER, NANCY  07-6163   3876       C         D       $56.79  14JUL89
+ 18  ROGERS, MIKE   96-5052   4576       C         W       $12.16  15JUL89</PRE></TD></TR></TABLE>
+
+<P>
+<P>After you sort the input data file by customer name and account type,
+the DBLOAD procedure loads each customer as a logical entry in the SYSTEM
+2000 database. Redundant data is reduced, thus saving storage space. The logical
+entry for John Booker would look like <A href="#z1033984">Sample Logical Entry in BANKING Database</A>.
+<P>
+<B><I><A name="z1033984">Sample Logical Entry in BANKING Database</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01321397.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>After you load the
+TRANS.BANKING input data, you could run this SYSTEM
+2000 LIST statement using the QUEST procedure: 
+
+
+
+<PRE>    list c1, c101, c102, c201, c202;</PRE>
+<P>The output from this LIST statement is shown in <A href="#z1024005">BANKING Database Data from LIST Command</A>.
+
+<P>
+<B><I><A name="z1024005">BANKING Database Data from LIST Command</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>* CUSTNAME        ACCOUNT NUMBER   ACCOUNT TYPE   TRANS TYPE   TRANS AMOUNT
+***
+* BOOKER, JOHN              3673   C              D                 $150.00
+*                                                 W                  $65.43
+*                           8349   S              D                  $40.00
+*                                                 I                  $34.76
+* JONES, APRIL              4141   C              W                 $213.78
+*                                                 W                 $354.70
+*                                                 D               $2,298.65
+* LOPEZ, PAT                9896   S              D                  $15.67
+*                                                 I                  $16.43
+*                                                 D                  $50.00
+* MILLER, NANCY             3876   C              W                  $45.98
+*                                                 D                  $56.79
+*                           7890   S              I                  $53.98
+*                                                 D               $1,245.87
+* ROGERS, MIKE              4576   C              D                  $75.00
+*                                                 W                  $12.34
+*                                                 W                  $45.67
+*                                                 W                  $12.16</PRE></TD></TR></TABLE>
+
+<P>
+<P>Notice, for example, the data values for John Booker - his name appears
+only once here, but he has two account numbers and four transactions.  Since
+the examples of the DBLOAD procedure given in this chapter rank the data values
+into levels, you have a clear, logical view of the data.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003239.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1005334.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1024342.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1003238">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

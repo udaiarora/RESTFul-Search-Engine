@@ -1,0 +1,96 @@
+<HTML>
+<HEAD>
+<TITLE>Leading Series</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Working with Time Series Data</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Leading Series  </H2>
+<P><A NAME="idxtsd0543">&#13;</A><A NAME="idxtsd0542">&#13;</A><A NAME="idxtsd0545">&#13;</A><A NAME="idxtsd0544">&#13;</A>Although the SAS System does not provide a function to look 
+ahead at the &#34;next&#34; value of a series, there are a couple of ways
+to perform this task.
+<P>The most direct way to compute leads is to use the EXPAND procedure.
+For example
+<P><PRE>
+   proc expand data=uscpi out=uscpi method=none;
+      id date;
+      convert cpi=cpilead1 / transform=( lead 1 );
+      convert cpi=cpilead2 / transform=( lead 2 );
+   run;
+</PRE>
+<P>Another way to compute lead series in SAS software is by lagging the time
+ID variable, renaming the series, and merging the result data set back
+with the original data set.
+<P>For example, the following statements add the variable CPILEAD to the USCPI data set.
+The variable CPILEAD contains the value of CPI in the following month.
+(The value of CPILEAD will be missing for the last observation, of course.)
+<P><PRE>
+   data temp;
+      set uscpi;
+      keep date cpi;
+      rename cpi = cpilead;
+      date = lag( date );
+      if date ^= .;
+   run;
+   
+   data uscpi;
+      merge uscpi temp;
+      by date;
+   run;
+</PRE>
+<P><A NAME="idxtsd0547">&#13;</A><A NAME="idxtsd0546">&#13;</A><A NAME="idxtsd0549">&#13;</A><A NAME="idxtsd0548">&#13;</A>To compute leads at different lead lengths,
+you must create one temporary data set for each lead length.
+For example, the following statements compute CPILEAD1 and CPILEAD2,
+which contain leads of CPI for 1 and 2 periods, respectively:
+<P><PRE>
+   data temp1(rename=(cpi=cpilead1)) temp2(rename=(cpi=cpilead2));
+      set uscpi;
+      keep date cpi;
+      date = lag( date );
+      if date ^= . then output temp1;
+      date = lag( date );
+      if date ^= . then output temp2;
+   run;
+   
+   data uscpi;
+      merge uscpi temp1 temp2;
+      by date;
+   run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect48.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect50.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,172 @@
+<HTML>
+<!-- This page produced Mon Jul 19 13:58:41 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Functions and CALL Routines : CALL SET </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0332378.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0127861.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">CALL SET</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0127856">CALL SET</A></FONT></H1>
+
+<P><HR><BR><B>Links SAS data set variables to DATA step or macro variables that
+have the same name and data type</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Category:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">Variable Control
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z0127856.htm#znid-707"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0127856.htm#znid-708"><FONT size="2"><B>Arguments</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0127856.htm#z0127857"><FONT size="2"><B>Details</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0127856.htm#z0127858"><FONT size="2"><B>Examples</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0127856.htm#z0127860"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="znid-707">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>CALL SET</B>(<I>data-set-id</I>);
+</TD></TR></TABLE>
+<BR><H3><A name="znid-708">Arguments</A></H3>
+
+<P><A name="z0850198">&#13;</A>
+<DL>
+<DT><B><B><I>data-set-id</I></B></B></DT>
+<DD>is the identifier that is assigned by the
+OPEN function when the data set is opened.<P></DD>
+</DL>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0127857">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>Using SET can significantly
+reduce the coding that is required for accessing variable values for modification
+or verification when you use functions to read or to manipulate a SAS file.
+After a CALL SET, whenever a read is performed from the SAS data set, the
+values of the corresponding macro or DATA step variables are set to the values
+of the matching SAS data set variables.  If the variable lengths do not match,
+the values are truncated or padded according to need.  If you do not use SET,
+then you must use the GETVARC and GETVARN functions to move values explicitly
+between data set variables and macro or DATA step variables.  
+<P>As a general rule, use CALL SET immediately following
+OPEN if you want to link the data set and the macro and DATA step variables.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0127858">Examples</A></FONT></B></TD></TR></TABLE>
+
+<P>This example uses the CALL SET routine: 
+<P>
+<UL>
+
+<LI>The following statements automatically set
+the
+values of the macro variables PRICE and STYLE when an observation is fetched: 
+
+
+
+<PRE>%macro setvar;
+   %let dsid=%sysfunc(open(sasuser.houses,i));
+      /* No leading ampersand with %SYSCALL */ 
+   %syscall set(dsid); 
+   %let rc=%sysfunc(fetchobs(&amp;dsid,10));
+   %let rc=%sysfunc(close(&amp;dsid));
+%mend setvar;
+
+%global price style;
+%setvar
+%put _global_;</PRE><P>
+
+<LI>The %PUT statement writes these lines to the SAS
+log:
+
+
+
+<PRE>GLOBAL PRICE 127150
+GLOBAL STYLE CONDO</PRE><P>
+
+<LI>The following statements obtain the values for
+the first 10 observations in SASUSER.HOUSES and store them in MYDATA: 
+
+
+
+<PRE>data mydata;
+      /* create variables for assignment */
+      /*by CALL SET */
+   length style $8 sqfeet bedrooms baths 8 
+      street $16 price 8;
+   drop rc dsid;
+   dsid=open("sasuser.houses","i");
+   call set (dsid);
+   do i=1 to 10;
+      rc=fetchobs(dsid,i);
+      output;
+   end;
+run;</PRE><P>
+</UL>
+
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0127860">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>Functions:
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><A href="z0202928.htm">FETCH</A>
+  </TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0202931.htm">FETCHOBS</A>
+  </TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0148379.htm">GETVARC</A>
+  </TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0148384.htm">GETVARN</A>
+  </TD></TR></TABLE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0332378.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0127861.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0127856">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

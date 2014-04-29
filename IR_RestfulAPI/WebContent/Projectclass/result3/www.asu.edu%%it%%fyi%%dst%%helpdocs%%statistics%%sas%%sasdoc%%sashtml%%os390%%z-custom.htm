@@ -1,0 +1,554 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Initializing and Configuring the SAS System : Customizing Your SAS Session </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217136.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217139.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zspecify.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z-custom">Customizing Your SAS Session</A></FONT></H1>
+
+
+<P><A name="z0551423">&#13; Whether you are using interactive
+processing under TSO
+or batch processing, you may want to customize certain aspects of your SAS
+session. For example, you may want to change the line size or page size for
+your output, or you may want to see performance statistics for your SAS programs.</A>
+<P>You can customize your SAS session in five ways:
+
+<P>
+<UL>
+
+<LI>Under TSO, pass operands into the SAS CLIST that
+your site uses to invoke SAS. (See <A href="z0217137.htm#zt-clist">Invoking SAS under TSO: the SAS CLIST</A>.) This method is usually used for one-time
+overrides of CLIST operands. Here is an example: 
+
+
+
+<PRE>sas options('nocenter linesize=80')</PRE><P>
+
+<LI>In batch mode, pass parameters into the SAS cataloged
+procedure that your site uses to invoke SAS. (See <A href="z0217137.htm#zcatproc">Invoking SAS in Batch Mode: the SAS Cataloged Procedure</A>.) This method is usually used for one-time
+overrides of parameters in the cataloged procedure.  Here is an example:  
+
+
+
+<PRE>//MYJOB  EXEC SAS,
+//   OPTIONS='NOCENTER, LINESIZE=80'</PRE><P>
+
+<LI>Specify SAS system options in a user configuration
+file. (See <A href="#z-config">Configuration Files</A>.)
+ This method is useful if you, as an individual user, always want to override
+the values of system options that are specified in your site's system configuration
+file. The following example uses a TSO command to specify a user configuration
+file:
+
+
+
+<PRE>sas  config('''my.config.file''')</PRE>This next
+example specifies a user configuration file using JCL:
+
+
+
+<PRE>//MYJOB  EXEC SAS, 
+//      CONFIG='MY.CONFIG.FILE'</PRE><P>
+
+<LI>Execute SAS statements (such as OPTIONS, LIBNAME,
+and FILENAME statements) in an AUTOEXEC file. (See <A href="#zutoexec">Autoexec Files</A>.) This method is most useful for specifying
+options and allocating files that pertain to a particular SAS application.<P>
+
+<LI>In interactive mode, specify a SASUSER library
+that contains a user profile catalog. (See <A href="#zsasuser">SASUSER Library</A>.)<P>
+</UL>
+
+<P>See
+<A href="#zoptprec">Precedence for Option Specifications</A>
+for information about the order of precedence for options specified using
+these methods.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-config">Configuration Files</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551431">&#13; A <B>configuration file</B> contains SAS system options
+that are set automatically when you invoke SAS. SAS uses two types of configuration
+files: </A>
+<P>
+<UL>
+
+<LI>the system configuration file, which is used by
+all users at your site by default.  Your local SAS Support Consultant maintains
+the system configuration file for your site.<P>
+
+<LI>a user configuration file, which is generally
+used by an individual user or department.<P>
+</UL>
+
+<BR><H3><A name="zusercon">Creating a User Configuration File</A></H3>
+
+
+<P>To create a user configuration file, use any text editor
+to write SAS system options into a physical file. The configuration file can
+be either a sequential data set or a member of a partitioned data set that
+contains 80-byte fixed-length records. When you allocate a system or user
+configuration file, you must specify LRECL=80 and RECFM=FB.
+<P>Whichever type of data set you choose, specify one or
+more system options on each line.  If you specify more than one system option
+on a line, use either a blank or a comma to separate the options.
+<P>Some options can be thought of as on (enabled) or off
+(disabled). Specifying just the keyword enables the option; specifying the
+keyword prefixed with NO disables the option. For example, the configuration
+file might contain these option specifications:  
+
+
+
+<PRE>NOCENTER
+NOSTIMER
+NOSTATS</PRE>
+<P>All of these options are disabled.
+<P>Options that take a value must be specified in the following
+way:  
+
+
+
+<PRE><I>option-name</I>=<I>value</I></PRE>
+<P>For example, a configuration file might contain the
+following lines:  
+
+
+
+<PRE>LINESIZE=80
+PAGESIZE=60</PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;When you specify SAS system
+options in a configuration file, blank spaces are not permitted before or
+after an equal sign. Comment lines must start with an asterisk in column 1.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>A configuration file can contain any system option except
+the CONFIG= option. If CONFIG= appears in a configuration file, it is ignored;
+no error or warning message appears.
+<BR><H3>Specifying a User Configuration File</H3>
+
+
+<P>To tell SAS where to find your user configuration file,
+do the following: 
+<P>
+<UL>
+
+<LI>If you use the SAS CLIST to invoke SAS under TSO,
+use the CONFIG operand. For example:
+
+
+
+<PRE>sas config('''my.config.file''')</PRE><P>
+
+<LI>If you use the SAS cataloged procedure to invoke
+SAS in batch mode, use the CONFIG= parameter.  For example: 
+
+
+
+<PRE>//S1  EXEC SAS,CONFIG='MY.CONFIG.FILE'</PRE><P>
+</UL>
+
+<P>The user configuration file that you specify is executed
+along with the system configuration file that your installation uses. This
+happens because the SAS CLIST or the SAS cataloged procedure concatenates
+the file that you specified to the system configuration file. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The SAS system options that you specify in the user configuration
+file override system options that are specified in the system configuration
+file.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zutoexec">Autoexec Files</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551448">&#13;  Under OS/390, an <B>autoexec
+file</B>
+can be either a sequential data set or a member of a partitioned data set.
+ Unlike configuration files, which contain SAS system options, an autoexec
+file contains SAS statements. These statements are executed immediately after
+SAS has been fully initialized and before any SAS input source statements
+have been processed.  For example, an autoexec file could contain the following
+lines:  
+
+
+</A>
+<PRE>options fullstats pagesize=60 linesize=80;
+libname mylib 'userid.my.lib';
+dm 'clock';</PRE>
+<P>The OPTIONS statement sets some SAS system options,
+the LIBNAME statement assigns a library, and the DM statement executes a command. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Some SAS system options can be specified only when you
+invoke SAS. These system options cannot be specified in an OPTIONS statement;
+therefore, they cannot be specified in an autoexec file. See <A href="z0217134.htm#z0218999">Summary of All SAS System Options Available under OS/390</A> for information about
+SAS system options and about where they can be specified.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Displaying Autoexec Statements in the SAS Log</H3>
+
+
+<P><A name="z0551451">&#13; SAS statements that
+are submitted from an autoexec file usually
+are not displayed in the SAS log. However, if you specify the ECHOAUTO system
+option when you invoke SAS, then SAS writes (or "echoes") the autoexec statements
+to the SAS log as they are executed.</A>
+<BR><H3>Using an Autoexec File under TSO</H3>
+
+
+<P><A name="z0551452">&#13; Under TSO, use the AUTOEXEC
+operand when you invoke SAS to tell
+SAS where to find your autoexec file.  For example, the following command
+invokes SAS and tells SAS to use an autoexec file named MY.EXEC.FILE:  
+
+
+</A>
+<PRE>sas autoexec('''my.exec.file''')</PRE>
+<BR><H3>Using an Autoexec File in Batch Mode</H3>
+
+
+<P><A name="z0551453">&#13; To specify an autoexec
+file in a batch job, use a JCL DD statement
+to assign the DDname SASEXEC to your autoexec file. This DD statement must
+follow the JCL EXEC statement that invokes the SAS cataloged procedure. For
+example, the following two lines of JCL can be used to accomplish the same
+results in a batch job as the previous example did under TSO:  
+
+
+</A>
+<PRE>//MYJOB    EXEC SAS
+//SASEXEC  DD DSN=MY.EXEC.FILE,DISP=SHR</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zsasuser">SASUSER Library</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551454">&#13;
+ The SASUSER library contains SAS catalogs that enable
+you to customize certain features of SAS while your SAS session is running
+and to save these changes. For example, in base SAS software, any changes
+that you make to function key settings or to window attributes are stored
+in a catalog named SASUSER.PROFILE. The SASUSER library can also contain personal
+catalogs for other SAS software products. You can also store SAS data files,
+SAS data views, SAS programs, SAS/ACCESS descriptor files, and additional
+SAS catalogs in your SASUSER library.</A>
+<P>When you use the SAS CLIST that is supplied by SAS Institute
+to invoke SAS under TSO, the CLIST allocates a physical file to be used as
+the SASUSER library during your SAS session. The SASUSER library is normally
+used only in interactive processing; the SAS cataloged procedure, which invokes
+SAS in batch processing, does not allocate a SASUSER library.
+<P>In addition to storing function key settings and window
+attributes, the SASUSER.PROFILE catalog is used to store your DEFAULT.FORM.
+The DEFAULT.FORM is created by the FORM subsystem. It is used to control the
+default destination of all output that is generated by the PRINT command.
+(See <A href="z0217291.htm#zt-print">Using the PRINT Command and the FORM Subsystem</A>
+and 
+
+
+
+<B>SAS Language Reference: Dictionary</B> for information about the FORM subsystem.) 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If your SAS CLIST has been modified so that it does not create a SASUSER library,
+SAS creates a PROFILE catalog that is used to store profile information for
+use during a single SAS session. This catalog is placed in the WORK library
+and is deleted at the end of your session; it is not available to a subsequent
+SAS session.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Creating Your Own SASUSER Libraries</H3>
+
+
+<P> By creating your own SASUSER libraries, you can customize
+the SAS System to meet the requirements of a number of different types of
+jobs. For example, suppose you want to create a user profile for a particular
+type of task that requires a unique set of key definitions.
+<P>In order to do this, you must first create a SAS data
+library that can be used as the SASUSER library. The easiest way to accomplish
+this is to start a Version 8 SAS session and then use a LIBNAME statement
+to create the library, as explained in <A href="z-allint.htm">Allocating SAS Data Libraries Internally</A>. For example, to create a SAS data
+library with a physical file name of ABC.MY.SASUSER, submit the following
+LIBNAME statement:  
+
+
+
+<PRE>libname newlib 'abc.my.sasuser' disp=new;</PRE>
+<P>Notice that a libref of NEWLIB was used in this example.
+SASUSER is a reserved libref and cannot be reassigned during a SAS session.
+<P>You can also use the TSO ALLOCATE command to create
+an physical file for use as your SASUSER library. By using the ALLOCATE command,
+you can avoid using the LIBNAME statement; however, you must be familiar with
+TSO commands and with DCB (data control block) attributes in order to use
+the ALLOCATE command effectively.  Here is a typical ALLOCATE command for
+the SASUSER library that provides satisfactory performance at many sites:
+ 
+
+
+
+<PRE>alloc fi(newlib) da('abc.my.sasuser') new
+      catalog space(80 20) dsorg(ps) recfm(f s)
+      blksize(6144) reu</PRE>
+<P>When you enter this ALLOCATE command from the READY
+prompt, a physical file named ABC.MY.SASUSER is created with the correct attributes
+for a SAS data library.
+<P>In order to use the new SAS data library as the SASUSER
+library, you must end your SAS session and start a second session.  When you
+start a second session, you can use the SASUSER CLIST operand to specify ABC.MY.SASUSER
+as the SASUSER library. (See the next section.)
+<BR><H3>Specifying Your Own SASUSER Library</H3>
+
+
+<P> After creating your own permanent SAS data library,
+designate that library as your SASUSER library.  You can do this in either
+of the following ways: 
+<P>
+<UL>
+
+<LI>Use the SASUSER CLIST operand to specify the physical
+file name of your SAS data library.  For example, if you had created a library
+with an operating environment name of ABC.MY.SASUSER, then you would use the
+following CLIST command to invoke SAS:  
+
+
+
+<PRE>sas sasuser('''abc.my.sasuser''')</PRE>
+<P>When you enter this command, the libref SASUSER is associated
+with the SAS data library whose physical file name is ABC.MY.SASUSER. Any
+profile changes that you make during your session are saved in the SAS catalog
+SASUSER.PROFILE, which is a member of the SASUSER library. These changes will
+be retained when you end your SAS session.<P>
+
+<LI>Use the SASUSER= system option to specify the
+DDname that identifies your SAS data library.   (See
+<A href="z1user.htm">SASUSER=</A>.)<P>
+</UL>
+
+<P>Both of these methods require that you identify
+the
+SAS data library when you invoke SAS; you cannot change the SASUSER library
+during a SAS session.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-sysops">SAS System Options</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551471">&#13;
+ SAS system options control many
+aspects of your SAS session, including output destinations, the efficiency
+of program execution, and the attributes of SAS files and data libraries.</A>
+<P>After a system option is set, it affects all subsequent
+DATA and PROC steps in a process until it is specified again with a different
+value. For example, the CENTER|NOCENTER option
+affects all output from a process, regardless of the number of steps in the
+process.
+<BR><H3><A name="z-optchg">Specifying or Changing System Option Settings</A></H3>
+
+
+<P><A name="z0551473">&#13;
+The default values for SAS system options are appropriate for
+many of your SAS programs. If you need to specify or change the value of a
+system option, you can do so in the following ways: </A>
+<P>
+<UL>
+
+<LI>Create a user configuration file to specify values
+for the SAS system options whose default values you want to override.  See <A href="#zusercon">Creating a User Configuration File</A>
+for details.<P>
+
+<LI>Under TSO, you can specify any SAS system option
+following the OPTIONS parameter in the SAS CLIST command:
+
+
+
+<PRE>sas options('<I>option-list</I>')</PRE>
+<P>For options that can be on or off, just list the keyword
+that corresponds to the appropriate setting.  For options that take a value,
+list the keyword identifying the option followed by an equal sign and the
+option value, as in the following example:
+
+
+
+<PRE>sas options('nodate config=myconfig')</PRE><P>
+
+<LI>In batch mode, you can specify any SAS system
+option in the EXEC SAS statement:
+
+
+
+<PRE>// EXEC SAS,OPTIONS='<I>option-list</I>'</PRE>
+<P>For example:  
+
+
+
+<PRE>// EXEC SAS,
+//   OPTIONS='OPLIST LS=80 NOSTATS'</PRE>
+
+
+ <P>
+
+<LI>Specify SAS system options in an OPTIONS statement
+in an autoexec file, which is executed when you invoke SAS, or in an OPTIONS
+statement at any point during a SAS session. Options specified in an OPTIONS
+statement apply to the process in which they are specified, and are reset
+for the duration of the SAS session or until you change them with another
+OPTIONS statement.
+<P>For example:  
+
+
+
+<PRE>options nodate linesize=72;</PRE>
+<P>See <A href="z0217134.htm#z0218999">Summary of All SAS System Options Available under OS/390</A>
+to find out whether a particular option can be specified in the OPTIONS statement.
+For more information about autoexec files, see <A href="#zutoexec">Autoexec Files</A>. For more information about the OPTIONS
+statement, see 
+
+
+
+<B>SAS Language Reference: Dictionary</B> and 
+
+
+
+<B>SAS Language and Procedures: Usage</B>.<P>
+
+<LI>Change SAS system options from within the OPTIONS window.
+ On a command line, enter the keyword OPTIONS.
+ The OPTIONS window appears. Place
+the cursor on any option setting and type over the existing value. The value
+will be saved for the duration of the SAS session only. Not all options are
+listed in the OPTIONS window.  See <A href="#z-optwin">OPTIONS Window</A>
+for more information.<P>
+</UL>
+
+<BR><H3>Default Options Table and Restricted Options Table</H3>
+
+
+<P><A name="z0551483">&#13;Your
+local SAS Support Consultant may have created a default options table or a
+restricted options table. Information on creating and maintaining these tables
+is provided in the installation instructions for the SAS System in the OS/390
+environment.</A>
+<P>The purpose of the default options table is to replace SAS system option
+defaults with values that are more appropriate for your site. You can change
+these new defaults in the same way that you can change the defaults provided
+with the SAS System.
+<P>The purpose of the restricted options table is to control
+the values of invocation-only system options, which can be specified only
+when you invoke SAS. These values cannot be overridden. However, the restricted
+options table will accept specifications for any system option, including
+those that can be specified at any time during the SAS session. These specifications
+can be overridden at any time. To see when you can specify a value for a particular
+system option, refer to the <A href="z0217134.htm">Summary Table of SAS System Options</A>.
+<P>You can determine where host options get their values
+by using the VALUE parameter of the OPTIONS procedure. For example, submit:
+
+
+
+<PRE>proc options host value;
+run;</PRE>Then check the field named How Option is Set to determine if the
+value is the shipped default, or if the value was set in the default options
+table, or if the value was set in the SAS configuration file.
+<P>Contact your local SAS Support Consultant for more information.
+<BR><H3><A name="zispopts">Displaying System Option Settings</A></H3>
+
+
+<P><A name="z0551487">&#13; To display the
+current settings of SAS system options, use the
+OPTIONS procedure or the OPTIONS window.</A>
+<P>Some options may seem to have default values even though
+the default value listed in <A href="z0217134.htm#z0218999">Summary of All SAS System Options Available under OS/390</A>
+is none. This happens when the option is set in a system configuration file,
+in the default options table, or in the restricted options table.
+<P>You can use the VALUE parameter of the OPTIONS procedure
+to see when an option's value was set.
+<BR><H3>OPTIONS Procedure</H3>
+
+
+<P><A name="z0551489">&#13; The OPTIONS procedure writes to the SAS log all
+system options
+that are available under OS/390.  By default, the procedure lists one option
+per line with a brief explanation of what the option does.  To list the options
+with no explanation, use the SHORT option:  
+
+
+</A>
+<PRE>proc options short;
+run;</PRE>
+
+
+To list all the options in a certain category, use the GROUP= option:
+
+
+
+<PRE>proc options group=sort;
+run;</PRE>
+<P>Under OS/390, PROC OPTIONS also supports some additional
+options for listing system options that are specific to SAS/ACCESS interfaces
+or to the SAS interface to ISPF.  See <A href="zoptions.htm">OPTIONS</A> for details.
+<BR><H3><A name="z-optwin">OPTIONS Window</A></H3>
+
+
+<P><A name="z0551491">&#13;
+To display the OPTIONS window, enter 
+
+
+</A><CODE><B>OPTIONS</B></CODE> from a command
+line. The OPTIONS window displays the settings of many SAS system options.
+<BR><H3><A name="zoptprec">Precedence for Option Specifications</A></H3>
+
+
+<P><A name="z0551496">&#13; When the same
+option is set in more than one place, the order
+of precedence is as follows: </A>
+<OL START="1" type="1">
+<LI>OPTIONS statement or OPTIONS window.<P>
+
+<LI>restricted options table, if there is
+one.<P>
+
+<LI>SAS invocation, including invocation by way of
+an EXEC SAS JCL statement (in batch) or by way of the SAS CLIST command (under
+TSO)<P>
+
+<LI>user configuration file, if there is one<P>
+
+<LI>system configuration file (as the SAS System is
+initialized)<P>
+
+<LI>default options table, if there is one<P>
+</OL>
+
+<P>For example, options that you specify during your
+SAS
+session (using the OPTIONS statement or OPTIONS window) take precedence over
+options that you specified when you invoked SAS.  Options that you specify
+with the SAS CLIST command take precedence over settings in the configuration
+file. The settings in the user configuration file take precedence over settings
+in the system configuration file and in the default options table.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217136.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217139.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zspecify.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z-custom">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

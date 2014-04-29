@@ -1,0 +1,284 @@
+<HTML>
+<HEAD>
+<TITLE>Variables in the Model Program</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect61.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect63.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Variables in the Model Program  </H2>
+<P><A NAME="idxmod0592">&#13;</A><A NAME="idxmod0591">&#13;</A>Variable names are alphanumeric but must start with
+a letter. The length of a variable name is limited to thirty-two 
+characters for non-SAS data set variables
+<P>PROC MODEL uses several classes of variables, and different
+variable classes are treated differently. Variable class is controlled
+by <I>declaration statements</I>. 
+<A NAME="idxmod0593">&#13;</A><A NAME="idxmod0594">&#13;</A><A NAME="idxmod0595">&#13;</A><A NAME="idxmod0596">&#13;</A><A NAME="idxmod0597">&#13;</A>These are the VAR, ENDOGENOUS, and EXOGENOUS statements for model variables,
+the PARAMETERS statement for parameters, and the CONTROL statement for 
+control class variables.
+These declaration statements have several valid abbreviations.
+Various <I>internal variables</I> are also made
+available to the model program to allow
+communication between the model program and the procedure. 
+RANGE, ID, and BY variables are also available to the model program.
+Those variables not declared as any of the preceding classes are
+<I>program variables</I>.
+<P>Some classes of variables can be lagged; that is, their value at each
+observation is remembered, and previous values can be referred to by the
+lagging functions. Other classes have only a single value and
+are not affected by lagging functions.
+For example, parameters have only one value and
+are not affected by lagging functions;
+therefore, if P is a parameter, DIF<I>n</I>(P) is always 0,
+and LAG<I>n</I>(P) is always the same as P for all values of <I>n</I>.
+<P>The different variable classes and their roles in the model are
+described in the following.
+<P><H3><I>Model Variables</I></H3>
+<A NAME="idxmod0599">&#13;</A><A NAME="idxmod0598">&#13;</A><A NAME="idxmod0601">&#13;</A><A NAME="idxmod0600">&#13;</A>Model variables are declared by VAR, ENDOGENOUS, or EXOGENOUS
+statements, or by FIT and SOLVE statements.
+The model variables are the variables that the model is
+intended to explain or predict.
+<P>PROC MODEL allows you to use expressions on the left-hand side of the equal sign
+to define model equations.
+For example, a log linear model for Y can now be written as
+<P><PRE>
+   log( y ) = a + b * x;
+</PRE>
+<P>Previously, only a variable name was allowed on the left-hand side of
+the equal sign.
+<P>The text on the left hand side of the equation serves as the equation name
+used to identify the equation in printed output, in the OUT= data sets,
+and in FIT or SOLVE statements.
+To refer to equations specified using left-hand side expressions
+(on the FIT statement, for example),
+place the left-hand side expression in quotes.
+For example, the following statements fit a log linear model to
+the dependent variable Y:
+<P><PRE>
+   proc model data=in;
+   
+      log( y ) = a + b * x;
+   
+      fit &#34;log(y)&#34;;
+   
+   run;
+</PRE>
+<P>The estimation and simulation is performed by transforming the
+models into general form equations. No actual or predicted value 
+is available for general form equations so no <SPAN CLASS="mathfont"><I>R<SUP>2</SUP></I> </SPAN> or
+adjusted <SPAN CLASS="mathfont"><I>R<SUP>2</SUP></I> </SPAN> will be computed.
+<P><H3><I>Equation Variables</I></H3>
+<A NAME="idxmod0603">&#13;</A><A NAME="idxmod0602">&#13;</A>An equation variable is one of several special variables used
+by PROC MODEL to control the evaluation of model equations.
+An equation variable name consists of one of the prefixes EQ, RESID,
+ERROR, PRED, or ACTUAL, followed by a period and the name of a model equation.
+<P>Equation variable names can appear on parts of the PROC MODEL
+printed output, and they can be used in the model program.
+For example, RESID-prefixed variables can be used in LAG functions
+to define equations with moving-average error terms.
+See the &#34;Autoregressive Moving-Average Error Processes&#34; section
+earlier in this chapter for details.
+<P>The meaning of these prefixes is detailed in the &#34;Equation Translations&#34;
+section.
+<P><H3><I>Parameters</I></H3>
+<A NAME="idxmod0605">&#13;</A><A NAME="idxmod0604">&#13;</A>Parameters are variables that have the same value for each observation.
+Parameters can be given values or can be estimated by fitting
+the model to data.
+During the SOLVE stage, parameters are treated as constants. 
+If no estimation is performed, the SOLVE stage
+uses the initial value provided in either the ESTDATA= data set,
+the MODEL= file, or on the PARAMETER statement,
+as the value of the parameter.
+<P>The PARAMETERS statement declares the parameters of the model.
+Parameters are not lagged, and they cannot be changed by the model program.
+<P><H3><I>Control Variables</I></H3>
+<A NAME="idxmod0607">&#13;</A><A NAME="idxmod0606">&#13;</A>Control variables supply constant values to the
+model program that can be used to control the model in various ways.
+The CONTROL statement declares control variables and specifies their values.
+A control variable is like a parameter
+except that it has a fixed value and is not estimated from the data.
+<P>Control variables are not reinitialized before each pass through the
+data and can thus be used to retain values between passes. 
+You can use control variables to vary the program logic.
+Control variables are not affected by lagging functions.
+<P>For example, if you have two versions of an equation for a variable Y,
+you could put both versions in the model
+and, using a CONTROL statement to select one of them,
+produce two different solutions to explore the effect
+the choice of equation has on the model:
+<P><PRE>
+      select (case);
+          when (1) y =  ...first version of equation... ;
+          when (2) y =  ...second version of equation... ;
+      end;
+      control case 1;
+      solve / out=case1;
+   run;
+   
+      control case 2;
+      solve / out=case2;
+   run;
+</PRE>
+<P><H3><I>RANGE, ID, and BY Variables</I></H3>
+<A NAME="idxmod0608">&#13;</A>The RANGE statement controls the range of
+observations in the input data set that is processed by PROC MODEL.
+The ID statement lists variables in the input data set that
+are used to identify observations on the printout and in the output
+data set. The BY statement can be used to make PROC MODEL
+perform a separate analysis for each BY group. The variable in the
+RANGE statement, the ID variables, and the BY variables are available
+for the model program to examine, but their values should
+not be changed by the program. 
+The BY variables are not affected by lagging functions.
+<P><H4><I>BY Processing Improvements</I></H4>
+<P>Prior to version 6.11, the BY processing in the SOLVE statement was
+performed only for the DATA= data set. The last values in the ESTDATA=
+and SDATA= data sets were used regardless of the existence of BY
+variables in those two data sets. This
+constraint is now removed. If the BY variables are identical in the
+DATA= data set and the ESTDATA= data set, then the two data sets 
+are syncronized and the simulations are performed
+using the data and parameters for each BY group. This holds for
+BY variables in the SDATA= data set as well. If, at some point, the
+BY variables don't match, BY processing is abandoned in either the
+ESTDATA= data set or the SDATA= data set, whichever has the missing
+BY value. If the DATA= data set does not contain BY variables
+and the ESTDATA= data set or the SDATA= data set does, then BY
+processing is performed for the ESTDATA= data set and
+the SDATA= data set by reusing the data in the DATA= data set for
+each BY group.
+<P><H3><I>Internal Variables</I></H3>
+<A NAME="idxmod0610">&#13;</A><A NAME="idxmod0609">&#13;</A>You can use several internal variables in the model
+program to communicate with the procedure. For example, if you wanted
+PROC MODEL to list the values of all the variables
+when more than 10 iterations are
+performed and the procedure is past the 20th
+observation, you can write
+<P><PRE>
+   if _obs_ &#62; 20 then if _iter_ &#62; 10 then _list_ = 1;
+</PRE>
+<P>Internal variables are not affected by lagging functions, and 
+they cannot be changed by the
+model program except as noted. The following internal variables are available.
+The variables are all numeric except where noted.
+<P><DL>
+<DT>_ERRORS_
+<DD>a flag that is set to 0 at the start of program execution
+and is set to a nonzero value whenever an error occurs.
+The program can also set the _ERRORS_ variable.
+<BR><BR><DT>_ITER_
+<DD>the iteration number.
+For FIT tasks, the value of _ITER_ is negative for
+preliminary grid-search passes. The iterative phase of the estimation
+starts with iteration 0. After the estimates have converged, a final
+pass is made to collect statistics with _ITER_ set to a missing value. Note
+that at least one pass, and perhaps several subiteration passes as
+well, is made for each iteration. For SOLVE tasks,
+ _ITER_ counts the
+iterations used to compute the simultaneous solution of the system.
+<BR><BR><DT>_LAG_
+<DD>the number of dynamic lags that contribute to the solution at the
+current observation. _LAG_ is always 0 for FIT tasks and for STATIC
+solutions. _LAG_ is set to a missing value during the lag
+starting phase.
+<BR><BR><DT>_LIST_
+<DD>list flag that is set to 0 at the start of program execution.
+The program can set _LIST_ to a nonzero value to request a listing
+of the values of all the variables in the program after the program has
+finished executing.
+<BR><BR><DT>_METHOD_
+<DD>is the solution method in use for SOLVE tasks.
+_METHOD_  is set to a blank value for FIT tasks. _METHOD_ is a 
+character-valued variable. Values are NEWTON, JACOBI, SIEDEL, or ONEPASS.
+<BR><BR><DT>_MODE_
+<DD>takes the value ESTIMATE for FIT tasks and the value
+SIMULATE or FORECAST for SOLVE tasks. _MODE_ is a character-valued variable.
+<BR><BR><DT>_NMISS_
+<DD>the number of missing or otherwise unusable observations during the model
+estimation.
+For FIT tasks,
+_NMISS_ is initially set to 0; at the start of each iteration,
+_NMISS_ is set to the number of unusable observations for the
+previous iteration. For SOLVE tasks,
+_NMISS_ is set to a missing value.
+<BR><BR><DT>_NUSED_
+<DD>the number of nonmissing observations used in the estimation.
+For FIT tasks, PROC MODEL initially
+sets _NUSED_ to the number of parameters; at the start
+of each iteration,
+_NUSED_ is reset to the number of observations
+used in the previous iteration. For SOLVE tasks,
+_NUSED_ is set to a missing
+value.
+<BR><BR><DT>_OBS_
+<DD>counts the observations being processed.
+_OBS_ is negative or 0 for
+observations in the lag starting phase.
+<BR><BR><DT>_REP_
+<DD>the replication number for Monte Carlo simulation when the
+RANDOM=  option is specified in the SOLVE statement.
+_REP_ is 0
+when the RANDOM= option is not used and for FIT tasks. When _REP_=0, the
+random-number generator functions always return 0.
+<BR><BR><DT>_WEIGHT_
+<DD>the weight of the
+observation. For FIT tasks, _WEIGHT_ provides a weight for the
+observation in the estimation.
+_WEIGHT_ is initialized to 1.0 at
+the start of execution for FIT tasks.
+For SOLVE tasks, _WEIGHT_ is ignored.
+</DL>
+<P><H3><I>Program Variables</I></H3>
+<A NAME="idxmod0612">&#13;</A><A NAME="idxmod0611">&#13;</A>Variables not in any of the other classes are called program variables. 
+Program variables are used to hold intermediate results of calculations. 
+Program variables are reinitialized to missing values before each observation
+is processed.
+Program variables can be lagged. The RETAIN statement can be used to
+give program variables initial values and enable them to keep their
+values between observations.
+<P><H3><I>Character Variables</I></H3>
+<A NAME="idxmod0614">&#13;</A><A NAME="idxmod0613">&#13;</A>PROC MODEL supports both numeric and character variables. 
+Character variables are not involved in the model specification but can be 
+used to label observations, to write debugging messages, 
+or for documentation purposes. 
+All variables are numeric unless they are
+<P><UL>
+<LI> character variables in a DATA= SAS data set
+<LI> program variables assigned a character value
+<LI> declared to be character by a LENGTH or ATTRIB statement.
+</UL><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect61.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect63.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

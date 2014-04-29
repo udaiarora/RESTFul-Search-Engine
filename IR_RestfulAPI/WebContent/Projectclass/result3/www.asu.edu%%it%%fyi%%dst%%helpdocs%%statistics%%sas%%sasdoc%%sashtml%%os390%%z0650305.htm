@@ -1,0 +1,284 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Directing SAS Log and SAS Procedure Output : Directing ODS Output: Examples </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0165871.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z-remote.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zes-ispf.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0650305">Directing ODS Output: Examples</A></FONT></H1>
+
+
+<P><A name="z1097164">&#13;Printing in SAS is handled with the Output Delivery System (ODS).
+Most of ODS is portable and therefore documented elsewhere, including the 
+
+
+
+<B>The Complete Guide to the SAS Output Delivery     System</B>
+and the
+
+
+
+<B>SAS Language Reference: Dictionary</B>. This section shows examples of ODS usage combined with the
+steps required to route the output between operating environments.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Viewing ODS Output on an External Browser</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1097165">&#13;The following  example
+stores ODS output in a UNIX System Services file. You can then display the
+output on an external HTML browser with the URL (universal resource locator)
+appropriate to your site.
+
+
+</A>
+<PRE>/* if needed, create web directory */
+%sysexec mkdir '/u/myuid/public_html' ;
+
+ods html 
+/* specify locations of HTML files */
+  body='examplb.htm'
+  page='examplp.htm'
+  contents='examplc.htm'
+  frame='examplf.htm'
+  path='/u/myuid/public_html'(url=none);
+
+/* do not send output to proc output */
+ods listing close;
+
+title1 'OS/390 UNIX System Services 
+   Example';
+
+proc plan seed=9544455;
+  factors a=3 b=4 c=5 ordered; run;
+  title1;
+  quit;
+
+/* close the HTML destination */
+ods html close;</PRE>A typical URL for this example looks like this:
+
+
+
+<PRE>http://corp.dept.com/~myuid/examp1.htm</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Storing ODS Output in a Sequential File, FTP from UNIX</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1097166">&#13;The following example
+runs partly on SAS in the OS/390 operating environment and partly on the command
+line in the UNIX operating environment. 
+
+
+</A>
+<PRE>ods html
+/* specify HTML files and destination URLs */ 
+  body='.seqb.htm'     (url='seqb.htm')
+  page='.seqp.htm'     (url='seqp.htm')
+  contents='.seqc.htm' (url='seqc.htm')
+  frame='.seqf.htm'
+  trantab=ascii;
+
+/* don't send output to proc output destination*/
+ods listing close;
+
+title1 'OS/390 HTML Example';
+
+proc plan seed=9544455;
+  factors a=3 b=4 c=5 ordered; run;
+  title1;
+  quit;
+
+/* close the html destination */
+ods html close;</PRE>
+<P>When using physical filename syntax and running in interactive
+mode, you will be prompted to determine if you want to create the files. You
+will not be prompted when running in batch mode.
+<P>When using JCL or a FILENAME statement, the disposition
+parameter controls file creation.
+<P>The TRANTAB= option generates ASCII stream files, with
+each line terminated with a newline character. You cannot read ASCII stream
+files with TSO ISPF browse. The default file characteristics are record format
+VB, record length 8196, and blocksize 23,476.
+<P>You may need to update links between the files after
+you transfer the files to UNIX. To avoid the need to update links, use the
+URL= option to the ODS statement to identify how you would like the links
+to be generated.
+<P>This second part of the example transfers the ODS output
+file from OS/390 to UNIX. Enter the following commands on a UNIX workstation:
+
+
+
+<PRE>ftp os390
+...
+ftp> binary
+...
+ftp> get 'myuid.seqp.htm' 
+     /u/myuid/public_html/seqp.html
+...</PRE>
+<P>To view the output file, point your UNIX browser at
+the file that you moved to UNIX with FTP, using a URL such as:
+
+
+
+<PRE>http://corp.dept.com/~myuid/seqp.html</PRE> 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Storing ODS Output in an OS/390 PDSE, FTP from UNIX</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1097173">&#13;The filename in this example
+stores ODS output as a member of a partitioned data set extended (PDSE).
+
+
+</A>
+<PRE>/* create a PDSE */
+filename ODSPDSE '.exampl.pdse'
+  dsntype=library
+  disp=(new,catlg) dsorg=po ;
+
+ods html
+/* specify HTML files and destination URLs */
+  body='examplb'     (url='examplb.htm')
+  page='examplp'     (url='examplp.htm')
+  contents='examplc' (url='examplc.htm')
+  frame='examplf'
+  path='.exampl.pdse' (url=none)
+  trantab=ascii;
+
+/* don't send output to proc output destination */
+ods listing close;
+
+title1 'OS/390 PDSE Example';
+
+proc plan seed=9544455;
+  factors a=3 b=4 c=5 ordered; run;
+  title1;
+  quit;
+
+/* close the HTML destination */
+ods html close;</PRE>
+<P>The TRANTAB= option generates ASCII stream files, with
+each line terminated with a newline character. You cannot read ASCII stream
+files with TSO ISPF browse. 
+<P>You may need to update links between the files after
+you transfer the files to UNIX. To avoid the need to update links, use the
+URL= option to the ODS statement to identify how you would like the links
+to be generated.
+<P>In the UNIX operating environment, use the following
+FTP command to transfer a file from the PDSE:
+
+
+
+<PRE>ftp> get 'myuid.exampl.pdse(examplb)'
+     /u/myuid/public_html/examplb.htm</PRE>
+<P>The following example uses the FTP access method to
+write the HTML output directly to UNIX files. Each UNIX file will contain
+part of the ODS HTML output that is generated by this SAS example. To run
+this example, you need to provide host, user, password, and directory information
+that pertains to your site. For further information on the FTP access method,
+see 
+
+
+
+<B>SAS Language Reference: Dictionary</B>.
+
+
+
+<PRE>filename myfram ftp 'example_frame.htm'         /* specify frame file */
+                    cd='mydir'                  /* specify directory  */
+                    host='myhost.mycompany.com' /* specify host       */
+                    user='myuser'               /* specify user       */
+
+                    pass='mypass'               /* specify password   */
+      /* or */      /* prompt */                /* password prompting */
+
+                    rcmd='site umask 022'       /* set permissions to */
+                                                /* -rw-r--r--         */
+                    recfm=s                     /* binary transfer    */
+                    debug;                      /* write ftp messages */
+
+filename mybody ftp 'example_body.htm'          /* specify body file  */
+                    cd='mydir'                 
+                    host='myhost.mycompany.com'
+                    user='myuser'              
+                    pass='mypass'              
+      /* or */      /* prompt */ 
+                    rcmd='site umask 022'      
+                    recfm=s                    
+                    debug;                     
+
+filename mypage ftp 'example_page.htm'          /* specify page file  */
+                    cd='mydir'                 
+                    host='myhost.mycompany.com'
+                    user='myuser'              
+                    pass='mypass'              
+      /* or */      /* prompt */ 
+                    rcmd='site umask 022'      
+                    recfm=s                    
+                    debug;                     
+
+filename mycont ftp 'example_contents.htm'      /* specify contents   */
+                    cd='mydir'                 
+                    host='myhost.mycompany.com'
+                    user='myuser'              
+                    pass='mypass'              
+      /* or */      /* prompt */ 
+                    rcmd='site umask 022'      
+                    recfm=s                    
+                    debug;                     
+
+/* specify HTML files using filerefs above */
+ods html body=mybody
+         page=mypage
+         contents=mycont
+         frame=myfram
+         trantab=ascii;
+
+/* do not send output to proc output destination */
+ods listing close;
+
+title1 'OS/390 FTP Access Method Example';
+proc plan seed=9544455;
+  factors a=3 b=4 c=5 ordered; run;
+  title1;
+  quit;
+
+/* close HTML destination */
+ods html close;</PRE>See the SAS sample library for more ODS examples.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0165871.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z-remote.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zes-ispf.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0650305">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

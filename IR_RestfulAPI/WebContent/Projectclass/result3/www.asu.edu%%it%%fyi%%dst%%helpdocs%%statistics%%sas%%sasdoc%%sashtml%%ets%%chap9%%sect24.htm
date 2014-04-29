@@ -1,0 +1,134 @@
+<HTML>
+<HEAD>
+<TITLE>Program Flow</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Program Flow  </H2>
+<P>This section describes in detail the different steps in PROC COMPUTAB
+execution.
+<P><H3><I>Step 1: Define Report Organization and Set Up the COMPUTAB Data Table</I></H3>
+<A NAME="idxcom0072">&#13;</A><A NAME="idxcom0071">&#13;</A>Before the COMPUTAB procedure reads in data or executes
+programming statements, the columns list from the COLUMNS
+statements and the rows list from the ROWS statements are
+used to set up a matrix of all columns and rows in the report.
+This matrix is called the COMPUTAB data table (CDT).
+When you define columns and rows of the CDT, the COMPUTAB procedure
+also sets up corresponding variables in working storage called
+the program data vector (PDV) for programming statements. Data values reside in
+the CDT but are copied into the program data vector as they
+are needed for calculations.
+<P><H3><I>Step 2: Select Input Data with Input Block Programming Statements</I></H3>
+The input block copies input observations into rows or columns of the
+CDT. By default, observations go to columns;
+if the data set is not transposed (NOTRANS option),
+observations go to rows of the report table.
+The input block consists of all executable statements before any
+ROW<I>xxxxx</I>: or COL<I>xxxxx</I>: statement label.
+Use programming statements to perform calculations
+and select a given observation to be added into the report.
+<P><H4><I>Input Block</I></H4>
+<A NAME="idxcom0074">&#13;</A><A NAME="idxcom0073">&#13;</A>The input block is executed once for each observation in the
+input data set. If there is no input data set, the input block is not
+executed.  The program logic of the input block is as follows:
+<P><OL>
+<LI> Determine which variables, row or column, are selector variables
+and which are data variables. Selector variables determine which
+rows or columns receive values at the end of the block. Data
+variables contain the values that the selected rows or columns receive.
+By default, column variables are selector
+variables and row variables are data variables. If the input data
+set is not transposed (NOTRANS option), the roles are reversed.
+<LI> Initialize nonretained program variables (including selector variables)
+to 0 (or missing if the INITMISS option
+is specified). Selector variables are temporarily associated with
+a numeric data item supplied by the procedure. Using these variables
+to control row and column selection does not affect any other data values.
+<LI> Transfer data from an observation in the data set to data
+variables in the PDV.
+<LI> Execute the programming statements in the input block using values from the PDV and
+storing results in the PDV.
+<LI> Transfer data values from the PDV into the appropriate columns of the
+CDT. If a selector variable for a row or column has a
+nonmissing, nonzero value, multiply each PDV value for variables used
+in the report
+by the selector variable and add the results to the selected row
+or column of the CDT.
+<P></OL>
+<P><H3><I>Step 3: Calculate Final Values Using Column Blocks and Row Blocks</I></H3>
+<H4><I>Column Blocks</I></H4>
+<A NAME="idxcom0076">&#13;</A><A NAME="idxcom0075">&#13;</A>A column block is executed once for each row of the CDT.
+The program logic of a column block is as follows:
+<P><OL>
+<LI> Indicate the current row by setting the corresponding row
+variable in the PDV to 1 and the other row variables
+to missing. Assign the current row number to the special variable _ROW_.
+<LI> Move values from the current row of the CDT to the
+respective column variables in the PDV.
+<LI> Execute programming statements in the column block using the
+column values in the PDV. Here, new columns can be
+calculated and old ones adjusted.
+<LI> Move the values back from the PDV to the current row of the CDT.
+<P></OL>
+<P><H4><I>Row Blocks</I></H4>
+<A NAME="idxcom0078">&#13;</A><A NAME="idxcom0077">&#13;</A>A row block is executed once for each column of the CDT.
+The program logic of a row block is as follows:
+<P><OL>
+<LI> Indicate the current column by setting the corresponding
+column variable in the PDV to 1 and the other column
+variables to missing. Assign the current column number to
+the special variable _COL_.
+<LI> Move values from the current column of the CDT to the
+respective row variables in the PDV.
+<LI> Execute programming statements in the row block using the row
+values in the PDV. Here new rows can be calculated
+and old ones adjusted.
+<LI> Move the values back from the PDV to the current
+column of the CDT.
+<P></OL>
+<P>See &#34;Controlling Execution within Row and Column Blocks&#34;
+later in this chapter for details.
+<P>Any number of column blocks and row blocks can be used.
+Each may include any number of programming statements.
+<P>The values of row variables and column variables are determined by the
+order in which different row-block and column-block programming statements
+are processed. These values can be modified throughout the COMPUTAB
+procedure, and final values are printed in the report.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect23.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect25.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

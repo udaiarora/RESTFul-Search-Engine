@@ -1,0 +1,255 @@
+<HTML>
+<HEAD>
+<TITLE>OUTEST= Data Set</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect16.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect18.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The FORECAST Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>OUTEST= Data Set  </H2>
+<P><A NAME="idxfor0114">&#13;</A><A NAME="idxfor0113">&#13;</A><A NAME="idxfor0115">&#13;</A>The FORECAST procedure writes the parameter estimates
+and goodness-of-fit statistics to an output data set
+when the OUTEST= option is specified.
+The OUTEST= data set contains the following variables:
+<P><UL>
+<LI> the BY variables
+<LI> the first ID variable, which contains the value of the
+ID variable for the last observation in the input data set
+used to fit the model
+<LI> _TYPE_, a character variable
+that identifies the type of each observation
+<LI> the VAR statement variables,
+which contain statistics and parameter estimates for the input series.
+The values contained in the VAR statement variables
+depend on the _TYPE_ variable value for the observation.
+</UL>
+<P>The observations contained in the OUTEST= data set
+are identified by the _TYPE_ variable.
+The OUTEST= data set may contain observations with
+the following _TYPE_ values:
+<P><DL>
+<DT>AR1 -AR<I>n</I>
+<DD>The observation contains estimates of the autoregressive parameters
+for the series.
+Two-digit lag numbers are used if the value of the NLAGS= option is 10 or more;
+in that case these _TYPE_ values are AR01 -AR<I>n</I>.
+These observations are output for the STEPAR method only.
+<BR><BR><DT>CONSTANT
+<DD>The observation contains the estimate of the constant or intercept parameter
+for the time-trend model for the series.
+For the exponential smoothing and the Winters' methods,
+the trend model is centered (that is, <I>t</I>=0)
+at the last observation used for the fit.
+<BR><BR><DT>LINEAR
+<DD>The observation contains the estimate of the linear or slope parameter
+for the time-trend model for the series.
+This observation is output only if you specify TREND=2 or TREND=3.
+<BR><BR><DT>N
+<DD>The observation contains the number of nonmissing observations used
+to fit the model for the series.
+<BR><BR><DT>QUAD
+<DD>The observation contains the estimate of the quadratic parameter for the
+time-trend model for the series.
+This observation is output only if you specify TREND=3.
+<BR><BR><DT>SIGMA
+<DD>The observation contains the estimate
+of the standard deviation of the error term for the series.
+<BR><BR><DT>S1 -S3
+<DD>The observations contain exponentially smoothed values at
+the last observation.
+_TYPE_=S1 is the final smoothed value of the single exponential smooth.
+_TYPE_=S2 is the final smoothed value of the double exponential smooth.
+_TYPE_=S3 is the final smoothed value of the triple exponential smooth.
+These observations are output for METHOD=EXPO only.
+<BR><BR><DT>S_<I>name</I>
+<DD>The observation contains estimates of the seasonal parameters.
+For example, if SEASONS=MONTH, the OUTEST= data set will contain
+observations with _TYPE_=S_JAN, _TYPE_=S_FEB, _TYPE_=S_MAR,
+and so forth.
+<BR><BR>For multiple-period seasons, the names of the first and last interval
+of the season are concatenated to form the season name.
+Thus, for SEASONS=MONTH4, the OUTEST= data set will contain observations
+with _TYPE_=S_JANAPR, _TYPE_=S_MAYAUG, and _TYPE_=S_SEPDEC.
+<BR><BR>When the SEASONS= option specifies numbers,
+the seasonal factors are labeled _TYPE_=S_<I>i</I>_<I>j</I>.
+For example, SEASONS=(2 3) produces observations with _TYPE_ values of
+S_1_1, S_1_2, S_2_1, S_2_2, and S_2_3.
+The observation with _TYPE_=S_<I>i</I>_<I>j</I> contains the
+seasonal parameters for the <I>j</I>th season of the <I>i</I>th seasonal cycle.
+<BR><BR>These observations are output only for METHOD=WINTERS or METHOD=ADDWINTERS.
+<BR><BR><DT>WEIGHT
+<DD>The observation contains the smoothing weight used for
+exponential smoothing. This is the value of the WEIGHT= option.
+This observation is output for METHOD=EXPO only.
+<BR><BR><DT>WEIGHT1
+<DD><DT>WEIGHT2
+<DD><DT>WEIGHT3
+<DD>The observations contain the weights used for smoothing
+the WINTERS or ADDWINTERS method parameters
+(specified by the WEIGHT= option).
+_TYPE_=WEIGHT1 is the weight used to smooth the CONSTANT parameter.
+_TYPE_=WEIGHT2 is the weight used to smooth the LINEAR and QUAD parameters.
+_TYPE_=WEIGHT3 is the weight used to smooth the seasonal parameters.
+These observations are output only for the WINTERS and ADDWINTERS methods.
+<BR><BR><DT>NRESID
+<DD>The observation contains the number of nonmissing residuals, <I>n</I>, used to
+compute the goodness-of-fit statistics.
+The residuals are obtained by subtracting the
+one-step-ahead predicted values from the observed values.
+<BR><BR><DT>SST
+<DD>The observation contains the total sum of squares for the series,
+corrected for the mean.
+<IMG WIDTH="180" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq41.gif"
+ ALT="{SST = \sum_{t=0}^n{( y_{t} - {\overline y} )^2}}">,
+where <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq42.gif"
+ ALT="{{\overline y}}"> is the series mean.
+<BR><BR><DT>SSE
+<DD>The observation contains the sum of the squared residuals,
+uncorrected for the mean.
+<IMG WIDTH="187" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq43.gif"
+ ALT="{SSE = \sum_{t=0}^n{( y_{t} - \hat{y}_{t} )^2}}">,
+where <IMG WIDTH="13" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq44.gif"
+ ALT="{\hat{y}}"> is the one-step predicted value for the series.
+<BR><BR><DT>MSE
+<DD>The observation contains the mean squared error,
+calculated from one-step-ahead forecasts.
+<SPAN CLASS="mathfont"><I>MSE</I> = [1/(<I>n</I>-<I>k</I>)] <I>SSE</I></SPAN>,
+where <I>k</I> is the number of parameters in the model.
+<BR><BR><DT>RMSE
+<DD>The observation contains the root mean square error.
+<BR><BR><IMG WIDTH="149" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq45.gif"
+ ALT="{RMSE = \sqrt{MSE}}">.<BR><BR><DT>MAPE
+<DD>The observation contains the mean absolute percent error.
+<BR><BR><IMG WIDTH="264" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq46.gif"
+ ALT="{MAPE = \frac{100}n \sum_{t=0}^n{{|( y_{t} - \hat{y}_{t} ) / y_{t} |}}}">.<BR><BR><DT>MPE
+<DD>The observation contains the mean percent error.
+<BR><BR><IMG WIDTH="240" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq47.gif"
+ ALT="{MPE = \frac{100}n \sum_{t=0}^n{( y_{t} - \hat{y}_{t} ) / y_{t} }}">.<BR><BR><DT>MAE
+<DD>The observation contains the mean absolute error.
+<BR><BR><IMG WIDTH="199" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq48.gif"
+ ALT="{MAE = \frac{1}n \sum_{t=0}^n{{| y_{t} - \hat{y}_{t} |}}}">.<BR><BR><DT>ME
+<DD>The observation contains the mean error.
+<BR><BR><IMG WIDTH="203" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq49.gif"
+ ALT="{MAE = \frac{1}n \sum_{t=0}^n{( y_{t} - \hat{y}_{t} )}}">.<BR><BR><DT>MAXE
+<DD>The observation contains the maximum error
+(the largest residual).
+<BR><BR><DT>MINE
+<DD>The observation contains the minimum error
+(the smallest residual).
+<BR><BR><DT>MAXPE
+<DD>The observation contains the maximum percent error.
+<BR><BR><DT>MINPE
+<DD>The observation contains the minimum percent error.
+<BR><BR><DT>RSQUARE
+<DD>The observation contains the R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> statistic,
+<SPAN CLASS="mathfont"> <I>R<SUP>2</SUP></I>=1-<I>SSE</I> / <I>SST</I></SPAN>.
+If the model fits the series badly, the model error sum of squares
+<I>SSE</I> may be larger than <I>SST</I> and
+the R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> statistic will be negative.
+<BR><BR><DT>ADJRSQ
+<DD>The observation contains the adjusted R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> statistic.
+<BR><BR><SPAN CLASS="mathfont"><I>ADJRSQ</I> = 1 - <SPAN CLASS="ssbeleven">([(<I>n</I>-1)/(<I>n</I>-<I>k</I>)]) (1- <I>R<SUp>2</SUp></I>) </SPAN></SPAN>.
+<BR><BR><DT>ARSQ
+<DD>The observation contains Amemiya's adjusted R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> statistic.
+<BR><BR><SPAN CLASS="mathfont"><I>ARSQ</I> = 1-<SPAN CLASS="ssbeleven">([(<I>n</I>+<I>k</I>)/(<I>n</I>-<I>k</I>)]) (1- <I>R<SUp>2</SUp></I>) </SPAN></SPAN>.
+<BR><BR><DT>RW_RSQ
+<DD>The observation contains the random walk R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> statistic
+(Harvey's <SPAN CLASS="mathfont"><I>R</I><sub>D</sub><sup>2</sup></SPAN> statistic using
+the random walk model for comparison).
+<SPAN CLASS="mathfont"><I>RW</I>_<I>RSQ</I> = 1 - ([(<I>n</I>-1)/<I>n</I>]) <I>SSE</I> / <I>RWSSE</I></SPAN>,
+where
+<BR><BR><IMG WIDTH="271" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq50.gif"
+ ALT="{RWSSE = \sum_{t=2}^n{( y_{t} - y_{t-1} - {\mu} )^2}}">,<BR><BR>and
+<BR><BR><IMG WIDTH="202" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq51.gif"
+ ALT="{{\mu} = \frac{1}{n-1} \sum_{t=2}^n{( y_{t} - y_{t-1} )}}">.<BR><BR><DT>AIC
+<DD>The observation contains Akaike's information criterion.
+<BR><BR><SPAN CLASS="mathfont"><I>AIC</I> = <I>n ln</I>( <I>SSE</I> / <I>n</I> ) + 2 <I>k</I></SPAN>.
+<BR><BR><DT>SBC
+<DD>The observation contains Schwarz's Bayesian criterion.
+<BR><BR><SPAN CLASS="mathfont"><I>SBC</I> = <I>n ln</I>( <I>SSE</I> / <I>n</I> ) + <I>k ln</I>( <I>n</I> )</SPAN>.
+<BR><BR><DT>APC
+<DD>The observation contains Amemiya's prediction criterion.
+<BR><BR><SPAN CLASS="mathfont"><I>APC</I> = [1/<I>n</I>] <I>SST</I> ([(<I>n</I>+<I>k</I>)/(<I>n</I>-<I>k</I>)]) (1- <I>R<SUp>2</SUp></I>) = ([(<I>n</I>+<I>k</I>)/(<I>n</I>-<I>k</I> )]) [1/<I>n</I>] <I>SSE</I></SPAN>.
+<BR><BR><DT>CORR
+<DD>The observation contains the correlation coefficient between
+the actual values and the one-step-ahead predicted values.
+<BR><BR><DT>THEILU
+<DD>The observation contains Theil's U statistic using original units.
+Refer to Maddala (1977, pp. 344-345),
+and Pindyck and Rubinfeld (1981, pp. 364-365)
+for more information on Theil statistics.
+<BR><BR><DT>RTHEILU
+<DD>The observation contains Theil's U statistic calculated using relative changes.
+<BR><BR><DT>THEILUM
+<DD>The observation contains the bias proportion of Theil's U statistic.
+<BR><BR><DT>THEILUS
+<DD>The observation contains the variance proportion of Theil's U statistic.
+<BR><BR><DT>THEILUC
+<DD>The observation contains the covariance proportion of Theil's U statistic.
+<BR><BR><DT>THEILUR
+<DD>The observation contains the regression proportion of Theil's U statistic.
+<BR><BR><DT>THEILUD
+<DD>The observation contains the disturbance proportion of Theil's U statistic.
+<BR><BR><DT>RTHEILUM
+<DD>The observation contains the bias proportion of Theil's U statistic,
+calculated using relative changes.
+<BR><BR><DT>RTHEILUS
+<DD>The observation contains the variance proportion of Theil's U statistic,
+calculated using relative changes.
+<BR><BR><DT>RTHEILUC
+<DD>The observation contains the covariance proportion of Theil's U statistic,
+calculated using relative changes.
+<BR><BR><DT>RTHEILUR
+<DD>The observation contains the regression proportion of Theil's U statistic,
+calculated using relative changes.
+<BR><BR><DT>RTHEILUD
+<DD>The observation contains the disturbance proportion of Theil's U statistic,
+calculated using relative changes.
+</DL>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect16.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect18.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,621 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Advanced User Topics : Using a SAS WHERE Clause for Selection Criteria </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004461.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010975.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1011101.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1011013">Using a SAS WHERE Clause for Selection Criteria</A></FONT></H1>
+
+
+<P><A name="z1042276">&#13;
+In addition to or instead of including a SYSTEM 2000 where-clause
+in your view descriptor for selection criteria, you can also specify a SAS
+WHERE clause in a SAS program for selection criteria. </A>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Unlike a SYSTEM 2000 where-clause stored in a
+view descriptor, a SAS WHERE clause is restricted to variables corresponding
+to items included in the view descriptor. (A SYSTEM 2000 where-clause can
+reference items contained in a view descriptor and items contained in the
+access descriptor that the view descriptor is based on.)&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>When you specify a SAS WHERE clause, the SAS/ACCESS
+interface view engine translates those conditions into SYSTEM 2000 conditions.
+Then, if the view descriptor includes a SYSTEM 2000 where-clause, the interface
+view engine connects the conditions with the Boolean operator AND. By default,
+the SAS WHERE clause conditions are connected to the end of the view descriptor
+conditions. For example, if a view descriptor includes the condition
+
+
+
+<PRE>   sex=female</PRE>
+<P>and the SAS WHERE clause condition translates into
+
+
+
+<PRE>   position=marketing</PRE>
+<P>the resulting selection criteria are
+
+
+
+<PRE>   sex=female and position=marketing</PRE>
+<P>You can control the connection of the translated SAS
+WHERE clause and the SYSTEM 2000 where-clause conditions by including a connecting
+string in a SYSTEM 2000 where-clause included in a view descriptor. A connecting
+string indicates where you want the connection to occur. For example, suppose
+you have included the following SYSTEM 2000 where-clause in a view descriptor.
+(*SASAND* is one of the available connecting strings.)
+
+
+
+<PRE>   *sasand* department=marketing</PRE>
+<P>You then issue a SAS procedure including a SAS WHERE
+clause that produces the following condition:
+
+
+
+<PRE>   salary gt 1000</PRE>
+<P>The resulting selection criteria are as follows:
+
+
+
+<PRE>   salary gt 1000 and department=marketing</PRE>
+<P>For more information and examples on the available connecting
+strings, see <A href="z1011131.htm">Connecting Strings</A>.
+<P>When the interface view engine translates SAS WHERE
+clause conditions into SYSTEM 2000 conditions, there are SAS WHERE clause
+capabilities that are not available in SYSTEM 2000 software. Therefore, it
+is possible to issue a SAS WHERE clause that cannot be totally satisfied by
+SYSTEM 2000 software.
+<P>To allow for this possibility, the interface view engine
+first evaluates the SAS WHERE clause and determines whether the conditions
+can be handled. The interface view engine may be able to partially satisfy
+a SAS WHERE clause, as in the following example:
+
+
+
+<PRE>    proc print data=vlib.emp1;
+    where lastname &lt; 'KAP' 
+      and payrate > 30 * overtime;
+    run; </PRE>
+<P>The interface view engine translates as much of the
+SAS WHERE clause as possible, without producing incorrect results or a syntax
+error from SYSTEM 2000 software. In the previous example, SYSTEM 2000 software
+has no problem with the first condition, but the arithmetic in the second
+condition is not supported. The interface view engine uses the condition 
+
+
+<CODE><B> where lastname &lt; 'KAP'</B></CODE>to
+filter out as many data records as possible to improve performance. The conditions
+that are not supported are bypassed by the interface view engine, and post-processing
+(handled automatically by the SAS System) will be required after SYSTEM 2000
+software does its subsetting. The engine bypasses 
+<P>
+<UL>
+
+<LI>unacceptable conditions.<P>
+
+<LI>conditions connected with OR to
+unacceptable conditions.<P>
+
+<LI>conditions that exceed a SYSTEM 2000 where-clause
+1000-byte limit. If the SAS WHERE clause exceeds 1000 bytes, the rightmost
+portion of it is bypassed by SYSTEM 2000 software.
+<P>When the interface view engine examines the SAS WHERE
+clause, it determines which conditions SYSTEM 2000 software can support. At
+this point, the engine has not processed the view descriptor where-clause.
+Later, when the engine processes the view descriptor where-clause, the possibility
+arises that the combined length of the SAS WHERE clause conditions acceptable
+to SYSTEM 2000 software and the view descriptor where-clause conditions could
+exceed 1000 bytes.
+<P>If the engine has determined that SYSTEM 2000 software
+completely supports the SAS WHERE clause, and then it determines that the
+conditions cannot be combined due to the 1000 byte limit, an unrecoverable
+error occurs. To the procedure or DATA step, it appears as though the first
+"read" observation failed. You may need to carefully examine the error messages
+on the log to determine what actually happened.<P>
+</UL>
+
+<P>In the following table,, assume C114 is a component
+in the bottom record of a view descriptor. (Remember that if there is no SYSTEM
+2000 where-clause included in the view descriptor and no SAS WHERE clause
+specified in the SAS program, the interface view engine issues a default where-clause
+in the form of WHERE C<I>n</I> EXISTS OR C<I>n</I> FAILS, where C<I>n</I> is a component
+in the bottom record in the view descriptor.)
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>View Where-Clause</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>SAS WHERE Clause</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>SYSTEM 2000 Translation</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>Post-Processing Required?</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1=A  </TD>
+  
+<TD  align="LEFT" valign="TOP">C2=B OR C3>C4+10 </TD>
+  
+<TD  align="LEFT" valign="TOP">(C1=A) </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1=A</TD>
+  
+<TD  align="LEFT" valign="TOP">C2=B &amp; C3>C4+10</TD>
+  
+<TD  align="LEFT" valign="TOP">(C1=A) &amp; (C2=B) </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1=A</TD>
+  
+<TD  align="LEFT" valign="TOP">C2=B OR C3>C4</TD>
+  
+<TD  align="LEFT" valign="TOP">(C1=A) &amp; (C2=B OR C3*>C4*)</TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1=A</TD>
+  
+<TD  align="LEFT" valign="TOP">C2=B &amp; C3</TD>
+  
+<TD  align="LEFT" valign="TOP">(C1=A) &amp; (C2=B)</TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">--- </TD>
+  
+<TD  align="LEFT" valign="TOP"> --- </TD>
+  
+<TD  align="LEFT" valign="TOP">C114 EXISTS OR C114 FAILS</TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">--- </TD>
+  
+<TD  align="LEFT" valign="TOP">C3*20 &lt; C5 </TD>
+  
+<TD  align="LEFT" valign="TOP">C114 EXISTS OR C114 FAILS </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">--- </TD>
+  
+<TD  align="LEFT" valign="TOP">C3 = C5</TD>
+  
+<TD  align="LEFT" valign="TOP">C3* = C5*</TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">SAS WHERE Clause Conditions Acceptable to SYSTEM 2000 Software</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042326">&#13; The following information explains how the interface view engine
+translates acceptable SAS WHERE clause conditions into SYSTEM 2000 where-clause
+conditions.</A>
+<P>
+<UL>
+
+<LI>The following operators are translated as indicated:
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>WHERE Clause Syntax</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>SYSTEM 2000 Translation</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">=</TD>
+  
+<TD  align="LEFT" valign="TOP">=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">></TD>
+  
+<TD  align="LEFT" valign="TOP">></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">&lt;</TD>
+  
+<TD  align="LEFT" valign="TOP">&lt;</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">&lt;></TD>
+  
+<TD  align="LEFT" valign="TOP">!=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">>=</TD>
+  
+<TD  align="LEFT" valign="TOP">>=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">&lt;=</TD>
+  
+<TD  align="LEFT" valign="TOP">&lt;=</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">IS	 NULL</TD>
+  
+<TD  align="LEFT" valign="TOP">FAILS</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">IS NOT NULL</TD>
+  
+<TD  align="LEFT" valign="TOP">EXISTS</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">(</TD>
+  
+<TD  align="LEFT" valign="TOP">(</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">)</TD>
+  
+<TD  align="LEFT" valign="TOP">)</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">AND</TD>
+  
+<TD  align="LEFT" valign="TOP">AND</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">OR</TD>
+  
+<TD  align="LEFT" valign="TOP">OR</TD>
+</TR>
+
+</TABLE>
+
+<BR><P>
+
+<LI>The interface view engine also translates
+BETWEEN
+and IN conditions, item-to-item comparisons, and the date format:
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>WHERE Clause Syntax</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>SYSTEM 2000 Translation</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1 BETWEEN 1 AND 3 </TD>
+  
+<TD  align="LEFT" valign="TOP">C1 = 1*3</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1 IN (4,9,14) </TD>
+  
+<TD  align="LEFT" valign="TOP">C1=4 OR C1=9 OR C1=14</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C4 > C5 </TD>
+  
+<TD  align="LEFT" valign="TOP">C4* > C5*</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C4 = '02AUG87'D</TD>
+  
+<TD  align="LEFT" valign="TOP">C4 = 08/02/1987</TD>
+</TR>
+
+</TABLE>
+
+<BR><P>
+
+<LI>SYSTEM 2000 software can handle a
+limited subset
+of SAS WHERE clause pattern matching, with the following prerequisites:
+<OL START="1" type="1">
+<LI>The pattern must be less than 100 characters
+long.<P>
+
+<LI>The pattern must have % as the rightmost character.<P>
+
+<LI>Underscores are permitted only in leftmost
+position(s).<P>
+
+<LI>The pattern cannot have % anywhere but in the
+leftmost or rightmost position. <P>
+
+<LI>The pattern must have some characters that are
+not % or _.<P>
+</OL>
+
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="0">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>Where Clause Syntax</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>SYSTEM 2000 Translation</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1 LIKE %ABC% </TD>
+  
+<TD  align="LEFT" valign="TOP">C1 CONTAINS ABC</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1 LIKE  ABC% </TD>
+  
+<TD  align="LEFT" valign="TOP">C1 CONTAINS ABC IN 1</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1 LIKE _ABC% </TD>
+  
+<TD  align="LEFT" valign="TOP">C1 CONTAINS ABC IN 2</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">C1 LIKE __ABC% </TD>
+  
+<TD  align="LEFT" valign="TOP">C1 CONTAINS ABC IN
+3</TD>
+</TR>
+
+</TABLE>
+
+<BR><P>
+</UL>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">SAS WHERE Clause Conditions Not Acceptable to SYSTEM 2000 Software</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042382">&#13; Here is a list of some (but not all) SAS WHERE clause conditions
+that are not acceptable to SYSTEM 2000 software; they are handled automatically
+by SAS post processing. </A>
+<P>
+<UL>
+
+<LI>arithmetic expressions, for example,
+
+
+
+<PRE>WHERE C1 = C4 * 3
+WHERE C4 &lt; -C5</PRE><P>
+
+<LI>expressions in which a variable or combination
+of variables assumes a value of 1 or 0 to signify true or false, for example,
+
+
+
+<PRE>WHERE C1 
+WHERE (C1 = C2) * 20</PRE><P>
+
+<LI>concatenation of character variables<P>
+
+<LI>truncated comparison, for example, 
+
+
+
+<PRE>    C1 =: ABC</PRE><P>
+
+<LI>DATETIME and TIME formats, for example, 
+
+
+
+<PRE>'12:00'T 
+'01JAN60:12:00'DT</PRE><P>
+
+<LI>SOUNDEX<P>
+
+<LI>HAVING, GROUP BY<P>
+
+<LI>NOT
+CONTAINS<P>
+
+<LI>references to '.' for numeric variables or ' '
+for character variables. Use 
+
+
+<CODE><B>WHERE C1 IS NULL</B></CODE> if that is what you mean, not 
+
+
+<CODE><B>WHERE
+C1 = .</B></CODE> (The interface view engine can translate C1 IS NULL into C1
+FAILS.)<P>
+</UL>
+ 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">The NOT Operator</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1042392">&#13; 
+The SAS WHERE clause NOT operator and the SYSTEM 2000 where-clause NOT operator
+do not function the same way. If you want NOT to have its SAS meaning, put
+it in the SAS WHERE clause. If you want NOT to have its SYSTEM 2000 software
+meaning, put it in the view descriptor where-clause.</A>
+<P>If you specify NOT in a SAS WHERE clause, NOT is transformed
+by the SAS WHERE clause parser first; the interface view engine never sees
+the NOT operator. Consider the following examples:
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="0">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B>SAS WHERE Clause</B></TH>
+  <TH  align="LEFT" valign="TOP" ><B>What the Engine Sees</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">WH NOT LASTNAME = 'Jones'; </TD>
+  
+<TD  align="LEFT" valign="TOP">WH LASTNAME NE 'Jones';</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">WH NOT LASTNAME > 'Baker'; </TD>
+  
+<TD  align="LEFT" valign="TOP">WH LASTNAME &lt;= 'Baker';</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">WH NOT (LASTNAME = JONES AND HIREDATE > '02aug82'd);</TD>
+  
+<TD  align="LEFT" valign="TOP">WH LASTNAME NE 'Jones' OR HIREDATE &lt;= '02aug82'd;</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P>In SYSTEM
+2000 software, however, the logical converse
+of 
+
+
+<CODE><B>wh not lastname = 'Jones'</B></CODE>
+is not 
+
+
+<CODE><B>lastname ne Jones</B></CODE>.
+Rather, the logical converse of 
+
+
+<CODE><B>wh not lastname = 'Jones'</B></CODE> is 
+
+
+<CODE><B>wh lastname ne Jones or lastname fails</B></CODE>. Before any relational operator
+can find a match for a value, the value must exist. One reason for this is
+that nulls are not contained in SYSTEM 2000 indexes, and processing an operator
+such as NE could be expensive if it were not confined to indexed values.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004461.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010975.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1011101.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1011013">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

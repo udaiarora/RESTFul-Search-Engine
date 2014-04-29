@@ -1,0 +1,188 @@
+<HTML>
+<HEAD>
+<TITLE>Conversion Methods</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="expconvmethod">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect24.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect26.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The EXPAND Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Conversion Methods</H2>
+<A NAME="idxexp0097">&#13;</A><H3><I>The SPLINE Method</I></H3>
+<A NAME="idxexp0099">&#13;</A><A NAME="idxexp0098">&#13;</A><A NAME="idxexp0101">&#13;</A><A NAME="idxexp0100">&#13;</A><A NAME="idxexp0103">&#13;</A><A NAME="idxexp0102">&#13;</A>The SPLINE method fits a cubic spline curve to the input values.
+A cubic spline is a segmented function
+consisting of third-degree (cubic) polynomial functions
+joined together so that the whole curve and its
+first and second derivatives are continuous.
+<P>For point-in-time input data, the spline curve is constrained to
+pass through the given data points.
+For interval total or average data,
+the definite integrals of the spline over the input intervals
+are constrained to equal the given interval totals.
+<P>For boundary constraints, the <I>not-a-knot</I> condition is used 
+by default.
+This means that the first two spline pieces are constrained to be
+part of the same cubic curve, as are the last two pieces.
+Thus the spline used by PROC EXPAND by default is not the same 
+as the commonly used natural spline, which uses zero 
+second-derivative endpoint constraints.
+While DeBoor (1981) recommends the <I>not-a-knot</I> constraint
+for cubic spline interpolation,
+using this constraint can sometimes produce anomalous results at
+the ends of the interpolated series.
+PROC EXPAND provides options to specify other endpoint
+constraints for spline curves.
+<P>To specify endpoint constraints, use the following form of the
+METHOD= option.
+<P><DL>
+<DT CLASS="ssbten"><B CLASS="ssbten">METHOD=SPLINE( <SPAN CLASS="ssieleven"><I>constraint</I></SPAN> [, <SPAN CLASS="ssieleven"><I>
+constraint</I></SPAN>] )</B></DT>
+<DD CLASS="sasop"><A NAME="idxexp0096">&#13;</A>The first constraint specification applies to the lower endpoint, and
+the second constraint specification applies to the upper endpoint.
+If only one constraint is specified,
+it applies to both the lower and upper endpoints.
+<BR><BR>The <I>constraint</I> specifications can have the following values:
+<BR><BR><B><I>NOTANOT</I></B> <BR>specifies the not-a-knot constraint. This is the default.
+<BR><BR><B><I>NATURAL</I></B> <BR>specifies the <I>natural spline</I> constraint.
+The second derivative of the spline curve is constrained to be
+zero at the endpoint.
+<BR><BR><B><I>SLOPE= value</I></B> <BR>specifies the first derivative of the spline curve at the endpoint.
+<BR><BR><B><I>CURVATURE= value</I></B> <BR>specifies the second derivative of the spline curve at the endpoint.
+Specifying CURVATURE=0 is equivalent to specifying the NATURAL option.
+<BR><BR>For example, to specify natural spline interpolation,
+use the following option in the CONVERT or PROC EXPAND statement:
+<BR><BR><PRE>
+         method=spline(natural)
+</PRE>
+<BR><BR>For OBSERVED=BEGINNING, MIDDLE, and END series, the spline knots are placed
+at the beginning, middle, and end of each input interval, respectively.
+For total or averaged series, the spline knots are set at
+the start of the first interval, at the end of the last interval,
+and at the interval midpoints,
+except that there are no knots for the first two and last two midpoints.
+<BR><BR>Once the cubic spline curve is fit to the data,
+the spline is extended by adding linear segments 
+at the beginning and end. 
+These linear segments are used for extrapolating values beyond the
+range of the input data.
+<BR><BR>For point-in-time output series, the spline function is evaluated
+at the appropriate points.
+For interval total or average output series,
+the spline function is integrated over the output intervals.
+<BR><BR></DD>
+</DL>
+<H3><I>The JOIN Method</I></H3>
+<A NAME="idxexp0105">&#13;</A><A NAME="idxexp0104">&#13;</A>The JOIN method fits a continuous curve to the data by connecting
+successive straight line segments.
+(This produces a linear spline.)
+For point-in-time data, the JOIN method connects
+successive nonmissing input values with straight lines.
+For interval total or average data,
+interval midpoints are used as the break points,
+and ordinates are chosen so that the integrals of the
+piecewise linear curve agree with the input totals.
+<P>For point-in-time output series, the JOIN function is evaluated
+at the appropriate points.
+For interval total or average output series,
+the JOIN function is integrated over the output intervals.
+<P><H3><I>The STEP Method</I></H3>
+<A NAME="idxexp0107">&#13;</A><A NAME="idxexp0106">&#13;</A><A NAME="idxexp0109">&#13;</A><A NAME="idxexp0108">&#13;</A>The STEP method fits a discontinuous piecewise constant curve.
+For point-in-time input data,
+the resulting step function is equal to the most recent input value.
+For interval total or average data,
+the step function is equal to the average value for the interval.
+<P>For point-in-time output series, the step function is evaluated
+at the appropriate points.
+For interval total or average output series,
+the step function is integrated over the output intervals.
+<P><H3><I>The AGGREGATE Method</I></H3>
+<A NAME="idxexp0111">&#13;</A><A NAME="idxexp0110">&#13;</A>The AGGREGATE method performs simple aggregation of time series
+without interpolation of missing values.
+<P>If the input data are totals or averages,
+the results are the sums or averages, respectively, of the input values for
+observations corresponding to the output observations.
+That is, if either TOTAL or AVERAGE is specified for the OBSERVED= option,
+the METHOD=AGGREGATE result is the sum or mean of the input values
+corresponding to the output observation.
+For example, suppose METHOD=AGGREGATE, FROM=MONTH, and TO=YEAR.
+For OBSERVED=TOTAL series,
+the result for each output year is the sum of the input values 
+over the months of that year.
+If any input value is missing, 
+the corresponding sum or mean is also a missing value.
+<P>If the input data are point-in-time values,
+the result value of each output observation equals
+the input value for a selected input observation
+determined by the OBSERVED= attribute.
+For example, suppose METHOD=AGGREGATE, FROM=MONTH, and TO=YEAR.
+For OBSERVED=BEGINNING series,
+January observations are selected as the annual values.
+For OBSERVED=MIDDLE series,
+July observations are selected as the annual values.
+For OBSERVED=END series,
+December observations are selected as the annual values.
+If the selected value is missing, the output annual value is missing.
+<P>The AGGREGATE method can be used only when the
+FROM= intervals are nested within the TO= intervals.
+For example, you can use METHOD=AGGREGATE when FROM=MONTH and TO=QTR
+because months are nested within quarters.
+You cannot use METHOD=AGGREGATE when FROM=WEEK and
+TO=QTR because weeks are not nested within quarters.
+<P>In addition, the AGGREGATE method cannot convert between point-in-time
+data and interval total or average data.
+Conversions between TOTAL and AVERAGE data are allowed, but
+conversions between BEGINNING, MIDDLE, and END are not.
+<P>Missing input values produce missing result values for METHOD=AGGREGATE.
+However, gaps in the sequence of input observations are not allowed.
+For example, if FROM=MONTH, you may have a missing value for a variable
+in an observation for a given February.
+But if an observation for January is followed by an observation for
+March, there is a gap in the data, and METHOD=AGGREGATE cannot be used.
+<P>When the AGGREGATE method is used, there is no interpolating curve, 
+and therefore the EXTRAPOLATE option is not allowed.
+<P><H3><I>METHOD=NONE</I></H3>
+The option METHOD=NONE specifies that no interpolation be performed.
+This option is normally used in conjunction with the 
+TRANSFORMIN= or TRANSFORMOUT= option.
+<P>When METHOD=NONE is specified, there is no difference between the 
+TRANSFORMIN= and TRANSFORMOUT= options; if both are specified, 
+the TRANSFORMIN= operations are performed first, 
+followed by the TRANSFORMOUT= operations.
+TRANSFORM= can be used as an abbreviation for TRANSFORMIN=.
+<P>METHOD=NONE cannot be used when frequency conversion is specified.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect24.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect26.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

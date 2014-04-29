@@ -1,0 +1,1200 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS Interfaces to ISPF and REXX : SAS Interface to ISPF </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217153.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0650305.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zes-rexx.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zes-ispf">SAS Interface to ISPF</A></FONT></H1>
+
+
+<P><A name="z0551811">&#13;
+The SAS interface to ISPF consists of CALL routines, system options, and other
+facilities that enable you to write interactive ISPF applications in the SAS
+language or in a combination of the SAS language and other languages that
+are supported by ISPF.  This interface replaces the Version 5 product, SAS/DMI.
+ It provides access to ISPF both from the windowing environment and from SAS
+Control Language (SCL).</A>
+<P>Using this interface, you can implement interactive
+applications that can be used even by novice users.  Users need only know
+how to log on to a 3270 or 3290 terminal.  All other information can be supplied
+as part of the application itself.
+<P>For SAS programmers, using this interface is often preferable
+to using other languages to implement interactive ISPF applications because
+existing SAS data files and applications can be exploited. The interface also
+reduces the need for the SAS programmer to learn another language.
+<P>For detailed information about ISPF, see the IBM documents <B>ISPF Dialog Developer's Guide and
+Reference</B> and <B>ISPF Reference
+Summary</B>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Software Requirements</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551815">&#13;The following table summarizes
+the software requirements for
+using the interface. </A>
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zaces-t1">Software Requirements for Using the SAS Interface to ISPF</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  colspan="2" align="LEFT" valign="BOTTOM" ><B>Software </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Version Required </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">Base SAS Software </TD>
+  
+<TD  align="LEFT" valign="TOP">SAS System Release 6.08 or later</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">Operating Environment </TD>
+  
+<TD  align="LEFT" valign="TOP">OS/390/SP Version 2 or later TSO/E Version
+2 or later</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">ISPF </TD>
+  
+<TD  align="LEFT" valign="TOP">ISPF Version 2 or later</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Enabling the Interface</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551824">&#13; The interface is available to you whenever
+you invoke SAS in
+the OS/390 environment under ISPF.  There is no separate procedure for enabling
+the interface.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Invoking ISPF Services</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551825">&#13;
+
+The interface provides CALL routines that enable you to use ISPF services
+from a SAS DATA step.  The ISPF services facilitate many other tasks. For
+example, they provide an efficient way to convert SAS files to ISPF tables
+and ISPF tables to SAS files.  They also enable display input to be validated
+by the ISPF panel processing section and/or by the SAS DATA step, giving cross-variable-checking
+capability.</A>
+<P>The IBM documents <B>ISPF Dialog Developer's Guide
+and Reference</B> and <B>ISPF Reference Summary </B> describe the
+ISPF services and their syntax conventions. To invoke these services, you
+can use either the ISPLINK CALL routine or the ISPEXEC CALL routine. However,
+ISPEXEC has the following limitations: 
+<P>
+<UL>
+
+<LI>The following ISPF services <B>cannot</B>
+be invoked from
+ISPEXEC:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+GRERROR
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+GRINIT
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+GRTERM
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+VCOPY
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+VDEFINE
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+VDELETE
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+VREPLACE
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+VRESET
+</TD></TR></TABLE><P>
+
+<LI>The
+SAS services described in <A href="#zpchange">Changing the Status of ISPF Interface Options during Execution of a DATA Step</A> cannot be
+invoked from ISPEXEC.<P>
+
+<LI>You cannot use abbreviated variable lists (described
+in <A href="#zarnames">Variable-Naming Conventions</A>)
+with ISPEXEC.<P>
+</UL>
+
+<P>Remember that ISPF restricts a name list to 254 names.
+<BR><H3>Using the ISPEXEC CALL Routine</H3>
+
+
+<P><A name="z0551831">&#13;  
+To invoke ISPEXEC from a SAS DATA step, use a CALL statement with one of these
+formats:  
+
+
+</A>
+<PRE>call ispexec(<I>value1,value2</I> );</PRE>
+
+
+  
+
+
+
+<PRE>call ispexec(,<I>value2</I> );</PRE>
+
+
+  
+
+
+
+<PRE>call ispexec(<I>value2</I> );</PRE>
+
+
+where <B>value1</B> and <B>value2</B> are variables, literals, or expressions
+to be passed as parameters to ISPF. Use the same parameters that you would
+use with an ISPF ISPEXEC. <B>Value1</B>, if specified, is the length
+of <B>value2</B>. If you use the second or third form of the call, the
+ISPF interface provides this value. <B>Value2 </B> is a character string
+that contains the service name and parameters, specified as they would be
+in a CLIST. Parameters can be specified as symbolic ISPF variables that will
+be replaced with the ISPF variable values at run time.  Only one scan for
+symbolic variables is done, and the resulting service request must not exceed
+512 bytes in length. 
+<P>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If you use symbolic ISPF
+variables, remember that both SAS and ISPF use ampersands to define symbolic
+variables. Enclose the ISPF symbolic variable specifications in single quotes
+to prevent them from being replaced by SAS.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Using the ISPLINK CALL Routine</H3>
+
+
+<P><A name="z0551834">&#13;     
+  To invoke ISPLINK
+from a SAS DATA step, use a CALL statement with this format:  
+
+
+</A>
+<PRE>call isplink(<I>value1,...,value15</I> );</PRE>
+
+
+where <B>value1,...,value15</B> are variables, literals, or expressions
+to be passed as parameters to ISPF.  You use the same parameters that you
+would use with an ISPF ISPLINK.  See <A href="#zarmfacs">Using Special Facilities for Passing Parameters to ISPF</A> for a description of special parameter
+considerations.
+<P>Trailing blanks are sometimes used by ISPF to determine
+the end of a parameter; they are optional because the interface supplies them.
+If more than 15 positional parameters are required (for example, TBSTATS can
+have up to 17 parameters), parameters 15 through 20 can be specified in <B>value15</B>.  The values must be separated by commas. The interface will
+parse <B>value15</B> into parameters 15 through 20.
+<BR><H3>Testing ISPEXEC and ISPLINK Return Codes</H3>
+
+
+<P><A name="z0551837">&#13;
+   Each ISPEXEC or ISPLINK CALL subroutine results in a return
+code that is described in IBM's <B>ISPF Dialog Developer's Guide and Reference</B> manual.  You can test the return code with the SAS numeric variable
+ISP_RC.  Because this variable is set by ISPEXEC or ISPLINK, the SAS compiler
+produces a 
+
+
+</A><CODE><B>Note: Variable</B></CODE> <I>varname</I>
+ 
+
+
+<CODE><B>is uninitialized</B></CODE> message.  To avoid receiving this message, specify
+the following SAS statement in your program:  
+
+
+
+<PRE>retain isp_rc 0;</PRE>
+<BR><H3>Using ISPF Dialog Development Models</H3>
+
+
+<P><A name="z0551838">&#13;
+ A standard ISPF function called Dialog Development Models uses
+the ISPF EDIT facility to simplify the development of programs. (See the chapter
+on "Using Edit Models" in the IBM manual <B>ISPF Edit and Edit Macros</B>.
+See also </A><A href="#zostedit">Using the ISPF Editor from Your SAS Session</A>
+and <A href="#zcopying">Copying ISPF EDIT Models to Your SAS Session</A>.)
+<P>If you specify PL/I as the model class, the statements
+that the model facility produces will be in the proper SAS form. To simplify
+the use of the Dialog Development Models, the PL/I return code variable, PLIRETV,
+is recognized and used by the interface in the same way as ISP_RC. The following
+examples could have been created using the 
+
+
+<CODE><B>SELECT</B></CODE> Edit model:  
+
+
+
+<PRE>data _null_;
+   call ispexec('SELECT PANEL(ISR@PRIM)');
+   if pliretv &not; = 0 then put pliretv=;
+run;</PRE>
+
+
+  
+
+
+
+<PRE>data _null_;
+   call isplink('SELECT','  ','PANEL(ISR@PRIM)');
+   if pliretv &not; = 0 then put pliretv=;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using Special SAS System Options with the Interface</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551840">&#13;
+ The SAS interface to ISPF includes the following
+SAS system options. These options are useful in developing and debugging ISPF
+applications. Most of them are used in conjunction with the ISPF VDEFINE service,
+which is described in </A><A href="#zvdefine">VDEFINE, VDELETE, and VRESET Services</A>. 
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>ISPCAPS</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPCHARF</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPCSR=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPEXECV=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPMISS=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPMSG=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPNOTES</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPNZTRC</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPPT</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPTRACE</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVDEFA</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVDLT</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVDTRC</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVIMSG=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVRMSG=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVTMSG=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVTNAM=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVTPNL=</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVTRAP</TD></TR>
+<TR valign="top"><TD></TD><TD>ISPVTVARS=</TD></TR></TABLE>
+<P>To
+determine which of these options are in effect for
+your SAS session, submit the following statements from the PROGRAM EDITOR
+window and view the output in the LOG window.  
+
+
+
+<PRE>proc options group=isp;
+run;</PRE>
+<P>You specify these options as you would specify any other
+SAS system option. See <A href="z-custom.htm#z-optchg">Specifying or Changing System Option Settings</A>.
+For detailed information about these options, see <A href="z0216786.htm">System Options in the OS/390 Environment</A>.
+<BR><H3><A name="zpchange">Changing the Status of ISPF Interface Options during Execution of a DATA Step</A></H3>
+
+
+<P><A name="z0551843">&#13; You can use the interface's SAS service in conjunction with
+the ISPLINK CALL routine to change the status of some of the SAS system options
+that relate to the ISPF interface.  For example, the following ISPLINK CALL
+specifies the ISPNZTRC system option:  
+
+
+</A>
+<PRE>call isplink ('SAS','ISPNZTRC');</PRE>
+<P>The system options whose status can be changed in this
+manner are listed in <A href="#z0986641">SAS Services and Their SAS/DMI Equivalents</A>.
+See <A href="z0216786.htm">System Options in the OS/390 Environment</A>
+for detailed descriptions of these options. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;For
+compatibility with SAS/DMI, you can use the DMI service to change the status
+of the corresponding system option.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="z0986641">SAS Services and Their SAS/DMI Equivalents</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  colspan="2" align="LEFT" valign="BOTTOM" ><B><A name="z0551847">&#13; SAS Service </A></B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Equivalent DMI Service  </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPCAPS')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','CAPS')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPCAPS')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOCAPS')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPCHARF')   </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','CHARFORMATTED')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPCHARF')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOCHARFORMATTED')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPNOTES')   </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOTES')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPNOTES')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NONOTES')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPNZTRC')   </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NZRCTRACE')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPNZTRC')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NONZRCTRACE')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPPT')   </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','PT')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPPT')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOPT')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPTRACE')   </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','TRACE')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPTRACE')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOTRACE')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPVDTRC')   </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','VDEFTRACE')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPVDTRC')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOVDEFTRACE')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPVDLT')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','VDELVDEF')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPVDLT')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOVDELVDEF')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','ISPVTRAP')   </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','VTRAP')</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">('SAS','NOISPVTRAP')  </TD>
+  
+<TD  align="LEFT" valign="TOP">('DMI','NOVTRAP')</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zostedit">Using the ISPF Editor from Your SAS Session</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551885">&#13;  If you
+prefer to use the ISPF editor rather than the SAS  editor, or if you need
+to use the ISPF editor in order to use edit models (see the next section, </A><A href="#zcopying">Copying ISPF EDIT Models to Your SAS Session</A>),
+you can use the SAS HOSTEDIT command.  Under OS/390, the HOSTEDIT command
+temporarily suspends the current SAS session and initiates a session of the
+ISPF editor or browser.  See <A href="z1edit.htm">HOSTEDIT</A> for details.
+<BR><H3><A name="zcopying">Copying ISPF EDIT Models to Your SAS Session</A></H3>
+
+
+<P>A major advantage of being able to access the ISPF editor
+with the HOSTEDIT command is that it enables you to access ISPF EDIT models,
+modify them as necessary, and then copy them to your SAS PROGRAM EDITOR window.
+<P>To access an ISPF EDIT model, do the following:
+
+<OL START="1" type="1">
+<LI>Invoke SAS from ISPF and enter HOSTEDIT on the
+command line of the PROGRAM EDITOR window.<P>
+
+<LI>Enter 
+
+
+<CODE><B>MODEL CLASS PLI</B></CODE> on the
+ISPF editor command line.<P>
+
+<LI>Enter 
+
+
+<CODE><B>MODEL</B></CODE> plus the model name
+to include a particular model (for example, 
+
+
+<CODE><B>MODEL TBDISPL</B></CODE>), or enter 
+
+
+<CODE><B>MODEL</B></CODE> alone and specify a model from the list of EDIT models that appears.<P>
+</OL>
+
+<P>You can then modify the model as necessary and use the
+END command to save it back to your PROGRAM EDITOR window.
+<P>For more information about the ISPF EDIT facility and
+EDIT models, refer to the IBM manual <B>ISPF Edit and Edit Macros</B>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zarmfacs">Using Special Facilities for Passing Parameters to ISPF</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551893">&#13; The interface provides special facilities and services that
+simplify the coding and processing of parameters for ISPF services. These
+facilities include: </A>
+<P>
+<UL>
+
+<LI>variable-naming conventions that simplify the
+specification of variables to ISPF<P>
+
+<LI>methods for specifying fixed binary parameters<P>
+
+<LI>a way to pass parameters that are
+longer than
+the usual 200-byte limit<P>
+
+<LI>a way to bypass parameter processing.<P>
+</UL>
+
+<BR><H3><A name="zarnames">Variable-Naming Conventions</A></H3>
+
+
+<P><A name="z0551898">&#13; To simplify the
+specification of variables to ISPF, the interface
+recognizes _ALL_ or an asterisk (*) to reference all variable names. Variable
+names can also be selected by their prefixes. When a name ends in a colon,
+all variables that begin with the specified name are referenced.</A>
+<P>You can also use other types of SAS variable lists,
+including numbered range lists (for example, x1-x<B>n</B>) and name
+range lists (x-numeric-a), as described in the chapter on "Rules of the SAS
+Language" in 
+
+
+
+<B>SAS Language Reference: Dictionary</B>.
+<P>When a variable list is passed to the VDEFINE service
+(see <A href="#zvdefine">VDEFINE, VDELETE, and VRESET Services</A>),
+the special naming conventions refer to all variables in the current DATA
+step that are legal ISPF variable names. (Note: A name that contains an underscore
+is not a legal ISPF variable name.) SAS arrays, temporary DATA step variables
+such as FIRST.<B>variable</B> and LAST.<B>variable</B>, and the
+variable PLIRETV are not considered candidates for VDEFINE.  The special naming
+conventions for services other than VDEFINE refer only to the list of currently
+defined variables and <B>not</B> to all of the variables in the DATA
+step.
+<P>Specifically, the special variable-naming conventions
+can be used in the following places: 
+<P>
+<UL>
+
+<LI>in the second parameter for the VCOPY, VDEFINE,
+VDELETE, VERASE, VGET, VMASK, VPUT, and VREPLACE services<P>
+
+<LI>in the third parameter for the TBADD, TBCREATE,
+TBMOD, TBPUT, TBSARG, and TBSCAN services<P>
+
+<LI>in the fourth parameter for the TBCREATE service.<P>
+</UL>
+
+<BR><H3><A name="z-fixbin">Specifying Fixed Binary Parameters</A></H3>
+
+
+<P><A name="z0551905">&#13; The interface
+supports the use of simple numeric constants or
+variables in ISPF service parameters for services that require numeric parameters.
+However, for compatibility with SAS/DMI, the following two ways of creating
+full-word fixed binary parameters in SAS DATA steps are also supported:  
+
+
+</A>
+<PRE>length fixed10 $4;
+retain fixed10;
+if _n_=1 then fixed10=put(10,pib4.);</PRE>
+<P>or  
+
+
+
+<PRE>retain fixed10 '0000000a'x;</PRE>
+<P>In addition, you can specify a hexadecimal value as
+a literal parameter by enclosing the value in single or double quotes and
+entering the letter X after the closing quote.
+<P>Some of the services that have numeric parameters are
+CONTROL, TBDISPL, TBCREATE, TBQUERY, TBSKIP, VDEFINE, and VCOPY. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp; Never use a blank or null value for a numeric parameter.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The
+ISPF SELECT service has a special parameter list
+because it requires a full-word fixed binary parameter that specifies the
+length of the buffer.  The SAS interface to ISPF provides this length parameter,
+but if you use the ISPLINK CALL routine to invoke the SELECT service, then
+you must reserve the parameter's place in the parameter list. Use either a
+comma or two single quotes with a blank between them (' ') to represent the
+parameter, as in the following example:  
+
+
+
+<PRE>isplink('SELECT', ,'CMD(%MYDIALOG)');</PRE>
+<P>If you use the ISPEXEC CALL routine to invoke the SELECT
+service, then you do not need to reserve the parameter's place:  
+
+
+
+<PRE>ispexec('SELECT CMD(%MYDIALOG)');</PRE>
+<BR><H3>Passing Parameters That Are Longer Than 200 Bytes</H3>
+
+
+<P><A name="z0551912">&#13;Previous releases of SAS limit the length of a CALL routine parameter
+to 200 bytes, but it is sometimes necessary to pass more than 200 bytes as
+an ISPF service request parameter.  For this reason, the interface has a special
+parameter form that allows parameters up to 65,535 bytes long for both ISPLINK
+and ISPEXEC calls.</A>
+<P>When a parameter longer than 200 bytes is required,
+use the following form in place of the parameter:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+=<I>varname</I>=<I>length</I>
+</TD></TR></TABLE>where <B>varname </B> is the name of a SAS
+character variable
+in the current DATA step, and <B>length</B> is the length of <B>varname</B>, expressed as a two-byte binary value.  Blanks are not permitted
+before or after the equal signs.
+<P>Using this parameter form does not change ISPF parameter
+restrictions. For example, ISPEXEC allows a maximum of 512 bytes in its second
+parameter regardless of how you specify the parameter.
+<BR><H3>Bypassing Parameter Processing</H3>
+
+
+<P><A name="z0551923">&#13; There may be
+times when parameters must be passed to ISPF without
+modification.  If the interface encounters a parameter whose first position
+contains a PL/I "not" symbol (&not;), then the parameter that follows the
+"not" symbol is passed to ISPF unchanged. This facility prevents the parameter
+from being translated to uppercase and prevents names from being replaced
+within the parameter.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Accessing SAS Variables from ISPF</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551924">&#13;This section
+describes how the SAS interface to ISPF processes
+three ISPF services--VDEFINE, VDELETE, and VRESET.  These services are
+used to grant and revoke ISPF access to variables in the SAS DATA step. This
+section also provides an explanation of how SAS numeric and character variables
+are handled by VDEFINE, and it includes examples of how VDEFINE and VDELETE
+are used.</A>
+<BR><H3><A name="zvdefine">VDEFINE, VDELETE, and VRESET Services</A></H3>
+
+
+<P><A name="z0551925">&#13;
+     The ISPF VDEFINE service is used
+to give ISPF access to variables in the SAS DATA step.  When you call the
+VDEFINE service, the interface adds the SAS variables that you specify to
+its list of defined variables.</A>
+<P>The ISPF VDEFINE service allows you to specify seven
+parameters. The form is  
+
+
+
+<PRE>'VDEFINE', <I>namelist</I>, <I>variable</I>, <I>format</I>,
+           <I>length</I>, <I>optionlist</I>, <I>userdata</I></PRE>
+
+
+  
+<P>The interface provides the values for <B>variable,
+format, length,</B> and <B>userdata</B>.  You need only specify <B>namelist</B>.
+<P>The <B>optionlist</B> parameter is optional and
+can be used when you are defining either SAS character variables or SAS numeric
+variables. The two VDEFINE options that you can specify are COPY and NOBSCAN.
+The LIST option is not supported.  COPY allows the value of the variable that
+is being defined to be initialized to the value of a dialog variable that
+has the same name in the function pool, shared pool, or profile pool. The
+NOBSCAN option prevents ISPF from stripping trailing blanks from variables.
+<P>To define all SAS variables in the current DATA step,
+use the following statement:  
+
+
+
+<PRE>call isplink('VDEFINE','_ALL_');</PRE>
+<P>For more information about specifying variables, see
+<A href="#zarnames">Variable-Naming Conventions</A>.
+<P>The VDELETE service ends ISPF access to specified variables
+in the SAS DATA step, and the interface drops the variables from the list
+of defined variables that it maintains.  The interface recognizes the end
+of a SAS DATA step and deletes any variables that remain on its list of defined
+variables.
+<P>The VRESET service ends ISPF access to <B>all</B>
+variables that have been passed to the VDEFINE service.  However, in addition
+to removing <B>all</B> variables that the user has passed to VDEFINE,
+VRESET also removes variables that the interface has passed to VDEFINE. To
+prevent variables that it is using from being removed, the interface changes
+VRESET to ('VDELETE','_ALL_').
+<BR><H3>Handling of SAS Variables</H3>
+
+
+<P>SAS provides unique services that you can use when defining
+numeric and character variables to ISPF with the VDEFINE service.
+<BR><H3>Numeric Variables</H3>
+
+
+<P><A name="z0551934">&#13;  Numeric SAS variables are in
+double-word floating-point format.
+You may pass them to the VDEFINE service with either the FLOAT format or the
+USER format.  If you use the FLOAT format, you should specify (or let the
+interface provide) a length of 8, because all SAS numeric variables have a
+length of 8 during the execution of the SAS DATA step. </A><FONT size="-1"><A href="#footnote1">(footnote 1)</A></FONT> 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;When the FLOAT format is used, certain
+features of the SAS interface to ISPF are unavailable: SAS formats and informats
+that are associated with the variable are not used, null values are not changed
+to the special missing value "._" (period underscore), and accessing of variables
+cannot be traced with the ISPVTRAP option.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Because earlier releases of ISPF did not support the
+FLOAT format, SAS (and previously SAS/DMI) supports the use of the USER format.
+If you specify the USER format, or if you let SAS default to it, then SAS
+provides a user exit that uses any format and/or informat associated with
+the variable.  If no format or informat is associated with the variable, then
+the default SAS format or informat is used.
+<BR><H3>Character Variables</H3>
+
+
+<P><A name="z0551938">&#13;In addition to containing
+strings of printable characters, SAS
+character variables can actually contain any data value. Hence, you may use
+any valid ISPF VDEFINE format with a SAS character variable. ISPF treats the
+variable accordingly. Within the SAS DATA step, the SAS functions INPUT or
+PUT can be used to perform data conversion as required. The SAS system option
+ISPCHARF | NOISPCHARF determines whether explicit SAS informats and formats
+are used to convert SAS character variable values when they are used as ISPF
+variables. The following list explains how this option determines whether
+the SAS variable formats are to be used when a variable is passed to the VDEFINE
+service: </A>
+<P>
+<UL>
+
+<LI>If the system option NOISPCHARF is in effect when
+a SAS character variable is passed to the VDEFINE service, the SAS character
+variable is defined to ISPF with a <B>format</B> of CHAR, and both ISPF
+and SAS reference and modify the values of these variables directly in main
+storage.<P>
+
+<LI>If the system option ISPCHARF is in effect when
+a SAS character variable is passed to the VDEFINE service, and if the SAS
+variable has an explicit SAS informat or format, then the SAS character variable
+is defined to ISPF with a <B>format</B> of USER, and the interface uses
+the SAS informat or format in its conversion routine whenever ISPF references
+the variable.  The interface also applies the following rules: 
+<P>
+<UL>
+
+<LI>If the variable contains an invalid value for
+the SAS informat, the variable is set to the value of the system option MISSING=.<P>
+
+<LI>If the variable contains an invalid value for
+the SAS format, ISPF receives the value of the system option MISSING= for
+the variable.<P>
+
+<LI>If no value is specified for an ISPF character
+variable, the variable is set to the value of the ISPMISS= option.<P>
+</UL>
+<P>
+</UL>
+
+<P>If an application requires an ISPF dialog
+variable that
+is longer than the maximum SAS character variable length of 32,767, then the <B>length</B> parameter of VDEFINE can be specified and associated with the
+variables that are being defined to ISPF. In order to prevent the data from
+being overwritten, you must do the following: 
+<P>
+<UL>
+
+<LI>Create multiple variables whose total length equals
+or exceeds the length required.<P>
+
+<LI>Ensure that the SAS compiler assigns storage for
+the variables contiguously by using SAS ARRAY statements to arrange the variables
+as needed.  Either all or none of the variables must be specified in the RETAIN
+statement.<P>
+</UL>
+
+<P>It is good practice to code the SAS ARRAY and RETAIN
+statements for these extra-long variables immediately following the SAS DATA
+statement.
+<P>The following example shows how ISPF dialog variables
+named LONG1 and LONG2, each 32,000 bytes long, would be defined.  
+
+
+
+<PRE>data _null_;
+   array anyname1 $32000 long1 long1_c;
+   array anyname2 $32000 long2 long2_c;
+   retain long1 long1_c long2 long2_c  ' ';
+   call isplink('VDEFINE','(LONG1 LONG2)',,,64000);</PRE>
+<BR><H3>Examples</H3>
+
+
+<P>The following statement defines to ISPF all variables
+in the current DATA step that begin with the letters PPR:  
+
+
+
+<PRE>call isplink('VDEFINE','PPR:');</PRE>
+<P>The next statement defines the variables SASAPPLN, ZCMD,
+and ZPREFIX to ISPF. The variables are to be initialized with the values from
+variables of the same name that already exist in the variable pools.  
+
+
+
+<PRE>call isplink('VDEFINE',
+   '(SASAPPLN  ZCMD  ZPREFIX)',,,,'COPY');</PRE>
+<P>This next statement removes all previously defined variables
+from the variable pool, making them inaccessible to ISPF:  
+
+
+
+<PRE>call isplink('VDELETE','_ALL_');</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Tips and Common Problems</FONT></B></TD></TR></TABLE>
+
+<BR><H3>Checking for Invalid Values in SAS Variables</H3>
+
+
+<P><A name="z0551952">&#13;
+If a SAS variable in an ISPF table or display has a specified
+informat, invalid values are replaced with missing values.  When you create
+ISPF panels through which a user can enter or modify SAS values, the values
+can be checked for validity either with the action section of the panel or
+with the SAS DATA step.  If missing values are not appropriate, you can redisplay
+the panel (along with an appropriate error message) and prompt the user to
+re-enter the invalid values correctly.</A>
+<BR><H3>Checking for Null Values in ISPF Variables</H3>
+
+
+<P><A name="z0551953">&#13; The special missing value of underscore indicates an ISPF variable
+with a length of 0.  (Null values are valid for ISPF values.) The special
+missing value of underscore distinguishes between an invalid value from an
+informat (which will have a missing value) and a value that was not provided.</A>
+<BR><H3>Truncated Values for Numeric Variables</H3>
+
+
+<P><A name="z0551954">&#13; To avoid truncating the values of numeric variables, you must
+either provide a format whose length does not exceed the size of the display
+field, or you must increase the length of the display field itself. If no
+format is associated with a numeric variable, the default format width is
+12 characters.</A>
+<BR><H3>Uninitialized Variables</H3>
+
+
+<P><A name="z0551955">&#13; When a variable is
+neither specified with an initial value in
+a RETAIN statement nor appears on the left side of the equal sign in an assignment
+statement, the SAS log shows the 
+
+
+</A><CODE><B>Note: Variable</B></CODE> <I>varname</I> 
+
+
+<CODE><B>is uninitialized</B></CODE> message. For example,
+the following statements would result in the message 
+
+
+<CODE><B>NOTE: Variable
+ZCMD is uninitialized</B></CODE>.  
+
+
+
+<PRE>data _null_;
+length zcmd $200;
+call isplink('VDEFINE','ZCMD');
+call isplink('DISPLAY','ISRTSO');
+put zcmd=;
+run;</PRE>
+<P>However, in this example the message is misleading because
+the call to ISPF actually assigns a value to ZCMD. To prevent the message
+from being generated, put the variable in a RETAIN statement with an initial
+value, or use the variable in an assignment statement. For example, the following
+RETAIN statement assigns an initial value (a blank) to the variable ZCMD:
+ 
+
+
+
+<PRE>retain zcmd ' ';</PRE>
+<BR><H3>Character Values Passed for Numeric Variables</H3>
+
+
+<P><A name="z0551957">&#13; Under SAS/DMI (the Version 5 predecessor to the SAS interface
+to ISPF), it was not possible to pass numeric values directly to ISPF services
+for which numeric values are required.  Instead, an alternate method was provided
+(see </A><A href="#z-fixbin">Specifying Fixed Binary Parameters</A>).
+The alternate method is still supported but is not required. Therefore, if
+you used SAS/DMI to develop ISPF applications, you may prefer to modify those
+applications so that numeric values are passed directly to these ISPF services
+instead.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Testing ISPF Applications</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551958">&#13; When you are testing code
+that uses ISPF services, there are
+techniques and facilities that can greatly simplify the testing process. Chapter
+2 of the IBM manual <B>ISPF Dialog Developer's Guide and Reference</B>
+describes the ISPF dialog test modes. This facility provides aids for testing
+functions, panels, variables, messages, tables, and skeletons.</A>
+<P>In addition, the SAS provides the MPRINT system option
+to help you find coding errors.  If you want to see the SAS statements that
+are generated by SAS macros, specify MPRINT in a SAS OPTIONS statement. (The
+MPRINT system option is documented in 
+
+
+
+<B>SAS Language Reference: Dictionary</B>).
+<P>The ISPF parameters are written to the SAS log when
+the ISPTRACE option is specified.  The tracing can also be turned on and off
+with the ISPLINK CALL subroutine, as in the following example, which stops
+the tracing of ISPF parameters.  
+
+
+
+<PRE>call isplink('SAS','NOISPTRACE');</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Sample Application</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551961">&#13; The IBM manual <B>ISPF Dialog
+Management Examples</B>
+provides examples of ISPF applications written in APL2, COBOL, FORTRAN, PASCAL,
+PL/I, and as CLISTs.</A>
+<P>This section shows how one of those applications would
+be written in the SAS language.
+<BR><H3>Employee Records Application</H3>
+
+
+<P>
+<PRE>DATA _NULL_;
+   LENGTH EMPSER $6 FNAME LNAME $16 ADDR1 ADDR2 ADDR3 ADDR4 $40 PHA $3
+          PHNUM MSG TYPECHG CHKTYPE $8 I STATE $1;
+   RETAIN EMPSER FNAME LNAME I ADDR1 ADDR2 ADDR3 ADDR4 PHA PHNUM MSG
+          TYPECHG CHKTYPE ' ' STATE '1' PLIRETV 0;
+   CALL ISPLINK('VDEFINE',                  /* DEFINE VARIABLES      */
+            '(EMPSER FNAME LNAME I ADDR: PHA PHNUM TYPECHG CHKTYPE)');
+   MSG=' ';                                 /* INITIALIZE MESSAGE    */
+CALL ISPLINK('TBCREATE',                    /* IF TABLE DOESN'T EXIST*/
+        'SASEMPTB','(EMPSER)',              /* CREATE IT             */
+        '(LNAME FNAME I ADDR: PHA PHNUM)',
+        'NOWRITE');                         /* DON'T SAVE THE TABLE  */
+DO WHILE (STATE^='4');                      /* LOOP UNTIL TERM SET   */
+  CALL ISPLINK('DISPLAY','SASEMPLA',MSG);   /* SELECT EMPLOYEE       */
+  IF PLIRETV=8 THEN STATE='4';              /* END KEY THEN TERMINATE*/
+  ELSE DO;                                  /* ENTER KEY PRESSED     */
+    MSG=' ';                                /* RESET MESSAGE         */
+    STATE='2';                              /* PROCESS EMPLOYEE PANEL*/
+    CALL ISPLINK('TBGET','SASEMPTB');       /* OBTAIN EMPLOYEE DATA  */
+    IF PLIRETV=0 THEN                       /* IF RECORD EXISTS THEN */
+      TYPECHG='U';                          /*   SET UPDATE FLAG     */
+    ELSE DO;                                /* RECORD DOES NOT EXIST */
+      TYPECHG='N';                          /*   SET TYPE=NEW        */
+      LNAME=' ';FNAME=' ';I=' ';            /* INITIALIZE PANEL VARS */
+      ADDR1=' ';ADDR2=' ';ADDR3=' ';
+      ADDR4=' ';PHA=' ';PHNUM=' ';
+    END;
+    CHKTYPE=TYPECHG;                        /* SAVE TYPE OF CHANGE   */
+    CALL ISPLINK('DISPLAY','SASEMPLB',MSG); /* DISPLAY EMPLOYEE DATA */
+    IF PLIRETV^=8 THEN DO;                  /* END KEY NOT PRESSED   */
+      IF TYPECHG='N' THEN DO;               /* IF NEW EMPLOYEE       */
+        CALL ISPLINK('TBADD','SASEMPTB');   /*   ADD TO TABLE        */
+        MSG='SASX217';                      /*                       */
+        END;                                /*                       */
+      ELSE DO;                              /*                       */
+        IF TYPECHG='U' THEN DO;             /* IF UPDATE REQUESTED   */
+          CALL ISPLINK('TBPUT','SASEMPTB'); /*   UPDATE TABLE        */
+          MSG='SASX218';                    /*                       */
+          END;                              /*                       */
+        ELSE DO;                            /*                       */
+          CALL ISPLINK('TBDELETE','SASEMPTB'); /* DELETED MESSAGE    */
+          MSG='SASX219';                    /*                       */
+          END;                              /*                       */
+        END;                                /* END TABLE MODS        */
+      END;                                  /* END 2ND PANEL PROCESS */
+    END;                                    /* END 1ST PANEL PROCESS */
+  IF MSG^=' ' THEN CALL ISPLINK('LOG',MSG); /* LOG MESSAGE           */
+END;                                        /* END DO LOOP           */
+CALL ISPLINK('TBCLOSE','SASEMPTB');         /* CLOSE TABLE           */
+CALL ISPLINK('VDELETE','_ALL_');            /* DELETE ALL VARIABLES  */
+RUN;</PRE>
+<BR><H3>Contents of Member SASEMPLA in ISPPLIB</H3>
+
+
+<P>
+<PRE>%------------------------------ EMPLOYEE SERIAL --------------------------------
+%COMMAND ====>_ZCMD
++
++   EMPLOYEE SERIAL: &amp;EMPSER
++
++   EMPLOYEE NAME:%===>_TYPECHG +  (NEW, UPDATE, OR DELETE)
++     LAST   %===>_LNAME           +
++     FIRST  %===>_FNAME           +
++     INITIAL%===>_I+
++
++   HOME ADDRESS:
++     LINE 1%===>_ADDR1                                   +
++     LINE 2%===>_ADDR2                                   +
++     LINE 3%===>_ADDR3                                   +
++     LINE 4%===>_ADDR4                                   +
++
++   HOME PHONE:
++     AREA CODE   %===>_PHA+
++     LOCAL NUMBER%===>_PHNUM   +
++
+)INIT
+  .CURSOR = TYPECHG
+  IF (&amp;PHA = ' ')
+    &amp;PHA = 914
+   &amp;TYPECHG = TRANS(&amp;TYPECHG N,NEW U,UPDATE D,DELETE)
+)PROC
+    &amp;TYPECHG = TRUNC (&amp;TYPECHG,1)
+  IF (&amp;TYPECHG = N)
+    IF (&amp;CHKTYPE ^= N)
+      .MSG = SASX211
+  IF (&amp;TYPECHG ^= N)
+    IF (&amp;CHKTYPE = N)
+      .MSG = SASX212
+  VER (&amp;LNAME,ALPHA)
+  VER (&amp;FNAME,ALPHA)
+  VER (&amp;I,ALPHA)
+  VER (&amp;PHA,NUM)
+  VER (&amp;PHNUM,PICT,'NNN-NNNN')
+  IF (&amp;TYPECHG = N,U)
+    VER (&amp;LNAME,NONBLANK,MSG=SASX214)
+    VER (&amp;FNAME,NONBLANK,MSG=SASX213)
+    VER (&amp;ADDR1,NONBLANK,MSG=SASX215)
+    VER (&amp;ADDR2,NONBLANK,MSG=SASX215)
+    VER (&amp;ADDR3,NONBLANK,MSG=SASX215)
+)END</PRE>
+<BR><H3>First Employee Record Application Panel</H3>
+
+
+<P>
+<P>
+<P>
+<B><I>First Employee Record Application Panel</I></B><BR>
+
+<P><IMG border="0" src="./images/01328314.gif" vspace="12" alt="[IMAGE]">
+<P>
+<BR><H3>Contents of Member SASEMPLB in ISPPLIB</H3>
+
+
+<P>
+<PRE>%------------------------------ EMPLOYEE RECORDS -------------------------------
+%COMMAND ====>_ZCMD
++
++   EMPLOYEE SERIAL: &amp;EMPSER
++
++   EMPLOYEE NAME:%===>_TYPECHG +  (NEW, UPDATE, OR DELETE)
++     LAST   %===>_LNAME           +
++     FIRST  %===>_FNAME           +
++     INITIAL%===>_I+
++
++   HOME ADDRESS:
++     LINE 1%===>_ADDR1                                   +
++     LINE 2%===>_ADDR2                                   +
++     LINE 3%===>_ADDR3                                   +
++     LINE 4%===>_ADDR4                                   +
++
++   HOME PHONE:
++     AREA CODE   %===>_PHA+
++     LOCAL NUMBER%===>_PHNUM   +
++
+)INIT
+  .CURSOR = TYPECHG
+  IF (&amp;PHA = ' ')PHA = 914TYPECHG = TRANS(&amp;TYPECHG N,NEW U,UPDATE D,DELETE)
+)PROCTYPECHG = TRUNC (&amp;TYPECHG,1)
+  IF (&amp;TYPECHG = N)
+    IF (&amp;CHKTYPE &not;= N)
+      .MSG = SASX211
+  IF (&amp;TYPECHG &not;= N)
+    IF (&amp;CHKTYPE = N)
+      .MSG = SASX212
+  VER (&amp;LNAME,ALPHA)
+  VER (&amp;FNAME,ALPHA)
+  VER (&amp;I,ALPHA)
+  VER (&amp;PHA,NUM)
+  VER (&amp;PHNUM,PICT,'NNN-NNNN')
+  IF (&amp;TYPECHG = N,U)
+    VER (&amp;LNAME,NONBLANK,MSG=SASX214)
+    VER (&amp;FNAME,NONBLANK,MSG=SASX213)
+    VER (&amp;ADDR1,NONBLANK,MSG=SASX215)
+    VER (&amp;ADDR2,NONBLANK,MSG=SASX215)
+    VER (&amp;ADDR3,NONBLANK,MSG=SASX215)
+)END</PRE>
+<BR><H3>Second Employee Record Application Panel</H3>
+
+
+<P>
+<P>
+<P>
+<B><I>Second Employee Record Application Panel</I></B><BR>
+
+<P><IMG border="0" src="./images/01328315.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>
+<BR><H3>Contents of Member SASX21 in ISPMLIB</H3>
+
+
+<P>
+<PRE>SASX210  'INVALID TYPE OF CHANGE'                             .ALARM=YES
+'TYPE OF CHANGE MUST BE NEW, UPDATE, OR DELETE.'
+SASX211  'TYPE ''NEW'' INVALID'                               .ALARM=YES
+'EMPLOYEE SERIAL &amp;EMPSER ALREADY EXISTS.  CANNOT BE SPECIFIED AS NEW.'
+
+SASX212  'UPDATE OR DELETE INVALID'                           .ALARM=YES
+'EMPLOYEE SERIAL &amp;EMPSER IS NEW.  CANNOT SPECIFY UPDATE OR DELETE.'
+
+SASX213  'ENTER FIRST NAME'                                   .ALARM=YES
+'EMPLOYEE NAME MUST BE ENTERED FOR TYPE OF CHANGE = NEW OR UPDATE.'
+
+SASX214  'ENTER LAST NAME'                                    .ALARM=YES
+'EMPLOYEE NAME MUST BE ENTERED FOR TYPE OF CHANGE = NEW OR UPDATE.'
+
+SASX215  'ENTER HOME ADDRESS'                                 .ALARM=YES
+'HOME ADDRESS MUST BE ENTERED FOR TYPE OF CHANGE = NEW OR UPDATE.'
+
+SASX217  '&amp;EMPSER ADDED'
+'EMPLOYEE &amp;LNAME, &amp;FNAME &amp;I ADDED TO FILE.'
+
+SASX218  '&amp;EMPSER UPDATED'
+'EMPLOYEE &amp;LNAME, &amp;FNAME &amp;I UPDATED.'
+
+SASX219  '&amp;EMPSER DELETED'
+'EMPLOYEE &amp;LNAME, &amp;FNAME &amp;I DELETED.'</PRE>
+
+<HR><A name="footnote1"><FONT size="-1">FOOTNOTE 1:&nbsp;&nbsp;</FONT></A>For numeric variables, the LENGTH statement applies
+to the length of the variables when they are stored in a SAS data set, not
+to the length of the variables in memory while the DATA step is executing.&nbsp;<A href="#r1-for"><IMG border="0" src="../common/images/fntarrow.gif" alt="[arrow]"></A>
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217153.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0650305.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zes-rexx.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zes-ispf">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

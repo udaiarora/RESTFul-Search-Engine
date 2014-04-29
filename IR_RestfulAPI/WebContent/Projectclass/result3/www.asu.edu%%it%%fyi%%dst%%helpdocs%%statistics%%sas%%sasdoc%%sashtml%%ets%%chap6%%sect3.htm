@@ -1,0 +1,349 @@
+<HTML>
+<HEAD>
+<TITLE>Using the Output Delivery System</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="odslabel">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect2.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Using the Output Delivery System</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Using the Output Delivery System</H2>
+<P>The ODS statement is a global statement that enables you to provide
+instructions to the Output Delivery System. You can use ODS statements to specify
+options for different ODS destinations, select templates to format
+your output, and select and exclude output. You can also display the
+names of individual output tables as they are generated.
+<P><A NAME="idxods0007">&#13;</A>In order to select, exclude, or modify a table,
+you must first know its name.  
+You can obtain the table names in several ways:
+<P><UL>
+<LI> For any SAS/ETS procedure, you can obtain table names 
+      from the individual procedure chapter or from
+      the individual procedure section of the SAS online Help system.
+<LI> For any SAS procedure, you can use the SAS Explorer window to
+  view the names of the tables created in your SAS run 
+(see the section <A HREF="sect3.htm#odsexplorer">&#34;Using ODS with the SAS Explorer&#34;</A> for more information).
+<LI> For any SAS procedure, you can use the ODS TRACE
+statement to find the names of tables created in your SAS run.
+The ODS TRACE statement writes identifying information to the SAS
+log (or, optionally, to the SAS listing) for each generated 
+output table.
+</UL>
+<P><A NAME="idxods0008">&#13;</A>Specify the ODS TRACE ON statement prior to the procedure statements
+that create the output for which you want information.   For example,
+the following statements write the trace record for the specific tables created in
+this AUTOREG procedure step.
+<P><PRE>
+
+   ods trace on;
+   proc autoreg;
+      model y1 = time;
+      model y2 = time;
+   run;
+</PRE>
+<P>By default, the trace record is written to the
+SAS log, as displayed in <A HREF="sect3.htm#odsgs01">Figure 6.1</A>.
+Alternatively, you can specify the LISTING option, which writes the
+information, interleaved with the procedure output, to the SAS listing 
+(see <A HREF="sect6.htm">Example 6.1</A>).
+<A NAME="idxods0009">&#13;</A><A NAME="idxods0010">&#13;</A><P><A NAME="odsgs01">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><table border=0>
+<tr><td>
+<pre>
+   ods trace on;
+   proc autoreg;
+      model y1 = time;
+      model y2 = time;
+   run;
+
+.
+.
+.
+
+Output Added:
+-------------
+Name:       ParameterEstimates
+Label:      Parameter Estimates
+Template:   ets.autoreg.ParameterEstimates
+Path:       Autoreg.Model1.OLSEst.ParameterEstimates
+-------------
+
+.
+.
+.
+
+Output Added:
+-------------
+Name:       ParameterEstimates
+Label:      Parameter Estimates
+Template:   ets.autoreg.ParameterEstimates
+Path:       Autoreg.Model2.OLSEst.ParameterEstimates
+-------------
+</pre>
+</td></tr></table>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 6.1:</B> Partial Contents of the SAS Log: Result of the ODS TRACE Statement</SPAN><P>
+<P><A HREF="sect3.htm#odsgs01">Figure 6.1</A> displays the trace record, which contains the name of
+each created table and its associated label, template, and path.  The
+label provides a description of the table. The
+template name displays the name of the template used to format the
+table.  The path shows the output hierarchy to which the table
+belongs.
+<P><A NAME="idxods0011">&#13;</A><A NAME="idxods0012">&#13;</A><A NAME="idxods0013">&#13;</A>The fully qualified path is given in the trace record.  A partially
+qualified path consists of any part of the full path that begins
+immediately after a period (.) and continues to the end of the 
+full path.  For example, the full path for the parameter estimates for
+the first model in the preceding regression analysis is
+<P><PRE>
+
+   Autoreg.Model1.OLSEst.ParameterEstimates
+</PRE>
+<P>Therefore, partially qualified paths for the table are
+<PRE>
+
+   Autoreg.Model1.OLSEst.ParameterEstimates
+   Model1.OLSEst.ParameterEstimates
+   OLSEst.ParameterEstimates
+   ParameterEstimates
+</PRE>
+<P>To refer to a table (in order to select or exclude it from display,
+for example), specify either the table name or use the table's fully
+or partially qualified path. You may want to use qualified paths when
+your SAS program creates several tables that have the same name, as in
+the preceding example.  In such a case, you can use a partially
+qualified path to select a subset of tables, or you can use a fully
+qualified path to select a particular table.
+<P><A NAME="idxods0014">&#13;</A><A NAME="idxods0015">&#13;</A>You specify the tables that ODS selects or excludes with the ODS
+SELECT or ODS EXCLUDE statement.  Suppose that you want to display
+only the tables of parameter estimates from the preceding regression
+analysis.  You can give any of the following statements (before
+invoking the AUTOREG procedure) to display both tables of parameter
+estimates. For this example, these statements are equivalent:
+<P><PRE>
+
+   ods select Autoreg.Model1.OLSEst.ParameterEstimates
+              Autoreg.Model2.OLSEst.ParameterEstimates;
+
+   ods select Model1.OLSEst.ParameterEstimates 
+              Model2.OLSEst.ParameterEstimates;
+
+   ods select OLSEst.ParameterEstimates;
+
+   ods select ParameterEstimates;
+</PRE>
+<P>The first ODS SELECT statement specifies 
+the full path for both tables.  The second statement specifies 
+the partially qualified path for both tables.
+The third and fourth statements specifiy the partial path 
+&#34;OLSEst.ParameterEstimates,&#34; and
+single name &#34;ParameterEstimates,&#34;
+which are shared by both tables.
+<P><A NAME="idxods0016">&#13;</A><A NAME="idxods0017">&#13;</A><A NAME="idxods0018">&#13;</A>The Output Delivery System records the specified table names in its
+internal selection or exclusion list. ODS then processes the output it
+receives.  Note that ODS maintains an overall selection or exclusion
+list that pertains to all ODS destinations, and it maintains a
+separate selection or exclusion list for each ODS destination.  
+The list for a specific destination provides the primary filtering
+step. Restrictions you specify in the overall list are added to the
+destination-specific lists.
+<P>Suppose, for example, that your listing exclusion list (that is, the
+list of tables you wish to exclude from the SAS listing) contains the
+&#34;Summary&#34; table, which you specify with the statement
+<P><PRE>
+
+   ods listing exclude Summary;
+</PRE>
+<P>and your overall selection list (that is, the list of tables you want
+to select for all destinations) contains the tables
+&#34;Summary&#34; and &#34;ParameterEstimates,&#34; which you
+specify with the statement
+<P><PRE>
+
+   ods select ParameterEstimates Summary;
+</PRE>
+<P>The Output Delivery System then sends only the
+&#34;ParameterEstimates&#34; and &#34;Summary&#34;
+tables to all open destinations except the SAS listing.
+It sends only the &#34;ParameterEstimates&#34; table 
+to the SAS listing because the table
+&#34;Summary&#34; is excluded from that destination.
+<P><A NAME="idxods0019">&#13;</A><A NAME="idxods0020">&#13;</A>Some SAS procedures, such as the ARIMA or the MODEL procedure, support
+run-group processing, which means that a RUN statement does not end
+the procedure. A QUIT statement explicitly ends such procedures;
+if you omit the QUIT statement, a PROC or a DATA statement implicitly
+ends such procedures.  When you use the Output Delivery System with
+procedures that support run-group processing, it is good programming
+practice to specify a QUIT statement at the end of the procedure. This
+causes ODS to clear the selection or exclusion list, and you are less
+likely to encounter unexpected results.
+<P><H3><I><A NAME="odsexplorer">Using ODS with the SAS Explorer</A></I></H3>
+<A NAME="idxods0021">&#13;</A>The SAS Explorer is a new feature that enables you to
+examine the various parts of the SAS System. <A HREF="sect3.htm#odsgs02">Display 6.1</A> displays the
+Results window from the SAS Explorer.  The Results node retains a
+running record of your output as it is generated during your SAS
+session.  <A HREF="sect3.htm#odsgs02">Display 6.1</A> displays the output hierarchy when the
+preceding statements are executed.
+<P></P><A NAME="odsgs02"><SPAN CLASS="ssften"><B>Display 6.1:</B> The Results Window from the SAS Explorer</SPAN></A>
+<BR CLEAR="ALL"><CENTER>
+<IMG SRC="images/odsgs02.gif" ALT="odsgs02.gif (14120 bytes)" HEIGHT="334" WIDTH="265">
+</CENTER><BR CLEAR="ALL"><P>
+<P><A NAME="idxods0022">&#13;</A>When you click on the output table names in the Results window, you
+link directly to the output in the output window or, if you specify
+the HTML destination, in an HTML browser.  The items on the left-hand
+side of the Results node are output directories. The items on the
+right-hand side of the Results node are the names of the actual output
+objects.  You can also use the Explorer to determine names of the
+templates associated with each output table.
+<P><H3><I><A NAME="odstemplates">Controlling Output Appearance with Templates</A></I></H3>
+<A NAME="idxods0023">&#13;</A>A template is an abstract description of how output should appear when
+it is formatted. Templates describe several characteristics of the
+output, including headers, column ordering, style information,
+justification, and formats.  All SAS/ETS procedures have templates,
+which are stored in the SASHELP library.
+<P><A NAME="idxods0024">&#13;</A>You can create or modify a template with the TEMPLATE procedure.  For example,
+you can specify different column headings or different orderings of
+columns in a table.  You can find the template associated with a
+particular output table by using the ODS TRACE statement or the SAS
+Explorer.
+<P><A NAME="idxods0025">&#13;</A>You can display the contents of a template by executing the following
+statements:
+<P><PRE>
+
+   proc template;
+      source <I>templatename</I>;
+   run;
+</PRE>
+<P>where <I>templatename</I> is the name of the template.
+<P><A NAME="idxods0026">&#13;</A>Suppose you want to change the way all of the parameter estimates
+are displayed by the AUTOREG procedure.  You can redefine the
+templates that the procedure uses with PROC TEMPLATE. For
+example, in order to have the ESTIMATE and STANDARD ERROR columns 
+always displayed with
+more digits, you can redefine the columns used by the procedure to
+display them:
+<P><PRE>
+
+   proc template;
+      edit ets.autoreg.ParameterEstimates;
+         edit Estimate; format=Best16.; end;
+         edit StdErr; format=Best16.; end;
+      end;
+   run;
+</PRE>
+<P>The BEST<I>w</I>. format enables you to display the most information
+about a value, according to the available field width. The
+BEST16. format specifies a field width of 16.  Refer to the chapter on
+formats in <I>SAS Language Reference: Dictionary</I> for detailed
+information.
+<P><A NAME="idxods0027">&#13;</A>When you run PROC TEMPLATE to modify or edit a template, the template
+is stored in your SASUSER library. You can then
+modify the path that ODS uses to look up templates with the ODS PATH
+statement in order to access these new templates in a later SAS
+session.  This means that you can create a default set of templates to
+modify the presentation format for all your SAS output.  (Note that
+you can specify the SHOW option in the ODS PATH statement to determine
+the current path.) 
+<A NAME="idxods0028">&#13;</A><A NAME="idxods0029">&#13;</A><A NAME="idxods0030">&#13;</A><A NAME="idxods0031">&#13;</A>It is important to note the difference between a style template and a
+table template. A table template applies only to the
+specific tables that reference the template. The preceding
+statements that modify the &#34;ets.autoreg.ParameterEstimates&#34; 
+template provide an example of modifying columns within a table template.
+<P>A style template applies to an entire SAS job and can be specified
+only in the ODS HTML statement. You can specify a style as follows:
+<P><PRE>
+
+   ods html style=Styles.Brown;
+</PRE>
+<P>A style template controls stylistic elements such as colors, fonts,
+and presentation attributes.  When you use a style template, you
+ensure that all your output shares a consistent presentation style.
+<P>You can also reference style information in table templates for
+individual headers and data cells.  You can modify either type of
+template with the TEMPLATE procedure. For information on creating your
+own styles, refer to <I>The Complete Guide to the SAS Output
+Delivery System</I>.
+<P><H3><I><A NAME="odsnoprint">Interaction Between ODS and the NOPRINT Option</A></I></H3>
+<A NAME="idxods0032">&#13;</A><A NAME="idxods0033">&#13;</A>Most SAS/ETS procedures support a NOPRINT option that you can use
+when you want to create an output data set but do not want any
+displayed output. Typically, you use an OUTPUT statement
+in addition to the procedure's NOPRINT option to create a data set and
+suppress displayed output.
+<P>You can also use the Output Delivery System to create output
+data sets by using the ODS OUTPUT statement.
+However, if you specify the NOPRINT option, the procedure may not send any
+output to the Output Delivery System.  Therefore, when you want to create
+output data sets through ODS (using the ODS OUTPUT statement), and you
+want to suppress the display of all output, specify
+<P><PRE>
+
+   ODS SELECT NONE;
+</PRE>
+<P>or close the active ODS destinations by
+giving the command
+<P> <PRE>
+
+   ODS <I>destinationname</I> CLOSE;
+</PRE>
+<P>where <I>destinationname</I> is the name of the
+active ODS destination (for example, ODS HTML CLOSE).
+<P><B>Note:</B> The ODS statement does not instruct a procedure to
+generate output: instead, it specifies how the Output
+Delivery System should manage the table once it is created.
+The requested data table (output) has to be generated by the procedure
+before ODS can manage it.  You must
+ensure that the proper options are in effect. For example,
+the following code does not create the requested data set <SPAN CLASS="ssfeleven">Parms</SPAN>.
+<P><PRE>
+
+   proc autoreg;
+      ods output ML.ParameterEstimates=Parms;
+      model y1 = time;
+   run;
+</PRE>
+<P>When you execute these statements, the 
+following line is displayed in the log:
+<P><PRE>
+
+   WARNING: Output 'ML.ParameterEstimates' was not created.
+</PRE>
+<P>The data set <SPAN CLASS="ssfeleven">Parms</SPAN> is not created because the table of parameter
+estimates is generated only when the METHOD=ML option is specified in the
+MODEL statement in the AUTOREG procedure.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect2.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

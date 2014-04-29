@@ -1,0 +1,265 @@
+<HTML>
+<HEAD>
+<TITLE>Program Flow Example</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect19.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Program Flow Example  </H2>
+<P>This example shows how the COMPUTAB procedure
+processes observations in the program working storage and the
+COMPUTAB data table (CDT).
+<A NAME="idxcom0062">&#13;</A><A NAME="idxcom0061">&#13;</A>Assume you have three years of sales and cost of goods sold (CGS)
+figures, and you want to determine total sales and cost of goods
+sold and calculate gross profit and the profit margin.
+<P><PRE>
+   data example;
+      input year sales cgs;
+      datalines;
+   1988    83      52
+   1989   106      85
+   1990   120     114
+   ;
+   
+   proc computab data=example;
+   
+      columns c88 c89 c90 total;
+      rows sales cgs gprofit pctmarg;
+   
+      /* calculate gross profit */
+      gprofit = sales - cgs;
+   
+      /* select a column */
+      c88 = year = 1988;
+      c89 = year = 1989;
+      c90 = year = 1990;
+   
+      /* calculate row totals for sales */
+      /* and cost of goods sold */
+      col: total = c88 + c89 + c90;
+   
+      /* calculate profit margin */
+      row: pctmarg = gprofit / cgs * 100;
+   run;
+</PRE>
+<P><A HREF="sect20.htm#comt2">Table 9.2</A> shows the CDT before any observation is read in. All the
+columns and rows are defined with the values initialized to 0.
+<P><DIV ALIGN="CENTER">
+<P></P><A NAME="comt2"><SPAN CLASS="ssften"><B>Table 9.2:</B> CDT Before any Input</SPAN></A><TABLE COLS=5 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">&#160;</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C88</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C89</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C90</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">TOTAL</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SALES</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>CGS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>GPROFIT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>PCTMARG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY>
+</TABLE></DIV>
+<P>When the first input is read in (year=1988, sales=83, and cgs=52),
+the input block puts the values for SALES and CGS in the
+C88 column since year=1988. Also the value for the gross profit
+for that year (GPROFIT) is calculated as indicated in the following:
+<P><PRE>
+      gprofit = sales-cgs;
+      c88 = year = 1988;
+      c89 = year = 1989;
+      c90 = year = 1990;
+</PRE>
+<P><A HREF="sect20.htm#comt3">Table 9.3</A> shows the CDT after the first observation is input.
+<P><DIV ALIGN="CENTER">
+<P></P><A NAME="comt3"><SPAN CLASS="ssften"><B>Table 9.3:</B> CDT After First Observation Input (C88=1)</SPAN></A><TABLE COLS=5 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">&#160;</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C88</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C89</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C90</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">TOTAL</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SALES</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>83</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>CGS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>52</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>GPROFIT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>31</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>PCTMARG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY>
+</TABLE></DIV>
+<P>Similarly, the second observation (year=1989, sales=106, cgs=85) is
+put in the second column and the GPROFIT is calculated to be 21.
+The third observation (year=1990, sales=120, cgs=114) is
+put in the third column and the GPROFIT is calculated to be 6.
+<A HREF="sect20.htm#comt4">Table 9.4</A> shows the CDT after all observations are input.
+<P><DIV ALIGN="CENTER">
+<P></P><A NAME="comt4"><SPAN CLASS="ssften"><B>Table 9.4:</B> CDT After All Observations Input</SPAN></A><TABLE COLS=5 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">&#160;</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C88</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C89</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C90</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">TOTAL</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SALES</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>83</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>106</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>120</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>CGS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>52</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>85</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>114</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>GPROFIT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>31</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>21</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>6</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>PCTMARG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY>
+</TABLE></DIV>
+<P>After the input block is executed for each observation in the
+input data set, the first row or column block is processed. In this
+case, the column block is
+<PRE>
+      col: total = c88 + c89 + c90;
+</PRE>
+<P>The column block executes for each row, calculating the TOTAL
+column for each row.
+<A HREF="sect20.htm#comt5">Table 9.5</A> shows the CDT after the column block has executed for the
+first row (total=83 + 106 + 120). The total sales for the three years is
+309.
+<P><DIV ALIGN="CENTER">
+<P></P><A NAME="comt5"><SPAN CLASS="ssften"><B>Table 9.5:</B> CDT After Column Block Executed for First Row</SPAN></A><TABLE COLS=5 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">&#160;</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C88</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C89</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C90</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">TOTAL</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SALES</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>83</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>106</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>120</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>309</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>CGS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>52</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>85</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>114</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>GPROFIT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>31</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>21</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>6</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>PCTMARG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY>
+</TABLE></DIV>
+<P><A HREF="sect20.htm#comt6">Table 9.6</A> shows the CDT after the column block has executed for
+all rows and the values for total cost of goods sold and total gross
+profit have been calculated.
+<P><DIV ALIGN="CENTER">
+<P></P><A NAME="comt6"><SPAN CLASS="ssften"><B>Table 9.6:</B> CDT After Column Block Executed for All Rows</SPAN></A><TABLE COLS=5 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">&#160;</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C88</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C89</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C90</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">TOTAL</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SALES</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>83</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>106</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>120</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>309</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>CGS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>52</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>85</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>114</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>251</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>GPROFIT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>31</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>21</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>6</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>58</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>PCTMARG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>0</TD></TR></TBODY>
+</TABLE></DIV>
+<P>Once the column block has been executed for all rows, the next
+block is processed. The row block is
+<PRE>
+      row: pctmarg = gprofit / cgs * 100;
+</PRE>
+The row block executes for each column, calculating the PCTMARG
+for each year and the total (TOTAL column) for three years.
+<A HREF="sect20.htm#comt7">Table 9.7</A> shows the CDT after the row block has executed for all
+columns.
+<P><DIV ALIGN="CENTER">
+<P></P><A NAME="comt7"><SPAN CLASS="ssften"><B>Table 9.7:</B> CDT After Row Block Executed for All Columns</SPAN></A><TABLE COLS=5 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">&#160;</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C88</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C89</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">C90</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">TOTAL</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SALES</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>83</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>106</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>120</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>309</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>CGS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>52</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>85</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>114</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>251</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>GPROFIT</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>31</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>21</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>6</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>58</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>PCTMARG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>59.62</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>24.71</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>5.26</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>23.11</TD></TR></TBODY>
+</TABLE></DIV><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect19.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

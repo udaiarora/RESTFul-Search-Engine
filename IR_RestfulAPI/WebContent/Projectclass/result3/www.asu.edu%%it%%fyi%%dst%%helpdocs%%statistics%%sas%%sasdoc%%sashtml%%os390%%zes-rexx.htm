@@ -1,0 +1,483 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS Interfaces to ISPF and REXX : SAS Interface to REXX </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217153.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zes-ispf.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="znumvars.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zes-rexx">SAS Interface to REXX</A></FONT></H1>
+
+
+<P><A name="z0551969">&#13;REXX,
+the procedure language for computing platforms that conform to the IBM Systems
+Application Architecture (SAA), is well known for combining powerful programming
+features with ease of use.  By enabling SAS users to supplement the SAS language
+with REXX, the SAS interface to REXX provides new SAS programming possibilities
+in the OS/390 environment.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Enabling the Interface</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551970">&#13; The SAS system options REXXMAC and REXXLOC
+control the REXX
+interface. </A>
+<P>
+<UL>
+
+<LI>The REXXMAC option enables or disables the REXX
+interface. If REXXMAC is in effect, then the REXX interface is enabled.  This
+means that when SAS encounters an unrecognized statement, it searches for
+a REXX exec whose name matches the first word of the unrecognized statement.
+If the default, NOREXXMAC, is in effect, then the REXX interface is disabled.
+This means that when SAS encounters an unrecognized statement, a "statement
+is not valid" error occurs. You can specify this option in the configuration
+file, when you invoke SAS, or in the OPTIONS statement.<P>
+
+<LI>When the REXXMAC option is in effect, the REXXLOC=
+option specifies the DDname of the REXX exec library to be searched for any
+SAS REXX execs. The default is REXXLOC=SASREXX. You can specify this option
+either in the configuration file or when you invoke SAS.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Invoking a REXX Exec</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551973">&#13; SAS REXX execs are REXX programs.
+They are stored in a library
+that is allocated to the SASREXX DDname (or to another DDname, as specified
+by the SAS system option REXXLOC=). A REXX exec is submitted as part of a
+SAS program in the same way as any other global SAS statement.</A>
+<P>To run a REXX exec from within SAS, do the following:
+
+<OL START="1" type="1">
+<LI>Put the REXX exec in a partitioned data set and
+allocate that PDS to the DDname SASREXX.<P>
+
+<LI>Either invoke SAS with the REXXMAC option or specify
+the REXXMAC option later in an OPTIONS statement.<P>
+
+<LI>Code a statement that begins with the name of
+the REXX exec. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You can invoke a REXX exec from
+an SCL program, but you should enclose the statement in a SUBMIT block. Otherwise,
+the exec will be executed at compile time rather than at run time.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P>
+</OL>
+
+<P>The following example invokes a REXX exec called 
+
+
+<CODE><B>YOUREXEC</B></CODE>, which resides in 
+
+
+<CODE><B>YOUR.REXX.LIBRARY</B></CODE>.  This
+example works in both batch and TSO environments.  
+
+
+
+<PRE>options rexxmac;
+filename sasrexx 'your.rexx.library' disp=shr;
+yourexec;</PRE>
+<P>In batch, you can also use a JCL DD statement to allocate
+the REXX library externally:  
+
+
+
+<PRE>//jobname JOB  ...
+//        EXEC SAS
+//SASREXX  DD  DSN=YOUR.REXX.LIBRARY,DISP=SHR
+//SYSIN    DD  *
+options rexxmac;
+yourexec;
+/*
+//</PRE>
+<P>A REXX exec can have zero, one, or multiple arguments.
+You call the exec by specifying its name, followed by arguments (if any),
+followed by a semicolon.  You can place the exec anywhere that a global SAS
+statement, such as an OPTIONS or TITLE statement, can be placed.
+<P>The exec is invoked when the DATA step is compiled.
+This means that it is executed only once, rather than for each observation
+in the DATA step.
+<P><A href="#z-verify">A Simple REXX Exec</A>
+provides an example of a REXX exec called VERIFY that takes as its argument
+a single data set name. This REXX exec can be invoked by submitting the following
+statement from a SAS program:  
+
+
+
+<PRE>verify <I>data.set.name</I>;</PRE>
+<P>A SAS REXX exec submits SAS statements through the SAS
+subcommand environment by specifying or defaulting to 'SAS' as its "address".
+When a REXX exec receives control, the default subcommand environment for
+that program is 'SAS'. As illustrated in this example, any SAS language statement
+can then be passed to SAS for execution.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Interacting with the SAS Session from a REXX Exec</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551985">&#13; One of the main advantages of using the REXX interface is that
+it provides three kinds of communication between the REXX exec and the SAS
+session: </A>
+<P>
+<UL>
+
+<LI>The REXX exec can route messages to the SAS log.<P>
+
+<LI>You can retrieve and set the value of any variable
+in the submitting REXX exec by using the GETEXEC DATA step function and the
+PUTEXEC DATA step routine.<P>
+
+<LI>You can check the return code from a SAS step
+in the REXX exec that submits it.<P>
+</UL>
+
+<BR><H3>Routing Messages from REXX Execs to the SAS Log</H3>
+
+
+<P><A name="z0551989">&#13;
+ A set of SAS directives enables a REXX exec to print to the
+SAS log. SAS directives use a leading 
+
+
+</A><CODE><B>++</B></CODE> sequence to differentiate
+them from normal SAS language statements that are submitted to the SAS subcommand
+environment.
+<P>Three directives are available: 
+<DL>
+<DT>address SAS '++SASLOG'</DT>
+<DD>causes all subsequent SAS statements to
+be printed to the SAS log.<P></DD>
+
+<DT>address SAS '++NOLOG'</DT>
+<DD>stops subsequent SAS language statements
+from being printed to the SAS log.<P></DD>
+
+<DT>address SAS '++SASLOG <B>message-text</B>'</DT>
+<DD>places <B>message-text</B> into the
+SAS log and causes subsequent submitted statements to be printed to the SAS
+log. The message text can include quoted strings or REXX variables.  Strings
+that are enclosed in single quotes are converted to uppercase, whereas strings
+that are enclosed in double quotes are not.  For REXX variables that are not
+contained in quoted strings, SAS substitutes the values of those variables.<P></DD>
+</DL>
+
+<BR><H3>The GETEXEC DATA Step Function</H3>
+
+
+<P><A name="z0551997">&#13;   You can use the GETEXEC function in SAS statements that are
+submitted to the SAS subcommand environment to retrieve the value of any variable
+in the submitting REXX exec.  The syntax of the GETEXEC function is as follows:</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<I>value</I> =
+GETEXEC(<I>REXX-variable</I>)
+</TD></TR></TABLE>
+<P>where <B>REXX-variable</B> is a SAS expression
+that represents the name of a REXX variable in uppercase and <B>value</B>
+receives the value of the specified REXX variable.
+<P>See <A href="#z-deldir">Using the GETEXEC DATA Step Function</A>
+for an example of the GETEXEC function.
+<BR><H3>The PUTEXEC DATA Step Routine</H3>
+
+
+<P><A name="z0552000">&#13;  
+You can call the PUTEXEC routine in SAS statements that are submitted to the
+SAS subcommand environment to assign the value of any variable in the submitting
+REXX EXEC.  The syntax of the PUTEXEC routine is as follows:</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+CALL PUTEXEC(<I>REXX-variable</I>, <I>value</I>)
+</TD></TR></TABLE>where
+<B>REXX-variable</B> is a SAS expression that represents
+the name of a REXX variable in uppercase and <B>value</B> is a SAS expression
+representing the value to be assigned to the specified REXX variable.
+<P>See <A href="#zdelmany">Using the PUTEXEC DATA Step Routine</A>
+for an example of the PUTEXEC routine.
+<BR><H3>Checking Return Codes in REXX Execs</H3>
+
+
+<P><A name="z0552003">&#13; 
+ The REXX special variable RC is always set when any command
+string is submitted to an external environment.</A>
+<P>SAS REXX execs are slightly different from ordinary
+execs, however, in the way RC is set.  When an ordinary exec submits OS/390
+commands, the RC variable is set to the command return code when control returns
+to REXX. The strings that are submitted to SAS, however, are not necessarily
+complete execution units.  SAS collects SAS language elements until a RUN
+statement is encountered, at which point the SAS step is executed.  While
+partial program fragments are being submitted, the RC is set to 0.  The SAS
+return code is not assigned to the REXX variable RC until the string that
+contains the RUN statement is submitted.
+<P>The RC value is set to the value of the &amp;SYSERR
+macro variable.  See <A href="#z-showrc">Checking the SAS Return Code in a REXX Exec</A>
+for an example of how the REXX variable RC can be tested after a SAS step
+has been executed.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Changing the Host Command Environment</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552006">&#13;When
+a REXX EXEC that is invoked under SAS receives control,
+the default host command environment for that program is 'SAS'. You can use
+the ADDRESS instruction followed by the name of an environment to change to
+a different host command environment:  
+
+
+</A>
+<PRE>address tso
+address sas
+address mvs</PRE>
+<P>See <A href="#z-deldir">Using the GETEXEC DATA Step Function</A>
+for an example of using the ADDRESS instruction to execute a TSO statement.
+<P>You can also use the ADDRESS built-in function to determine
+which host command environment is currently active:  
+
+
+
+<PRE>hcmdenv = address()</PRE>
+
+
+ Use the SUBCOM command to determine whether a host command environment
+is available before trying to issue commands to that environment. The following
+example checks to see whether SAS is available:  
+
+
+
+<PRE>/*  REXX  */
+address mvs "subcom sas"
+say "subcom sas rc:" rc
+if rc = 1
+   then sas="not "
+   else sas=""
+say "sas environment is "sas"available"</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Comparing the REXX Interface to the X Statement</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552009">&#13;
+ The X statement can be used to invoke a REXX exec. (See
+</A><A href="z-stmt-x.htm">X</A>.) However,
+compared to the REXX interface, the X statement has the following limitations: 
+<P>
+<UL>
+
+<LI>With the X statement, the command that you invoke
+has no way to communicate information back to the SAS session.<P>
+
+<LI>With the X statement, you have to press Enter
+to return to SAS.<P>
+
+<LI>The X statement is available only when SAS is
+running in the TSO environment. A REXX exec can be invoked from a SAS program
+running in the batch environment, though it cannot issue TSO commands in the
+batch environment.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Comparing SAS REXX Execs to ISPF Edit Macros</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552013">&#13;
+ In their structure and invocation, SAS REXX execs are analogous
+to ISPF EDIT macros. </A>
+<P>
+<UL>
+
+<LI>SAS REXX execs are REXX programs in a library
+that is allocated to the SASREXX DDname (or to another DDname, as specified
+by the SAS system option REXXLOC=).  They are submitted as part of a SAS program
+in the same way as any other global SAS statement. A SAS REXX exec submits
+SAS statements through the SAS subcommand environment by specifying or defaulting
+to 'SAS' as its "address".<P>
+
+<LI>ISPF edit macros may be REXX programs in the standard
+command procedure library (SYSPROC, SYSEXEC, or other). They are started from
+an ISPF EDIT command line in the same way as any other ISPF EDIT subcommand.
+An ISPF EDIT macro submits editor subcommands through the ISREDIT subcommand
+environment by specifying or defaulting to 'ISREDIT' as its "address" (the
+destination environment for a command string).<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Examples of REXX Execs</FONT></B></TD></TR></TABLE>
+
+<BR><H3><A name="z-verify">A Simple REXX Exec</A></H3>
+
+
+<P><A name="z0552016">&#13; This REXX exec, called VERIFY, takes as its
+argument a single
+data set name. The REXX exec checks to see whether the data set exists. If
+so, the REXX exec routes a message to the SAS log to that effect. If the data
+set does not exist, the REXX exec creates the data set and then sends an appropriate
+message to the SAS log.  
+
+
+</A>
+<PRE>/*-------------- REXX exec VERIFY --------------*/
+Parse Upper Arg fname .
+retcode = Listdsi("'"fname"'")
+If retcode = 0 Then Do
+   Address SAS  "++SASLOG" fname "already exists"
+   End
+Else Do
+   Address TSO "ALLOC FI(#TEMP#) DA('"fname"')
+                RECFM(FB) LRECL(80) BLKSIZE(6160)
+                DSORG(PS) SPACE(10 5) TRACK NEW"
+   Address SAS  "++SASLOG" fname "created"
+   Address TSO "FREE  FI(#TEMP#)"
+   End
+Exit</PRE>
+<BR><H3><A name="z-deldir">Using the GETEXEC DATA Step Function</A></H3>
+
+
+<P><A name="z0552017">&#13;
+ This REXX exec executes a TSO command that generates a list
+of all filenames beginning with a specified prefix, then deletes the files
+named in the list and places the names of the deleted files in a SAS data
+set.  
+
+
+</A>
+<PRE>/*------------- REXX exec DELDIR --------------*/
+Parse Upper Arg file_prefx .
+/*------ Execute the TSO LISTC Command --------*/
+x = Outtrap('list.')
+Address TSO "LISTC LVL('"FILE_PREFX"') "
+
+/*--- Process Output from the LISTC Command ---*/
+idx = 0
+file_del.= ''
+
+Do line = 1 To list.0 By 1
+   Parse Var list.line word1 word2 word3
+   If word1 = 'NONVSAM' Then Do
+      fname = word3
+      Address TSO  "DELETE '"fname"'"
+      idx = idx + 1
+      file_del.idx  = fname
+      file_stat.idx = 'DELETED'
+      End
+   End
+
+/*--- Pass a DATA step into the SAS System ----*/
+Address SAS '++SASLOG'
+
+"data results (keep = dsname status);            "
+" total = getexec('IDX');                        "
+" put 'Total OS/390 files deleted: ' total;      "
+" do i = 1 to total;                             "
+"  dsnm = getexec('FILE_DEL.'  || trim(left(i)));"
+"  stat = getexec('FILE_STAT.' || trim(left(i)));"
+"  output;                                       "
+"  end;                                          "
+" run;                                           "
+
+/*---------- Execute a SAS Procedure ----------*/
+" proc print;                                    "
+" run;                                           "
+
+/*---------- Return to the SAS System ---------*/
+Exit</PRE>
+<BR><H3><A name="zdelmany">Using the PUTEXEC DATA Step Routine</A></H3>
+
+
+<P><A name="z0552018">&#13;
+ This REXX exec reads a set of high-level qualifiers from a SAS
+data set and writes them to REXX stem variables so that they can be processed
+by the REXX exec. Then the REXX exec loops through the high-level qualifiers,
+calling the DELDIR routine for each one in turn.  
+
+
+</A>
+<PRE>/*------------ REXX exec DELMANY -------------*/
+/* Accepts as arguments up to 5 high-level    */
+/* qualifiers
+Parse Upper Arg arg1 arg2 arg3 arg4 arg5 .
+hlq.=''
+/*-=- Pass a DATA step into the SAS System ---*/
+Address SAS '++SASLOG'
+" data prefixes;                              "
+"    input prefix $ 1-20;                     "
+"    cards;                                   "
+""arg1
+""arg2
+""arg3
+""arg4
+""arg5
+"run;                                         "
+" data _null_;                                "
+" set prefixes;                               "
+" rexxvar = 'HLQ.' || trim(left(_N_));        "
+" call putexec(trim(rexxvar),prefix);         "
+" call putexec('HLQ.0', trim(left(_N_)));     "
+" run;                                        "
+/*---------- Call the DELDIR REXX exec -------*/
+Do idx = 1 To hlq.0
+   pre = hlq.idx
+   Call deldir pre
+   End
+/*------------ Return to SAS -----------------*/
+Exit rc</PRE>
+<BR><H3><A name="z-showrc">Checking the SAS Return Code in a REXX Exec</A></H3>
+
+
+<P><A name="z0552019">&#13;
+ This REXX exec, called SHOWRC, demonstrates how the REXX variable
+RC can be tested after a SAS step has run:  
+
+
+</A>
+<PRE>/*-------------- REXX exec SHOWRC ------------*/
+/* Accepts as argument a SAS data set         */
+Parse Upper Arg ds_name .
+Address SAS '++SASLOG'
+"data newdata;                                "
+"   set "ds_name";                            "
+"   run;                                      "
+If rc = 0 Then
+   Say 'SAS DATA step completed successfully'
+Else
+   Say 'SAS DATA step terminated with rc=' rc
+Exit</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217153.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zes-ispf.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="znumvars.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zes-rexx">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

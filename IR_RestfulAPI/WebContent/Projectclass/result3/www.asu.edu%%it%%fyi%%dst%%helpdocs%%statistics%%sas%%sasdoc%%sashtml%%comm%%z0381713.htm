@@ -1,0 +1,258 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Sign-on Script Files : LOGCMS.SCR Script </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381712.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381714.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0381713">LOGCMS.SCR Script</A></FONT></H1>
+
+
+<P>The
+following script signs on and signs off a CMS remote host with the EHLLAPI
+access method.  
+
+
+
+<PRE>/* trace on;  */
+/* echo on;   */
+/*---------------------------------------------------------------------
+   Copyright (C) 1996 by SAS Institute Inc., Cary NC
+   name:      logcms.scr
+   purpose:   SAS/CONNECT SIGNON/SIGNOFF script for automatically
+              connecting to a CMS host using the EHLLAPI access method 
+              from a local WINDOWS or an OS/2 operating system.
+   notes:     1. This script may need modifications that account for
+                 the local flavor of your VM/CMS environment.  The
+                 SIGNON sequence should mimic the events that you go
+                 through when logging on to the same VM/CMS host.
+   assumes:   1. The command to execute SAS in your remote (CMS)
+                 environment is "sas".  If this is incorrect for your
+                 site, change the contents of the line that contains...
+                 type "sas ...
+   support:   SAS Institute staff
+ --------------------------------------------------------------------*/
+
+<B>[1]</B>  log "NOTE: Script file 'logcms.scr' entered.";
+<B>[2]</B> if signoff then goto signoff;
+
+/*----- EHLLAPI SIGNON ----------------------------------------------*/
+
+<B>[3]</B> waitfor 'SAS Institute Inc.', 0 seconds: noinit;
+     type 'vm ' enter;
+<B>[4]</B> waitfor 'USERID' , 20 seconds: nolog;
+     input 'Enter userid: ';
+     type enter;
+<B>[5]</B> waitfor 'ENTER PASSWORD',
+             'Enter logon password',
+             'SESSION NOT BOUND'    : novtam,
+             'NOT IN CP DIR'        : nouser,
+             20 seconds             : nolog;
+     input nodisplay 'Enter password: ';
+     type enter;
+
+<B>[6]</B> waitrdy:
+   waitfor 'R;',
+             'Ready;',
+             'READY',
+             'INCORRECT PASSWORD'   : nopass,
+             'RECONNECT'            : recon32,
+             'UNSUCCESSFUL'         : nostrt,
+             'MORE...'              : more,
+             30 seconds             : nostrt;
+  ready32:
+     type clear;
+     waitfor 'VM READ', 'RUNNING', 20 seconds: timeout;
+
+     log 'NOTE: Logged on to CMS ... Starting remote SAS now.';
+     /* NOTERMINAL suppresses prompts from remote SAS session.    */
+     /* NO$SYNTAXCHECK prevents remote side from going into syntax */
+     /* checking mode when a syntax error is encountered.          */
+<B>[7]</B> type 'sas (dmr comamid=pclink noterminal no$syntaxcheck)' enter;
+     goto continue;
+  continue:
+<B>[8]</B> waitfor 'IN PROGRESS', 60 seconds: nosas;
+<B>[9]</B> log 'NOTE: SAS/CONNECT conversation established.';
+   stop;
+
+/*----- EHLLAPI SIGNOFF ---------------------------------------------*/
+
+signoff:
+<B>[1</B><B>0]</B> type 'logoff' enter;
+     waitfor 'Press enter key', 10 seconds: noterm;
+     type enter;
+     waitfor 'SAS Institute Inc.' , 10 seconds: noterm;
+     type tab;
+     type tab;
+     type 'vmexit' enter;
+     waitfor 'SAS Institute Inc.', 10 seconds: noterm;
+<B>[1</B><B>1]</B>   log 'NOTE: SAS/CONNECT conversation terminated.';
+     stop;
+
+ /*----- SUBROUTINES -------------------------------------------------*/
+
+<B>[1</B><B>2]</B> recon:
+     type 'begin' enter;
+     waitfor 'RUNNING', 'VM READ', 20 seconds: timeout;
+     type 'hx' enter;
+     goto ready32;
+
+  more:
+     snapshot;
+     type clear;
+     goto waitrdy;
+
+ /*----- ERROR HANDLING ----------------------------------------------*/
+
+<B>[1</B><B>3]</B> noinit:
+    snapshot;
+     log 'ERROR: No data center network screen.';
+     abort;
+
+  novtam:
+     snapshot;
+     log 'ERROR: VTAM session not bound - contact VTAM support.';
+     abort;
+
+  nolog:
+     snapshot;
+     log 'ERROR: Did not get userid or password prompt.';
+     abort;
+
+  nouser:
+     log 'ERROR: Unrecognized userid.';
+     goto kill;
+
+  nopass:
+     log 'ERROR: Invalid password.';
+     goto kill;
+
+  nostrt:
+     snapshot;
+     log 'ERROR: Did not get CMS startup messages after logon.';
+     goto kill;
+
+  nosas:
+     snapshot;
+     log 'ERROR: Did not get SAS software startup messages.';
+     goto kill;
+
+  noterm:
+     snapshot;
+     log 'WARNING: Did not get messages confirming logoff.';
+     goto kill;
+
+  timeout:
+     log 'ERROR: Timeout waiting for remote session response.';
+
+  kill:
+     snapshot;
+     type '#cp logoff' enter;
+     abort;</PRE>
+
+
+ 
+<OL START="1" type="1">
+<LI>The LOG statement issues the enquoted message in the log file
+or in the LOG window of the local SAS session.  Although it is not necessary
+to include LOG statements in your script file, the LOG statements keep the
+user informed about the progress of the connection.<P>
+
+<LI>The IF/THEN statement detects whether the script was called by
+the SIGNON command or statement or by the SIGNOFF command or statement. When
+you sign off, the IF/THEN statement directs script processing to the statement
+that is labeled SIGNOFF.<P>
+
+<LI>This section logs the user onto CMS with the EHLLAPI access method.<P>
+
+<LI>The WAITFOR statement awaits the login prompt from the
+remote
+host. If the statement does not receive the prompt within 20 seconds, it directs
+script processing to branch to the statement that is labeled NOLOG. The INPUT
+statement displays a window  with the text 
+
+
+<CODE><B>Enter userid:</B></CODE> to allow the user to
+enter a remote host logon userid. The TYPE statement sends an ENTER to the
+remote host to enter the userid to the remote host.<P>
+
+<LI>The WAITFOR statement awaits the password prompt from the remote
+host. If the statement does not receive the prompt within 20 seconds, it directs
+script processing to branch to the statement that is labeled NOLOG. The INPUT
+statement that follows the  WAITFOR  statement displays a window in which
+the user enters a password.<P>
+
+<LI>The WAITFOR statement looks for the READY prompt from the remote
+host, and processing goes to the  NOSTRT  label if no prompt is received.<P>
+
+<LI>When the READY prompt is received, the TYPE statement invokes
+SAS on the remote host. The DMR option is necessary to invoke a special processing
+mode for SAS/CONNECT.  The COMAMID=
+option specifies the PCLINK access method that is used to establish the connection.<P>
+
+<LI>The WAITFOR statement looks for the message IN PROGRESS, which
+is displayed when a SAS session starts on the remote host. If the message
+is not found, processing goes to the NOSAS label.<P>
+
+<LI>This LOG statement prints a message to the log that indicates
+that you have successfully established a link.  After the connection has been
+successfully established, you must stop the rest of the script from processing.
+ Without this STOP statement, processing continues through the remaining statements
+in the script.<P>
+
+<LI>This is the SIGNOFF section for the EHLLAPI connection. See step
+2. The TYPE statement logs you off CMS.<P>
+
+<LI>This section issues a LOG statement to notify the user that the
+link is terminated. After the connection has been terminated, you must stop
+the rest of the script from processing.  Without this STOP statement, processing
+continues through the remaining statements in the script.<P>
+
+<LI>These are subroutines that handle various conditions that are
+found in the WAITFOR statements throughout the script file.<P>
+
+<LI>These statements are processed only if the prompts that are expected
+in the previous steps are not received. This section of the script issues
+messages to the local SAS log and then abnormally ends the script processing
+as well as the SIGNON.<P>
+</OL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381712.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381714.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0381713">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

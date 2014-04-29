@@ -1,0 +1,296 @@
+<HTML>
+<HEAD>
+<TITLE>An Introductory Example</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="lp_2a00">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect2.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The LP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>An Introductory Example</H2>
+<P>A simple blending problem illustrates the dense and sparse
+input formats and the use of PROC LP.
+A step in refining crude oil into finished oil products
+involves a distillation process that splits crude into various streams.
+Suppose there are three
+types of crude available: Arabian light, Arabian
+heavy, and Brega. These types of crude
+are distilled into light naphtha, intermediate
+naphtha, and heating oil. These in turn are blended into jet fuel
+using one of two recipes.  
+What amounts of the three crudes maximize the
+profit from producing jet fuel? 
+A formulation to answer this question
+is as follows:
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont">max -175 <I>a</I>_<I>light</I> - 165 <I>a</I>_<I>heavy</I> - 205 <I>brega</I> + 300 <I>jet</I>_1 + 300 <I>jet</I>_2</SPAN>
+</DL>
+<DL CLASS="equation"><DD><IMG WIDTH="465" HEIGHT="342"
+ SRC="images/lp7eq4.gif"
+ ALT="
+{\rm s.t.\;\;\;\;} .035 a\_light + .03 a\_heavy + .045 brega &=& naphthal\ 
+ .1...
+ ...ght, a\_heavy, brega, naphthai,& & \ naphthal,heatingos,jet\_1, jet\_2 &\geq& 0 "></DL>
+<P>The following data set gives the representation of this formulation.
+Notice that the variable names are the structural variables, the
+rows are the constraints, and the coefficients are given
+as the values for the structural variables.
+<P><PRE>
+   data;
+      input _id_ $14.
+            a_light a_heavy brega naphthal naphthai 
+            heatingo jet_1 jet_2
+            _type_ $ _rhs_;
+      datalines;
+   profit         -175 -165 -205  0  0  0 300 300 max     .
+   naphtha_l_conv .035 .030 .045 -1  0  0   0   0  eq     0
+   naphtha_i_conv .100 .075 .135  0 -1  0   0   0  eq     0
+   heating_o_conv .390 .300 .430  0  0 -1   0   0  eq     0
+   recipe_1          0    0    0  0 .3 .7  -1   0  eq     0
+   recipe_2          0    0    0 .2  0 .8   0  -1  eq     0
+   available       110  165   80  .  .  .   .   . upperbd .
+   ;
+</PRE>
+
+<P>The same model can be specified in the sparse format, as follows.
+This format enables you to omit the zero coefficients.
+<P><PRE>
+   data;
+      input _type_ $ @10 _col_ $13. @24 _row_ $16. _coef_;
+      datalines;
+   max      .             profit                    .
+   eq       .             napha_l_conv              .
+   eq       .             napha_i_conv              .
+   eq       .             heating_oil_conv          .
+   eq       .             recipe_1                  .
+   eq       .             recipe_2                  .
+   upperbd  .             available                 .
+   .        a_light       profit                 -175
+   .        a_light       napha_l_conv           .035
+   .        a_light       napha_i_conv           .100
+   .        a_light       heating_oil_conv       .390
+   .        a_light       available               110
+   .        a_heavy       profit                 -165
+   .        a_heavy       napha_l_conv           .030
+   .        a_heavy       napha_i_conv           .075
+   .        a_heavy       heating_oil_conv       .300
+   .        a_heavy       available               165
+   .        brega         profit                 -205
+   .        brega         napha_l_conv           .045
+   .        brega         napha_i_conv           .135
+   .        brega         heating_oil_conv       .430
+   .        brega         available                80
+   .        naphthal      napha_l_conv             -1
+   .        naphthal      recipe_2                 .2
+   .        naphthai      napha_i_conv             -1
+   .        naphthai      recipe_1                 .3
+   .        heatingo      heating_oil_conv         -1
+   .        heatingo      recipe_1                 .7
+   .        heatingo      recipe_2                 .8
+   .        jet_1         profit                  300
+   .        jet_1         recipe_1                 -1
+   .        jet_2         profit                  300
+   .        jet_2         recipe_2                 -1
+   .        _rhs_         recipe_1                  0
+   ;
+</PRE>
+<P>Because the input order of the model into PROC LP is unimportant, this
+model can be specified in sparse input in arbitrary row order.
+<A HREF="sect47.htm">Example 3.2</A> in
+the  <A HREF="sect44.htm#lp_5000">&#34;Examples&#34;</A>  section demonstrates this.
+<P>The dense and sparse forms of model input give you flexibility
+to generate models using the SAS language.
+The dense form of the model is solved with the statements
+<P><PRE>
+   proc lp;
+   run;
+</PRE>
+
+<P>The sparse form is solved with the statements:
+<P><PRE>
+   proc lp sparsedata;
+   run;
+</PRE>
+
+<P><A HREF="sect46.htm">Example 3.1</A> and <A HREF="sect47.htm">Example 3.2</A> in the  <A HREF="sect44.htm#lp_5000">&#34;Examples&#34;</A>  section continue
+with this problem.
+<P><H3><I>Problem Input</I></H3>
+In the default, PROC LP uses the most recently created SAS
+data set as the problem input data set.  However, if you
+want to input the problem from a specific SAS data set, then
+use the <A HREF="sect8.htm#lp_3bac">DATA=</A> option.  For example, if the previous dense form
+data set has a name, <SPAN CLASS="ssfeleven">DENSE</SPAN>, the PROC LP statements 
+can be written as
+<P><PRE>
+   proc lp data=dense;
+   run;
+</PRE>
+
+<P><H3><I>Problem Definition Statements</I></H3>
+In the previous dense form data set, 
+the <SPAN CLASS="ssfeleven">_ID_</SPAN>, <SPAN CLASS="ssfeleven">_TYPE_</SPAN>, and <SPAN CLASS="ssfeleven">_RHS_</SPAN> variables
+are special variables in PROC LP. They stand for
+id variable, type variable, and right-hand-side variable.
+If you replace those variable names with names like <SPAN CLASS="ssfeleven">ROWNAME</SPAN>, <SPAN CLASS="ssfeleven">TYPE</SPAN>,
+and <SPAN CLASS="ssfeleven">RHS</SPAN>, you need the 
+problem definition statements (<A HREF="sect11.htm#lp_3e00">ID</A>, 
+<A HREF="sect23.htm#lp_3q00">TYPE</A> and <A HREF="sect18.htm#lp_3l00">RHS</A>)
+in PROC LP:
+<P><PRE>
+   proc lp;
+      id rowname;
+      type type;
+      rhs rhs;
+   run;
+</PRE>
+
+<P>Other special variables for the dense format
+are <SPAN CLASS="ssfeleven">_RHSSEN_</SPAN> and <SPAN CLASS="ssfeleven">_RANGE_</SPAN>, which identify the vectors
+for the right-hand-side sensitivity and range analyses.  
+The corresponding statements are the <A HREF="sect19.htm#lp_3m00">RHSSEN</A> 
+and <A HREF="sect16.htm#lp_3j00">RANGE</A> statements.
+(Notice that a variable name can be identical to a statement
+name.)
+<P>In the same way, if you replace the variables <SPAN CLASS="ssfeleven">_COL_</SPAN>, 
+<SPAN CLASS="ssfeleven">_ROW_</SPAN>, <SPAN CLASS="ssfeleven">_TYPE_</SPAN>, and <SPAN CLASS="ssfeleven">_COEF_</SPAN> 
+in the previous sparse form data set by
+<SPAN CLASS="ssfeleven">COLUMN</SPAN>, <SPAN CLASS="ssfeleven">ROW</SPAN>, <SPAN CLASS="ssfeleven">TYPE</SPAN> and <SPAN CLASS="ssfeleven">COEF</SPAN>, you need 
+the problem definition statements (<A HREF="sect10.htm#lp_3d00">COL</A>, 
+<A HREF="sect20.htm#lp_3n00">ROW</A>, <A HREF="sect23.htm#lp_3q00">TYPE</A>, and <A HREF="sect9.htm#lp_3c00">COEF</A>)
+in PROC LP
+<P><PRE>
+   proc lp sparsedata;      
+      col column;
+      row row;
+      type type;
+      coef coef;
+   run;
+</PRE>
+
+<P>In the sparse form data set, the value <SPAN CLASS="ssfeleven">_RHS_</SPAN> under the
+variable <SPAN CLASS="ssfeleven">_COL_</SPAN> is a special column name, 
+which represents the model's right-hand-side column.
+If you replace it by a name <SPAN CLASS="ssfeleven">R</SPAN>, the PROC LP statements 
+would be
+<P><PRE>
+   proc lp sparsedata;
+      rhs r;
+   run;
+</PRE>
+
+<P>Other special column names for the sparse format
+are <SPAN CLASS="ssfeleven">_RHSSEN_</SPAN> and <SPAN CLASS="ssfeleven">_RANGE_</SPAN>.  
+The corresponding statements
+are the <A HREF="sect19.htm#lp_3m00">RHSSEN</A> and <A HREF="sect16.htm#lp_3j00">RANGE</A> statements.
+<P>PROC LP is case insensitive to variable names and all character
+values, including the row and column names in the sparse
+format.  The order of the problem definition statements
+is not important.
+<P>For the dense format, a model's row names appear as character values in a SAS
+data set.  For the sparse format, both the row and the column names of the model
+appear as character values in the data set.
+Thus, you can put spaces or other special characters in the names.  
+When referring to
+these names in the problem definition statement or other
+LP statements, you must use single or double quotes around them.  
+For example, if you replace <SPAN CLASS="ssfeleven">_RHS_</SPAN> by <SPAN CLASS="ssfeleven">R H S</SPAN> 
+in the previous sparse form data set,
+the PROC LP statements would become
+<P><PRE>
+   proc lp sparsedata;
+      rhs &#34;r h s&#34;;
+   run;
+</PRE>
+
+<P><H3><I>LP Options</I></H3>
+The specifications <A HREF="sect8.htm#lp_3bag">SPARSEDATA</A> and <A HREF="sect8.htm#lp_3bac">DATA=</A> 
+in the previous examples are PROC LP options.
+PROC LP options include
+<P><UL>
+<LI> <A HREF="sect8.htm#lp_3ba0">data set options</A>
+<LI> <A HREF="sect8.htm#lp_3bb0">display control options</A>
+<LI> <A HREF="sect8.htm#lp_3bc0">interactive control options</A>
+<LI> <A HREF="sect8.htm#lp_3bd0">preprocessing options</A>
+<LI> <A HREF="sect8.htm#lp_3be0">branch and bound control options</A>
+<LI> <A HREF="sect8.htm#lp_3bf0">sensitivity/parametric/ranging control options</A>
+<LI> <A HREF="sect8.htm#lp_3bg0">simplex options</A>
+</UL>
+<P><H3><I>Interactive Processing</I></H3>
+Interactive control options include <A HREF="sect8.htm#lp_3bci">READPAUSE</A>, 
+<A HREF="sect8.htm#lp_3bca">ENDPAUSE</A>, and so forth.
+You can run PROC LP interactively using those options.
+For example, for the blending problem example in the dense form, you
+can first pause the procedure before iterations start
+with the <A HREF="sect8.htm#lp_3bci">READPAUSE</A> option.
+The PROC LP statements are
+<P><PRE>
+   proc lp readpause;
+   run;
+</PRE>
+
+<P>When the procedure pauses, you run the <A HREF="sect14.htm#lp_3h00">PRINT</A> statement 
+to display
+the initial technological matrix and see if the input is correct.
+Then you run the <A HREF="sect13.htm#lp_3g00">PIVOT</A> statement to do one simplex pivot and pause.  
+After that you use the <A HREF="sect22.htm#lp_3p00">SHOW</A> statement to check the current solution status.  
+Then you apply the <A HREF="sect17.htm#lp_3k00">RESET</A> statement to tell the procedure to stop as
+soon as it finds a solution.  
+Now you use the <A HREF="sect21.htm#lp_3o00">RUN</A> statement to continue the execution.
+When the procedure stops, you run the <A HREF="sect14.htm#lp_3h00">PRINT</A> statement again to do
+a price range analysis and <A HREF="sect15.htm#lp_3i00">QUIT</A> the procedure.
+Use SAS %PUT statement to display the contents of PROC LP's 
+macro variable, <A HREF="sect30.htm#lp_4e00">_ORLP_</A>, 
+which contains iterations and solution information.
+What follows are the complete statements in batch mode:
+<P><PRE>
+   proc lp readpause;
+   run;
+   print matrix(,); /* display all rows and columns. */
+   pivot;
+   show status;
+   reset endpause;
+   run;
+   print rangeprice; 
+   quit;
+   %put &#38;_orlp_;
+</PRE>
+
+<P><B>Note:</B> you can force PROC LP to pause during iterations
+by using the CTRL-BREAK key.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect2.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect4.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

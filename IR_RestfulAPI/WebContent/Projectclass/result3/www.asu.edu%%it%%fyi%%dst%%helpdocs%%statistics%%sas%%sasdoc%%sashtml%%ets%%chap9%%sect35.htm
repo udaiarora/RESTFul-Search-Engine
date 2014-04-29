@@ -1,0 +1,329 @@
+<HTML>
+<HEAD>
+<TITLE>Example 9.6: A What-If Market Analysis</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="comex6">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The COMPUTAB Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 9.6: A What-If Market Analysis</H2>
+<P>PROC COMPUTAB can be used with other SAS/ETS procedures and with macros
+to implement commonly needed decision support tools for financial and
+marketing analysis.
+<P>The following input data set reads quarterly sales figures:
+<P><PRE>
+   data market;
+      input date :yyq6. units @@;
+      datalines;
+   1980Q1  3608.9  1980Q2  5638.4  1980Q3  6017.9  1980Q4  4929.6  
+   1981Q1  4962.0  1981Q2  5804.6  1981Q3  5498.6  1981Q4  7687.1  
+   1982Q1  6864.1  1982Q2  7625.8  1982Q3  7919.7  1982Q4  8294.7  
+   1983Q1  8151.6  1983Q2 10992.7  1983Q3 10671.4  1983Q4 10643.2  
+   1984Q1 10215.1  1984Q2 10795.5  1984Q3 14144.4  1984Q4 11623.1
+   1985Q1 14445.3  1985Q2 13925.2  1985Q3 16729.3  1985Q4 16125.3  
+   1986Q1 15232.6  1986Q2 16272.2  1986Q3 16816.7  1986Q4 17040.0  
+   1987Q1 17967.8  1987Q2 14727.2  1987Q3 18797.3  1987Q4 18258.0  
+   1988Q1 20041.5  1988Q2 20181.0  1988Q3 20061.7  1988Q4 21670.1  
+   1989Q1 21844.3  1989Q2 23524.1  1989Q3 22000.6  1989Q4 24166.7
+   ;
+</PRE>
+<P>PROC FORECAST makes a total market forecast for the next four quarters.
+<P><PRE>
+   /* forecast the total number of units to be */
+   /* sold in the next four quarters */
+   proc forecast out=outcome trend=2 interval=qtr lead=4;
+      id date;
+      var units;
+   run;
+</PRE>
+<P>The macros WHATIF and SHOW
+build a report table and provide the flexibility of examining alternate
+what-if situations. The row and column calculations of PROC COMPUTAB compute
+the income statement. With macros stored in a macro library, the only
+statements required with PROC COMPUTAB are macro invocations and TITLE
+statements.
+<P><PRE>
+   /* set up rows and columns of report and initialize */
+   /* market share and program constants */
+   %macro whatif(mktshr=,price=,ucost=,taxrate=,numshar=,overhead=);
+   
+      columns mar / ' ' 'March';
+      columns jun / ' ' 'June';
+      columns sep / ' ' 'September';
+      columns dec / ' ' 'December';
+      columns total / 'Calculated' 'Total';
+      rows mktshr / 'Market Share'          f=5.2;
+      rows tunits / 'Market Forecast';
+      rows units  / 'Items Sold';
+      rows sales  / 'Sales';
+      rows cost   / 'Cost of Goods';
+      rows ovhd   / 'Overhead';
+      rows gprof  / 'Gross Profit';
+      rows tax    / 'Tax';
+      rows pat    / 'Profit After Tax';
+      rows earn   / 'Earnings per Share';
+   
+      rows mktshr--earn / skip;
+      rows sales--earn  /  f=dollar12.2;
+      rows tunits units /  f=comma12.2;
+   
+      /* initialize market share values */
+      init mktshr &#38;mktshr;
+   
+      /* define constants */
+      retain price &#38;price ucost &#38;ucost taxrate &#38;taxrate 
+             numshar &#38;numshar;
+   
+      /* retain overhead and sales from previous quarter */
+      retain prevovhd &#38;overhead prevsale;
+      %mend whatif;
+</PRE>
+<P><PRE>
+   /* perform calculations and print the specified rows */
+   %macro show(rows);
+   
+      /* initialize list of row names */
+      %let row1  = mktshr;
+      %let row2  = tunits;
+      %let row3  = units;
+      %let row4  = sales;
+      %let row5  = cost;
+      %let row6  = ovhd;
+      %let row7  = gprof;
+      %let row8  = tax;
+      %let row9  = pat;
+      %let row10 = earn;
+   
+      /* find parameter row names in list and eliminate */
+      /* them from the list of noprint rows */
+      %let n = 1;
+      %let word = %scan(&#38;rows,&#38;n);
+      %do %while(&#38;word NE );
+         %let i = 1;
+         %let row11 = &#38;word;
+         %do %while(&#38;&#38;row&#38;i NE &#38;word);
+            %let i = %eval(&#38;i+1);
+            %end;
+         %if &#38;i&#60;11 %then %let row&#38;i = ;
+         %let n = %eval(&#38;n+1);
+         %let word = %scan(&#38;rows,&#38;n);
+      %end;
+   
+      rows &#38;row1 &#38;row2 &#38;row3 &#38;row4 &#38;row5 &#38;row6 &#38;row7 
+           &#38;row8 &#38;row9 &#38;row10 dummy / noprint;
+   
+      /* select column using lead values from proc forecast */
+      mar = _lead_ = 1;
+      jun = _lead_ = 2;
+      sep = _lead_ = 3;
+      dec = _lead_ = 4;
+   
+      rowreln:;
+         /* inter-relationships */
+         share  = round( mktshr, 0.01 );
+         tunits = units;
+         units  = share * tunits;
+         sales  = units * price;
+         cost   = units * ucost;
+   
+         /* calculate overhead */
+         if mar then prevsale = sales;
+         if sales &#62; prevsale
+            then ovhd = prevovhd + .05 * ( sales - prevsale );
+            else ovhd = prevovhd;
+         prevovhd = ovhd;
+         prevsale = sales;
+         gprof = sales - cost - ovhd;
+         tax  = gprof * taxrate;
+         pat  = gprof - tax;
+         earn = pat / numshar;
+   
+      coltot:;
+         if mktshr
+            then total = ( mar + jun + sep + dec ) / 4;
+            else total = mar + jun + sep + dec;
+      %mend show;
+      run;
+</PRE>
+<P>The following PROC COMPUTAB statements use the PROC FORECAST output data
+set with invocations of the macros defined previously to perform
+a what-if analysis of
+the predicted income statement. The report is shown in <A HREF="sect35.htm#comex06a">Output 9.6.1</A>.
+<P><PRE>
+   title1 'Fleet Footwear, Inc.';
+   title2 'Marketing Analysis Income Statement';
+   title3 'Based on Forecasted Unit Sales';
+   title4 'All Values Shown';
+   
+   proc computab data=outcome cwidth=12;
+   
+      %whatif(mktshr=.02 .07 .15 .25,price=38.00,
+              ucost=20.00,taxrate=.48,numshar=15000,overhead=5000);
+   
+      %show(mktshr tunits units sales cost ovhd gprof tax pat earn);
+   run;
+</PRE>
+<P></P><A NAME="comex06a"><SPAN CLASS="ssften"><B>Output 9.6.1:</B> PROC COMPUTAB Report Using Macro Invocations</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Fleet Footwear, Inc.</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Marketing Analysis Income Statement</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Based on Forecasted Unit Sales</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>All Values Shown</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                                                                                  Calculated      
+                               March          June     September      December         Total      
+    Market Share                0.02          0.07          0.15          0.25          0.12      
+                                                                                                  
+    Market Forecast        23,663.94     24,169.61     24,675.27     25,180.93     97,689.75      
+                                                                                                  
+    Items Sold                473.28      1,691.87      3,701.29      6,295.23     12,161.67      
+                                                                                                  
+    Sales                 $17,984.60    $64,291.15   $140,649.03   $239,218.83   $462,143.61      
+                                                                                                  
+    Cost of Goods          $9,465.58    $33,837.45    $74,025.80   $125,904.65   $243,233.48      
+                                                                                                  
+    Overhead               $5,000.00     $7,315.33    $11,133.22    $16,061.71    $39,510.26      
+                                                                                                  
+    Gross Profit           $3,519.02    $23,138.38    $55,490.00    $97,252.47   $179,399.87      
+                                                                                                  
+    Tax                    $1,689.13    $11,106.42    $26,635.20    $46,681.19    $86,111.94      
+                                                                                                  
+    Profit After Tax       $1,829.89    $12,031.96    $28,854.80    $50,571.28    $93,287.93      
+                                                                                                  
+    Earnings per Share         $0.12         $0.80         $1.92         $3.37         $6.22      
+                                                                                                  
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><BR>The following statements produce a similar report for different values
+of market share and unit costs.
+The report in <A HREF="sect35.htm#comex06">Output 9.6.2</A> displays the values for
+the market share, market forecast, sales, after tax profit, and earnings per
+share.
+<PRE>
+   title3 'Revised';
+   title4 'Selected Values Shown';
+   
+   proc computab data=outcome cwidth=12;
+      %whatif(mktshr=.01 .06 .12 .20,price=38.00,
+              ucost=23.00,taxrate=.48,numshar=15000,overhead=5000);
+      %show(mktshr tunits sales pat earn);
+   run;
+</PRE>
+<P></P><A NAME="comex06"><SPAN CLASS="ssften"><B>Output 9.6.2:</B> Report Using Macro Invocations for Selected Values</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><A NAME="IDX">&nbsp;</A>
+<CENTER>
+<font  face="Verdana, Helvetica, Helv" size="2"><b><i><!--BEGINTITLE--> 
+<TABLE  cellspacing=1 cellpadding=1 rules=NONE frame=VOID border=0 width=100%>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Fleet Footwear, Inc.</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Marketing Analysis Income Statement</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Revised</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, Helv" size="2" color="#003399"><b><i>Selected Values Shown</i></b></font></TD>
+</TR>
+</TABLE>
+<!--ENDTITLE--></i></b></font></CENTER>
+<P>
+<CENTER>
+<font  face="Courier New, Courier" size="2" color="#003399"> 
+<TABLE  cellspacing=1 cellpadding=7 rules=GROUPS frame=BOX border=1>
+<thead>
+</thead>
+<tbody>
+<TR>
+ <TD rules=GROUPS frame=BOX ALIGN=CENTER><PRE>
+<font  face="Courier New, Courier" size="2" color="#003399">                                                                                  Calculated      
+                               March          June     September      December         Total      
+    Market Share                0.01          0.06          0.12          0.20          0.10      
+                                                                                                  
+    Market Forecast        23,663.94     24,169.61     24,675.27     25,180.93     97,689.75      
+                                                                                                  
+    Sales                  $8,992.30    $55,106.70   $112,519.22   $191,375.06   $367,993.28      
+                                                                                                  
+    Profit After Tax        $-754.21     $7,512.40    $17,804.35    $31,940.30    $56,502.84      
+                                                                                                  
+    Earnings per Share        $-0.05         $0.50         $1.19         $2.13         $3.77      
+                                                                                                  
+</font></PRE>
+</TD>
+</TR>
+</tbody>
+<tfoot>
+</tfoot>
+</TABLE>
+</font></CENTER>
+</TD></TR></TABLE></CENTER><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect34.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect36.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

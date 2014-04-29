@@ -1,0 +1,288 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Accessing SAS Data Libraries : Using the V8TAPE Engine </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217271.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zcsas-v6.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217243.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zs-v6seq">Using the V8TAPE Engine</A></FONT></H1>
+
+
+<P><A name="z1096405">&#13;The
+V6TAPE engine is functionally equivalent to the V8TAPE engine. Information
+in this section that applies to V8TAPE also applies to V6TAPE.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">When to Use This Engine</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549771">&#13; Use the V8TAPE engine to create
+sequential-format SAS data libraries
+either on disk or on tape, and to access files in sequential data libraries.
+The primary purpose of this engine is to enable you to back up Version 8 SAS
+data sets, catalogs, or whole data libraries. The V8TAPE engine makes it possible
+to back up applications that contain both SAS data sets and SAS catalogs.
+ The V8TAPE engine also enables you to transport a tape-format library to
+another OS/390 or CMS system via tape or shared DASD.  Finally, you can use
+this engine to create a multivolume sequential-format SAS data library on
+tape or disk.</A>
+<P>In contrast to the V8 engine, V8TAPE has the following
+limitations: 
+<P>
+<UL>
+
+<LI>It does not support indexing nor compression of
+observations.<P>
+
+<LI>Because a V8TAPE SAS data library does not contain
+a directory, SAS cannot access an individual data set directly. It must read
+through all preceding SAS data sets in order to reach a requested data set.
+Direct access to individual observations (using the POINT= or KEY= options
+in the SET or MODIFY statements) also is not supported.<P>
+
+<LI>In a single DATA step or PROC step, you can use
+only one SAS data set from a particular sequential SAS data library.<P>
+</UL>
+
+<P>Unlike disk-format libraries, sequential libraries are
+always closed at step boundaries.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Information in this section also applies to the
+V6TAPE engine.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zelv6seq">How to Select the V8TAPE Engine</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549778">&#13; There are three ways to select
+this engine: </A>
+<P>
+<UL>
+
+<LI>Specify V8TAPE as the value of the <B>engine</B> argument in the LIBNAME statement or LIBNAME function. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Use
+TAPE as the engine name if you write programs that create
+new SAS data libraries and you want to create the data libraries in the latest
+available format. In SAS Version 8, TAPE is an alias for V8TAPE, and it will
+be an alias for newer sequential engines in subsequent releases.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P>
+
+<LI>For existing V8TAPE SAS data libraries on tape,
+specify no value for <B>engine</B> in the LIBNAME statement or LIBNAME
+function. This engine is selected automatically if you do not provide a value
+for the engine argument and you are allocating the library internally. This
+engine is also selected automatically if you omit the LIBNAME statement or
+function and allocate the library externally.<P>
+
+<LI>Set the value of the SEQENGINE= system option
+to SASV8SEQ. The DCB attributes of the allocated data set must indicate a
+sequential format SAS data library.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z6seqdcb">DCB Attributes for Direct Access Bound Libraries with the V8TAPE Engine</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549783">&#13; The
+physical file label contains DCB information which describes the data library's
+characteristics. The operating environment writes the DCB information when
+it creates the library, using either values that are supplied by the user,
+or the values of several SAS system options. Both the SAS System and OS/390
+utility programs use this DCB information during processing.</A>
+<P>See <A href="z1main.htm#ztmt-dcb">DCB Attribute Options</A>
+for more information about DCB attributes.
+<BR><H3>External Allocation: V8TAPE Engine</H3>
+
+
+<P><A name="z0549785">&#13;
+ If you use a JCL DD statement or a TSO ALLOCATE command to allocate
+a new V8TAPE data library on disk or on tape, and if you choose to specify
+DCB attributes, then you must specify the following DCB attributes:
+</A>
+<P>
+<UL>
+
+<LI>DSORG=PS<P>
+
+<LI>RECFM=U<P>
+
+<LI>BLKSIZE=<B>value</B>, where <B>value</B> is
+up to the maximum for your device type.<P>
+</UL>
+
+<P>If you do not specify DCB attributes for a new V8TAPE
+SAS data library, then SAS supplies the above DCB attributes whenever the
+V8TAPE engine has been either explicitly or implicitly assigned. (See <A href="#zelv6seq">How to Select the V8TAPE Engine</A>
+and <A href="zwithout.htm">How SAS Assigns an Engine When No Engine Is Specified</A>
+for details about how engines are assigned.) 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;In order to use the TSO ALLOCATE command or LIBNAME statement to allocate
+a data set on tape, your user ID must have MOUNT authority. See your system
+administrator for details.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3><A name="z-seqint">Internal Allocation: V8TAPE Engine</A></H3>
+
+
+<P><A name="z0549791">&#13;
+ If you use the LIBNAME statement or LIBNAME function to allocate
+a new V8TAPE data library on disk or on tape, SAS supplies the following DCB
+attributes for you: </A>
+<P>
+<UL>
+
+<LI>DSORG=PS<P>
+
+<LI>RECFM=U<P>
+</UL>
+
+<P>In addition, if no
+block size is specified when a SAS
+data library is physically opened for the first time, SAS uses the value of
+the BLKSIZE= system option. If that value is 0, then SAS uses the BLKSIZE(<B>device-type</B>)= system option.  If the value of BLKSIZE(<B>device-type</B>)= is 0, SAS uses the largest block
+size that the device supports. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If the SAS system option BLKALLOC is in effect, then
+SAS assigns BLKSIZE= and LRECL= values when the SAS data library is allocated.
+If NOBLKALLOC is in effect, then SAS assigns BLKSIZE= and LRECL= values when
+the library is first accessed.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Engine/Host Options for Direct Access Bound Libraries with the V8TAPE Engine</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549796">&#13; The engine/host options that you can supply in the LIBNAME statement
+or LIBNAME function correspond to the JCL or TSO parameters that you would
+specify if you allocated the SAS data library externally. For bound libraries
+using the V8TAPE engine, you can specify any of the engine/host options shown
+in </A><A href="z0217272.htm#zcsas-t1">Overview of the V8 and V8TAPE Engines</A>.
+(For more information about these options and their values, see the description
+of <B>engine/host options</B> under <A href="zlibname.htm">LIBNAME</A>.) Or you can accept the default values
+that are derived from the corresponding SAS system options, as follows: 
+<P>
+<UL>
+
+<LI>If you do not specify a value for DISP=, the default
+for existing data sets is DISP=(OLD,KEEP,KEEP). For new data sets, the default
+is DISP=(NEW,CATLG,DELETE). If you specify only DISP=NEW and omit the normal
+disposition parameter, the following defaults occur: 
+<P>
+<UL>
+
+<LI>If you are allocating the library with a LIBNAME
+statement, a LIBNAME function, or with a TSO ALLOCATE command, normal disposition
+defaults to CATLG.<P>
+
+<LI>If you are allocating the library with a JCL DD
+statement, normal disposition defaults to DELETE for new data sets.<P>
+</UL>
+
+<P>In an interactive environment, when you use a LIBNAME
+statement or LIBNAME function to allocate a data library that does not exist
+and you do not specify a value for DISP=, one of the following actions occurs: 
+<P>
+<UL>
+
+<LI>If the SAS system option FILEPROMPT is in effect
+(the default), then a requestor window asks whether you want to create the
+physical file. If you reply 
+
+
+<CODE><B>Yes</B></CODE>, you are asked whether you want
+to catalog the data set when it is deallocated, or to delete it.<P>
+
+<LI>If the SAS system option NOFILEPROMPT is in effect,
+an error message is written to the SAS log.<P>
+</UL>
+<P>
+
+<LI>If you do not specify values for the SPACE= parameters,
+SAS uses the current values of the SAS system options FILEUNIT=, FILESPPRI=,
+and FILESPSEC=. The defaults are SPACE=(CYL,(1,1)).<P>
+
+<LI>If you do not specify a value for VOLSER=, SAS
+uses the current value of the SAS system option FILEVOL=, if a value for FILEVOL=
+has been specified at your site.<P>
+
+<LI>If you do not specify a value for UNIT=, SAS uses
+the current value of the SAS system option FILEDEV=.  The default is SYSDA.<P>
+</UL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The default values shown are
+those that are supplied by SAS. Your SAS system administrator may have changed
+the default values for your site.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>For temporary data libraries, you do not need to specify
+any options, but you can override any of the default values.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">CONTENTS Procedure Output</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549808">&#13; The PROC CONTENTS output in </A><A href="#zcsas-o2">PROC CONTENTS Output Generated by the V8TAPE Engine</A> shows information that is generated
+by the V8TAPE engine. 
+<P>
+<B><I><A name="zcsas-o2">PROC CONTENTS Output Generated by the V8TAPE Engine</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                            The SAS System
+                               The CONTENTS Procedure
+   Data Set Name: SEQ.ORANGES                         Observations:         .
+   Member Type:   DATA                                Variables:            5
+   Engine:        V8TAPE                              Indexes:              0
+   Created:       14:48 Tuesday, March 5, 1999        Observation Length:   40
+   Last Modified: .                                   Deleted Observations: 0
+   Protection:                                        Compressed:           NO
+   Data Set Type:                                     Sorted:               NO
+   Label:
+
+                  -----Engine/Host Dependent Information-----
+
+                      Data Set Page Size: 32000
+                      Physical Name:      USERID.OS390.SEQ
+                      Release Created:    8.0
+                      Created by:         USERID
+
+            -----Alphabetic List of Variables and Attributes-----
+
+                    #    Variable    Type    Len    Pos
+                    -----------------------------------
+                    2    FLAVOR      Num       8      8
+                    4    LOOKS       Num       8     24
+                    3    TEXTURE     Num       8     16
+                    5    TOTAL       Num       8     32
+                    1    VARIETY     Char      8      0</PRE></TD></TR></TABLE>
+
+<P>
+<P>In the output example above, SAS version information appears
+in the Engine and Release created fields.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217271.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zcsas-v6.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217243.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zs-v6seq">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

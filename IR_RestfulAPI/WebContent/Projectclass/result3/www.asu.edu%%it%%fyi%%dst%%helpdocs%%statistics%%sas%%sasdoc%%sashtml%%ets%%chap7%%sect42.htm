@@ -1,0 +1,82 @@
+<HTML>
+<HEAD>
+<TITLE>Forecasting Log Transformed Data</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect41.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect43.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The ARIMA Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Forecasting Log Transformed Data  </H2>
+<P><A NAME="idxari0230">&#13;</A><A NAME="idxari0229">&#13;</A>The log transformation is often used to convert time series
+that are nonstationary with respect to the innovation variance into
+stationary time series.
+The usual approach is to take the log of the series
+in a DATA step and then apply PROC ARIMA to the transformed data.
+A DATA step is then used to transform the forecasts of the logs back
+to the original units of measurement.
+The confidence limits are also transformed using the exponential function.
+<P>As one alternative, you can simply exponentiate the forecast series.
+This procedure gives a forecast for the median of the series,
+but the antilog of the forecast log series underpredicts
+the mean of the original series.
+If you want to predict the expected value of the series,
+you need to take into account the standard error of the forecast,
+as shown in the following example,
+which uses an AR(2) model to forecast the log of a series Y:
+<P><PRE>
+
+   data in;
+      set in;
+      ylog = log( y );
+   run;
+   
+   proc arima data=in;
+      identify var=ylog;
+      estimate p=2;
+      forecast lead=10 out=out;
+   run;
+   
+   data out;
+      set out;
+      y   = exp( ylog );
+      l95 = exp( l95 );
+      u95 = exp( u95 );
+      forecast = exp( forecast + std*std/2 );
+   run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect41.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect43.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

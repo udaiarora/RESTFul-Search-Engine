@@ -1,0 +1,192 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>DATA Step Graphics Interface Dictionary : TEXUP </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1060538.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1309812.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1309813.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">TEXUP</FONT></I></TD>
+</TR>
+</TABLE><A name="z1309780">&#13;</A><A NAME="z1047153"></A><H1><FONT size="5">TEXUP</FONT></H1>
+
+<P><HR><BR><B>Specifies the orientation (angle) of the text string</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Operating States:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">  GKOP, SGOP, WSAC, WSOP
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Return Codes:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">  0, 8, 74
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Default Values:</B></TD>
+<TD bgcolor="#CCCCCC" align="left"> <B>upx</B>=0, <B>upy</B>=1
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z1309780.htm#z1047154"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z1309780.htm#z1047155"><FONT size="2"><B>Description</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z1309780.htm#z1047158"><FONT size="2"><B>Argument Definitions</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z1309780.htm#z1047159"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1047154">Syntax</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1084385">&#13;
+<B>return-code-variable</B>=GSET('TEXUP',<B>upx, upy</B>);</A>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1047155">Description</A></FONT></B></TD></TR></TABLE>
+
+<P>The GSET('TEXUP',
+. . . ) function sets the angle of the text string. DSGI uses the values of
+character up vectors to determine the angle of a text string. The character
+up vector has two components, <B>upx</B> and <B>upy</B>, that
+describe the angle at which the text string is placed. The angle is calculated
+with the following formula: 
+
+
+
+<PRE>   angle=atan(upx/upy)</PRE>
+<P>Effectively, when DSGI is calculating the angle for
+the text, it uses <B>upx</B> and <B>upy</B> as forces that are
+pushing the string toward an angle.  The natural angle of text in the <B>upx</B> direction is toward the 6 o'clock position.  In the <B>upy</B>
+direction, text naturally angles at the 3 o'clock position.  If <B>upx</B> is greater than <B>upy</B>, the text is angled toward 6 o'clock.
+ If <B>upy</B> is greater than <B>upx</B>, the text is angled
+toward 3 o'clock.  <A href="#z1058059">Natural Angle of Text</A>
+shows the angle of text when the values for <B>upx</B> and <B>upy</B> are (0.0, 1.0) and (1.0, 0.0).
+<P>
+<P>
+<B><I><A name="z1058059">Natural Angle of Text</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329411.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>As you change the values of
+<B>upx</B> and <B>upy</B>, the coordinate that has the highest value is taken as the angle,
+and the lowest value as the offset. <A href="#z1058062">Varying the Angle of Text</A> shows the angle of text when the character
+up vector values (+1.0, +0.5) are used.
+<P>
+<P>
+<B><I><A name="z1058062">Varying the Angle of Text</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329412.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>You can use the following
+macro to convert angles measured
+in degrees to character up vectors: 
+
+
+
+<PRE>%macro angle(x);
+ if  mod(&amp;x, 180)=90 then do;
+    if mod(&amp;x,270) = 0 then
+       xup = 1.0;
+    else
+       xup = -1.0;
+    rc = gset('texup', xup, 0.0);
+    end;
+ else do;
+    b = mod(&amp;x, 360);
+    /* adjust y vector for 2nd and 3rd quadrants */
+    if b > 90 and b lt 270 then
+      yup = -1.0;
+    else
+      yup = 1.0;
+    a=&amp;x*1.7453292519943300e-002;
+    xup = tan(-a);
+    /* adjust x vector for 3rd quadrant */
+    if b > 180 and b le 270 then
+      xup = -xup;
+    rc = gset('texup', xup, yup);
+    end;
+%mend angle;
+
+data _null_;
+  rc = ginit();
+  rc = graph('clear', 'angle');
+  rc = gset('texalign', 'left', 'base');
+  rc = gset('texheight', 5);
+  rc = gset('texfont', 'swissl');
+  %angle(180);
+  rc = gdraw('text', 50, 50, '180');
+  %angle(80);
+  rc = gdraw('text', 50, 50, '80');
+  %angle(600);
+  rc = gdraw('text', 50, 50, '600');
+  rc = graph('update');
+  rc = gterm();
+  run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1047158">Argument Definitions</A></FONT></B></TD></TR></TABLE>
+
+<P>
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD><B>upx</B></TD>
+<TD align="left">numeric constant or numeric variable
+name; if <B>upy</B> is 0, <B>upx</B> cannot be 0.</TD></TR>
+
+<TR align=left valign="top">
+<TD><B>upy</B></TD>
+<TD align="left">numeric constant or numeric variable
+name; if <B>upx</B> is 0, <B>upy</B> cannot be 0.</TD></TR>
+</TABLE>
+
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z1047159">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>GASK('TEXUP', . . . ) routine</TD></TR>
+<TR valign="top"><TD></TD><TD>GDRAW('TEXT', . . . ) function</TD></TR>
+<TR valign="top"><TD></TD><TD>GSET('TEXALIGN',
+. . . ) function</TD></TR>
+<TR valign="top"><TD></TD><TD>GSET('TEXPATH', . . . ) function</TD></TR></TABLE>  
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1060538.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1309812.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1309813.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1309780">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

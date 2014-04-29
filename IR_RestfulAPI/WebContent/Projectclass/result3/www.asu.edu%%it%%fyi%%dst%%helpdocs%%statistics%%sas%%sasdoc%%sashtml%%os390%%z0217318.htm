@@ -1,0 +1,155 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Optimizing Performance : Managing Memory </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217305.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217314.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217320.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0217318">Managing Memory</A></FONT></H1>
+
+
+<P><A name="z1097187">&#13;In the OS/390
+operating environment, you can use two options to limit the amount of memory
+used by SAS. The MEMSIZE= option sets a hard limit on the amount of memory
+used by SAS. The MEMLEAVE= option limits SAS memory relative to the user's
+available region of memory. SAS Institute recommends that you specify a value
+for the MEMLEAVE= option and let SAS determine the value of MEMSIZE= based
+on your REGION size and on the value of MEMLEAVE=.</A>
+<P>The following sections provide details on available memory management
+techniques.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zmemsize">Specify a value for MEMSIZE= when you invoke SAS</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552538">&#13;  For most
+programs and data, SAS uses memory (storage) above
+the 16MB line. This is sometimes referred to as 31-bit addressing. The few
+exceptions include data areas that require 24-bit addressability and a small
+part of the host supervisor. Because the OS/390 JCL parameter REGION is ineffective
+at controlling 31-bit memory usage, the SAS MEMSIZE= option has been implemented
+for this purpose.</A>
+<P>One way to limit the amount of virtual memory that SAS
+can use is to specify a value for the MEMSIZE= system option when you invoke
+SAS. Under OS/390, MEMSIZE= has a default value of 0, which means that SAS
+can use memory up to the maximum amount that is available. This enables you
+to invoke multiple procedures consecutively without reloading the program
+each time. However, if there is no upper limit on virtual memory usage, then
+memory is not freed for reuse even when the programs that are stored there
+are no longer needed.
+<P>The default value for the MEMSIZE= option is calculated
+internally using the following formula:
+
+
+
+<PRE>MEMSIZE_default = size_of_user_memory_region -- MEMLEAVE_value</PRE>For interactive applications that use multiple SAS System components
+such as SAS/AF and SAS/GRAPH, specify MEMSIZE=24M. If you prefer to set the
+value of the MEMSIZE= option yourself, a value of 12M is a reasonable choice
+for most batch applications.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Specify a value for MEMLEAVE=</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1097188">&#13;As with MEMSIZE=, the MEMLEAVE=
+system option limits the amount
+of memory used by SAS, but in a different way. Instead of setting an absolute
+limit on the amount of memory SAS can use, MEMLEAVE= specifies a value that
+is subtracted from the total amount of memory available in the user's REGION.
+The amout of memory specified by MEMLEAVE= is reserved for the use of the
+operating environment. The remainder of the user's REGION remains available
+to SAS. The advantage provided by MEMLEAVE= is that it applies equally well
+to all SAS sessions, regardless of the size of the REGION. Choosing an appropriate
+value for MEMSIZE=, on the other hand, can be problematic in environments
+where REGION sizes vary.</A>
+<P>The default value of MEMLEAVE= is 512K. You might need
+to increase this value depending on memory demands expected for host programs
+running in the same REGION, to prevent SAS from using too much of that REGION.
+For example, you might want to increase the value of MEMLEAVE= if you plan
+to run a memory-intensive host sort routine while also running a large SAS
+session.
+<P>If you specify a value for the MEMLEAVE= option, either
+do not specify a value for the MEMSIZE= option or set the value of the MEMSIZE=
+option to 0.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Consider using superblocking options to control memory fragmentation</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552541">&#13;
+Superblocking
+options are SAS system options that set aside large blocks of memory for different
+classes of use. In most cases, the default values for these options are appropriate
+and should not be altered. However, if you receive a superblock-overflow warning
+message in the SAS log, you may want to use these options to adjust the memory
+allocation for your job.</A>
+<P>For complete information on superblocking system options,
+see the installation instructions for the SAS System in the OS/390 environment.
+You can also submit the following SAS statement to list the superblocking
+system options:
+
+
+
+<PRE>proc options group=memory;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zysleave">Use SYSLEAVE= and PROCLEAVE= to handle out-of-memory conditions</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552543">&#13;
+     Sometimes
+a job runs out of memory in spite of additional memory allocations. To ensure
+that the job ends "gracefully" under that condition, you may want to increase
+the values of the SAS system options SYSLEAVE= and PROCLEAVE=. </A>
+<P>
+<UL>
+
+<LI>The SYSLEAVE= option reserves a specified amount
+of memory to ensure that, when a SAS task ends, enough memory is available
+to close data sets and to "clean up" other resources. For details, including
+the SAS default value, see <A href="z0217098.htm">SYSLEAVE=</A>.<P>
+
+<LI>The PROCLEAVE= option serves a similar function
+for SAS procedures. For example, some procedures are designed to use memory
+until no more is available; they then continue by opening and using work files.
+PROCLEAVE= ensures that there will be enough memory left to open these work
+files and to allocate I/O buffers for them so that the procedure can continue.
+For details, including the SAS default value, see <A href="z0217023.htm">PROCLEAVE=</A>.<P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217305.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0217314.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217320.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0217318">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

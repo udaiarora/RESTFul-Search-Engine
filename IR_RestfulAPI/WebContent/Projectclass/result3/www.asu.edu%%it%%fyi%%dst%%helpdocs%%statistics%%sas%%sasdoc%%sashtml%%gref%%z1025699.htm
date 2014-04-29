@@ -1,0 +1,253 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Bringing SAS/GRAPH Output to the Web : Example 4: Using ODS to Generate a Drill-down Graph </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1038660.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1030978.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1025699">Example 4: Using ODS to Generate a Drill-down Graph</A></FONT></H1>
+
+
+<P><A name="z1081895">&#13;
+ You can use ODS to generate a drill-down graph (see
+</A><A href="z1025181.htm">About Drill-down Graphs</A>). All you have to do is
+supply the linking information that identifies the location of the target
+output.  SAS/GRAPH produces the GIF files and the image map needed for the
+drill-down graph, and ODS creates the HTML files to display the output and
+implement the drill-down capability.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Planning the Web Page</FONT></B></TD></TR></TABLE>
+
+<P>To plan a Web page when using ODS to generate a drill-down
+graph, you must determine what output you need, what HTML files you will name
+to store that output, and what links you need to implement the drill-down
+capability. This example generates a simple drill-down bar chart that shows
+the regional sales figures for three sales
+regions.
+<P>
+<P>
+<P><IMG border="0" src="./images/01329091.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>When the bar chart is
+displayed
+in a browser, you can
+select any one of the bars to drill down to a report that shows the sales
+figures for the corresponding region. For example, you can click on the bar
+that represents sales for the Western region to drill down to a report that
+shows the Western region's sales
+figures.
+<P>
+<P>
+<P><IMG border="0" src="./images/01329092.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>To create this drill-down
+graph,
+you need the following:
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>output</TD>
+<TD align="left">The output requires a 3-D vertical
+bar chart to show the drill-down chart. The output also requires three reports
+to show the state sales figures for each region.</TD></TR>
+
+<TR align=left valign="top">
+<TD>HTML files</TD>
+<TD align="left">You can write all of the output to
+a single body file, or distribute the output across multiple body files. This
+example will direct each piece of output to its own body file.
+<P>You can name the HTML files with any legal file name
+in your operating environment. This example will use the following names:
+sales.html for the file that references the drill-down chart, and central.html,
+south.html, and west.html for the reports on regional sales figures.</TD></TR>
+
+<TR align=left valign="top">
+<TD>links</TD>
+<TD align="left">Each bar in the bar chart requires
+a link to the corresponding region's report. Because the example will direct
+each report to its own HTML file, the links do not need anchor names. The
+example assumes that users will access all output through a file system, so
+a file specification will suffice for the linking information.
+<P>The drill-down capability for this design requires only
+one drill-down level: from the bar chart to the reports. There is no legend
+and, therefore, there are no links from the legend. Thus, only one HTML variable
+is required to store link information for the chart. This example will create
+a variable named RPT.</TD></TR>
+</TABLE>
+
+<P>To provide the drill-down capability, the example creates
+an HTML variable named RPT. For each sales region, RPT stores the HREF value
+that links to the target output. The example then specifies RPT as the HTML
+variable for the GCHART procedure that generates the drill-down graph. To
+generate the target reports, the example uses PROC PRINT. The example assumes
+that users will access all output through a file system.
+<P>In this example, the data, the bar chart, and the reports
+are simple so that you can focus on the code needed to generate a drill-down
+graph. For more realistic drill-down examples, see <A href="z3n05-ex.htm">Creating Bar Charts with Drill-down for the Web</A> and
+<A href="z9n05-ex.htm">Creating Maps with Drill-down for the Web</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Producing the Output for the Drill-down Graph</FONT></B></TD></TR></TABLE>
+
+<P>To generate the drill-down bar chart for this example,
+you must run the GCHART procedure with the VBAR3D statement. The VBAR3D statement
+must use the HTML= option to specify the HTML variable that contains the linking
+information - in this case the variable RPT.   To generate the reports,
+you can run the PRINT procedure. To direct each report to its own body file,
+a separate ODS HTML statement must precede each PRINT procedure.
+<P>In this example code, note the following:
+<P>
+<UL>
+
+<LI>The DATA step creates
+the variable RPT and assigns
+to it the values needed for the links in the drill-down graph.<P>
+
+<LI>The first ODS HTML statement uses BODY= to direct
+the ODS output to file sales.html. Therefore, the GCHART procedure output
+will be referenced in that file.<P>
+
+<LI>The GCHART procedure uses HTML=RPT to provide
+SAS/GRAPH with the linking information for the drill-down graph.<P>
+
+<LI>After running the GCHART procedure, the example
+specifies another ODS HTML statement to direct output to file central.html.
+Therefore, output from the PRINT procedure that follows is written to central.html.<P>
+</UL>
+
+<P>For more information about ODS and how it constructs
+HTML links and references, see <A href="zodschap.htm#z1032761">How ODS Constructs Links and References</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Code for the Example</FONT></B></TD></TR></TABLE>
+
+<P>
+<PRE>/* This is the only line you have to  */
+/* change to run the program. Specify */
+/* a location in your file system.    */
+filename odsout '<I>path-to-Web-server</I>';
+
+/* close the listing destination */
+ods listing close;
+
+/* set general graphic options */
+goptions reset=global gunit=pct
+   htitle=6 htext=4
+   ftitle=zapfb ftext=swiss;
+
+/* create data set REGSALES */
+data regsales;
+   length Region State $ 8;
+   format Sales dollar8.;
+   input Region State Sales;
+/* the HTML variable */
+   length rpt $40;
+
+/* assign values to HTML variable */
+if Region='Central' then
+     rpt='href="central.html"';
+   else if Region='South' then
+     rpt='href="south.html"';
+   else if Region='West' then
+     rpt='href="west.html"';
+
+   datalines;
+West CA 13636
+West OR 18988
+West WA 14523
+Central IL 18038
+Central IN 13611
+Central OH 11084
+Central MI 19660
+South FL 14541
+South GA 19022
+;
+
+/* assign graphics options for ODS output */
+goptions device=gif transparency noborder
+         xpixels=450 ypixels=400;
+
+/* open the html destination for ODS output */
+ods html body='sales.html' path=odsout;
+
+/* Create a chart that uses HTML variable */
+title1 'Company Sales';
+proc gchart data=regsales;
+   vbar3d region / sumvar=sales
+   patternid=midpoint
+   html=rpt;
+run;
+quit;
+
+/* open a body file for report */
+/* on central sales            */
+ods html body='central.html' path=odsout;
+title1 'Central Sales';
+proc print data=regsales noobs;
+   var state sales;
+   where region='Central';
+run;
+
+/* open a body file for report */
+/* on southern sales           */
+title1 'Southern Sales';
+ods html body='south.html' path=odsout;
+proc print data=regsales noobs;
+   var state sales;
+   where region='South';
+run;
+
+/* open a body file for report */
+/* on western sales            */
+title1 'Western Sales';
+ods html body='west.html' path=odsout;
+proc print data=regsales noobs;
+   var state sales;
+   where region='West';
+run;
+quit;
+
+/* close the html destination */
+ods html close;
+
+/* open the listing destination */
+ods listing;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1038660.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1030978.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1025699">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

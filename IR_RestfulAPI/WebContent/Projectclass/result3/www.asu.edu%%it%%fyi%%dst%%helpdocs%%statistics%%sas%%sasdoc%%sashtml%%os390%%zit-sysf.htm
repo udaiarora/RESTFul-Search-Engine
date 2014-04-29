@@ -1,0 +1,1026 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Initializing and Configuring the SAS System : SAS System Files </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217136.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zspecify.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0988679.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zit-sysf">SAS System Files</A></FONT></H1>
+
+
+<P><A name="z0551511">&#13;Configuration
+files (described in </A><A href="z-custom.htm#z-config">Configuration Files</A>)
+and SASUSER files (described in <A href="z-custom.htm#zsasuser">SASUSER Library</A>) are only two of several SAS system
+files that are automatically identified to your session by either the SAS
+CLIST (under TSO) or the SAS cataloged procedure (in batch).  This section
+describes several other SAS system files that are significant to SAS users
+under OS/390.
+<P>For brief descriptions of all the SAS system files that
+are frequently used by the SAS CLIST or by the SAS cataloged procedure, see <A href="#znit-sas">SAS System Files</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zit-work">WORK Library</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551513">&#13; 
+By default, the WORK library is a temporary SAS data library that contains
+temporary SAS data sets, utility files (created by some SAS procedures, such
+as PROC SORT and PROC TABULATE), your user profile, and other items that SAS
+uses in processing your current job. Anytime you assign a one-level name to
+a SAS data set, the data set is stored in the WORK library by default.</A>
+<P>The WORK library is automatically defined by the SAS
+System at the beginning of your SAS job or session, unless you invoke SAS
+under TSO and specify the GO operand.  By default, the entire WORK library
+is deleted at the end of each SAS job or session.
+<P>The WORK library must exist on a disk device in Version
+8 format so that it can be accessed by the V8 engine. (See <A href="zcsas-v6.htm">Using V8 Engines</A> for information
+about the V8 engine.) Under OS/390, the physical file that is associated with
+the DDname WORK is allocated by the SAS CLIST or by the SAS cataloged procedure.
+<P><A name="z0551516">&#13; Space
+is the aspect of the WORK library that is most likely
+to require your consideration.  Both the SAS cataloged procedure and the SAS
+CLIST include parameters that enable you to specify how much space to allocate
+to the work library. In the cataloged procedure and CLIST that are supplied
+by SAS Institute, the space allocation for the WORK library is as follows:
+ 
+
+
+</A>
+<PRE>SPACE=(6144,(500,200))</PRE>
+<P>That is, the space is allocated in 6144-byte blocks,
+with a primary allocation of 500 blocks and a secondary allocation of 200
+blocks. (Your installation may use different values; see the JCL from one
+of  your SAS jobs to get a listing of the cataloged procedure that your SAS
+jobs use.) This space is enough for many SAS jobs. However, if you have many
+large temporary SAS data sets, or if you use a procedure that has many large
+utility files (for example, a PROC FREQ step with a complex TABLES statement
+that you run against a large SAS data set), you may run out of space in the
+WORK library. If you run out of space in batch mode, your PROC or DATA step
+terminates prematurely and issues a message similar to the one shown in <A href="#zinit-o1">Insufficient WORK Space Message</A>. In
+an interactive session, a dialog window asks you to specify what action to
+take. 
+
+<P>
+<B><I><A name="zinit-o1">Insufficient WORK Space Message</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>   ERROR: Insufficient space in file WORK.DATASET.DATA.
+   NOTE: The SAS System stopped processing this step because of errors.
+   NOTE: SAS set option OBS=0 and will continue to check statements.
+         This may cause NOTE: No observations in data set.
+   WARNING: The data set WORK.DATASET may be incomplete.  When this step
+            was stopped there were 22360 observations and 4 variables.
+   ERROR: Errors printed on page 1.</PRE></TD></TR></TABLE>
+
+<P>
+<P>Here are three possible solutions to this problem: 
+<P>
+<UL>
+
+<LI>Use a larger WORK library. (See
+<A href="#zincwork">Increasing the Size of the WORK Library</A>.)<P>
+
+<LI>Delete each temporary SAS data set as soon as
+you no longer need it. (See <A href="#z-delete">Deleting Temporary SAS Data Sets</A>.)<P>
+
+<LI>Direct the temporary SAS data sets to a
+different
+SAS data library so that data space in the WORK library is conserved for items
+that must be stored there. (See <A href="#zit-user">Directing Temporary SAS Data Sets to the USER Library</A>.)<P>
+</UL>
+
+<P>You can also combine these
+methods.
+<BR><H3><A name="zincwork">Increasing the Size of the WORK Library</A></H3>
+
+
+<BR><H3>Batch Mode Method</H3>
+
+
+<P><A name="z0551523">&#13; To increase the size of the WORK
+library in a batch job, include
+the WORK parameter in the EXEC statement in your JCL. The following SAS job
+allocates 1000 blocks of primary and 400 blocks of secondary space--twice
+as much as the default WORK allocations:  
+
+
+</A>
+<PRE>//HUGE JOB <I>accounting-information</I>
+// EXEC SAS,WORK='1000,400'
+//SYSIN DD *
+<I>SAS statements</I>
+
+/*
+//</PRE>
+<BR><H3>Interactive Mode Method</H3>
+
+
+<P>If you invoke SAS interactively, then include the WORK
+operand in the SAS CLIST command, as in the following example:  
+
+
+
+<PRE>sas work('1000,400')</PRE>
+<BR><H3><A name="z-delete">Deleting Temporary SAS Data Sets</A></H3>
+
+
+<P><A name="z0551525">&#13; Under
+OS/390, <B>temporary SAS data set</B> means a data
+set that is stored in a temporary SAS data library.  That is, you cannot designate
+the data set itself as temporary, but the data set takes on the attribute
+of the library in which it is stored.</A>
+<P>One simple way to conserve space in the WORK library
+is to delete each temporary SAS data set with a PROC DATASETS step after you
+no longer need it. However, there are two problems with this method. 
+<P>
+<UL>
+
+<LI>You can cause errors in a job by deleting a SAS
+data set before the job is finished with it.<P>
+
+<LI>If you need several very large temporary SAS data
+sets in your job at the same time, you may run out of space before you reach
+a point at which you can delete any SAS data sets.<P>
+</UL>
+
+<P>An alternative to deleting the temporary SAS data sets
+is to direct them to a different SAS data library, as described in the next
+section.
+<BR><H3><A name="zit-user">Directing Temporary SAS Data Sets to the USER Library</A></H3>
+
+
+<P><A name="z0551530">&#13; You can use the USER= system option to store temporary data
+sets in the USER library rather than in the WORK library. You can make the
+USER library as large as you need it to be. </A>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Utility
+data sets that are created by the SAS procedures continue to be stored in
+the WORK library. However, any data sets that have one-level names and that
+are created by your SAS programs will be stored in the USER library.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>You can use a temporary or permanent physical file for
+the library, and you can put the library either on disk or on tape. The physical
+file can be either a Version 8, 7, or 6 SAS data library.  If it is a Version
+6 SAS data library, then it provides support for data sets but not for catalogs. <A href="#zorkuser">Differences between the WORK and USER Libraries</A>
+summarizes differences between the WORK and USER libraries. 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zorkuser">Differences between the WORK and USER Libraries</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  colspan="2" align="LEFT" valign="BOTTOM" ><B><A name="zorkuser">&#13;Library </A></B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Type of O.E. Data Set </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Storage Medium </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Format </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">WORK  </TD>
+  
+<TD  align="LEFT" valign="TOP">temporary  </TD>
+  
+<TD  align="LEFT" valign="TOP">disk </TD>
+  
+<TD  align="LEFT" valign="TOP">V8</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="2" align="LEFT" valign="TOP">USER  </TD>
+  
+<TD  align="LEFT" valign="TOP">temporary or  permanent </TD>
+  
+<TD  align="LEFT" valign="TOP">disk or tape </TD>
+  
+<TD  align="LEFT" valign="TOP">V8, V7, or V6</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P>The following example
+illustrates the use of the USER=
+system option. The numbered lines of code are explained below.  
+
+
+
+<PRE>   filename giant 'company.survey.tvdata';
+   libname result 'my.tv.sasdata';
+<B>[1]</B> libname temp '&amp;tvtemp' space=(cyl,(6,2));
+<B>[2]</B> options user=temp;
+<B>[3]</B> data totalusa;
+     infile giant;
+     input home_id region income viewers cable;
+     if home_id=. then delete;
+   run;
+
+<B>[4]</B> proc freq;
+      tables region*income*viewers*cable
+<B>[5]</B>       / noprint out=result.freqdata;
+   run;</PRE>
+
+
+ 
+<OL START="1" type="1">
+<LI>The LIBNAME statement associates the libref TEMP
+with the temporary physical file &amp;TVTEMP.<P>
+
+<LI>In the OPTIONS statement, the USER= system option
+designates the TEMP libref as the temporary SAS data library. Any data sets
+that have one-level names and that are created by your SAS program will be
+stored in this library.<P>
+
+<LI>A one-level name is used in the DATA statement.
+When the DATA step is processed, the SAS data set TEMP.TOTALUSA is created.<P>
+
+<LI>Because the large TOTALUSA data set was directed
+to the TEMP library, there is more space available in the WORK library for
+the utility files that the FREQ procedure requires.<P>
+
+<LI>The SAS data set FREQDATA contains the results
+of the FREQ procedure. A two-level name is used to store FREQDATA in the permanent
+SAS data library MY.TV.SASDATA.<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z-saslog">SAS Log File</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551551">&#13;  The
+SAS log file is a temporary physical file that has a DDname of SASLOG in both
+the SAS cataloged procedure and the SAS CLIST. In batch mode, the SAS cataloged
+procedure assigns default data control block (DCB) characteristics to this
+file as follows:</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+BLKSIZE=141
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+LRECL=137
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+RECFM=VBA
+</TD></TR></TABLE>
+<P>Under
+TSO, either interactively or noninteractively,
+the SASLOG file is routed to the terminal by default. In the windowing environment,
+the SAS log is directed to the LOG window.
+<P>See  <A href="z0217288.htm">Types of SAS Output</A>
+for more information about the SAS log and about how to route output in a
+batch job.
+<BR><H3>Changing the Contents of the SAS Log</H3>
+
+
+<P><A name="z0551554">&#13; The particular
+information that appears in the SAS log depends
+on the settings of several SAS system options. See </A><A href="zf-stats.htm">Collecting Performance Statistics</A> for more
+information.
+<P><A name="z0551555">&#13; In addition, the following portable system options affect the
+contents of the SAS log: </A>
+<DL>
+<DT>CPUID</DT>
+<DD>controls whether CPU information is printed
+at the beginning of the SAS log.<P></DD>
+
+<DT>DETAILS</DT>
+<DD>specifies whether to include additional information when
+files are listed in a SAS data library.<P></DD>
+
+<DT>ECHOAUTO</DT>
+<DD>controls whether the SAS source statements
+in the autoexec file are written (echoed) to the SAS log.<P></DD>
+
+<DT>MLOGIC</DT>
+<DD>controls whether macro trace information
+is written to the SAS log when macros are executed.<P></DD>
+
+<DT>MPRINT</DT>
+<DD>controls whether SAS statements that are
+generated by macros are displayed.<P></DD>
+
+<DT>MSGLEVEL</DT>
+<DD>controls the level of messages that are
+displayed.<P></DD>
+
+<DT>NEWS=</DT>
+<DD>specifies an external file that contains
+messages to be written to the SAS log when the SAS System is initialized.
+Typically, the file contains information such as news items about the system.<P></DD>
+
+<DT>NOTES</DT>
+<DD>controls whether NOTES are printed in the
+log.  NOTES is the default setting for all methods of running SAS. Do not
+specify NONOTES unless your SAS program is completely debugged.<P></DD>
+
+<DT>OPLIST</DT>
+<DD>specifies whether options given at SAS invocation
+are written to the SAS log.<P></DD>
+
+<DT>PAGESIZE=</DT>
+<DD>specifies the number of lines that compose a page of SAS
+output.<P></DD>
+
+<DT>PRINTMSGLIST</DT>
+<DD>controls whether extended lists of messages
+are printed.<P></DD>
+
+<DT>SOURCE</DT>
+<DD>controls whether SAS source statements are
+written to the log. NOSOURCE is the default setting for SAS interactive line
+mode; otherwise, SOURCE is the default.<P></DD>
+
+<DT>SOURCE2</DT>
+<DD>controls whether secondary source statements
+from files that are included by %INCLUDE statements are written to the SAS
+log.<P></DD>
+
+<DT>SYMBOLGEN</DT>
+<DD>controls whether the macro processor displays
+the results of resolving macro references.<P></DD>
+</DL>
+
+<BR><H3>Changing the Appearance of the SAS Log</H3>
+
+
+<P><A name="z0551574">&#13; The following
+portable system options are used to change the
+appearance of the SAS log: </A>
+<DL>
+<DT>DATE</DT>
+<DD>controls whether the date and time, based
+on when the SAS job or session began, are written at the top of each page
+of the SAS log and of any print file that the SAS System creates.  Use NODATE
+to suppress printing of the date and time.<P></DD>
+
+<DT>LINESIZE=</DT>
+<DD>specifies the line size (printer line width)
+for the SAS log and the SAS procedure output file. LS= is an alias for this
+option. LINESIZE= values can range from 64 through 256.<P></DD>
+
+<DT>NUMBER</DT>
+<DD>controls whether the log pages are numbered.
+NUMBER is the default. Use the NONUMBER option to suppress page numbers.<P></DD>
+
+<DT>OVP</DT>
+<DD>controls whether lines in SAS output are
+overprinted.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zprocout">SAS Procedure Output File</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551583">&#13;  Whenever a SAS program executes a PROC step that produces printed
+output, SAS sends the output to the procedure output file. Under TSO, either
+interactively or noninteractively, the procedure output file is routed to
+the terminal by default. In the windowing environment, output is directed
+to the OUTPUT window.</A>
+<P>In batch mode, the SAS procedure output file is identified
+in the cataloged procedure by the DDname SASLIST. Unless you specify otherwise,
+SAS writes most procedure output to this file. (A few procedures, such as
+the OPTIONS procedure, route output directly to the SAS log by default.) PUT
+statement output may also be directed to this file by a FILE statement that
+uses the fileref PRINT. (PRINT is a special fileref that can be specified
+in the FILE statement.)
+<P>The following DCB characteristics of the procedure output
+file are controlled by the cataloged procedure, typically with the following
+values:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+BLKSIZE=264
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+LRECL=260
+</TD></TR></TABLE>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+RECFM=VBA
+</TD></TR></TABLE>
+<P>The SAS procedure
+output file is often called the <B>print file</B>; however, note that any data set that contains carriage-control
+information (identified by a trailing A as part of the RECFM= specification)
+can be called a print file.
+<BR><H3>Changing the Appearance of Procedure Output</H3>
+
+
+<P><A name="z0551587">&#13;  The following portable system
+options are used to change the appearance of procedure output: </A>
+<DL>
+<DT>CENTER</DT>
+<DD>controls whether the printed results are
+centered or left aligned on the procedure output page.  CENTER is the default;
+NOCENTER specifies left alignment.<P></DD>
+
+<DT>DATE</DT>
+<DD>controls whether the date and time, based
+on when the SAS job or session began, are written at the top of each page
+of the SAS log and of any print file that the SAS System creates.  Use NODATE
+to suppress printing of the date and time.<P></DD>
+
+<DT>LINESIZE=</DT>
+<DD>specifies the line size (printer line width)
+for the SAS log and the SAS procedure output file.  LS= is an alias for this
+option. LINESIZE= values can range from 64 through 256.<P></DD>
+
+<DT>NUMBER</DT>
+<DD>controls whether the page number is printed
+on the first title line of each SAS printed output page.  NUMBER is the default.
+ Use the NONUMBER option to suppress page numbers.<P></DD>
+
+<DT>PAGENO=</DT>
+<DD>specifies a beginning page number for the
+next page of output that the SAS System produces.<P></DD>
+
+<DT>PAGESIZE=</DT>
+<DD>specifies how many lines to print on each
+page of SAS output. PS= is an alias for this option.  In the windowing environment
+or interactive line mode session, the PAGESIZE= option defaults to the terminal
+screen size, if this information is available from the operating environment.
+PAGESIZE= values can range from 15 through 500.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0677695">Console Log File</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z1097006">&#13;The
+SAS console log file is a physical file that is automatically allocated at
+the start of SAS initialization. The name of the file is specified by the
+CONSOLELOG= system option. The console log file records log messages generated
+when the regular SAS log is either unavailable or is not yet allocated. You
+can control the appearance of the console log file with the LINESIZE= system
+option only. The SAS CLIST and catalogued procedures allocate this file using
+the DDname SASCLOG.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Parmcards File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551600">&#13;  
+The parmcards file is a temporary physical file that is identified by the
+DDname SASPARM. It is created automatically by the SAS cataloged procedure
+and by the SAS CLIST. SAS uses the parmcards file for internal processing.
+Lines that follow a PARMCARDS statement in a PROC step are first written to
+the parmcards file; then they are read into the procedure. The PARMCARDS statement
+is used in the BMDP and EXPLODE procedures.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Summary Table of SAS System Files</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0551601">&#13; 
+</A><A href="#znit-sas">SAS System Files</A>
+lists all of the SAS system files that are frequently used in the SAS CLIST
+or in the SAS cataloged procedure. In the CLIST and cataloged procedure, logical
+names are associated with physical files.  The logical names listed in <A href="#znit-sas">SAS System Files</A> are
+those that are used by the standard SAS CLIST or cataloged procedure. Your
+installation may have changed these names.
+<P>The system option column of <A href="#znit-sas">SAS System Files</A> lists the SAS system
+options that you
+can pass into the SAS CLIST (using the OPTIONS operand) or into the SAS cataloged
+procedure (using the OPTIONS parameter) when you invoke SAS.  You can use
+these system options to change the defaults that were established by the CLIST
+or by the cataloged procedure.  (See
+<A href="z-custom.htm#z-optchg">Specifying or Changing System Option Settings</A>.)
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="znit-sas">SAS System Files</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B>Default Logical 
+ Name </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Purpose </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>System Option </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>CLIST Operands </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Type of O.E. Data Set </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">CONFIG    </TD>
+  
+<TD  align="LEFT" valign="TOP">system configuration file    </TD>
+  
+<TD  align="LEFT" valign="TOP">CONFIG=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">DDCONFIG(<B>DDname</B>)    </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member; must be FB, LRECL=80</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains system options that
+are processed automatically when you invoke  SAS. The system configuration
+file is usually maintained by your data center.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">CONFIG    </TD>
+  
+<TD  align="LEFT" valign="TOP">user configuration file    </TD>
+  
+<TD  align="LEFT" valign="TOP">CONFIG=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">CONFIG(<B>dsn</B>) <P>DDCONFIG(<B>DDname</B>)    </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member; must be FB, LRECL=80</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: also contains system options
+that are processed automatically when you invoke  SAS. Your user configuration
+file is concatenated to the system configuration file.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">LIBRARY    </TD>
+  
+<TD  align="LEFT" valign="TOP">format library</TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">SAS data library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains formats and informats.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SAMPSIO    </TD>
+  
+<TD  align="LEFT" valign="TOP">sample SAS data library    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">SAS data library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: is the SAS data library that
+is accessed by SAS programs in the sample library provided by SAS Institute.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SAS<B>nnnnn</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">command processor file    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: is used by the SASCP   command
+in the SAS CLIST.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASAUTOS    </TD>
+  
+<TD  align="LEFT" valign="TOP">system autocall library    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">MAUTS(<B>dsn</B>)    </TD>
+  
+<TD  align="LEFT" valign="TOP">PDS</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains source for SAS macros
+that were written by your data center or  provided by SAS Institute.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASAUTOS    </TD>
+  
+<TD  align="LEFT" valign="TOP">user autocall library    </TD>
+  
+<TD  align="LEFT" valign="TOP">SASAUTOS= <B>specification</B>*    </TD>
+  
+<TD  align="LEFT" valign="TOP">SASAUTOS(<B>dsn</B>) DDSASAUT(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">PDS</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains a user-defined autocall
+library to which the system autocall library  is concatenated.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASCLOG</TD>
+  
+<TD  align="LEFT" valign="TOP">console log</TD>
+  
+<TD  align="LEFT" valign="TOP">CONSOLELOG=<B>DDname</B></TD>
+  
+<TD  align="LEFT" valign="TOP">n/a</TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: SAS console log file.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASEXEC    </TD>
+  
+<TD  align="LEFT" valign="TOP">autoexec file    </TD>
+  
+<TD  align="LEFT" valign="TOP">AUTOEXEC=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">AUTOEXEC(<B>dsn</B>) DDAUTOEX(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains statements that
+are   executed automatically when you invoke SAS.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASHELP    </TD>
+  
+<TD  align="LEFT" valign="TOP">HELP library    </TD>
+  
+<TD  align="LEFT" valign="TOP">SASHELP=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">SASHELP(<B>dsn</B>) DDSASHLP(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">SAS data library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains system default catalogs
+and Help system information.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASLIB    </TD>
+  
+<TD  align="LEFT" valign="TOP">format library (V5)    </TD>
+  
+<TD  align="LEFT" valign="TOP">SASLIB=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">load library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: a load library that contains
+user-written procedures and functions or Version 5 formats and informats.
+It is searched before the SAS System load library.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASLIST    </TD>
+  
+<TD  align="LEFT" valign="TOP">procedure output file    </TD>
+  
+<TD  align="LEFT" valign="TOP">PRINT=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">PRINT(<B>dsn</B>) DDPRINT(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains SAS procedure output.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASLOG    </TD>
+  
+<TD  align="LEFT" valign="TOP">log file    </TD>
+  
+<TD  align="LEFT" valign="TOP">LOG=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">LOG(<B>dsn</B>) DDLOG(<B>DDname</B>)    </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: SAS log file.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASMSG    </TD>
+  
+<TD  align="LEFT" valign="TOP">system message file    </TD>
+  
+<TD  align="LEFT" valign="TOP">SASMSG=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">SASMSG(<B>dsn</B>) DDSASMSG(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">PDS</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains SAS system messages.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASPARM    </TD>
+  
+<TD  align="LEFT" valign="TOP">parmcards file    </TD>
+  
+<TD  align="LEFT" valign="TOP">PARMCARD=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">PARMCARD(<B>size</B>) DDPARMCD(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>:  a temporary data set that
+is used by some procedures. The PARMCARD= system option assigns a DDname to
+the parmcards file; the PARMCARD CLIST operand specifies the file size.  You
+can use the DDPARMCD operand to specify an alternate name for the parmcards
+file via the CLIST.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASSNAP    </TD>
+  
+<TD  align="LEFT" valign="TOP">SNAP dump file    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: SNAP output from dump taken
+during abend recovery.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASSWK<B>nn</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">sort work files    </TD>
+  
+<TD  align="LEFT" valign="TOP">DYNALLOC   SORTWKDD=  SORTWKNO=    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: temporary files that are
+used by the host   sort utility when sorting large amounts of data. </TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SASUSER    </TD>
+  
+<TD  align="LEFT" valign="TOP">SASUSER library    </TD>
+  
+<TD  align="LEFT" valign="TOP">SASUSER=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">SASUSER(<B>dsn</B>) DDSASUSR(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">SAS data library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains the user profile
+  catalog and other personal catalogs.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">STEPLIB    </TD>
+  
+<TD  align="LEFT" valign="TOP">STEPLIB library    </TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">LOAD(<B>dsn</B>) SASLOAD(<B>dsn</B>)    </TD>
+  
+<TD  align="LEFT" valign="TOP">load library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: a load library that contains
+SAS procedure and user-written load modules. (Allocate with a STEPLIB DD statement
+in a batch job.)</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">SYSIN    </TD>
+  
+<TD  align="LEFT" valign="TOP">primary input file    </TD>
+  
+<TD  align="LEFT" valign="TOP">SYSIN=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">INPUT(<B>dsn</B>) DDSYSIN(<B>DDname</B>)
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">sequential data set or PDS member</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains SAS statements.
+ The primary input file can be specified with the INPUT operand under TSO,
+or allocated with a DD statement in a batch job.</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">USER    </TD>
+  
+<TD  align="LEFT" valign="TOP">USER library    </TD>
+  
+<TD  align="LEFT" valign="TOP">USER=  <B>DDname</B> | <B>dsn</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">n/a    </TD>
+  
+<TD  align="LEFT" valign="TOP">SAS data library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: specifies a SAS data library
+in which to store SAS data sets that have one-level names (instead of storing
+them in the WORK library).</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">WORK    </TD>
+  
+<TD  align="LEFT" valign="TOP">WORK library    </TD>
+  
+<TD  align="LEFT" valign="TOP">WORK=  <B>DDname</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">DDWORK(<B>DDname</B>)    </TD>
+  
+<TD  align="LEFT" valign="TOP">SAS data library</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  colspan="5" align="LEFT" valign="TOP"><B>Description</B>: contains temporary SAS files
+that are created by the SAS System during your session.</TD>
+</TR>
+
+<TR valign="top" bgcolor="#FAFAD2">
+<TD colspan="5">*<A name="znit-sas">&#13;SASAUTOS:
+<B>specification</B> can be a fileref,
+a partitioned data set name enclosed in quotes, or a series of file specifications
+enclosed in parentheses.</A></TD>
+</TR>
+</TABLE>
+
+<BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217136.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zspecify.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0988679.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zit-sysf">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,101 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Information for the Database Administrator : Levels of Locking </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004458.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010896.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1010903.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1010898">Levels of Locking</A></FONT></H1>
+
+
+<P><A name="z1042632">&#13;
+
+SAS software supports several levels of locking through the CNTLLEV
+data set option. If CNTLLEV equals REC (the default), SYSTEM 2000 software
+performs record level locking. The interface view engine interprets any CNTLLEV
+setting other than REC to signify that it should do an exclusive open of the
+database. Also, the database is under exclusive use if you have issued the
+S2KLOAD statement in the DBLOAD procedure. Exclusive use locks out all other
+users entirely until the database is closed, which normally occurs when the
+procedure ends. (The database close operation depends on the procedure.)</A>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Some SAS procedures set CNTLLEV equal to MEM internally for their
+own processing reasons. Many statistical procedures must make multiple passes
+of the data. For example, finding the median requires more than one pass.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>In a Multi-User environment, exclusive use of a database can cause undesirable
+contention for a database. Also, if you have specified optimized load mode
+(S2KLOAD) in the DBLOAD procedure, your input to that load cannot be a SYSTEM
+2000 view descriptor for a database in the same environment.
+<P>When exclusive use of the database is not requested, the interface view
+engine uses SYSTEM 2000 record-level locking and multiple local holds. Basically,
+an observation is locked for retrieval and unlocked only when some other observation
+is retrieved or when the file is closed. Updates do not unlock the observation.
+This kind of locking could cause contention in a SYSTEM 2000 database. The
+interface view engine takes the following steps to keep the contention to
+a minimum:
+<P>
+<UL>
+
+<LI>At retrieval time, the engine attempts to lock all records in
+the path (with the PLEX /HOLD option). If the lowest level record in the path
+(that is, the deepest one, farthest from level 0) cannot be locked, an error
+return code is sent back to the SAS System, indicating that this observation
+cannot be locked. Records above the bottom level in the view will be locked
+if possible, but the engine does not regard it as an error when they cannot
+be locked, and no message is given to the user. <P>
+
+<LI>At update time, only those records that were successfully locked
+can be updated. For updates at levels that were not previously locked, the
+engine tries again to obtain the locks. If it cannot get them, the update
+fails, with a return code indicating that it could not get the necessary lock;
+partial updates are rolled back, assuming that rollback is enabled. If the
+engine gets the locks, it checks to see if the data in the database are still
+as they were when the data were originally retrieved; if they are the same,
+the update takes place. <P>
+</UL>
+
+<P>The purpose of this locking mechanism is to avoid contention. You can
+always access a path as long as the bottom record can be locked. You will
+not have to wait for someone else to drop a lock on one of the upper level
+records. (However, there might be relatively few locks of upper level records.)
+You are guaranteed to be able to update only items in the record at the bottom
+of the view descriptor. The engine will tolerate attempts to update any level
+and will honor the update if it can.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1004458.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1010896.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1010903.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1010898">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

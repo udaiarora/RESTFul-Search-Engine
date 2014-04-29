@@ -1,0 +1,227 @@
+<HTML>
+<HEAD>
+<TITLE>Computational Resources</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect40.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Computational Resources  </H2>
+<A NAME="idxnlp0535">&#13;</A>Since nonlinear optimization is an iterative process that
+depends on many factors, it is difficult to estimate
+how much computer time is necessary to compute an optimal
+solution satisfying one of the termination criteria.
+The MAXTIME=, MAXITER=, and MAXFU= options can be used to
+restrict the amount of CPU time, the number of iterations,
+and the number of function calls in a single run of PROC NLP.
+<P>In each iteration <SPAN CLASS="mathfont"><I>k</I></SPAN>, the NRRIDG and LEVMAR techniques use
+symmetric Householder transformations to decompose the
+<SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I></SPAN> Hessian (crossproduct Jacobian) matrix <SPAN CLASS="mathfont"><I>G</I></SPAN>
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>G</I> = <I>V</I>' <I>T V</I> &#160;&#160;&#160; , &#160;&#160;&#160; <I>V</I>  : orthogonal , &#160;&#160;&#160; <I>T</I>  : tridiagonal</SPAN>
+</DL>
+to compute the (Newton) search direction <SPAN CLASS="mathfont"><I>s</I></SPAN>
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>s</I><sup>(<I>k</I>)</sup> = - <I>G</I><sup>(<I>k</I>)-1</sup> <I>g</I><sup>(<I>k</I>)</sup> &#160;&#160;&#160; , &#160;&#160;&#160; <I>k</I> = 1,2,3, ... .</SPAN>
+</DL>
+The QUADAS, TRUREG, NEWRAP, and HYQUAN techniques use the
+Cholesky decomposition to solve the same linear system
+while computing the search direction. The QUANEW, DBLDOG,
+CONGRA, and NMSIMP techniques do not need to invert or
+decompose a Hessian or crossproduct Jacobian matrix and
+thus require less computational resources then the first
+group of techniques.
+<P>The larger the problem, the more time is spent
+computing function values and derivatives.
+Therefore, many researchers
+compare optimization techniques by counting and
+comparing the respective numbers of function, gradient, and
+Hessian (crossproduct Jacobian) evaluations. 
+You can save
+computer time and memory by specifying derivatives (using
+the GRADIENT, JACOBIAN, CRPJAC, or HESSIAN statement)
+since you will typically produce a more efficient representation
+than the internal derivative compiler.
+<P>Finite difference approximations of the derivatives
+are expensive since they require additional function or gradient calls:
+<UL>
+<LI> Forward-difference formulas:
+<UL>
+<LI> First-order derivatives: <SPAN CLASS="mathfont"><I>n</I></SPAN> additional function
+      calls are needed.
+<LI> Second-order derivatives based on function calls only:
+      for a dense Hessian, <SPAN CLASS="mathfont"><I>n</I>+<I>n<SUP>2</SUP></I>/2</SPAN> additional function calls
+      are needed.
+<LI> Second-order derivatives based on gradient calls:
+      <SPAN CLASS="mathfont"><I>n</I></SPAN> additional gradient calls are needed.
+</UL>
+<LI> Central-difference formulas:
+<UL>
+<LI> First-order derivatives: <SPAN CLASS="mathfont">2<I>n</I></SPAN> additional function
+      calls are needed.
+<LI> Second-order derivatives based on function calls only:
+      for a dense Hessian, <SPAN CLASS="mathfont">2<I>n</I>+2<I>n<SUP>2</SUP></I></SPAN> additional function calls
+      are needed.
+<LI> Second-order derivatives based on gradient:
+      <SPAN CLASS="mathfont">2<I>n</I></SPAN> additional gradient calls are needed.
+</UL></UL>
+Many applications need considerably more time for computing
+second-order derivatives (Hessian matrix) than for first-order
+derivatives (gradient). In such cases, a (dual) quasi-Newton
+or conjugate gradient technique is recommended, that does not
+require second-order derivatives.
+<P>The following table shows for each optimization technique
+which derivatives are needed (FOD: first-order derivatives;
+SOD: second-order derivatives), what kind of constraints
+are supported (BC: boundary constraints; LIC: linear constraints),
+and the minimal memory
+(number of double floating point numbers) 
+required.
+For various reasons, there are additionally about <SPAN CLASS="mathfont">7<I>n</I>+<I>m</I></SPAN> double floating
+point numbers needed.
+<P><DIV ALIGN="CENTER">
+<TABLE COLS=6 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL ALIGN=RIGHT><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER><COL ALIGN=CENTER><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=RIGHT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Quadratic Programming</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">FOD</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">SOD</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">BC</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">LIC</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Memory</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>LICOMP</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">18<I>n</I> + 3<I>nn</I></SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>QUADAS</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">1<I>n</I> + 2<I>nn</I>/2</SPAN></TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>General Optimization</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>FOD</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>SOD</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>BC</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>LIC</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>Memory</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>TRUREG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">4<I>n</I> + 2<I>nn</I>/2</SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>NEWRAP</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">2<I>n</I> + 2<I>nn</I>/2</SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>NRRIDG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">6<I>n</I> + <I>nn</I>/2</SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>QUANEW</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">1<I>n</I> + <I>nn</I>/2</SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>DBLDOG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">7<I>n</I> + <I>nn</I>/2</SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>CONGRA</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">3<I>n</I></SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>NMSIMP</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">4<I>n</I> + <I>nn</I></SPAN></TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>Least-Squares</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>FOD</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>SOD</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>BC</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>LIC</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>Memory</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>LEVMAR</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">6<I>n</I> + <I>nn</I>/2</SPAN></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>HYQUAN</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>x</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont">2<I>n</I> + <I>nn</I>/2 + 3<I>m</I></SPAN></TD></TR></TBODY>
+</TABLE></DIV>
+<P><B>Notes:</B>
+<UL>
+<LI> Here, <SPAN CLASS="mathfont"><I>n</I></SPAN> denotes the number of parameters, <SPAN CLASS="mathfont"><I>nn</I></SPAN> the squared
+      number of parameters, and <SPAN CLASS="mathfont"><I>nn</I>/2 := <I>n</I>(<I>n</I>+1)/2</SPAN>.
+<LI> The value of <SPAN CLASS="mathfont"><I>m</I></SPAN> is the product of the number of functions
+      specified in the MIN, MAX, or LSQ statement and the maximum
+      number of observation in each BY group of a DATA= input data
+      set. The following table also contains the number <SPAN CLASS="mathfont"><I>v</I></SPAN> of
+      variables in the DATA= data set that are used in the program
+      statements.
+<LI> For a diagonal Hessian matrix, the <SPAN CLASS="mathfont"><I>nn</I>/2</SPAN> term in QUADAS,
+      TRUREG, NEWRAP, and NRRIDG is replaced by <SPAN CLASS="mathfont"><I>n</I></SPAN>.
+<LI> If the TRUREG, NRRIDG, or NEWRAP method is used to minimize
+      a least-squares problem, the second derivatives are replaced
+      by the crossproduct Jacobian matrix.
+<LI> The memory needed by the TECH=NONE specification depends on the
+      output specifications (typically, it needs <SPAN CLASS="mathfont">3<I>n</I>+<I>nn</I>/2</SPAN> double
+      floating point numbers and an additional <SPAN CLASS="mathfont"><I>mn</I></SPAN> if the Jacobian
+      matrix is required).
+</UL>
+<P>The total amount of memory needed to run an optimization technique
+consists of the technique-specific memory listed in the preceeding table,
+plus additional blocks of memory as shown in the following table:
+<P><DIV ALIGN="CENTER">
+<TABLE COLS=5 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL ALIGN=RIGHT><COLGROUP><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER><COLGROUP><COL ALIGN=CENTER>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=RIGHT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">&#160;</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">double</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">int</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">long</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=CENTER NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">8byte</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>Basic Requirement</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>7n+m</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>3n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>n+m</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>DATA= data set</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>v</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>v</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>JACOBIAN</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>m(n+2)</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>CRPJAC statement</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>nn/2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>HESSIAN statement</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>nn/2</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>COV= statement</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>(2*)nn/2 + n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>Scaling vector</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>BOUNDS statement</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>Bounds in INEST=</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>2n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR></TBODY><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>LINCON and TRUREG</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>c(n+1)+nn+ nn/2+4n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>3c</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=RIGHT NOWRAP>LINCON and other</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>c(n+1)+nn+2nn/2+4n</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>3c</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD><TD BGCOLOR="#DDDDDD" ALIGN=CENTER NOWRAP>-</TD></TR></TBODY>
+</TABLE></DIV>
+<P><B>Notes:</B>
+<UL>
+<LI> For TECH=LICOMP, the total amount of memory needed for
+      the linear or boundary constrained case is
+      <SPAN CLASS="mathfont">18(<I>n</I> + <I>c</I>) + 3(<I>n</I> + <I>c</I>)(<I>n</I> + <I>c</I>)</SPAN>, where <SPAN CLASS="mathfont"><I>c</I></SPAN> is the number
+      of constraints.
+<LI> The amount of memory needed to specify derivatives
+      with a GRADIENT, JACOBIAN, CRPJAC, or HESSIAN statement
+      (shown in this table) is small compared to that needed
+      for using the internal function compiler to compute the
+      derivatives. This is especially so for second-order
+      derivatives.
+<LI> If the CONGRA technique is used, specifying the GRADCHECK
+      [=DETAIL] option requires an additional <SPAN CLASS="mathfont"><I>nn</I>/2</SPAN> double
+      floating point numbers to store the finite difference
+      Hessian matrix.
+</UL>
+<P>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect40.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect42.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,324 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Procedures : RELEASE </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217368.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1ntto.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zoc-sort.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">RELEASE</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0217429">RELEASE</A></FONT></H1>
+
+<P><HR><BR><B>Releases unused space at the end of a disk data set</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>OS/390 specifics:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">all
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z0217429.htm#znid-189"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0217429.htm#z0217430"><FONT size="2"><B>Details</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0217429.htm#z0217431"><FONT size="2"><B>PROC RELEASE Statement</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0217429.htm#z0217432"><FONT size="2"><B>Usage Notes</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0217429.htm#z0217433"><FONT size="2"><B>Output</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0217429.htm#z0217434"><FONT size="2"><B>Example</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0217429.htm#z0628591"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="znid-189">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>PROC RELEASE</B> DDNAME=<I>file-specification</I>
+&lt;<I>options</I>&gt;;
+</TD></TR></TABLE><A name="znid-190">&#13;</A>
+<P><A name="z0552982">&#13;  </A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0217430">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>PROC RELEASE can be used with most sequential
+or partitioned data sets, not just with a SAS data library that contains SAS
+data sets. However, it cannot be used to release unused space from:
+<P>
+<P>
+<UL>
+
+<LI>the SAS WORK data
+library<P>
+
+<LI>extended partitioned data sets (PDSEs)<P>
+
+<LI>ISAM or VSAM data
+sets<P>
+
+<LI>multivolume disk-format SAS data libraries<P>
+
+<LI>external multivolume disk-format data
+sets.<P>
+</UL>
+
+<P>If you delete some members from a SAS data library (using
+the DATASETS procedure, for example), you can use the RELEASE procedure to
+release the unused space at the end of the last member. You cannot use RELEASE
+to release embedded space.  That is, you can release only unused space that
+follows the highest track or block that is currently in use, as indicated
+by the CONTENTS or DATASETS procedure.
+<P>In order to use PROC RELEASE on a SAS data library,
+the data library must be closed.  If the library is open, SAS generates an
+error message. If you have assigned a libref to the data library and have
+used some members of that library in your SAS session, the library will be
+open. To close it, issue a LIBNAME statement of the following form:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+LIBNAME <I>libref</I> CLEAR;
+</TD></TR></TABLE>
+<P>Then
+issue a new LIBNAME statement for the data library
+and immediately run PROC RELEASE. As an alternative to issuing a second LIBNAME
+statement, you can simply specify the data library's name (enclosed in quotes)
+as the value of the DDNAME= option in the PROC RELEASE statement, instead
+of using a libref.
+<P>In the control language, you can release unused space
+by using specifications such as SPACE=(,,RLSE) in the DD statement (in batch
+mode), or you can use the RELEASE operand of the TSO ALLOCATE command. However,
+releasing unused space with PROC RELEASE offers several advantages over methods
+provided by the operating environment. For example, with PROC RELEASE, the
+user, not the operating environment, controls when unused space is released.
+ This advantage is especially applicable to TSO users.
+<P>Another advantage of PROC RELEASE is that you can use
+PROC RELEASE options to specify exactly how many tracks you want to keep or
+release. There is no danger of erasing all or part of a data set because PROC
+RELEASE frees only unused space. PROC RELEASE returns unused space to the
+pool of available space on the disk volume. Once released, the space is still
+available for allocation to the data set, provided a secondary space allocation
+is given for the data set in the control language or SAS statement, and provided
+all free space on the volume is not subsequently allocated to other data sets.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0217431">PROC RELEASE Statement</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552989">&#13;</A>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>PROC RELEASE</B> DDNAME=<I>file-specification </I>
+&lt;<I>options</I>&gt;;
+</TD></TR></TABLE>
+<DL>
+<DT><A name="z0552991">&#13;DDNAME=<B>file-specification</B></A></DT>
+<DD>specifies either an physical file name (enclosed
+in quotes) or a fileref that refers to the physical file from which to release
+unused space.  DDNAME= is required.<P></DD>
+
+<DT><B>options</B></DT>
+<DD>specify how much unused space to keep or
+release, and specify the unit boundary on which the data set should end. 
+<P>
+<DL>
+<DT>TOTAL=<B>number</B> | TRACKS=<B>number</B></DT>
+<DD>specifies the total number of tracks that
+the data set should contain after unused space is released, that is, after
+PROC RELEASE has executed. For example, the following statement releases all
+but ten tracks for the data set that is referenced by the fileref SURVEY:
+ 
+
+
+
+<PRE>proc release ddname=survey total=10;</PRE>
+<P>The procedure calculates the amount of space to release
+as follows:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+amount of space allocated- (value of TOTAL= option) =
+amount of unused space released
+</TD></TR></TABLE>
+<P>If the value that you specify is smaller than the amount
+of used space in the data set, then SAS releases only the unused space at
+the end of the data set.<P></DD>
+
+<DT>UNUSED=<B>number</B></DT>
+<DD>specifies the number of tracks of unused
+space that the data set should contain after PROC RELEASE has executed. The
+procedure calculates the amount of unused space to release as follows:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+amount of space allocated- (used space + value of UNUSED=
+option) = amount of unused space released
+</TD></TR></TABLE>
+<P>If the value that you specify is greater than the amount
+of unused space at the end of the data set, then no space is released at the
+end of the data set.<P></DD>
+
+<DT>RELEASE=<B>number</B></DT>
+<DD>specifies how many tracks of unused space
+to release. If the value that you specify is greater than the amount of unused
+space at the end of the data set, then SAS releases all the unused space at
+the end of the data set.<P></DD>
+
+<DT>EXTENTS | EXTENT | EX</DT>
+<DD>tells SAS to release only the space that
+is allocated to completely unused secondary extents. After the procedure releases
+unused space from the data set, the size of the data set is the sum of the
+primary extent plus all used secondary extents.<P></DD>
+</DL>
+
+<P>If you do not specify one of these options in the PROC
+RELEASE statement, then all unused space at the end of the data set is released.
+<P> Use the following option to specify the unit boundary
+on which the data set should end: 
+<P>
+<DL>
+<DT>BOUNDARY=<B>type</B> | TYPE=<B>type</B></DT>
+<DD>specifies whether the data set will end
+on a track boundary or on a cylinder boundary.
+<P>After the total amount of space to be retained is calculated,
+this amount is rounded up to the next unit boundary. Any remaining space is
+then released. Remember that the total amount of space will include the space
+that is actually used and may also include unused space that was requested
+with other options. BOUNDARY=<B>type</B> then will increase the amount
+of unused space that is retained in the data set by the portion of the unit
+that is needed in order to reach (or round up to) the next boundary. TYPE
+can be one of the following: 
+<P>
+<DL>
+<DT>DATASET | DSCB</DT>
+<DD>specifies that the data set will end on
+the next track or cylinder boundary depending on how space is currently allocated.
+If allocated in tracks, the total amount of space to be retained is calculated,
+and remaining unused tracks are released. If allocated in cylinders, the space
+to be retained is rounded up to the next cylinder boundary, and remaining
+unused space is released. This is the default boundary type.<P></DD>
+
+<DT>CYLINDERS | CYLINDER | CYLS | CYL</DT>
+<DD>specifies that space to be retained is rounded
+to the next cylinder boundary before remaining unused space is released. This
+specification is effective only if the data set is currently allocated in
+multiples of cylinders.<P></DD>
+
+<DT>TRACKS | TRACK | TRKS | TRK</DT>
+<DD>specifies that unused tracks are to be released.
+Because the minimum unit of space that can be released is a track, the space
+to be retained is not rounded up.<P></DD>
+
+<DT>ALLOC | DD | JCL</DT>
+<DD>specifies that space to be retained is rounded
+to the next unit boundary (tracks or cylinders) depending on the allocation
+unit that was specified in the JCL statement, TSO ALLOCATE command, FILENAME
+or LIBNAME statement, or FILENAME or LIBNAME function. For example, the following,
+in combination with BOUNDARY=DD, is equivalent to specifying BOUNDARY=CYL:
+ 
+
+
+
+<PRE>//DD2 DD DISP=OLD,DSN=MY.DATA,
+//       SPACE=(CYL,2)</PRE><P></DD>
+</DL>
+<P></DD>
+</DL>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0217432">Usage Notes</A></FONT></B></TD></TR></TABLE>
+
+<P>If the messages in the SAS log indicate
+that no space was released from the data set, check to see whether the data
+set is allocated to another job or to another user.  When PROC RELEASE is
+invoked, the operating environment's disk space management function (DADSM)
+must be able to obtain exclusive control of the data set. If it cannot, then
+no indication that DADSM does not have control is passed to the SAS System,
+no space is released from the data set, and no error message is issued by
+the SAS System.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0217433">Output</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0553021">&#13;PROC RELEASE writes the following information to
+the SAS log: </A>
+<P>
+<UL>
+
+<LI>how many tracks were allocated to the data set
+before and after the procedure was executed<P>
+
+<LI>how many tracks were used<P>
+
+<LI>how many extents were
+used.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0217434">Example</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0553025">&#13;The following example releases the unused secondary
+extents for an physical file that is referenced by the fileref THISFILE:  
+
+
+</A>
+<PRE>filename thisfile '<I>my.pgm.lib</I>';
+proc release ddname=thisfile extents;
+run;</PRE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0628591">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P> 
+<P>
+<UL>
+
+<LI>IBM's <B>OS/390 MVS JCL
+Reference</B><P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217368.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1ntto.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zoc-sort.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0217429">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

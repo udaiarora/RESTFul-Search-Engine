@@ -1,0 +1,317 @@
+<HTML>
+<HEAD>
+<TITLE>Side Constraints</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NETFLOW Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Side Constraints  </H2>
+<P><A NAME="idxnet0007">&#13;</A><A NAME="idxnet0008">&#13;</A><A NAME="idxnet0009">&#13;</A><A NAME="idxnet0010">&#13;</A>Often all the details of a problem cannot be specified in a
+network model alone. In many of these cases, these details
+can be represented by the addition of side constraints to the
+model. 
+Side constraints are a linear function of arc variables
+(variables containing flow through an arc) and nonarc
+variables (variables that are not part of the network).
+This enhancement to the basic network model allows for very
+general problems. In fact, any linear program can be
+represented with network models having these types of
+side constraints. 
+The examples that follow help
+to clarify the notion of side constraints.
+PROC NETFLOW enables you to specify side constraints.
+The data for a side constraint consist of coefficients of arcs and
+coefficients of nonarc variables, a constraint type (that is, <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq1.gif"
+ ALT="\le">, =, or <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq2.gif"
+ ALT="\ge"> )
+and a right-hand-side value (rhs).
+A nonarc variable has a name, an objective function coefficient
+analogous to an arc cost, an upper bound analogous to an arc 
+capacity, and a lower bound analogous to an arc lower
+flow bound.
+PROC NETFLOW finds the flow through the
+network and the values of any nonarc variables that minimize
+the total cost of the solution.
+Flow conservation is met, 
+flow through each arc is on or between the arc's lower flow
+bound and capacity, 
+the value of each nonarc variable is on or between the nonarc's
+lower and upper bounds, and the
+side constraints are satisfied.
+Note that, since many linear programs have large embedded networks,
+PROC NETFLOW is an attractive alternative to the LP procedure in many
+cases.
+<P>In order for arcs to be specified in side constraints, they must be named.
+By default, PROC NETFLOW names arcs using the names of the
+nodes at the head and tail of the arc.
+An arc is named with its tail node name
+followed by an &#34;_&#34; followed by the name of its head node name.
+For example, an arc from node <EM>from</EM> to node <EM>to</EM>
+is called <EM>from_to</EM>.
+<P><H3><I>Proportional Constraints</I></H3>
+<A NAME="idxnet0011">&#13;</A><A NAME="idxnet0012">&#13;</A>Side constraints in network models fall into several
+categories that have special structure.
+They are frequently used when the
+flow through an arc must be
+proportional to the flow through another arc.
+Such constraints are called <EM>proportional constraints</EM>
+and are useful in models where
+production is subject to refining or modification into
+different materials.
+The amount of each output, or any waste, evaporation, or reduction
+can be specified as a proportion of input.
+<P>Typically the arcs near the supply nodes carry 
+raw materials and the arcs 
+near the demand nodes carry refined products.
+For example, in a model of the milling industry,
+the flow through some arcs may represent quantities of wheat.
+After the wheat is processed, the flow through other arcs might
+be flour. For others it might be bran.
+The side constraints model the relationship between
+the amount of flour or bran
+produced as a proportion of the amount of wheat milled.
+Some of the wheat can end up as neither flour, bran, nor any useful
+product, so this waste is drained away via arcs to a waste node.
+<P><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/netps2.gif" ALT="netps2.gif (1328 bytes)" HEIGHT="172" WIDTH="406">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 4.2:</B> Proportional Constraints</SPAN><P>
+<P>Consider the network fragment in <A HREF="#netfpc">Figure 4.2</A>.
+The arc <SPAN CLASS="ssfeleven">Wheat_Mill</SPAN> conveys the wheat milled.
+The cost of flow on this arc is the milling cost.
+The capacity of this arc is the capacity of the mill. 
+The lower flow bound on this arc is the minimum quantity that
+must be milled for the mill to operate economically.
+The constraints
+<DIV ALIGN="CENTER">
+0.3 <SPAN CLASS="ssfeleven">Wheat_Mill</SPAN> - <SPAN CLASS="ssfeleven">Mill_Flour</SPAN> = 0.0
+<BR>0.2 <SPAN CLASS="ssfeleven">Wheat_Mill</SPAN> - <SPAN CLASS="ssfeleven">Mill_Bran</SPAN>  = 0.0
+</DIV>force every unit of wheat that is milled to produce 
+0.3 units of flour and 0.2 units of bran.
+Note that it is not necessary to specify the constraint
+<DIV ALIGN="CENTER">
+0.5 <SPAN CLASS="ssfeleven">Wheat_Mill</SPAN> - <SPAN CLASS="ssfeleven">Mill_Other</SPAN> = 0.0
+</DIV>since flow conservation implies that any flow that does not
+traverse through <SPAN CLASS="ssfeleven">Mill_Flour</SPAN> or <SPAN CLASS="ssfeleven">Mill_Bran</SPAN> must be conveyed through
+<SPAN CLASS="ssfeleven">Mill_Other</SPAN>. 
+<A NAME="idxnet0013">&#13;</A><A NAME="idxnet0014">&#13;</A>And, computationally, it is better 
+if this constraint is not specified, since
+there is one less side constraint and fewer problems with
+numerical precision.
+Notice that the sum of the proportions must equal 1.0 exactly;
+otherwise, flow conservation is violated.
+<P><H3><I>Blending Constraints</I></H3>
+<A NAME="idxnet0015">&#13;</A><A NAME="idxnet0016">&#13;</A>Blending or quality constraints can also 
+influence the recipes or proportions 
+of ingredients that are mixed.
+For example, different raw materials can have different properties.
+In an application of the oil industry, the amount of products
+that are obtained could be different for each type of crude oil.
+Furthermore, fuel might have a minimum octane requirement or limited
+sulphur or lead content, so that a blending
+of crudes is needed to produce the product.
+<P>The network fragment in <A HREF="#netfbl">Figure 4.3</A> shows an example of this.
+<P><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/netps3.gif" ALT="netps3.gif (1580 bytes)" HEIGHT="167" WIDTH="361">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 4.3:</B> Blending Constraints</SPAN><P>
+<P>The arcs <SPAN CLASS="ssfeleven">MidEast_Port</SPAN> and <SPAN CLASS="ssfeleven">USA_Port</SPAN> convey crude oil
+from the two sources.
+The arc <SPAN CLASS="ssfeleven">Port_Refinery</SPAN> represents refining while the arcs
+<SPAN CLASS="ssfeleven">Refinery_Gasolene</SPAN> and <SPAN CLASS="ssfeleven">Refinery_Diesel</SPAN> carry the
+gas and diesel produced.
+The proportional constraints
+<DIV ALIGN="CENTER">
+0.4 <SPAN CLASS="ssfeleven">Port_Refinery</SPAN> - <SPAN CLASS="ssfeleven">Refinery_Gasolene</SPAN> = 0.0
+<BR>0.2 <SPAN CLASS="ssfeleven">Port_Refinery</SPAN> - <SPAN CLASS="ssfeleven">Refinery_Diesel</SPAN>   = 0.0
+</DIV>capture the restrictions for producing gasolene and
+diesel from crude.
+Suppose that, if only crude from the Middle East is used,
+the resulting diesel would contain 5 units of sulphur per litre.  
+If only crude from the USA is used,
+the resulting diesel would contain
+4 units of sulphur per litre.
+Diesel can have at most 4.75 units of sulphur per litre.
+Some crude from the USA must be used if Middle East crude is used
+in order to meet the 4.75 sulphur per litre limit.
+The side constraint to model this requirement is
+<DIV ALIGN="CENTER">
+5 <SPAN CLASS="ssfeleven">MidEast_Port</SPAN> + 4 <SPAN CLASS="ssfeleven">USA_Port</SPAN> - 4.75 <SPAN CLASS="ssfeleven">Port_Refinery</SPAN> <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq1.gif"
+ ALT="\le"> 0.0
+</DIV>Since <SPAN CLASS="ssfeleven">Port_Refinery</SPAN> = <SPAN CLASS="ssfeleven">MidEast_Port</SPAN> + <SPAN CLASS="ssfeleven">USA_Port</SPAN>, flow conservation
+<A NAME="idxnet0017">&#13;</A><A NAME="idxnet0018">&#13;</A>allows this constraint to be simplified to 
+<DIV ALIGN="CENTER">
+1 <SPAN CLASS="ssfeleven">MidEast_Port</SPAN> - 3 <SPAN CLASS="ssfeleven">USA_Port</SPAN> <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq1.gif"
+ ALT="\le"> 0.0
+</DIV>If, for example, 
+120 units of crude from the Middle East is used, then at least 40
+units of crude from the USA must be used.
+The preceding constraint is simplified because you assume that the sulphur
+concentration of diesel is proportional to the sulphur
+concentration of the crude mix.
+If this is not the case, the relation
+<DIV ALIGN="CENTER">
+0.2 <SPAN CLASS="ssfeleven">Port_Refinery</SPAN> = <SPAN CLASS="ssfeleven">Refinery_Diesel</SPAN>
+</DIV>is used to obtain
+<DIV ALIGN="CENTER">
+5 <SPAN CLASS="ssfeleven">MidEast_Port</SPAN> + 4 <SPAN CLASS="ssfeleven">USA_Port</SPAN> - 4.75 ( 1.0/0.2 <SPAN CLASS="ssfeleven">Refinery_Diesel</SPAN> ) <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq1.gif"
+ ALT="\le"> 0.0
+</DIV>which equals 
+<DIV ALIGN="CENTER">
+5 <SPAN CLASS="ssfeleven">MidEast_Port</SPAN> + 4 <SPAN CLASS="ssfeleven">USA_Port</SPAN> - 23.75 <SPAN CLASS="ssfeleven">Refinery_Diesel</SPAN> <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq1.gif"
+ ALT="\le"> 0.0
+</DIV>
+<P>An example similar to this Oil Industry problem is solved in
+the <A HREF="sect11.htm#netflowintroexamp">&#34;Introductory Example&#34;</A> section.
+<H3><I>Multicommodity Problems</I></H3>
+<A NAME="idxnet0019">&#13;</A><A NAME="idxnet0020">&#13;</A>Side constraints are also used in models in which there are
+capacities on transportation or some other shared resource,
+or there are limits on overall production or demand in multicommodity,
+multidivisional or multiperiod problems.
+Each commodity, division or period
+can have a separate network coupled to one main
+system by the side constraints.
+Side constraints are used to combine the outputs of subdivisions
+of a problem (either commodities, outputs in distinct time periods,
+or different process streams) to meet overall demands or to limit
+overall production or expenditures.
+This method is more desirable than doing separate
+<EM>local</EM> optimizations
+for individual commodity, process, or time networks and then
+trying to establish relationships between each when determining an
+overall policy if the <EM>global</EM> constraint
+is not satisfied.  Of course,
+to make models more realistic, side constraints may be necessary in
+the local problems.
+<P><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/netps4.gif" ALT="netps4.gif (1586 bytes)" HEIGHT="235" WIDTH="275">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 4.4:</B> Multicommodity Problem</SPAN><P>
+<P><A HREF="#netfmc">Figure 4.4</A> shows two network fragments. They represent 
+identical production and distribution sites but of
+two different commodities.
+Suffix <EM>com1</EM> represents commodity 1 and suffix <EM>com2</EM>
+represents commodity 2.
+The nodes Factorycom1 and Factorycom2 model the same factory, and
+nodes City1com1 and City1com2 model the same location, city1.
+Similarly, City2com1 and City2com2 are the same location, city2.
+Suppose that commodity 1 occupies 2 cubic meters, commodity 2 
+occupies 3 cubic meters,
+the truck dispatched to city1 has a capacity of 200 cubic meters, and
+the truck dispatched to city2 has a capacity of 250 cubic meters.
+How much of each commodity can be loaded onto each truck?
+The side constraints for this case are
+<DIV ALIGN="CENTER">
+2 <SPAN CLASS="ssfeleven">Factorycom1_City1com1</SPAN> + 3 <SPAN CLASS="ssfeleven">Factorycom2_City1com2</SPAN> <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq1.gif"
+ ALT="\le"> 200
+<BR>2 <SPAN CLASS="ssfeleven">Factorycom1_City2com1</SPAN> + 3 <SPAN CLASS="ssfeleven">Factorycom2_City2com2</SPAN> <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/neteq1.gif"
+ ALT="\le"> 250
+</DIV>
+<P><H3><I>Large Modeling Strategy</I></H3>
+In many cases, the flow through an arc might actually represent
+the flow or movement of a commodity from place to place or from
+time period to time period.
+However, sometimes an arc is included in the network as a 
+method of capturing some aspect of the problem that you would
+not normally think of as part of a network model.
+For example, in a multiprocess multiproduct model (<A HREF="#netfmp">Figure 4.5</A>),
+there might
+be subnetworks for each process and each product.
+The subnetworks can be joined together by a set of arcs that
+have flows that represent the amount of product <SPAN CLASS="mathfont"><I>j</I></SPAN> produced by
+process <SPAN CLASS="mathfont"><I>i</I></SPAN>.
+To model an upper limit constraint on the total amount of product <SPAN CLASS="mathfont"><I>j</I></SPAN> that
+can be produced, direct all arcs carrying product <SPAN CLASS="mathfont"><I>j</I></SPAN> to a 
+single node and from there through a single arc.
+The capacity of this arc is the upper limit of product <SPAN CLASS="mathfont"><I>j</I></SPAN> production.
+It is preferable to model this structure in the network rather 
+than to include it in the side constraints because
+the efficiency of the optimizer is affected less by a 
+reasonable increase in the size of the network.
+<P><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/netps5.gif" ALT="netps5.gif (2918 bytes)" HEIGHT="215" WIDTH="406">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 4.5:</B> Multiprocess, Multiproduct Example</SPAN><P>
+<P>It is often a good strategy when starting a project to 
+use a small network formulation and
+then to use that model as a framework upon which
+to add detail.
+For example, in the multiprocess multiproduct model,
+you might start with the network 
+depicted in <A HREF="#netfmp">Figure 4.5</A>.
+Then, for example, the process subnetwork 
+can be enhanced to include the distribution of products. 
+Other phases of the operation could be included 
+by adding more subnetworks.
+Initially, these subnetworks can be single nodes, but
+in subsequent studies they can be expanded to include
+greater detail.
+<P>The NETFLOW procedure accepts the
+side constraints in the same <A HREF="sect42.htm#netflowdenseformat">dense</A> and 
+<A HREF="sect42.htm#netflowsparseformat">sparse</A> formats that the LP
+<A NAME="idxnet0021">&#13;</A><A NAME="idxnet0022">&#13;</A><A NAME="idxnet0023">&#13;</A><A NAME="idxnet0024">&#13;</A>procedure provides.
+Although PROC LP can solve
+network problems, the
+NETFLOW procedure generally solves network flow problems more
+efficiently than PROC LP.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

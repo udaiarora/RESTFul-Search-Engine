@@ -1,0 +1,151 @@
+<HTML>
+<HEAD>
+<TITLE>Percent Change Calculations</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Working with Time Series Data</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Percent Change Calculations  </H2>
+<P><A NAME="idxtsd0459">&#13;</A><A NAME="idxtsd0458">&#13;</A>There are several common ways to compute the percent change in a time series.
+This section illustrates the use of LAG and DIF functions by showing
+SAS statements for various kinds of percent change calculations.
+<P><H3><I>Computing Period-to-Period Change</I></H3>
+<A NAME="idxtsd0461">&#13;</A><A NAME="idxtsd0460">&#13;</A><A NAME="idxtsd0463">&#13;</A><A NAME="idxtsd0462">&#13;</A><A NAME="idxtsd0465">&#13;</A><A NAME="idxtsd0464">&#13;</A><A NAME="idxtsd0467">&#13;</A><A NAME="idxtsd0466">&#13;</A><A NAME="idxtsd0469">&#13;</A><A NAME="idxtsd0468">&#13;</A><A NAME="idxtsd0471">&#13;</A><A NAME="idxtsd0470">&#13;</A><A NAME="idxtsd0473">&#13;</A><A NAME="idxtsd0472">&#13;</A><A NAME="idxtsd0475">&#13;</A><A NAME="idxtsd0474">&#13;</A>To compute percent change from the previous period,
+divide the difference of the series by the lagged value of the
+series and multiply by 100.
+<P><PRE>
+   data uscpi;
+      set uscpi;
+      pctchng = dif( cpi ) / lag( cpi ) * 100;
+      label pctchng = &#34;Monthly Percent Change, At Monthly Rates&#34;;
+   run;
+</PRE>
+<P>Often, changes from the previous period are expressed at annual rates.
+This is done by exponentiation of the current-to-previous period ratio
+to the number of periods in a year
+and expressing the result as a percent change.
+For example, the following statements compute the month-over-month
+change in CPI as a percent change at annual rates:
+<A NAME="idxtsd0477">&#13;</A><A NAME="idxtsd0476">&#13;</A><PRE>
+   data uscpi;
+      set uscpi;
+      pctchng = ( ( cpi / lag( cpi ) ) ** 12 - 1 ) * 100;
+      label pctchng = &#34;Monthly Percent Change, At Annual Rates&#34;;
+   run;
+</PRE>
+<P><H3><I>Computing Year-over-Year Change</I></H3>
+<A NAME="idxtsd0479">&#13;</A><A NAME="idxtsd0478">&#13;</A><A NAME="idxtsd0481">&#13;</A><A NAME="idxtsd0480">&#13;</A><A NAME="idxtsd0483">&#13;</A><A NAME="idxtsd0482">&#13;</A><A NAME="idxtsd0485">&#13;</A><A NAME="idxtsd0484">&#13;</A><A NAME="idxtsd0487">&#13;</A><A NAME="idxtsd0486">&#13;</A><A NAME="idxtsd0489">&#13;</A><A NAME="idxtsd0488">&#13;</A><A NAME="idxtsd0491">&#13;</A><A NAME="idxtsd0490">&#13;</A><A NAME="idxtsd0493">&#13;</A><A NAME="idxtsd0492">&#13;</A>To compute percent change from the same period in the previous year,
+use LAG and DIF functions with a lagging period equal to the number
+of periods in a year.
+(For quarterly data, use LAG4 and DIF4. For monthly data, use LAG12 and DIF12.)
+<P>For example, the following statements compute monthly
+percent change in CPI from the same month one year ago:
+<P><PRE>
+   data uscpi;
+      set uscpi;
+      pctchng = dif12( cpi ) / lag12( cpi ) * 100;
+      label pctchng = &#34;Percent Change from One Year Ago&#34;;
+   run;
+</PRE>
+<P>To compute year-over-year percent change measured
+at a given period within the year,
+subset the series of percent changes from the same period in the previous year
+to form a yearly data set.
+Use an IF or WHERE statement to select observations for the
+period within each year on which the year-over-year changes are based.
+<P>For example, the following statements compute year-over-year percent change
+in CPI from December of the previous year to December of the current year:
+<P><PRE>
+   data annual;
+      set uscpi;
+      pctchng = dif12( cpi ) / lag12( cpi ) * 100;
+      label pctchng = &#34;Percent Change: December to December&#34;;
+      if month( date ) = 12;
+      format date year4.;
+   run;
+</PRE>
+<P><H3><I>Computing Percent Change in Yearly Averages</I></H3>
+<A NAME="idxtsd0495">&#13;</A><A NAME="idxtsd0494">&#13;</A><A NAME="idxtsd0497">&#13;</A><A NAME="idxtsd0496">&#13;</A><A NAME="idxtsd0499">&#13;</A><A NAME="idxtsd0498">&#13;</A><A NAME="idxtsd0501">&#13;</A><A NAME="idxtsd0500">&#13;</A><A NAME="idxtsd0503">&#13;</A><A NAME="idxtsd0502">&#13;</A><A NAME="idxtsd0505">&#13;</A><A NAME="idxtsd0504">&#13;</A><A NAME="idxtsd0507">&#13;</A><A NAME="idxtsd0506">&#13;</A><A NAME="idxtsd0509">&#13;</A><A NAME="idxtsd0508">&#13;</A>To compute changes in yearly averages,
+first aggregate the series to an annual series using the EXPAND procedure,
+and then compute the percent change of the annual series.
+(See <A HREF="../chap11/index.htm">Chapter 11, &#34;The EXPAND Procedure,&#34;</A> for more information on PROC EXPAND.)
+<P>For example, the following statements compute percent changes
+in the annual averages of CPI:
+<P><PRE>
+   proc expand data=uscpi out=annual from=month to=year;
+      convert cpi / observed=average method=aggregate;
+   run;
+   
+   data annual;
+      set annual;
+      pctchng = dif( cpi ) / lag( cpi ) * 100;
+      label pctchng = &#34;Percent Change in Yearly Averages&#34;;
+   run;
+</PRE>
+<P><A NAME="idxtsd0511">&#13;</A><A NAME="idxtsd0510">&#13;</A><A NAME="idxtsd0513">&#13;</A><A NAME="idxtsd0512">&#13;</A><A NAME="idxtsd0515">&#13;</A><A NAME="idxtsd0514">&#13;</A><A NAME="idxtsd0517">&#13;</A><A NAME="idxtsd0516">&#13;</A><A NAME="idxtsd0519">&#13;</A><A NAME="idxtsd0518">&#13;</A><A NAME="idxtsd0521">&#13;</A><A NAME="idxtsd0520">&#13;</A><A NAME="idxtsd0523">&#13;</A><A NAME="idxtsd0522">&#13;</A><A NAME="idxtsd0525">&#13;</A><A NAME="idxtsd0524">&#13;</A>It is also possible to compute percent change in the average over
+the most recent yearly span.
+For example, the following statements compute monthly percent change
+in the average of CPI over the most recent 12 months
+from the average over the previous 12 months:
+<P><PRE>
+   data uscpi;
+      retain sum12 0;
+      drop sum12 ave12 cpilag12;
+      set uscpi;
+      sum12 = sum12 + cpi;
+      cpilag12 = lag12( cpi );
+      if cpilag12 ^= . then sum12 = sum12 - cpilag12;
+      if lag11( cpi ) ^= . then ave12 = sum12 / 12;
+      pctchng = dif12( ave12 ) / lag12( ave12 ) * 100;
+      label pctchng = &#34;Percent Change in 12 Month Moving Ave.&#34;;
+   run;
+</PRE>
+<P>This example is a complex use of LAG and DIF functions that requires
+care in handling the initialization of the moving-window averaging process.
+The LAG12 of CPI is checked for missing values to determine when more than 12 values
+have been accumulated, and older values must be removed from the moving sum.
+The LAG11 of CPI is checked for missing values to determine when at least 12 values have
+been accumulated; AVE12 will be missing when LAG11 of CPI is missing.
+The DROP statement prevents temporary variables from being added to the data set.
+<P><A NAME="idxtsd0527">&#13;</A><A NAME="idxtsd0526">&#13;</A><A NAME="idxtsd0529">&#13;</A><A NAME="idxtsd0528">&#13;</A><A NAME="idxtsd0531">&#13;</A><A NAME="idxtsd0530">&#13;</A><A NAME="idxtsd0533">&#13;</A><A NAME="idxtsd0532">&#13;</A><A NAME="idxtsd0535">&#13;</A><A NAME="idxtsd0534">&#13;</A><A NAME="idxtsd0537">&#13;</A><A NAME="idxtsd0536">&#13;</A><A NAME="idxtsd0539">&#13;</A><A NAME="idxtsd0538">&#13;</A><A NAME="idxtsd0541">&#13;</A><A NAME="idxtsd0540">&#13;</A>Note that the DIF and LAG functions must execute for every observation or
+the queues of remembered values will not operate correctly.
+The CPILAG12 calculation must be separate from the IF statement.
+The PCTCHNG calculation must not be conditional on the IF statement.
+<P>The EXPAND procedure provides an alternative way to compute moving averages.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect47.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

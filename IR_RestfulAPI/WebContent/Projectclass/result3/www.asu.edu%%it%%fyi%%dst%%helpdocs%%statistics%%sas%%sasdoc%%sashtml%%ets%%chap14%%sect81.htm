@@ -1,0 +1,229 @@
+<HTML>
+<HEAD>
+<TITLE>Example 14.10: Systems of Differential Equations</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="modsdifeq">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect80.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect82.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Example 14.10: Systems of Differential Equations</H2>
+<P>The following is a simplified reaction scheme for the competitive inhibitors
+with recombinant human renin (Morelock et al. 1995).
+<P>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/modsim.gif" ALT="modsim.gif (1750 bytes)" HEIGHT="259" WIDTH="338">
+</TD></TR></TABLE></CENTER><P><A NAME="modsimp">&#13;</A><SPAN CLASS="ssften"><B>Figure 14.82:</B> Competitive Inhibition of Recombinant Human Renin</SPAN><P>
+<P>In <A HREF="sect81.htm#modsimp">Figure 14.82</A>, <I>E=</I> enzyme, <I>D=</I> probe, and <I>I=</I> inhibitor.
+<P>The differential equations describing this reaction scheme are
+
+<DL CLASS="equation"><DD><IMG WIDTH="214" HEIGHT="93"
+ SRC="images/modeq293.gif"
+ ALT="\frac{d{D}}{dt} = k1r{\ast}{ED} - k1f {\ast}E{\ast}D "></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="226" HEIGHT="93"
+ SRC="images/modeq294.gif"
+ ALT="\frac{d{ED}}{dt} = k1f{\ast} E{\ast}D - k1r{\ast}{ED} "></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="389" HEIGHT="93"
+ SRC="images/modeq295.gif"
+ ALT="\frac{d{E}}{dt} = k1r{\ast} {ED} - k1f{\ast} E {\ast} D + k2r {\ast} {EI} - k2f {\ast} E {\ast}I "></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="209" HEIGHT="93"
+ SRC="images/modeq296.gif"
+ ALT="\frac{d{EI}}{dt} = k2f{\ast} E {\ast}I - k2r {\ast} {EI} "></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="197" HEIGHT="93"
+ SRC="images/modeq297.gif"
+ ALT="\frac{d{I}}{dt} = k2r{\ast} {EI} - k2f {\ast} E {\ast} I "></DL>
+<P>For this system, the initial values for the concentrations are
+derived from equilibrium considerations (as a function of parameters)
+or are provided as known values.
+<P>The experiment used to collect the data was carried out in two
+ways; pre-incubation (type='disassoc') and no pre-incubation (type='assoc'). 
+The data also contain repeated measurements. The data contain
+values for fluorescence F, which is a function of concentration.
+Since there are no direct data for the concentrations, all the differential
+equations are simulated dynamically.
+<P>The SAS statements used to fit this model are
+<PRE>
+      proc model data=fit;
+   
+         parameters qf  = 2.1e8
+                    qb  = 4.0e9
+                    k2f = 1.8e5
+                    k2r = 2.1e-3
+                    l   = 0;
+   
+                    k1f = 6.85e6;
+                    k1r = 3.43e-4;
+   
+            /* Initial values for concentrations */
+         control dt 5.0e-7
+                 et 5.0e-8
+                 it 8.05e-6;
+   
+            /* Association initial values --------------*/
+         if type = 'assoc' and time=0 then 
+            do;
+               ed = 0;
+                  /* solve quadratic equation ----------*/
+               a = 1;
+               b = -(&#38;it+&#38;et+(k2r/k2f));
+               c = &#38;it*&#38;et;
+               ei = (-b-(((b**2)-(4*a*c))**.5))/(2*a);
+               d = &#38;dt-ed;
+               i = &#38;it-ei;
+               e = &#38;et-ed-ei;
+            end;
+   
+            /* Disassociation initial values ----------*/
+         if type = 'disassoc' and time=0 then 
+            do;
+               ei = 0;
+               a = 1;
+               b = -(&#38;dt+&#38;et+(&#38;k1r/&#38;k1f));
+               c = &#38;dt*&#38;et;
+               ed = (-b-(((b**2)-(4*a*c))**.5))/(2*a);
+               d = &#38;dt-ed;
+               i = &#38;it-ei;
+               e = &#38;et-ed-ei;
+            end;
+   
+         if time ne 0 then 
+            do;
+               dert.d = k1r* ed  - k1f *e *d;
+      
+               dert.ed = k1f* e *d - k1r*ed;
+   
+               dert.e = k1r* ed - k1f* e * d  + k2r * ei - k2f * e *i;
+   
+               dert.ei = k2f* e *i - k2r * ei;
+   
+               dert.i = k2r * ei - k2f* e *i;
+   
+            end;
+   
+            /* L - offset between curves  */
+         if type = 'disassoc' then
+                 F = (qf*(d-ed)) + (qb*ed) -L; 
+         else
+                 F = (qf*(d-ed)) + (qb*ed);
+   
+         Fit F / method=marquardt;
+      run;
+</PRE>
+<P>This estimation requires the repeated simulation of a system
+of 42 differential equations (5 base differential equations and
+36 differential equations to compute the partials with respect to
+the parameters).
+<P>The results of the estimation are shown in <A HREF="sect81.htm#modkin2">Output 14.10.1</A>.
+<P></P><A NAME="modkin2"><SPAN CLASS="ssften"><B>Output 14.10.1:</B> Kinetics Estimation</SPAN></A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=5 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear OLS Parameter Estimates </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameter</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx Std Err</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br> Pr &gt; |t|</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>qf</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2.0413E8</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">681443</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">299.55</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>qb</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">4.2263E9</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">9133179</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">462.74</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>k2f</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">6451229</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">867011</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7.44</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>k2r</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.007808</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00103</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">7.55</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>l</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-5.76981</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.4138</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-13.94</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><BR><A NAME="idxmod0712">&#13;</A><A NAME="idxmod0711">&#13;</A><A NAME="idxmod0714">&#13;</A><A NAME="idxmod0713">&#13;</A><A NAME="idxmod0715">&#13;</A><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect80.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect82.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

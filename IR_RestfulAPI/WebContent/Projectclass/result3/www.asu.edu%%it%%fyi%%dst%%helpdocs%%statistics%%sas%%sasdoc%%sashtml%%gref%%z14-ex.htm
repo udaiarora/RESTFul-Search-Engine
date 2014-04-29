@@ -1,0 +1,205 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The GPROJECT Procedure : Projecting an Annotate Data Set </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zectchap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z13-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0241677.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The GPROJECT Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z14-ex">Example 4: Projecting an Annotate Data Set</A></FONT></H1>
+<HR>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B><B>Procedure features:</B></B></TD>
+<TD bgcolor="#CCCCCC" align="left">
+<TABLE cellpadding="4" cellspacing="0">
+<TR valign="top"><TD>PROC GPROJECT options:
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><A name="z0691344">&#13;
+DATA=</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A name="z0691345">&#13;
+OUT=</A></TD></TR></TABLE></TD></TR>
+<TR valign="top"><TD><A name="z0691346">&#13; ID
+statement</A></TD></TR></TABLE>
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Other features:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">
+<TABLE cellpadding="4" cellspacing="0">
+<TR valign="top"><TD>CHORO statement</TD></TR>
+<TR valign="top"><TD>Annotate data set</TD></TR></TABLE>
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Data set:</B></TD>
+<TD bgcolor="#CCCCCC" align="left"><A href="z0250116.htm#zct-us48">REFLIB.US48</A>
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Sample library member:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">   GR23N04
+</TD></TR>
+</TABLE>
+<HR>
+
+<P><A name="z0691349">&#13;
+
+</A>
+<P>
+<P><IMG border="0" src="./images/01329351.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><A name="z0691350">&#13; This example illustrates how to project an Annotate data set
+for use with a map data set.  It labels the locations of Miami, Boston, and
+Bangor on the map shown in the second example.  Because the X and Y variables
+in the USCITY data set already have been projected to match the US data set,
+they cannot be used with the map that is produced by the second example. 
+To properly label the projected map, the example uses the same projection
+method for the city coordinates as the method that is used for the map coordinates.
+ This example illustrates how to use the same projection method for both data
+sets.  
+
+
+</A>
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250150">&nbsp;</A><A href="z0250150.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>libname reflib 'SAS-data-library';
+libname maps 'SAS-data-library';
+goptions reset=global gunit=pct border cback=white
+         colors=(black blue green red)
+         ftext=swiss htitle=6 htext=3;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250152">&nbsp;</A><A href="z0250152.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>data cities(drop=state rename=(newst=state));
+   set maps.uscity(keep=lat long city state);
+   length function style color $ 8
+          position $ 1 text $ 20;
+   retain function 'label' xsys ysys '2'
+          hsys '1' when 'b' newst 100;
+   if state=12 and city='Miami' or
+      state=25 and city='Boston' or
+      state=23 and city='Bangor';
+   newst+1; color='blue'; size=10; text='T';
+      position='5';
+      style='marker'; x=long*arcos(-1)/180;
+      y=lat*arcos(-1)/180; output;
+   newst+1; color='blue'; size=4;
+      text='     '||city;
+      position='6'; style='swissb'; output;
+run;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250154">&nbsp;</A><A href="z0250154.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>data all;
+   set reflib.us48 cities;
+run;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250156">&nbsp;</A><A href="z0250156.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>proc gproject data=all
+              out=allp
+              project=gnomon
+              polelong=160
+              polelat=45;
+   id state;
+run;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250158">&nbsp;</A><A href="z0250158.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>data citiesp us48p;
+   set allp;
+   if state>100 then output citiesp;
+   else output us48p;
+run;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250160">&nbsp;</A><A href="z0250160.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>title1 'Distribution Center Locations';
+title2 'East Coast';
+footnote j=r 'GR23N04 ';</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250162">&nbsp;</A><A href="z0250162.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>pattern value=mempty repeat=49 color=blue;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0250164">&nbsp;</A><A href="z0250164.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>proc gmap data=us48p map=us48p all;
+   id state;
+   choro state
+         / nolegend
+           annotate=citiesp;
+run;
+quit;</PRE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zectchap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z13-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0241677.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z14-ex">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

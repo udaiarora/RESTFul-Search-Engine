@@ -1,0 +1,253 @@
+<HTML>
+<HEAD>
+<TITLE>Convergence Criteria</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Convergence Criteria  </H2>
+<P><A NAME="idxmod0275">&#13;</A><A NAME="idxmod0274">&#13;</A>There are a number of measures that could be used as convergence or
+stopping criteria. PROC MODEL computes five convergence measures 
+labeled R, S, PPC, RPC, and OBJECT.
+<P><A NAME="idxmod0276">&#13;</A><A NAME="idxmod0277">&#13;</A><A NAME="idxmod0278">&#13;</A><A NAME="idxmod0279">&#13;</A><A NAME="idxmod0280">&#13;</A><A NAME="idxmod0281">&#13;</A>When an estimation technique that iterates estimates of <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}"> is used 
+(that is, IT3SLS),
+two convergence criteria are used. The termination values
+can be specified with the CONVERGE=(<I>p</I>,<I>s</I>) option on the
+FIT statement. If the second value, <I>s</I>, is not specified, it
+defaults to <I>p</I>.
+The criterion labeled S (given in the following)
+controls the convergence of the
+<B>S</B> matrix. When S is less than <I>s</I>, the <B>S</B> matrix
+has converged.
+The criterion labeled R is compared to the <I>p</I> value to test convergence
+of the parameters.
+<P>The R convergence measure cannot be computed accurately in the special
+case of singular residuals (when all the residuals are close to 0) or
+in the case of a 0 objective value. When 
+either the trace of the <B>S</B> matrix
+computed from the current residuals (trace(S)) or the objective value is
+less than the value of the SINGULAR= option, convergence is assumed.
+<P>The various convergence measures are explained in the following:
+<P><DL>
+<DT>R
+<DD>is the primary convergence measure for the parameters. 
+It measures the degree to which the residuals are orthogonal to the 
+Jacobian columns, and it approaches 0 as the gradient of the 
+objective function becomes small.
+R is defined as the square root of
+
+<DL CLASS="equation"><DD><IMG WIDTH="382" HEIGHT="100"
+ SRC="images/modeq115.gif"
+ ALT="\frac{(r'(S^{-1}{\otimes}W)X(X'(S^{-1}
+{\otimes}W)X)^{-1}X'(S^{-1}{\otimes}W)r)}{(r'(S^{-1}{\otimes}W)r)}"></DL>
+where <B>X</B> is the Jacobian matrix and <B>r</B> is the residuals vector. 
+R is similar to the relative offset orthogonality convergence
+criterion proposed by Bates and Watts (1981).
+<BR><BR>In the univariate case, the R measure has several equivalent
+interpretations:
+<UL>
+<LI> the cosine of the angle between the residuals vector and the
+column space of the Jacobian matrix.
+When this cosine is 0, the residuals are orthogonal to the 
+partial derivatives of the predicted values with respect to the
+parameters, and the gradient of the objective function is 0.
+<LI> the square root of the R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> for the current linear 
+pseudo-model in the residuals.
+<LI> a norm of the gradient of the objective function, where the norming
+matrix is proportional to the current estimate of the covariance of the
+parameter estimates. Thus, using R, convergence is judged when the
+gradient becomes small in this norm.
+<LI> the prospective relative change in the objective function value
+expected from the next GAUSS step, assuming that the
+current linearization of the model is a good local approximation.
+</UL>
+In the multivariate case, R is somewhat more complicated but is designed
+to go to 0 as the gradient of the objective becomes small and can
+still be given the previous interpretations for the aggregation of the
+equations weighted by <B>S</B><SPAN CLASS="mathfont"><SUP>-1</SUP></SPAN>.
+<BR><BR><DT>PPC
+<DD>is the prospective parameter change measure.
+PPC measures the maximum relative change in the parameters implied by
+the parameter-change vector computed for the next iteration.
+At the <I>k</I>th iteration, PPC is the maximum over the parameters
+
+<DL CLASS="equation"><DD><IMG WIDTH="101" HEIGHT="104"
+ SRC="images/modeq116.gif"
+ ALT="\frac{|{\theta}^{k+1}_{i}- {\theta}^k_{i}|}{|{\theta}|^k_{i}+1.0e^{-6}}"></DL>
+where <IMG WIDTH="21" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq117.gif"
+ ALT="{ {\theta}^k_{i}}"> is the current value of the <I>i</I>th parameter and
+<IMG WIDTH="39" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq118.gif"
+ ALT="{ {\theta}^{k+1}_{i} }"> is the prospective value of this parameter after
+adding the change vector computed for the next iteration. 
+The parameter with the maximum prospective
+relative change is printed with the value of PPC, unless the PPC is 
+nearly 0.
+<BR><BR><DT>RPC
+<DD>is the retrospective parameter change measure. 
+RPC measures the maximum relative change in the parameters from the previous
+iteration. At the <I>k</I>th iteration, RPC is the maximum over <I>i</I> of
+
+<DL CLASS="equation"><DD><IMG WIDTH="119" HEIGHT="105"
+ SRC="images/modeq119.gif"
+ ALT="\frac{|{\theta}^k_{i}- {\theta}^{k-1}_{i}|}{|{\theta}^{k-1}_{i}+1.0e^{-6}|}"></DL>
+where <IMG WIDTH="21" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq117.gif"
+ ALT="{ {\theta}^k_{i}}"> is the current value of the <I>i</I>th parameter and
+<I><IMG WIDTH="39" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq120.gif"
+ ALT="{\theta}^{k-1}_{i}"></I>  is the previous value of this parameter. 
+The name of the parameter with the maximum retrospective 
+relative change is printed with the value of RPC, unless the RPC is nearly 
+0.
+<BR><BR><DT>OBJECT
+<DD>measures the relative change in the objective
+function value between iterations:
+
+<DL CLASS="equation"><DD><IMG WIDTH="124" HEIGHT="101"
+ SRC="images/modeq121.gif"
+ ALT="\frac{|(O^k-O^{k-1}|}{| O^{k-1}+1.0e^{-6}|}"></DL>
+where <I>O<SPAN CLASS="mathfont"><SUP><I>k</I>-1</SUP></SPAN></I> is the value of the objective function (<I>O<SPAN CLASS="mathfont"><SUP><I>k</I></SUP></SPAN></I>)
+from the previous iteration.
+<BR><BR><DT>S
+<DD>measures the relative change in the <B>S</B> matrix.  
+S is computed as the maximum over <I>i, j</I> of
+
+<DL CLASS="equation"><DD><IMG WIDTH="122" HEIGHT="111"
+ SRC="images/modeq122.gif"
+ ALT="\frac{| S^k_{ij}- S^{k-1}_{ij}|}{| S^{k-1}_{ij}+1.0e^{-6}|}"></DL>
+where <SPAN CLASS="mathfont"> <I>S</I><SUP><I>k</I>-1 </SUP></SPAN> is the previous <B>S</B> matrix. 
+The S measure is relevant only for estimation methods that iterate the <B>S</B> matrix.
+</DL>
+<P>An example of the convergence criteria output is as follows:
+<P><A NAME="idxmod0283">&#13;</A><A NAME="idxmod0282">&#13;</A><P><A NAME="modmino">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>IT3SLS Estimation Summary</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Minimization Summary</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Parameters Estimated</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">5</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Method</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">Gauss</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Iterations</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">35</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<A NAME="IDX1"></A>
+<CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=2 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Final Convergence Criteria</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>R</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000883</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>PPC(d1)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000644</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>RPC(d1)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000815</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Object</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.00004</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Trace(S)</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">3599.982</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Objective Value</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.435683</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>S</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.000052</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.16:</B> Convergence Criteria Output</SPAN><P>
+<P>This output indicates
+the total number of iterations required by the Gauss minimization
+for all the <B>S</B> matrices was 35.
+The &#34;Trace(S)&#34; is the trace (the sum of the diagonal elements) of
+the <B>S</B> matrix computed from the current residuals.
+This row is labeled MSE if there is only one equation.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

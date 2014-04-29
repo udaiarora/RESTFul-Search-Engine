@@ -1,0 +1,1308 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>GET_DATA Data Vector Class : Using the GET_DATA Data Vector Class </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z8slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0233152.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z17hods.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0225666">Using the GET_DATA Data Vector Class</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z16hods">Calling Methods of the GET_DATA Data Vector Class</A></FONT></B></TD></TR></TABLE>
+
+<P><DL>
+<DT><B><FONT color="FF00007">CAUTION:</FONT></B></DT><DD><B>Follow these Instructions Carefully</B>
+To use the GET_DATA Data
+Vector class correctly, you must follow the
+instructions in this section.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"></DD></DL>
+<P>The GET_DATA Data Vector class contains information about one or more
+columns. The GET_DATA Data Vector class contains such information because
+the viewer can request or set information about as many columns as it likes
+with one call to the model's _getData or _setData method.  The GET_DATA Data
+Vector class, however, contains information about only one row because the
+model's _getData and _setData methods only operate with one row at a time.
+<P>The caller of the model's _getData or _setData method is responsible
+for creating the instance of the GET_DATA Data Vector class passed as an argument
+to these methods.  Therefore, if you override the model's _getData or _setData
+method, you need not create your own instance of the GET_DATA Data Vector
+class; one will be passed to you. If, however, you call the _getData or _setData
+method of the model directly or if your own viewer class calls _getData or
+_setData on the model, you are responsible for creating your own instance
+of the GET_DATA Data Vector class.
+<P>If you make your own instance of a GET_DATA Data Vector class, you must
+set up the GET_DATA data vector with information about 
+<P>
+<UL>
+
+<LI>how many columns exist<P>
+
+<LI>to which column the GET_DATA Data Vector method calls
+refer.<P>
+</UL>
+
+<P>After making an instance of the GET_DATA Data Vector class, you should
+first call the _setNumberOfColumns method to tell the GET_DATA data vector
+how many columns exist. Then call _setRow to tell the GET_DATA data vector
+which row the instance refers to.
+<P>Next, for each column in the instance, you should call the _setIndex
+method, followed by the _setColumn method, to tell the GET_DATA data vector
+the information about which column you are requesting information for in each
+of the columns declared with the _setNumberOfColumns method.
+<P>Then you should call the _setIndex method to declare which column further
+method calls will refer to.  If at a later point you want to change which
+column method calls refer to, call the _setIndex method again with the new
+column number. All methods of the GET_DATA Data Vector class other than the
+_setNumberOfColumns and _setIndex method apply to the current column, that
+is, the column set by the last _setIndex method call. 
+<P>Calling the _setColumn method on each column index is necessary because
+the columns in the GET_DATA data vector may be noncontiguous. For example,
+if you are using a table editor, it may call _getData on the model with an
+instance of the GET_DATA Data Vector class requesting information about two
+columns.  But the first column the table editor wants information about may
+be column number 6, and the second column it wants information about may be
+column number 3. The current column set by the _setColumn method reflects
+the display order that the table editor is using, which is 6 followed by 3
+in this case.
+<BR><H3>Example: Calling GET_DATA Data Vector Methods</H3>
+
+
+<P>  The following example is a code fragment from a situation in which
+a developer has created a viewer. In this code fragment, a GET_DATA data vector
+is created and set up with initial values. After that, the GET_DATA data vector
+can be sent to a model on a _setData call.
+<P>If this code fragment were used as part of an application, any objects
+that were instantiated during execution would need to be terminated when those
+objects were no longer needed. Likewise, any lists that were created during
+execution would need to be deleted when those lists were no longer needed.
+ 
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270242">&nbsp;</A><A href="z0270242.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+gddvecid = instance(loadclass('sashelp.fsp.
+                               gddvec'));</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270285">&nbsp;</A><A href="z0270285.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+call send(gddvecid, '_setNumberOfColumns',
+          2);</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270297">&nbsp;</A><A href="z0270297.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+rowlst = makelist();
+rc = insertn(rowlst, 6, -1);
+call send(gddvecid, '_setRow', rowlst);</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270332">&nbsp;</A><A href="z0270332.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+call send(gddvecid, '_setIndex', 1);
+collst1 = makelist();
+rc = insertn(collst1, 4, -1);
+call send(gddvecid, '_setColumn', collst1);
+call send(gddvecid, '_setColor', 'green');</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270333">&nbsp;</A><A href="z0270333.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+call send(gddvecid, '_setIndex', 2);
+collst2 = makelist();
+rc = insertn(collst2, 5, -1);
+call send(gddvecid, '_setColumn', collst2);
+call send(gddvecid, '_setHjust', 'center');</PRE></TD></TR></TABLE>
+<P>Some of the GET_DATA Data Vector methods set or return values that are
+only applicable for either the form editor or the table editor. By default,
+it is assumed that the instance of the GET_DATA Data Vector class you create
+can be used by either a form editor or a table editor, and you are free to
+call any methods of the GET_DATA Data Vector class.
+<P>However, if you know when you make a GET_DATA data vector that it will
+only be used for either a form editor or a table editor, then the GET_DATA
+Data Vector class can do error checking for you by program halting when you
+call a method that is not supported by the viewer you are using. For more
+information, see _init in this class.
+<BR><H3>Where Methods Can Be Used</H3>
+
+
+<P>  The following table shows which methods of the GET_DATA Data Vector
+class can be used with the Form Editor class and which can be used with the
+Table Editor class. 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zid-6007">Where Methods Can Be Used</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B> Method Name </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Used in Form Editor? </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Used in Table Editor? </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getBackgroundColor   </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getBackgroundPattern </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getBorderColor       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getBorderStyle       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getBorderWidth       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getClassName         </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getClassProperties   </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getColor              </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getColumn             </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getFont               </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getFormatLength      </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getHjust              </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getInherit            </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getInternalERROR      </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getLightSource       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getMargin             </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getMeasuring          </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getNumberOfColumns  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getPrinting           </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getProtect            </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getReverse            </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getRow                </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getText               </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getType               </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getUnformattedText   </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getUnformattedValue  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getUserERROR          </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getVjust              </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_getWrapping           </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setBackgroundColor   </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setBackgroundPattern </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setBorderColor       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setBorderStyle       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setBorderWidth       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setClassName         </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setClassProperties   </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setColor              </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setColumn             </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setFont               </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setFormatLength      </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setHjust              </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setIndex              </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setInherit            </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setInternalERROR      </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setLightSource       </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setMargin             </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setMeasuring          </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setNumberOfColumns  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setPrinting           </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setProtect            </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setReverse            </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setRow                </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setText               </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setUnformattedText   </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setUnformattedValue  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setUserERROR          </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes </TD>
+  
+<TD  align="LEFT" valign="TOP">No</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setVjust              </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">_setWrapping           </TD>
+  
+<TD  align="LEFT" valign="TOP">No  </TD>
+  
+<TD  align="LEFT" valign="TOP">Yes</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the GET_DATA Data Vector Class with a Form Editor</FONT></B></TD></TR></TABLE>
+
+<P>You need to make special considerations when using the GET_DATA Data
+Vector class with a form editor.  When a form editor displays its data, it
+calls the _getData method on the first row of data to display, followed by
+calls to the model _getData method for subsequent rows.  For performance reasons,
+most items in the GET_DATA Data Vector class are only checked for the first
+row that the viewer calls _getData on. Only the first row is checked because
+most models have the same settings for a particular column for each row that
+column is in.  For example, in a particular model, the first column may always
+be red and the second column may always use a particular font.  So, when the
+form editor calls the model with the _getData method for the first displayed
+row, it saves these color and font values and will not check them again for
+subsequent _getData calls for other rows. The form editor does check for a
+few items such as the data value and type, but most other items, such as font,
+color, and justification, are not checked.
+<P>If you are overriding the model's _getData method, consider the following
+about checking: If you know that your columns will always have the same characteristics
+regardless of the row, then you need not be concerned.  If, however, you want
+some rows to have different characteristics for the same column, then you
+need to notify the viewer that this is the case so that it will know to check
+your settings.
+<P>To notify the viewer that it needs to check the settings for all rows,
+call the viewer's _updateColumn method from within the _getData method call.
+ You should call the _updateColumn method at the end of the _getData model
+method. You can obtain the viewer's identifier from the model's VIEWERID instance
+variable.
+<P>See the Form Data Model class.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Steps for Overriding the _getData Method with a Form Editor</FONT></B></TD></TR></TABLE>
+
+<P>To subclass Data Set Data Model and display the new subclass in a FRAME
+entry that contains a form editor object, follow these steps: 
+<OL START="1" type="1">
+<LI>Subclass the Data Set Data Model class. 
+<OL START="1" type="a">
+<LI>Edit 
+
+
+<CODE><B>newdatam.class</B></CODE>.<P>
+
+<LI>Set the parent to 
+
+
+<CODE><B>sashelp.fsp.data_m.class</B></CODE>.<P>
+
+<LI>Select methods and override _getData using a label of 
+
+
+<CODE><B>getdata</B></CODE>.<P>
+
+<LI>Edit the SCL source and copy the contents of MYDATAM.SCL.<P>
+
+<LI>Compile the SCL source.<P>
+</OL>
+<P>
+
+<LI>Create a
+form editor object. 
+<OL START="1" type="a">
+<LI>Edit 
+
+
+<CODE><B>new.frame</B></CODE>.<P>
+
+<LI>Create an empty region in the FRAME entry.<P>
+
+<LI>Use the command 
+
+
+<CODE><B>RM FILL 'FORM EDITOR'</B></CODE>.<P>
+
+<LI>Set the class to be 
+
+
+<CODE><B>newdatam.class</B></CODE>.<P>
+
+<LI>Select data attributes and define a data set to use. (The following
+example uses 
+
+
+<CODE><B>sasuser.class</B></CODE>.)<P>
+
+<LI>Save and testaf the FRAME entry.<P>
+</OL>
+<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example of Overriding the _getData Method with a Form Editor</FONT></B></TD></TR></TABLE>
+
+<P>The following SCL code produces a form editor:  
+
+
+
+<PRE>getdata:
+method gddvecid numcols 8;
+call super(_SELF_, '_getData', gddvecid,
+            numcols);
+call send(gddvecid, '_setIndex', 1);
+rowlst = makelist();
+call send(gddvecid, '_getRow', rowlst);
+rownum = getitemn(rowlst, 1);
+
+viewerid = getnitemn(_SELF_, 'VIEWERID');
+collst = makelist();</PRE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270334">&nbsp;</A><A href="z0270334.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 1 then do;
+  call send(gddvecid, '_setIndex', 1);
+  rc = insertn(collst, 1, -1);
+  call send(gddvecid, '_setUnformattedText',
+           'newtext');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270335">&nbsp;</A><A href="z0270335.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 1 then do;
+  call send(gddvecid, '_setIndex', 1);
+  rc = insertn(collst, 1, -1);
+  flist = makelist();
+  flist = setnitemn(flist, 0, 'OPTIONS');
+  flist = setnitemn(flist, 2, 'FAMILY');
+  flist = setnitemn(flist, -1, 'CHARSET');
+  flist = setnitemn(flist, 60, 'POINTS');
+  flist = setnitemn(flist, 1, 'STYLE');
+  flist = setnitemn(flist, 9, 'WEIGHT');
+  flist = setnitemn(flist, -1, 'WIDTH');
+  flist = setnitemn(flist, 1, 'PORTABLE');
+  flist = setnitemn(flist, 0.46875, 'RATIO');
+  call send(gddvecid, '_setFont', flist);
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270336">&nbsp;</A><A href="z0270336.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 0 then do;
+  call send(gddvecid, '_setIndex', 2);
+  rc = insertn(collst, 2, -1);
+  call send(gddvecid, '_setClassName',
+           'sashelp.fsp.radiobox.class');
+  oid = loadclass('sashelp.fsp.radiobox');
+  ivlist = getniteml(oid, '_iv');
+  ivlist2 = copylist(ivlist, 'Y');
+  rc = setlattr(ivlist2, 'UPDATE');</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270337">&nbsp;</A><A href="z0270337.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+  rc = setnitemn(ivlist2, 6, 'LENGTH');</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270338">&nbsp;</A><A href="z0270338.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+  rc = setnitemn(ivlist2, 2, 'NROWS');</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270339">&nbsp;</A><A href="z0270339.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+  rlist = makelist();
+  radio1 = makelist();
+  radio2 = makelist();
+  rc = setnitemc(radio1, 'Male', 'ROWTXT');
+  rc = setnitemc(radio1, 'M', 'RETVAL');
+  rc = setnitemc(radio2, 'Female', 'ROWTXT');
+  rc = setnitemc(radio2, 'F', 'RETVAL');
+  rc = setniteml(rlist, radio1, 'R1');
+  rc = setniteml(rlist, radio2, 'R2');
+  rc = setniteml(ivlist2, rlist, 'RADIOLST');
+  rc = putlist(ivlist2);
+  call send(gddvecid, '_setClassProperties',
+            ivlist2);
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270340">&nbsp;</A><A href="z0270340.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 1 then do;
+  call send(gddvecid, '_setIndex', 3);
+  rc = insertn(collst, 3, -1);
+  call send(gddvecid, '_setColor', 'RED');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270341">&nbsp;</A><A href="z0270341.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 1 then do;
+  call send(gddvecid, '_setIndex', 4);
+  rc = insertn(collst, 4, -1);
+  call send(gddvecid, '_setBackgroundColor',
+           'GREEN');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270342">&nbsp;</A><A href="z0270342.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 1 then do;
+  call send(gddvecid, '_setIndex', 5);
+  rc = insertn(collst, 5, -1);
+  call send(gddvecid, '_setHjust', 'CENTER');
+end;
+
+call send(viewerid, '_updateColumn', collst);</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270616">&nbsp;</A><A href="z0270616.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+  rowlst = dellist (rowlst);
+  collst = dellist (collst);
+endmethod;</PRE></TD></TR></TABLE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Steps for Overriding the _getData Method with a Table Editor</FONT></B></TD></TR></TABLE>
+
+<P>To subclass Data Set Data Model and display the new subclass in a FRAME
+entry that contains a table editor object, follow these steps: 
+<OL START="1" type="1">
+<LI>Subclass the Data Set Data Model class. 
+<OL START="1" type="a">
+<LI>Edit 
+
+
+<CODE><B>newdatam.class</B></CODE>.<P>
+
+<LI>Set parent to 
+
+
+
+<PRE>sashelp.fsp.data_m.class</PRE>.<P>
+
+<LI>Select methods and override _getData using a label of 
+
+
+<CODE><B>getdata</B></CODE>.<P>
+
+<LI>Edit SCL source and copy the contents of MYDATAM.SCL.<P>
+
+<LI>Compile the SCL source.<P>
+</OL>
+<P>
+
+<LI>Create a table
+editor object. 
+<OL START="1" type="a">
+<LI>Edit 
+
+
+<CODE><B>new.frame</B></CODE>.<P>
+
+<LI>Create an empty region in the FRAME entry.<P>
+
+<LI>Use the command 
+
+
+<CODE><B>RM FILL 'TABLE EDITOR'</B></CODE>.<P>
+
+<LI>Set the class to be 
+
+
+<CODE><B>newdatam.class</B></CODE>.<P>
+
+<LI>Select data attributes and define a data set to use. (The following
+example uses 
+
+
+<CODE><B>sasuser.houses</B></CODE>.)<P>
+
+<LI>Set the mode to EDIT and the level to MEMBER.<P>
+
+<LI>Save and testaf the FRAME
+entry.<P>
+</OL>
+<P>
+</OL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Example of Overriding the _getData Method with a Table Editor</FONT></B></TD></TR></TABLE>
+
+<P>The following SCL code produces a table editor:  
+
+
+
+<PRE>getdata:
+method gddvecid numcols 8;
+call super(_SELF_, '_getData', gddvecid,
+            numcols);
+call send(gddvecid, '_setIndex', 1);
+rowlst = makelist();
+call send(gddvecid, '_getRow', rowlst);
+rownum = getitemn(rowlst, 1);</PRE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270617">&nbsp;</A><A href="z0270617.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 1 then do;
+  call send(gddvecid, '_setIndex', 1);
+  flist = makelist();
+  flist = setnitemn(flist, 0, 'OPTIONS');
+  flist = setnitemn(flist, 2, 'FAMILY');
+  flist = setnitemn(flist, -1, 'CHARSET');
+  flist = setnitemn(flist, 60, 'POINTS');
+  flist = setnitemn(flist, 1, 'STYLE');
+  flist = setnitemn(flist, 9, 'WEIGHT');
+  flist = setnitemn(flist, -1, 'WIDTH');
+  flist = setnitemn(flist, 1, 'PORTABLE');
+  flist = setnitemn(flist, 0.46875, 'RATIO');
+  call send(gddvecid, '_setFont', flist);
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270620">&nbsp;</A><A href="z0270620.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 1 then do;
+  call send(gddvecid, '_setIndex', 3);
+  call send(gddvecid, '_setColor', 'RED');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270621">&nbsp;</A><A href="z0270621.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 2 then do;
+  call send(gddvecid, '_setIndex', 2);
+  call send(gddvecid, '_setBackgroundColor',
+            'GREEN');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270623">&nbsp;</A><A href="z0270623.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 2 then do;
+  call send(gddvecid, '_setIndex', 4);
+  call send(gddvecid, '_setHjust', 'CENTER');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270624">&nbsp;</A><A href="z0270624.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 3 then do;
+  call send(gddvecid, '_setIndex', 1);
+  call send(gddvecid, '_setVjust', 'MIDDLE');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270625">&nbsp;</A><A href="z0270625.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 3 then do;
+  call send(gddvecid, '_setIndex', 3);
+  call send(gddvecid, '_setBorderColor',
+            'ALL', 'YELLOW');
+  call send(gddvecid, '_setBorderWidth',
+           'ALL', 0.1, 'in');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270626">&nbsp;</A><A href="z0270626.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 4 then do;
+  call send(gddvecid, '_setIndex', 2);
+  call send(gddvecid, '_setBorderStyle', 
+            'ALL', 'DASHED');
+  call send(gddvecid, '_setBorderWidth',
+            'ALL', 0.1, 'in');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270628">&nbsp;</A><A href="z0270628.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 4 then do;
+  call send(gddvecid, '_setIndex', 4);
+  call send(gddvecid, '_setBorderWidth', 'ALL',
+            0.1, 'in');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270630">&nbsp;</A><A href="z0270630.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 5 then do;
+  call send(gddvecid, '_setIndex', 1);
+  call send(gddvecid, '_setMargin', 'LEFT',
+            0.3, 'in');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270632">&nbsp;</A><A href="z0270632.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 5 then do;
+  call send(gddvecid, '_setIndex', 3);
+  call send(gddvecid, '_setReverse', 'Y');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270633">&nbsp;</A><A href="z0270633.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+if rownum eq 6 then do;
+  call send(gddvecid, '_setIndex', 1);
+  call send(gddvecid, '_setText', 'newtext');
+end;</PRE></TD></TR></TABLE>
+
+
+  
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z0270636">&nbsp;</A><A href="z0270636.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>
+  rowlst = dellist (rowlst);
+endmethod;</PRE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z8slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0233152.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z17hods.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0225666">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

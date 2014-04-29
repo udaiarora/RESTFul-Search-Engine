@@ -1,0 +1,169 @@
+<HTML>
+<HEAD>
+  <META NAME="GENERATOR" CONTENT="Adobe PageMill 3.0 Win">
+  <TITLE>IT: RACF: DISK</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<H3><TABLE WIDTH="585" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+  <TR>
+    <TD WIDTH="585">
+    <H3><FONT SIZE="+0" FACE="Arial">DISK</FONT></H3>
+
+    <P><FONT SIZE="-1" FACE="Arial">All disk data sets are fully
+    protected unless RACF has been informed otherwise by the owner
+    of the data sets. You control whether or not other people can
+    access your data. Other people control whether or not you have
+    access to their data.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">A data set is owned by the person
+    whose userid appears in the first part of the data set name.
+    Data set naming conventions require a a data set name to conform
+    with either the TSO or the WYLBUR naming convention. For the
+    TSO naming convention, the data set name begins with the userid.
+    For the WYLBUR naming convention, the data set name begins with
+    the character sequence &quot;WYL.xx.yyy.&quot; where &quot;xx&quot;
+    and &quot;yyy&quot; represent the first two and last three characters
+    respectively of the owning userid.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">If you, the owner of a disk data
+    set, choose to have exclusive access to the data set, you need
+    do nothing. The default protection for a disk data set permits
+    only the owner of the data set to have access. It is only when
+    you wish to allow other people access to your data sets that
+    you need to take any special action. The special action consists
+    of executing RACF commands, either via ISPF option 9.R (recommended),
+    via the TSO command line, or via a batch job.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">You can allow other userids to
+    have the following types of access to your data sets:</FONT></P>
+
+    <PRE>  NONE    - no access allowed
+  READ    - allowed read access
+  UPDATE  - allowed read and write access
+  CONTROL - same as UPDATE for all data sets except VSAM data sets;
+            for VSAM data sets this provides the same function as
+            a CONTROL password
+  ALTER   - allowed read, write, rename and scratch access</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">Whenever a disk data set is accessed,
+    the system checks to see if the owner of the data set is attempting
+    the access. The owner is permitted access; a non-owner receives
+    further checking before access is granted or denied.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">If a userid is attempting to
+    access a disk data set owned by someone else, the system checks
+    the RACF data base to determine what type of access, if any,
+    the userid is permitted to have. If the userid is on the access
+    list for the data set with the proper level of access permitted
+    then access is granted. If the userid is not on the access list
+    or does not have the appropriate access (for example, trying
+    to WRITE when only READ access is permitted) then the system
+    checks the universal access code.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The universal access code UACC
+    is checked only if the other conditions have failed. The default
+    value for UACC is NONE, meaning no one other than the owner can
+    access the data set. (If the owner sets the UACC to READ, anyone
+    is permitted to read the data set. A UACC value of READ is equivalent
+    to the no-password-read or NOPWREAD attribute in a non-RACF environment.)</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">It is possible for a disk data
+    set to have more than one access list in addition to having a
+    UACC code. There could be a list of userids with WRITE access,
+    another list with UPDATE access, and a UACC of READ.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">There are several basic disk
+    functions you can perform with RACF:</FONT></P>
+
+    <UL>
+      <LI><FONT SIZE="-1" FACE="Arial">add a disk data set profile;
+      this defines an entry in the RACF data base which is necessary
+      before the protection of a disk data set can be changed</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">delete a disk data set profile;
+      this restores full protection for a disk data set</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">change the UACC code in an existing
+      data set profile</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">remove selected userids from
+      the access list, remove all userids from the access list, add
+      userids (and the type of access allowed) to the access list of
+      an existing data set profile</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">display a disk data set profile;
+      this lists the UACC code and the userids, if any, which are permitted
+      access and the type of access allowed</FONT>
+      <LI><FONT SIZE="-1" FACE="Arial">search for disk data set profiles;
+      this lists the names of the disk data set profiles which you've
+      previously established</FONT>
+    </UL>
+
+    <P><FONT SIZE="-1" FACE="Arial">Once a disk data set profile
+    has been added to the RACF data base, you can make changes to
+    the protection associated with the corresponding data set(s).
+    (A discrete profile protects one data set; a generic profile
+    may protect many data sets.) A discrete profile will remain in
+    the data base until you delete the profile or delete the data
+    set. If you delete a data set which has a discrete profile, the
+    profile will be automatically deleted. A generic profile will
+    remain in the data base until you explicitly delete the profile.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">When a data set profile is added
+    to the RACF data base, RACF assumes the profile is discrete unless
+    the profile name contains &quot;wild card&quot; characters (the
+    asterisk and percent symbols). If you want the data set profile
+    to be generic and the name does not contain wild card characters,
+    you can specify the generic option when you add the profile name
+    to the data base. (A generic profile name which does not contain
+    wild card characters protects only one data set, the one which
+    has the same name as the profile.)</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">You can use ISPF 9.R to perform
+    these functions. If you choose to enter the RACF commands directly,
+    either on a TSO command line or in a batch job, the more commonly
+    used commands are those shown below.</FONT></P>
+
+    <UL>
+      <LI><A HREF="addsd.html"><FONT SIZE="-1" FACE="Arial">ADDSD</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - add a data set profile,</FONT>
+      <LI><A HREF="deldsd.html"><FONT SIZE="-1" FACE="Arial">DELDSD</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - delete a data set profile,</FONT>
+      <LI><A HREF="altdsd.html"><FONT SIZE="-1" FACE="Arial">ALTDSD</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - change the UACC code of a data set
+      profile,</FONT>
+      <LI><A HREF="permit.html"><FONT SIZE="-1" FACE="Arial">PERMIT</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - maintain the access list,</FONT>
+      <LI><A HREF="listdsd.html"><FONT SIZE="-1" FACE="Arial">LISTDSD</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - display data set profiles, and</FONT>
+      <LI><A HREF="search.html"><FONT SIZE="-1" FACE="Arial">SEARCH</FONT></A><FONT
+       SIZE="-1" FACE="Arial"> - search for data set profiles.</FONT>
+    </UL>
+
+    <P>&nbsp;</TD>
+  </TR>
+</TABLE></H3>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

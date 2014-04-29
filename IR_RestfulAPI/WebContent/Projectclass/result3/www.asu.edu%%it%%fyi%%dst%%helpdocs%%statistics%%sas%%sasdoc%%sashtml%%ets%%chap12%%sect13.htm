@@ -1,0 +1,642 @@
+<HTML>
+<HEAD>
+<TITLE>Forecasting Methods</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect12.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect14.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The FORECAST Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Forecasting Methods  </H2>
+<P>This section explains the forecasting methods used by PROC FORECAST.
+<P><H3><I>STEPAR Method</I></H3>
+<A NAME="idxfor0069">&#13;</A><A NAME="idxfor0068">&#13;</A><A NAME="idxfor0071">&#13;</A><A NAME="idxfor0070">&#13;</A><A NAME="idxfor0073">&#13;</A><A NAME="idxfor0072">&#13;</A>In the STEPAR method, PROC FORECAST first fits a time trend model to the
+series and takes the difference between each value and the estimated trend.
+(This process is called <I>detrending</I>.)
+Then, the remaining variation is fit using an autoregressive model.
+<P>The STEPAR method fits the autoregressive process to the residuals of
+the trend model using a backwards-stepping method to select parameters.
+Since the trend and autoregressive parameters are fit in sequence rather
+than simultaneously, the parameter estimates are not optimal in a
+statistical sense; however, the estimates are usually close to optimal,
+and the method is computationally inexpensive.
+<P><H4><I>The STEPAR Algorithm</I></H4>
+The STEPAR method consists of the following computational steps:
+<P><OL>
+<LI> Fit the trend model as specified by the TREND= option using
+ordinary least-squares regression. This step detrends the data.
+The default trend model for the STEPAR method is TREND=2,
+a linear trend model.
+<LI> Take the residuals from step 1 and compute the autocovariances to the
+number of lags specified by the NLAGS= option.
+<LI> Regress the current values against the lags,
+using the autocovariances from step 2 in a Yule-Walker framework.
+Do not bring in any autoregressive parameter that is not significant
+at the level specified by the SLENTRY= option.
+(The default is SLENTRY=0.20.)  Do not bring in any autoregressive
+parameter which results in a nonpositive-definite Toeplitz matrix.
+<LI> Find the autoregressive parameter that is least significant.
+If the significance level is greater than the SLSTAY= value,
+remove the parameter from the model.
+(The default is SLSTAY=0.05.)
+Continue this process until only significant autoregressive parameters remain.
+If the OUTEST= option is specified, write the estimates to the OUTEST= data set.
+<LI> Generate the forecasts using the estimated model
+and output to the OUT= data set.
+Form the confidence limits by combining the trend variances with the
+autoregressive variances.
+</OL>
+<P>Missing values are tolerated in the series;
+the autocorrelations are estimated from the available data and
+tapered if necessary.
+<P>This method requires at least three passes through the data:
+two passes to fit the model and a third pass to initialize
+the autoregressive process and write to the output data set.
+<P><H4><I>Default Value of the NLAGS= Option</I></H4>
+If the NLAGS= option is not specified,
+the default value of the NLAGS= option is chosen based
+on the data frequency specified by the INTERVAL= option
+and on the number of observations in the input data set,
+if this can be determined in advance.
+(PROC FORECAST cannot determine the number of input observations
+before reading the data when a BY statement or a WHERE statement is used
+or if the data are from a tape format SAS data set or external database.
+The NLAGS= value must be fixed before the data are processed.)
+<P>If the INTERVAL= option is specified,
+the default NLAGS= value includes lags for up to three years plus one,
+subject to the maximum of 13 lags or one third of the
+number of observations in your data set, whichever is less.
+If the number of observations in the input data set cannot be
+determined, the maximum NLAGS= default value is 13.
+If the INTERVAL= option is not specified, the default is NLAGS=13
+or one-third the number of input observations, whichever is less.
+<P>If the Toeplitz matrix formed by the autocovariance matrix at
+a given step is not positive definite, the maximal
+number of autoregressive lags is reduced.
+<P>For example, for INTERVAL=QTR, the default is NLAGS=13
+(that is, <SPAN CLASS="mathfont">4&times;3+1</SPAN>)
+provided that there are at least 39 observations.
+The NLAGS= option default is always at least 3.
+<P><H3><I>EXPO Method</I></H3>
+<A NAME="idxfor0075">&#13;</A><A NAME="idxfor0074">&#13;</A><A NAME="idxfor0076">&#13;</A><A NAME="idxfor0077">&#13;</A><A NAME="idxfor0078">&#13;</A><A NAME="idxfor0079">&#13;</A><A NAME="idxfor0080">&#13;</A><A NAME="idxfor0081">&#13;</A>Exponential smoothing is used when the METHOD=EXPO option is specified.
+The term <I>exponential smoothing</I> is derived from the
+computational scheme developed by Brown and others
+(Brown and Meyers 1961; Brown 1962).
+Estimates are computed with updating formulas that are
+developed across time series in a manner similar to smoothing.
+<P>The EXPO method fits a trend model such that the most recent data are
+weighted more heavily than data in the early part of the series.
+The weight of an observation is a geometric (exponential) function of the
+number of periods that the observation extends into the past relative
+to the current period.  The weight function is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="138" HEIGHT="76"
+ SRC="images/foreq10.gif"
+ ALT="w_{{\tau}}={\omega} (1-{\omega})^{t-{\tau}}"></DL>
+<P>where <IMG WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq11.gif"
+ ALT="{\tau}"> is the observation number of the past observation,
+<I>t</I> is the current observation number, and <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"> is the
+weighting constant specified with the WEIGHT= option.
+<P>You specify the model with the TREND= option as follows:
+<P><UL>
+<LI> TREND=1 specifies single exponential smoothing
+(a constant model)
+<LI> TREND=2 specifies double exponential smoothing
+(a linear trend model)
+<LI> TREND=3 specifies triple exponential smoothing
+(a quadratic trend model)
+</UL>
+<P><H4><I>Updating Equations</I></H4>
+The single exponential smoothing operation is expressed by the formula
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="180" HEIGHT="74"
+ SRC="images/foreq13.gif"
+ ALT="S_{t}={\omega}x_{t}+(1-{\omega})S_{t-1}"></DL>
+<P>where <SPAN CLASS="mathfont"><I>S</I><sub><I>t</I></sub></SPAN> is the smoothed value at the current period,
+<I>t</I> is the time index of the current period, and
+<SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN> is the current actual value of the series.
+The smoothed value <SPAN CLASS="mathfont"><I>S</I><sub><I>t</I></sub></SPAN> is the forecast of
+<SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I>+1</SUB></SPAN> and is calculated as the smoothing constant <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}">
+times the value of the series, <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN>, in the current period
+plus (<IMG WIDTH="47" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq14.gif"
+ ALT="{1-{\omega}}">) times the previous smoothed value
+<SPAN CLASS="mathfont"><I>S</I><sub><I>t</I>-1</sub></SPAN>,
+which is the forecast of <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN> computed at time <SPAN CLASS="mathfont"><I>t</I>-1</SPAN>.
+<P>Double and triple exponential smoothing are derived by
+applying exponential smoothing to the smoothed series,
+obtaining smoothed values as follows:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="190" HEIGHT="82"
+ SRC="images/foreq15.gif"
+ ALT="S_{t}^{[2]}={\omega}S_{t}
++(1-{\omega}) S_{t-1}^{[2]}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="202" HEIGHT="82"
+ SRC="images/foreq16.gif"
+ ALT="S_{t}^{[3]}={\omega} S_{t}^{[2]}
++(1-{\omega}) S_{t-1}^{[3]}"></DL>
+<P>Missing values after the start of the series are replaced with
+one-step-ahead predicted values, and the predicted value is then
+applied to the smoothing equations.
+<P>The polynomial time trend parameters
+CONSTANT, LINEAR, and QUAD in the OUTEST= data set
+are computed from <SPAN CLASS="mathfont"> <I>S</I><SUB><I>T</I></SUB></SPAN>,
+<SPAN CLASS="mathfont"> <I>S</I><SUB><I>T</I></SUB><SUP>[2]</SUP></SPAN>,
+and <SPAN CLASS="mathfont"> <I>S</I><SUB><I>T</I></SUB><SUP>[3]</SUP></SPAN>,
+the final smoothed values at observation <I>T</I>,
+the last observation used to fit the model.
+In the OUTEST= data set, the values of
+<SPAN CLASS="mathfont"> <I>S</I><SUB><I>T</I></SUB></SPAN>, <SPAN CLASS="mathfont"> <I>S<SUP>[2]</SUP></I><SUB><I>T</I></SUB></SPAN>,
+and <SPAN CLASS="mathfont"> <I>S<SUP>[3]</SUP></I><SUB><I>T</I></SUB></SPAN>
+are identified by _TYPE_=S1, _TYPE_=S2, and _TYPE_=S3, respectively.
+<P><H4><I>Smoothing Weights</I></H4>
+<I>Exponential smoothing forecasts</I> are forecasts
+for an integrated moving-average process; however, the
+weighting parameter is specified by the user rather than
+estimated from the data.  Experience has shown that good
+values for the WEIGHT= option are between 0.05 and 0.3.
+As a general rule, smaller smoothing weights are appropriate for series
+with a slowly changing trend,
+while larger weights are appropriate for volatile series with
+a rapidly changing trend.
+If unspecified, the weight defaults to
+<SPAN CLASS="mathfont">(1- .8<SUP>1/<I>trend</I></SUP>)</SPAN>,
+where <I>trend</I> is the value of the TREND= option.
+This produces defaults of WEIGHT=0.2 for TREND=1,
+WEIGHT=0.10557 for TREND=2, and WEIGHT=0.07168 for TREND=3.
+<P><H4><I>Confidence Limits</I></H4>
+The confidence limits for exponential smoothing forecasts
+are calculated as they would be for an exponentially weighted
+time-trend regression,
+using the simplifying assumption of an infinite number of observations.
+The variance estimate is computed using the mean square of the
+unweighted one-step-ahead forecast residuals.
+<P>More detailed descriptions of the forecast computations
+can be found in Montgomery and Johnson (1976) and Brown (1962).
+<P><H3><I>Exponential Smoothing as an ARIMA Model</I></H3>
+The traditional description of exponential smoothing given in the
+preceding section is standard in most books on forecasting,
+and so this traditional version is employed by PROC FORECAST.
+<P>However, the standard exponential smoothing model is, in fact,
+a special case of an ARIMA model (McKenzie 1984).
+Single exponential smoothing corresponds to an ARIMA(0,1,1) model;
+double exponential smoothing corresponds to an ARIMA(0,2,2) model; and
+triple exponential smoothing corresponds to an ARIMA(0,3,3) model.
+<P>The traditional exponential smoothing calculations can be viewed as
+a simple and computationally inexpensive
+method of forecasting the equivalent ARIMA model.
+The exponential smoothing technique was developed in the 1960s
+before computers were widely available and before ARIMA modeling
+methods were developed.
+<P>If you use exponential smoothing as a forecasting
+method, you might consider using the ARIMA procedure to forecast the
+equivalent ARIMA model as an alternative to the traditional version of
+exponential smoothing used by PROC FORECAST.
+The advantages of the ARIMA form are:
+<P><UL>
+<LI> The optimal smoothing weight is automatically computed as the
+estimate of the moving average parameter of the ARIMA model.
+<LI> For double exponential smoothing, the optimal pair of two smoothing
+weights are computed. For triple exponential smoothing,
+the optimal three smoothing weights are computed by the ARIMA method.
+Most implementations of the traditional exponential smoothing
+method (including PROC FORECAST) use the same smoothing weight
+for each stage of smoothing.
+<LI> The problem of setting the starting smoothed value is
+automatically handled by the ARIMA method.
+This is done in a statistically
+optimal way when the maximum likelihood method is used.
+<LI> The statistical estimates of the forecast confidence limits
+have a sounder theoretical basis.
+</UL>
+<P>See <A HREF="../chap7/index.htm">Chapter 7, &#34;The ARIMA Procedure,&#34;</A> for information
+on forecasting with ARIMA models.
+<P>The Time Series Forecasting System provides for exponential
+smoothing models and allows you to either specify or optimize 
+the smoothing weights.  See <A HREF="../chap23/index.htm">Chapter 23, &#34;Getting Started with Time Series Forecasting,&#34;</A> for details.
+<P><H3><I>WINTERS Method</I></H3>
+<A NAME="idxfor0083">&#13;</A><A NAME="idxfor0082">&#13;</A><A NAME="idxfor0085">&#13;</A><A NAME="idxfor0084">&#13;</A><A NAME="idxfor0087">&#13;</A><A NAME="idxfor0086">&#13;</A>The WINTERS method uses updating equations similar to
+exponential smoothing to fit parameters for the model
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="163" HEIGHT="74"
+ SRC="images/foreq17.gif"
+ ALT="x_{t} = ( a + b t ) s(t) + {\epsilon}_{t}"></DL>
+<P>where <I>a</I> and <I>b</I> are the trend parameters, and
+the function <I>s</I>(<I>t</I>) selects the seasonal parameter
+for the season corresponding to time <I>t</I>.
+<P>The WINTERS method assumes that the series values are positive.
+If negative or zero values are found in the series,
+a warning is printed and the values are treated as missing.
+<P>The preceding standard WINTERS model uses a linear trend.
+However, PROC FORECAST can also fit a version of the WINTERS
+method that uses a quadratic trend.
+When TREND=3 is specified for METHOD=WINTERS,
+PROC FORECAST fits the following model:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="208" HEIGHT="76"
+ SRC="images/foreq18.gif"
+ ALT="x_{t} = ( a + b t + c t^2 ) s(t)+{\epsilon}_{t}"></DL>
+<P>The quadratic trend version of the Winters method is often
+unstable, and its use is not recommended.
+<P>When TREND=1 is specified, the following constant trend version is fit:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="113" HEIGHT="74"
+ SRC="images/foreq19.gif"
+ ALT="x_{t} = a s(t) + {\epsilon}_{t}"></DL>
+<P>The default for the WINTERS method is TREND=2,
+which produces the standard linear trend model.
+<P><H4><I>Seasonal Factors</I></H4>
+The notation <I>s</I>(<I>t</I>) represents the selection of
+the seasonal factor used for different time periods.
+For example, if INTERVAL=DAY and SEASONS=MONTH, there
+are 12 seasonal factors, one for each month in the year,
+and the time index <I>t</I> is measured in days.
+For any observation, <I>t</I> is determined by the ID variable
+and <I>s</I>(<I>t</I>) selects the seasonal factor for the month
+that <I>t</I> falls in. For example, if <I>t</I> is 9 February 1993
+then <I>s</I>(<I>t</I>) is the seasonal parameter for February.
+<P>When there are multiple seasons specified, <I>s</I>(<I>t</I>) is the
+product of the parameters for the seasons.
+For example, if SEASONS=(MONTH DAY), then <I>s</I>(<I>t</I>) is the
+product of the seasonal parameter for the month corresponding to
+the period <I>t</I>, and the seasonal parameter for the day of the
+week corresponding to period <I>t</I>.
+When the SEASONS= option is not specified, the seasonal
+factors <I>s</I>(<I>t</I>) are not included in the model.
+See the section &#34;Specifying Seasonality&#34;
+later in this chapter for more information on specifying
+multiple seasonal factors.
+<P><H4><I>Updating Equations</I></H4>
+This section shows the updating equations for the Winters method.
+In the following formula,
+<SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN> is the actual value of the series at time <I>t</I>;
+<SPAN CLASS="mathfont"><I>a</I><SUB><I>t</I></SUB></SPAN> is the smoothed value of the series at time <I>t</I>;
+<SPAN CLASS="mathfont"><I>b</I><SUB><I>t</I></SUB></SPAN> is the smoothed trend at time <I>t</I>;
+<SPAN CLASS="mathfont"><I>c</I><SUB><I>t</I></SUB></SPAN> is the smoothed quadratic trend at time <I>t</I>;
+<SPAN CLASS="mathfont"><I>s</I><SUB><I>t</I>-1</SUB>(<I>t</I>)</SPAN> selects the old value of the seasonal factor
+corresponding to time <I>t</I> before the seasonal factors are updated.
+<P>The estimates of the constant, linear, and quadratic
+trend parameters are updated using the following equations:
+<P>For TREND=3,
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="356" HEIGHT="93"
+ SRC="images/foreq20.gif"
+ ALT="a_{t}={\omega}_{1} \frac{x_{t}}{s_{t-1}(t)}
++(1-{\omega}_{1}) (a_{t-1}+b_{t-1}+c_{t-1})"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="390" HEIGHT="74"
+ SRC="images/foreq21.gif"
+ ALT="b_{t}={\omega}_{2} (a_{t}-a_{t-1}+c_{t-1})
++(1-{\omega}_{2}) (b_{t-1}+2c_{t-1})"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="267" HEIGHT="92"
+ SRC="images/foreq22.gif"
+ ALT="c_{t}={\omega}_{2}{1 \over 2} (b_{t} -b_{t-1}) 
++(1-{\omega}_{2}) c_{t-1}"></DL>
+<P>For TREND=2,
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="302" HEIGHT="93"
+ SRC="images/foreq23.gif"
+ ALT="a_{t}={\omega}_{1} \frac{x_{t}}{s_{t-1}(t)}
++(1-{\omega}_{1}) (a_{t-1}+b_{t-1})"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="257" HEIGHT="74"
+ SRC="images/foreq24.gif"
+ ALT="b_{t}={\omega}_{2} (a_{t}-a_{t-1})
++(1-{\omega}_{2}) b_{t-1}"></DL>
+<P>For TREND=1,
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="233" HEIGHT="93"
+ SRC="images/foreq25.gif"
+ ALT="a_{t}={\omega}_{1} \frac{x_{t}}{s_{t-1}(t)}
++(1-{\omega}_{1}) a_{t-1}"></DL>
+<P>In this updating system, the trend polynomial is always centered
+at the current period so that the intercept parameter of the
+trend polynomial for predicted values at times after <I>t</I> is
+always the updated intercept parameter <I>a</I><SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>.
+The predicted value for <IMG WIDTH="13" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq11.gif"
+ ALT="{\tau}"> periods ahead is
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="200" HEIGHT="74"
+ SRC="images/foreq26.gif"
+ ALT="x_{t+{\tau}}=(a_{t}+b_{t}{\tau}) s_{t}(t+{\tau})"></DL>
+<P>The seasonal parameters are updated when the season changes in the data,
+using the mean of the ratios of the actual to the predicted values
+for the season.
+For example, if SEASONS=MONTH and INTERVAL=DAY, then,
+when the observation for the first of February is encountered,
+the seasonal parameter for January is updated using the formula
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="373" HEIGHT="114"
+ SRC="images/foreq27.gif"
+ ALT="s_{t}(t-1)={\omega}_{3} \frac{1}{31} \sum_{i=t-31}^{t-1}{\frac{x_{i}}{a_{i} } } + (1-{\omega}_{3}) s_{t-1}(t-1)"></DL>
+<P>where <I>t</I> is February 1 of the current year
+and <SPAN CLASS="mathfont"><I>s</I><SUB><I>t</I></SUB>(<I>t</I>-1)</SPAN> is the seasonal parameter for January updated with the
+data available at time <I>t</I>.
+<P>When multiple seasons are used,
+<SPAN CLASS="mathfont"><I>s</I><SUB><I>t</I></SUB>(<I>t</I>)</SPAN> is a product of seasonal factors.
+For example, if SEASONS=(MONTH DAY)
+then <SPAN CLASS="mathfont"><I>s</I><SUB><I>t</I></SUB>(<I>t</I>)</SPAN> is the product of the seasonal factors for
+the month and for the day of the week:
+<SPAN CLASS="mathfont"><I>s</I><SUB><I>t</I></SUB>(<I>t</I>) =  <I>s</I><SUP><I>m</I></SUP><SUB><I>t</I></SUB>(<I>t</I>) <I>s</I><SUP><I>d</I></SUP><SUB><I>t</I></SUB>(<I>t</I>)</SPAN>.
+<P>The factor <SPAN CLASS="mathfont"> <I>s</I><SUP><I>m</I></SUP><SUB><I>t</I></SUB>(<I>t</I>)</SPAN> is updated at the
+start of each month using the preceding formula,
+and the factor <SPAN CLASS="mathfont"> <I>s</I><SUP><I>d</I></SUP><SUB><I>t</I></SUB>(<I>t</I>)</SPAN>
+is updated at the start of each week using the following formula:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="359" HEIGHT="114"
+ SRC="images/foreq28.gif"
+ ALT="s^d_{t}(t-1)={\omega}_{3} \frac{1}7 \sum_{i=t-7}^{t-1}{\frac{x_{i}}{a_{i} } } + (1-{\omega}_{3})
+ s^d_{t-1}(t-1)"></DL>
+<P>Missing values after the start of the series are replaced with
+one-step-ahead predicted values, and the predicted value is
+substituted for <I>x</I><SPAN CLASS="mathfont"><SUB><I>i</I></SUB></SPAN> and
+applied to the updating equations.
+<P><H4><I>Normalization</I></H4>
+The parameters are normalized so that the seasonal factors for
+each cycle have a mean of 1.0.
+This normalization is performed after each complete cycle
+and at the end of the data.
+Thus, if INTERVAL=MONTH and SEASONS=MONTH are specified, and a series begins
+with a July value, then the seasonal factors for the series
+are normalized at each observation for July and at the last observation
+in the data set.
+The normalization is performed by dividing each of the seasonal
+parameters, and multiplying each of the trend parameters,
+by the mean of the unnormalized seasonal parameters.
+<P><H4><I>Smoothing Weights</I></H4>
+The weight for updating the seasonal factors, <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>3</SUB></SPAN>,
+is given by the third value specified in the WEIGHT= option.
+If the WEIGHT= option is not used,
+then <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>3</SUB></SPAN> defaults to 0.25;
+if the WEIGHT= option is used but does not specify a third value,
+then <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>3</SUB></SPAN> defaults to <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN>.
+The weight for updating the linear and quadratic trend parameters,
+<IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN>,
+is given by the second value specified in the WEIGHT= option;
+if the WEIGHT= option does not specify a second value,
+then <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> defaults to <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN>.
+The updating weight for the constant parameter, <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN>,
+is given by the first value specified in the WEIGHT= option.
+As a general rule, smaller smoothing weights are appropriate for series
+with a slowly changing trend,
+while larger weights are appropriate for volatile series with
+a rapidly changing trend.
+<P>If the WEIGHT= option is not used,
+then <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> defaults to (<SPAN CLASS="mathfont">1- .8<SUP>1/<I>trend</I></SUP></SPAN>),
+where <I>trend</I> is the value of the TREND= option.
+This produces defaults of WEIGHT=0.2 for TREND=1,
+WEIGHT=0.10557 for TREND=2, and WEIGHT=0.07168 for TREND=3.
+<P>The Time Series Forecasting System provides for generating
+forecast models using Winters Method and allows you to
+specify or optimize the weights.  See <A HREF="../chap23/index.htm">Chapter 23, &#34;Getting Started with Time Series Forecasting,&#34;</A>
+for details.
+<P><H4><I>Confidence Limits</I></H4>
+A method for calculating exact forecast confidence limits for
+the WINTERS method is not available.
+Therefore, the approach taken in PROC FORECAST is to assume that the
+true seasonal factors have small variability about a set of fixed
+seasonal factors and that the remaining variation of the series
+is small relative to the mean level of the series.
+The equations are written
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="145" HEIGHT="74"
+ SRC="images/foreq29.gif"
+ ALT="s_{t}(t)=\rm{I}(t)(1+{\delta}_{t})"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="138" HEIGHT="74"
+ SRC="images/foreq30.gif"
+ ALT="x_{t}={\mu}\rm{I}(t)(1+{\gamma}_{t})"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="109" HEIGHT="74"
+ SRC="images/foreq31.gif"
+ ALT="a_{t}={\xi}(1+{\alpha}_{t})"></DL>
+<P>where <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq32.gif"
+ ALT="{\mu}"> is the mean level and I(<I>t</I>) are the fixed seasonal factors.
+Assuming that <IMG WIDTH="21" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq33.gif"
+ ALT="{{\alpha}_{t}}"> and <IMG WIDTH="17" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq34.gif"
+ ALT="{{\delta}_{t}}"> are small,
+the forecast equations can be linearized and only first-order terms
+in <IMG WIDTH="17" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq34.gif"
+ ALT="{{\delta}_{t}}"> and <IMG WIDTH="21" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq33.gif"
+ ALT="{{\alpha}_{t}}"> kept.
+In terms of forecasts for <IMG WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq35.gif"
+ ALT="{{\gamma}_{t}}">,
+this linearized system is equivalent to a seasonal ARIMA model.
+Confidence limits for <IMG WIDTH="19" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq35.gif"
+ ALT="{{\gamma}_{t}}"> are based on this ARIMA model
+and converted into confidence limits for <SPAN CLASS="mathfont"><I>x</I><SUB><I>t</I></SUB></SPAN> using
+<SPAN CLASS="mathfont"><I>s</I><SUB><I>t</I></SUB>(<I>t</I>)</SPAN> as estimates of I(<I>t</I>).
+<P>The exponential smoothing confidence limits are based on
+an approximation to a weighted regression model, whereas the preceding
+Winters confidence limits are based on an approximation to
+an ARIMA model.  You can use METHOD=WINTERS without the SEASONS=
+option to do exponential smoothing and get confidence limits for
+the EXPO forecasts based on the ARIMA model approximation.
+These are generally more pessimistic than the weighted regression
+confidence limits produced by METHOD=EXPO.
+<P><H3><I>ADDWINTERS Method</I></H3>
+<A NAME="idxfor0089">&#13;</A><A NAME="idxfor0088">&#13;</A><A NAME="idxfor0091">&#13;</A><A NAME="idxfor0090">&#13;</A><A NAME="idxfor0093">&#13;</A><A NAME="idxfor0092">&#13;</A>The ADDWINTERS method is like the WINTERS method except that the seasonal
+parameters are added to the trend instead of multiplied with the trend.
+The default TREND=2 model is as follows:
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="171" HEIGHT="74"
+ SRC="images/foreq36.gif"
+ ALT="x_{t}=a+bt+s(t)+{\epsilon}_{t}"></DL>
+<P>The WINTERS method for updating equation and confidence limits calculations
+described in the preceding section are modified accordingly
+for the additive version.
+<P><H3><I>Holt Two-Parameter Exponential Smoothing</I></H3>
+If the seasonal factors are omitted
+(that is, if the SEASONS= option is not specified),
+the WINTERS (and ADDWINTERS) method reduces to the Holt two-parameter
+version of exponential smoothing.
+<A NAME="idxfor0095">&#13;</A><A NAME="idxfor0094">&#13;</A>Thus,  the WINTERS method is often referred to as the Holt-Winters method.
+<A NAME="idxfor0096">&#13;</A><A NAME="idxfor0097">&#13;</A>Double exponential smoothing is a special case of the
+Holt two-parameter smoother.
+The double exponential smoothing results can be duplicated
+with METHOD=WINTERS by omitting the SEASONS= option and
+appropriately setting the WEIGHT= option.
+Letting <IMG WIDTH="109" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq37.gif"
+ ALT="{{\alpha}={\omega}(2-{\omega})}">
+and <IMG WIDTH="117" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq38.gif"
+ ALT="{{\beta}={\omega}/(2-{\omega})}">,
+the following statements produce the same forecasts:
+<P>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<TT>proc forecast method=expo    trend=2 weight=<IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq12.gif"
+ ALT="{\omega}"> ... ;</TT>
+<P>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<TT>proc forecast method=winters trend=2 </TT><BR>
+&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;              <TT>weight=(<IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/foreq39.gif"
+ ALT="{\alpha}">,<IMG WIDTH="15" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/foreq40.gif"
+ ALT="{\beta}">) ... ;</TT>
+<P>Although the forecasts are the same, the confidence limits
+are computed differently.
+<P><H3><I>Choice of Weights for EXPO, WINTERS, and ADDWINTERS Methods</I></H3>
+<A NAME="idxfor0099">&#13;</A><A NAME="idxfor0098">&#13;</A>For the EXPO, WINTERS, and ADDWINTERS methods, properly chosen smoothing
+weights are of critical importance in generating reasonable results.
+There are several factors to consider in choosing the weights.
+<P>The noisier the data, the lower should be the weight given to the most
+recent observation.
+Another factor to consider is how quickly the mean of the time series is changing.
+If the mean of the series is changing rapidly, relatively more weight
+should be given to the most recent observation.
+The more stable the series over time, the lower should be
+the weight given to the most recent observation.
+<P>Note that the smoothing weights should be set separately for each
+series; weights that produce good results for one series may be poor
+for another series. Since PROC FORECAST does not have a feature to
+use different weights for different series, when forecasting multiple
+series with the EXPO, WINTERS, or ADDWINTERS method it may be desirable
+to use different PROC FORECAST steps with different WEIGHT= options.
+<P>For the Winters method, many combinations of weight values
+may produce unstable <I>noninvertible</I> models, even though all three
+weights are between 0 and 1.
+When the model is noninvertible, the forecasts depend strongly on
+values in the distant past, and predictions are determined largely
+by the starting values.
+Unstable models usually produce poor forecasts.
+The Winters model may be unstable even if the weights are optimally
+chosen to minimize the in-sample MSE.
+Refer to Archibald (1990) for a detailed discussion of the unstable region
+of the parameter space of the Winters model.
+<P>Optimal weights and forecasts for exponential smoothing models
+can be computed using the ARIMA procedure.
+For more information, see &#34;Exponential Smoothing as an ARIMA Model&#34;
+earlier in this chapter.
+<P>The ARIMA procedure can also be used to compute
+optimal weights and forecasts for seasonal ARIMA models similar to the
+Winters type methods.
+In particular, an ARIMA(0,1,1)<SPAN CLASS="mathfont">&times;</SPAN>(0,1,1)S model may be a good alternative
+to the additive version of the Winters method.
+The ARIMA(0,1,1)<SPAN CLASS="mathfont">&times;</SPAN>(0,1,1)S model fit to the logarithms of the series
+may be a good alternative to the multiplicative Winters method.
+See <A HREF="../chap7/index.htm">Chapter 7, &#34;The ARIMA Procedure,&#34;</A> for information on forecasting with ARIMA models.
+<P>The Time Series Forecasting System can be used to automatically
+select an appropriate smoothing method as well as to optimize the 
+smoothing weights.  See <A HREF="../chap23/index.htm">Chapter 23, &#34;Getting Started with Time Series Forecasting,&#34;</A> for more information.
+<P><H3><I>Starting Values for EXPO, WINTERS, and ADDWINTERS Methods</I></H3>
+The exponential smoothing method requires starting values
+for the smoothed values <SPAN CLASS="mathfont"><I>S<SUb>0</SUb></I></SPAN>,
+<SPAN CLASS="mathfont"><I>S<SUp>[2]</SUp></I><sub>0</sub></SPAN>,
+and <SPAN CLASS="mathfont"><I>S<SUp>[3]</SUp></I><sub>0</sub></SPAN>.
+The Winters and additive Winters methods require starting values
+for the trend coefficients and seasonal factors.
+<P>By default, starting values for the trend parameters are computed
+by a time-trend regression over the first few observations for the series.
+Alternatively, you can specify the starting value for the trend
+parameters with the ASTART=, BSTART=, and CSTART= options.
+<P>The number of observations used in the time-trend regression for
+starting values depends on the NSTART= option.
+For METHOD=EXPO, NSTART= beginning values of the series
+are used, and the coefficients of the time-trend regression are
+then used to form the initial smoothed values
+<SPAN CLASS="mathfont"><I>S<SUb>0</SUb></I></SPAN>, <SPAN CLASS="mathfont"><I>S<SUp>[2]</SUp></I><sub>0</sub></SPAN>,
+and <SPAN CLASS="mathfont"><I>S<SUp>[3]</SUp></I><sub>0</sub></SPAN>.
+<P>For METHOD=WINTERS or METHOD=ADDWINTERS,
+<I>n</I> complete seasonal cycles
+are used to compute starting values for the trend parameter,
+where <I>n</I> is the value of the NSTART= option.
+For example, for monthly data the seasonal cycle is one year,
+so NSTART=2 specifies that the first 24 observations
+at the beginning of each series are used for the time trend regression
+used to calculate starting values.
+<P>The starting values for the seasonal factors for the WINTERS and ADDWINTERS
+methods are computed from seasonal averages over the first few
+complete seasonal cycles at the beginning of the series.
+The number of seasonal cycles averaged to compute starting seasonal factors
+is controlled by the NSSTART= option.
+For example, for monthly data with SEASONS=12 or SEASONS=MONTH,
+the first <I>n</I> January values are averaged to get
+the starting value for the January seasonal parameter,
+where <I>n</I> is the value of the NSSTART= option.
+<P>The <I>s</I><SPAN CLASS="mathfont"><SUB>0</SUB></SPAN>(<I>i</I>) seasonal parameters
+are set to the ratio (for WINTERS) or difference (for ADDWINTERS)
+of the mean for the season to the overall mean for the observations
+used to compute seasonal starting values.
+<P>For example, if METHOD=WINTERS, INTERVAL=DAY, SEASON=(MONTH DAY),
+and NSTART=2 (the default),
+the initial seasonal parameter for January is
+the ratio of the mean value over days in the first two Januarys
+after the start of the series (that is, after the first nonmissing value),
+to the mean value for all days read for initialization of the seasonal factors.
+Likewise, the initial factor for Sundays is the ratio of the
+mean value for Sundays to the mean of all days read.
+<P>For the ASTART=, BSTART=, and CSTART= options,
+the values specified are associated with the variables
+in the VAR statement in the order in which the variables are listed
+(the first value with the first variable,
+the second value with the second variable, and so on).
+If there are fewer values than variables, default starting
+values are used for the later variables.
+If there are more values than variables, the extra values are ignored.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect12.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect14.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

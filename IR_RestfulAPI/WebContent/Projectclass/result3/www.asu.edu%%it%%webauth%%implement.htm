@@ -1,0 +1,374 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!-- created and validated December 1 2004, Brian Rutherford-->
+
+<html lang="en-us" xmlns="http://www.w3.org/1999/xhtml">
+
+   <head>
+
+      <title>ASU IT: WebAuth</title>
+
+      <meta http-equiv="content-style-type" content="text/css" />
+      <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+      <meta name="description" content="Arizona State University Information Technology" />
+      <meta name="keywords" content="Arizona State University Information Technology" />
+      <meta name="robots" content="index, nofollow" />
+
+      <link rev="made" href="mailto:itwebmaster@asu.edu" />
+
+      <link rel="StyleSheet" type="text/css" href="/it/css/it_main.css" />
+      <link rel="StyleSheet" type="text/css" href="/it/css/print.css" media="print" />
+
+      <style type="text/css"> 
+	 .center { text-align: center } 
+      </style>
+
+      <script type="text/javascript">
+	 if (top.frames.length!=0) top.location=self.document.location;
+	 </script>
+
+	 <link href="../css/it_main.css" rel="stylesheet" type="text/css" />
+      </head>
+
+      <body>
+
+	 <p class="hidden"><a href="#main">Skip to Content</a></p>
+
+<div id="topbar"><img src="/it/webauth/img/it_webheaders_webauth.jpg" 
+alt="Arizona State University Information Technology: WebAuth" width="575" height="69" border="0" usemap="#Map" />
+    <map name="Map" id="Map">
+      <area shape="rect" coords="423,52,488,67" href="/it/" alt="IT Home" />
+      <area shape="rect" coords="518,53,568,67" href="/askit/" alt="Ask IT" />
+      <area shape="rect" coords="3,3,326,68" href="/it/webauth/index.html" alt="WebAuth Home" />
+	  <area shape="rect" coords="332,52,406,67" href="/it/search/" alt="IT Search" />
+  </map>
+
+  <a href="http://www.asu.edu/"><img class="asu" src="/it/img/asu.gif" alt="Arizona State University" /></a> 
+</div>
+
+
+
+	 <div id="navpanel">
+	<a class="navsubhead">Documentation</a>
+	<a href="implement.htm">How it Works</a>
+	<a href="implement.htm#examples">Code Examples</a>
+	<a href="register.htm#policies">Policies</a>
+	<a href="faq.htm">Developers FAQ</a>
+	<a href="log.htm">Change Log</a>
+	<a href="changes.htm">Future Development</a>
+	
+	<a class="navsubhead">Support</a>
+	<a href="http://lists.asu.edu/archives/asuwebauth.html">WebAuth Listserv</a>
+	<a href="register.htm">Registration</a>
+	<a href="downloads.htm">Downloads</a>
+	<a href="contact.htm">Contact Support</a>
+
+</div>
+
+<a name="main"></a>
+
+
+	 <div id="mainbody">
+
+	    <table class="layout" cellspacing="0">
+	       <tr>
+		  <td valign="top">
+		     <table cellspacing="0" cellpadding="5">
+			<tr>
+			   <td>
+			      <h2>WebAuth Implementation </h2>
+
+			      <br />
+			      <h3>Authentication &amp; Authorization</h3>
+
+			      <p>The American Heritage&copy; Dictionary of the English Language, Fourth Edition defines "authentication" as follows: 
+			      To establish the authenticity of; prove genuine.  In computer security, this has come to mean: The verification of the 
+			      identity of a person or process.  In other words, authentication is the act of verifying that a person (or process) really 
+			      is who they say they are.</p>
+
+			      <p>Likewise, "authorization" is defined as: The granting of power or authority to; to give permission for.  In other words, 
+			      once you have verified that the person is who they say they are you then verify that they are allowed access to the 
+			      resource they are requesting.</p>
+
+
+			      <h3>WebAuth Overview</h3>
+
+			      <p>WebAuth is an enterprise-level, university-wide service provided by Information Technology which can be used by web developers 
+			      for secure authentication to a web application using a person's ASURITE UserID and password. In many cases, this can free a 
+			      department from having to maintain their own set of user IDs and passwords for each application, or set of applications.</p>
+
+			      <p>WebAuth uses cookies and form values and requires some knowledge of URL redirection. The cookie portion is transparent to the 
+			      user and developer, but cookies must be enabled in the browser. An <em>authenticator</em> (passed as a form value from WebAuth 
+			      to your application via the user's browser), along with a utility provided called "verify", are used by the web application 
+			      developer to implement WebAuth in their application.</p>
+
+			      <p>Typically, a department would have an application available on the web, providing users with access to data resources 
+			      (e.g. grades).  In front of this web application, they would want to have some way of securely verifying who the person is 
+			      before allowing them in.  This can be done using WebAuth.</p>
+
+
+			      <h3>How It Works / Example</h3>
+
+			      <ol>
+				 <li>The end-user, using a web browser, goes to <kbd>https://www.dept.asu.edu/myApp</kbd>.</li>
+
+				 <li>The <em>myApp</em> application on <kbd>www.dept.asu.edu</kbd> looks for an <em>authenticator</em> form parameter passed in the URL.  If none exists, 
+				 the application redirects the user's browser to <kbd>https://weblogin.asu.edu/cgi-bin/login?callapp=https://www.dept.asu.edu/myApp</kbd>.  
+				 (Alternatively, the application could display a welcome page, and prompt the user with a link to login using the same URL).</li>
+
+				 <li>If the end-user is not already logged in to WebAuth (possibly via another application), then the user is now sitting at the 
+				 WebAuth login page, where they enter their ASURITE UserID and password.
+				 <ol>
+				    <li>WebAuth performs a Kerberos login for the user, and if successful, places the user's credential on the local disk of the 
+				    WebAuth server. </li> 
+				    <li>WebAuth then creates an <em>authenticator</em>, which is an encrypted string containing, among other things,  the hostname of the 
+				    WebAuth server where the credential exists, a pointer to the credential file, the end-user's IP address (as seen by the 
+				    WebAuth servers at the time of authentication), and the <em>callapp</em> URL.</li>
+				    <li>WebAuth will also place a cookie named <em>ASUWEBAUTH</em> on the user's browser.  This facilitates the <em>single sign-on</em> feature of 
+				    WebAuth, so that when the user goes to other WebAuth-enabled applications, they will not need to login again (see #4 below).</li>
+				    <li>WebAuth then redirects the user back to the department application using the callapp URL, along with the authenticator string 
+				    appended.  It might look something like: <kbd>https://www.dept.asu.edu/myApp?authenticator=kwadnas91t2nac032aofpleb111</kbd>.</li>
+				 </ol></li>
+
+				 <li>If the end-user was already logged in to WebAuth (possibly via another application), then the login program will generate a 
+				 fresh authenticator for the <em>myApp</em> application and redirect the user back to the callapp URL, along with the new 
+				 authenticator string appended.  It might look something like: 
+				 <kbd>https://www.dept.asu.edu/myApp?authenticator=kwadnas91t2nac032aofpleb111</kbd>.  When this happens, the user's browser is being 
+				 redirected twice (once from <em>myApp</em> to WebAuth, and then back to <em>myApp</em>).  It will appear transparent to the user, since 
+				 the login page will not actually be displayed.</li>
+
+				 <li>This time, the <em>myApp</em> application sees that the authenticator parameter is included in the URL.  The application will then 
+				 run the WebAuth "verify" utility, passing to it the value of the authenticator string and the end-user's IP address.</li>
+
+				 <li>The verify utility opens a TCP connection to the WebAuth servers.  The verify daemon decrypts the authenticator string, to 
+				 determine which WebAuth host that the credential exists on.  It then opens a TCP connection to that WebAuth host to verify that 
+				 the credential exists and is still valid.  It also verifies that the end-user's IP address passed by the <em>myApp</em> application is the 
+				 same as the IP address used when the user logged in.</li>
+
+				 <li>If all is well (meaning the credential is valid and the IP addresses match), then the verify daemon returns a string which 
+				 contains the ASURITE UserID tied to the authenticator, as well as other information (configurable depending upon options used 
+				 when calling verify).  If something was amiss with the verification of the authenticator, a result code and error message will 
+				 be retuned.  The list of verify options and possible result codes are detailed below.</li>
+
+				 <li>Now that the <em>myApp</em> application knows the ASURITE UserID of the end-user, it can then use that information to authorize the 
+				 user (the level of access that this ASURITE UserID has in the application).</li>
+			      </ol>
+
+			      <h3>Notes</h3>
+
+			      <ul>
+				 <li>Each <em>authenticator</em> is unique to each authenticated application page, as the value of callapp is encoded in the authenticator.
+				 With WebAuth v2, the verify utility can return the encoded callapp value.  This will allow the <em>myApp</em> application to check and 
+				 make sure that the authenticator used for verify was really generated for the <em>myApp</em> application, and not copied &amp; pasted from 
+				 another web application.  More details on this feature are below.</li>
+				 <li>WebAuth has a <em>logout</em> feature, which will destroy the Kerberos credential file on the local disk of the WebAuth server.  
+				 This will have the effect of causing any future verify calls which reference that credential to fail ("1:expired").  When an 
+				 application gets this result from a verify call, it should re-direct the user to the WebAuth login page so that they can 
+				 re-authenticate.</li>
+			      </ul>
+
+
+			      <a name="logout">
+				 <h3>Implementation/Installation</h3></a>
+			      <p>Information Technology provides a pre-compiled binary of the &quot;verify&quot; utility for the following platforms: Solaris 8/9, HP-UX 11, Linux 2.4, and Windows NT/2000/XP. A Java package compiled under 1.4.1 is also available. Copies of the latest version are available on the <a href="downloads.htm">Downloads</a> page.</p>
+			      <p>When using any of the compiled &quot;verify&quot; binaries, you must also register the service/port for WebAuth verify locally on your web application server. This is done by adding the following line to your services file:<br />
+			      <kbd>webverify 3001/tcp</kbd></p>
+			      <p>On standard UNIX servers, your services file is typically <kbd>/etc/services.</kbd><br />
+			      On Windows servers, your services file is <kbd>%SystemRoot%\SYSTEM32\DRIVERS\ETC\services</kbd>.
+			      </p>
+			      <p>Below is a list of URLs which are commonly referenced when using WebAuth.</p>
+			      <table width="75%"  border="0" summary="Table list of URLs commonly referenced using WebAuth.">
+
+				 <tr class="odd">
+				    <td><strong>Login</strong></td>
+				    <td><kbd>https://weblogin.asu.edu/cgi-bin/login?callapp=&lt;CALLAPPURL&gt;</kbd><br />
+				       (replace <kbd>CALLAPPURL</kbd> with the URL that WebAuth should send the user to once authentication is complete) </td>
+				 </tr>
+				 <tr>
+				    <td><strong>Logout</strong></td>
+				    <td><kbd>https://weblogin.asu.edu/cgi-bin/login?onLogoutURL=&lt;SOMEURL&gt;</kbd><br />
+				       (replace <kbd>SOMEURL</kbd> with the URL that WebAuth should send the user to once the Kerberos credential is destroyed)<br /></td>
+				 </tr>
+			      </table>			
+			      <br />
+			      <br />
+			      <h3>Options/Flags</h3>
+			      <p>The &quot;verify&quot; binaries have several flags that can be used when verifying the authenticator.</p>
+
+			      <table width="75%"  border="0" summary="Table of flags used when verifying the authenticator in WebAuth.">
+				 <tr class="odd">
+				    <td> <p><strong>- c</strong></p>
+				       <p><strong>CALLAPP </strong></p></td>
+				    <td> This flag tells the verify daemon to return the value of the <kbd>callapp</kbd> used to create this authenticator. The purpose of this feature is to allow the developer to check that the authenticator being used in this verify call was really generated for this application. If the values do not match up, the application should redirect the user to the WebAuth login page to get a fresh authenticator. </td>
+				 </tr>
+				 <tr>
+				    <td><p><strong>- n</strong></p>
+				       <p><strong>NOPROFILE </strong></p></td>
+				    <td> By default, the verify daemon will also look up owner affiliation information out of enterprise-level databases and return that in the results string. Using this flag disables the database lookup, providing faster response time during the verify call, albeit a couple of milliseconds. If your application does not need to use this affiliation information, then using the <kbd>-n</kbd> flag is highly recommended. </td>
+				 </tr>
+			      </table>			
+			      <p>The verify utility will return the following possible strings. The web application should then take specific actions depending on the value of the results string.</p>
+			      <table width="75%"  border="0" summary="Table of actions for WebAuth application.">
+				 <tr class="top">
+				    <th class="top"><strong>Verification<br />
+					  Success</strong></th>
+				    <th class="top">0:principal@REALM:AUTHENONLY:CALLAPP<br />
+				       0:principal@REALM:principalType:[affiliation:department]</th>
+				 </tr>
+				 <tr>
+				    <td>Example</td>
+				    <td><p style="font-family: 'Courier New', Courier, mono "> 0:jschmoe@ASU.EDU:AUTHENONLY:https://www.dept.asu.edu/myApp<br />
+				       0:jschmoe@ASU.EDU:PRIMARY:STAFF:B0402:UNDERGRADUATE:ES </p></td>
+				 </tr>
+				 <tr class="odd">
+				    <td>Explanation</td>
+				    <td><p>The number at the beginning of the string is the result code of the verify call. &quot;0&quot; means successful verification of the authenticator.</p>
+				       <p>The first example shows the use of the <kbd>-n</kbd> and <kbd>-c</kbd> flags. Here, no affiliation information is displayed (AUTHENONLY) and the value of <kbd>callapp</kbd> used in this authenticator is returned.</p>
+				       <p>The second example does not use either flag, displaying the principal type, the owner's affiliation information and no <kbd>callapp</kbd>.</p></td>
+				 </tr>
+				 <tr class="top">
+				    <th class="top"><strong>Verification<br />
+					  Failure</strong></th>
+				    <th class="top"> n:error message </th>
+				 </tr>
+				 <tr>
+				    <td>Example</td>
+				    <td><p style="font-family: 'Courier New', Courier, mono ">1:expired<br />
+				       2:client host mistmatch<br />
+                                       3:server host mismatch<br />
+				       7:invalid authenticator </p></td>
+				 </tr>
+				 <tr class="odd">
+				    <td>Explanation</td>
+				    <td><p>&quot;1&quot; means that the credential on the WebAuth server has expired (as a result of either the Kerberos ticket expiring or the user logging-out of WebAuth, thereby destroying the credential file). When this happens, the user should be re-directed to the WebAuth server for authentication login.</p>
+				       <p>&quot;2&quot; means that the IP address used by the user when they logged in is not the same IP address passed to the verify utility by the web application. This typically happens when the user is behind a proxy server, which is not maintaining IP address affinity (see &quot;Common Issues&quot; below).</p>
+				       <p>&quot;3&quot; means that the address of the machine running the verify command does not match the address of the application server.</p>
+				       <p>&quot;7&quot; means that the authenticator presented to WebAuth for verification was invalid (meaning not a real authenticator). This would typically only happen if someone was trying something fishy to gain access into your application. A real authenticator generated by WebAuth should never produce this error message.</p></td>
+				 </tr>
+				 <tr class="top">
+				    <th class="top"><strong>Verification<br />
+					  Failure</strong></th>
+				    <th class="top"> n:error message </th>
+				 </tr>
+				 <tr>
+				    <td>Example</td>
+				    <td><p style="font-family: 'Courier New', Courier, mono ">4:verifyd gethostbyname error for authhost<br />
+				       5:verifyd cannot open stream socket to authhost<br />
+				       6:verifyd cannot connect to authhost </p></td>
+				 </tr>
+				 <tr class="odd">
+				    <td>Explanation</td>
+				    <td> These errors are indicative of a system-problem within the WebAuth environment. Any of these errors should be reported to the IT Help Desk for immediate investigation by the on-call support. </td>
+				 </tr>
+			      </table>
+			      <br />
+			      <br />
+			      <a name="examples"></a>
+			      <h3>Code Examples</h3>
+			      <p>(Java)</p>
+			      <table width="75%"  border="0" summary="Table of sample java code used for implementing WebAuth.">
+				 <tr class="odd">
+				    <td><p style="font-family:'Courier New', Courier, mono"><pre>
+// This is a snipit of Java code used as an example of implementing the ASUWebAuth2.jar API.
+//
+// This code is taken from an Apple WebObjects Java Application.  The methods used for determining
+// the user's IP address, fetching the value of the authenticator, and obtaining the URL of
+// the current page are specific for the WebObjects environment.  If you are not using WebObjects,
+// simply replace these calls with ones specific for the environment you are working in.
+//
+// There is also reference to a "parseString" method, which is a customized form of a string
+// parser, similar to the Unix utility 'cut'.  Similar methods are widely available on the Internet.
+
+import edu.asu.webauth.*;
+
+String <b>clientIP</b> = context.request().headerForKey(&quot;remote_addr&quot;);
+String <b>authenticator</b> = context.request().formValueForKey(&quot;authenticator&quot;); 
+String <b>callAppReturnURL</b> = context.request().thisUrl(); 
+
+if (!authenticator.equals(null)) { 
+  // the authenticator is present, let's verify its value 
+  String verifyResponse = <font color="red">ASUWebAuth2.verify(&quot;webauth.asu.edu&quot;, <b>authenticator</b>, <b>clientIP</b>, false, true)</font>;
+  String verifyCode = MyCustomUtils.parseString(verifyResponse, &quot;:&quot;, 1); 
+
+  if (verifyCode.equals(&quot;0&quot;)) { 
+    // a verifyCode of 0 means we've securely verified who the user is
+    mySession.setAuthenticatedUser(MyCustomUtils.parseString(verifyResponse, &quot;:&quot;, 2));
+    super.appendToResponse(response, context); 
+
+  } else if (verifyCode.equals(&quot;1&quot;)) { 
+    // a verifyCode of 1 is expired, redirect the user to the WebAuth login page 
+    WORedirect webAuthRedirect = new WORedirect(); 
+    webAuthRedirect.setURL(<font color="red">&quot;https://weblogin.asu.edu/cgi-bin/login?callapp=&quot;+<b>callAppReturnURL</b></font>); 
+    webAuthRedirect.appendToResponse(r, c); 
+
+  } else { 
+    // If we get anything else back, let's inform the user 
+    // of the problem on a separate page, which includes a logout link 
+    WORedirect errorRedirect = new WORedirect(); 
+    errorRedirect.setURL(&quot;/BadWebAuth.html&quot;); 
+    errorRedirect.appendToResponse(r, c); 
+  } 
+} else { 
+  // no authenticator present, redirect the user to the WebAuth login page 
+  WORedirect webAuthRedirect = new WORedirect(); 
+  webAuthRedirect.setURL(<font color="red">&quot;https://weblogin.asu.edu/cgi-bin/login?callapp=&quot;+<b>callAppReturnURL</b></font>); 
+  webAuthRedirect.appendToResponse(r, c); 
+}
+				   </pre></p></td>
+				 </tr>
+			      </table>
+			      <br />
+			      <br />
+
+			      <h3>WebAuth Infrastructure</h3>
+			      <p>The WebAuth environment at ASU is setup on two &quot;farms&quot; of servers. The exact number of servers in the farms varies depending upon usage load demand throughout the semester and the availability of hardware resources.</p>
+			      <p>The first farm, <kbd>weblogin.asu.edu</kbd>, is where users are sent to instantiate a Kerberos credential and create an authenticator, which is then passed back to the application for verification.</p>
+			      <p>The second farm, <kbd>webauth.asu.edu</kbd>, is where the WebAuth verify daemons run for the purpose of handling web application verification requests.</p>
+			      <p>The use of farms allows redundancy of servers, and transparent management of hardware resources (e.g. adding more servers to the farm without interruption to users). Information Technology is considering plans to further enhance redundancy in the WebAuth environment by adding &quot;failover farms&quot; in separate physical locations, to address the single-point-of-failure created by having all servers in one location.</p>
+			      <p>IT also provides a Q/A server for developers to be able to test upcoming changes to WebAuth. We realize that in your applications, you have to essentially &quot;hard code&quot; the WebAuth URL for the login redirect. Having to go back in and change this URL in your code for Q/A testing is not actually necessary.</p>
+			      <p>Add the following line to your system hosts file:</p>
+			      <p> <kbd>129.219.134.195 weblogin.asu.edu </kbd></p>
+			      <p>On standard UNIX workstations, your system hosts file is typically <kbd>/etc/hosts.</kbd></p>
+			      <p>On Windows workstations, your system hosts file is <kbd>%SystemRoot%\SYSTEM32\DRIVERS\ETC\hosts.</kbd></p>
+			      <p>You will perform these steps on the workstation that you are testing from (not your production server).</p>
+			      <p>Doing this will have the effect of causing your workstation to use the Q/A WebAuth login server instead of the production server. Your application is still coded for <kbd>https://weblogin.asu.edu/cgi-bin/login</kbd>, but you'll be authenticating against Q/A since your hosts file has the Q/A IP in for <kbd>weblogin.asu.edu</kbd>.</p>
+			      <p>Any web application that you access from your workstation which uses WebAuth will go against the Q/A server. When we (Information Technology) announce upcoming changes, those changes will be put on the Q/A server ahead of time to give you an opportunity to test your applications. By modifying your hosts file, you will be able to test all of your apps without having to modify the application code to redirect to <kbd>weblogin-qa</kbd>.</p>
+			      <p>When you are done testing, go back into your hosts file and comment out the weblogin entry (by placing a <kbd>#</kbd> on the first character of the line). Your system will go back to using DNS to lookup weblogin's IP address the next time (and will subsequently return the production IP address).</p>
+
+
+
+			      
+			      <h3>WebAuth Security Practices</h3>
+			      
+			      <p>The long-standing goal for the ASURITE UserID is to allow users to have a single sign-on to any of the computing and information resources they need at ASU. Having a single sign-on to multiple services is very convenient for users. However, since it allows access to sensitive information, the password must be kept very secure.  In order to ensure the security of our user's information and data, any Web site using the ASURITE UserID to authenticate users must use WebAuth to validate the UserID and password.  Providers <strong>MUST</strong> read and comply with all stated <a href="register.htm#policies">WebAuth usage policies</a>.</p>
+			      
+			      <p>Information Technology (IT) developed WebAuth to provide a convenient and secure method of using the ASURITE UserID for authenticating users of web-based applications. IT has worked closely with the Provost's Office and the Web Advisory Group to establish a family of web pages for the collection of sensitive data. We believe that the generic ASURITE login page is an excellent option for most service providers. You can view the current version of the page at <a href="https://weblogin.asu.edu/cgi-bin/login">https://weblogin.asu.edu/cgi-bin/login</a>. It has a look and feel that is similar to the myASU login page, and is also similar to the centrally maintained credit card information page. This familiarity gives the customer a visual reassurance that they are in a secure environment. It also provides for a clear threshold of copyright violation if any parties outside ASU choose to emulate the sign-on page.</p>
+			      
+			      <p>Information Technology recognizes the need to preserve the autonomy of Colleges and Departments while simultaneously providing leadership to provide secure and appealing services over the ASU network. To achieve a balance between autonomy and leadership, we strive to keep the mandated requirements as minimal as possible. In return for this autonomy, the service providers take shared responsibility and accountability for the security of the network.</p>
+			      
+			   </td>
+			</tr>
+			<tr> 
+			   <td class="copyright" colspan="2"> <p class="postdate"><a href="/copyright/">&copy; 
+				 
+				 2005
+				 <acronym title="Arizona Board of Regents">ABOR</acronym></a> &#8212; 
+			      Last Modified 
+			      
+			      Tuesday 29 March 2005
+			      <br />
+			      <a class="email" href="mailto:itwebmaster@asu.edu">itwebmaster@asu.edu</a> 
+			      </p></td>
+			   </tr>
+			</table>
+		     </td>
+		  </tr>
+
+	       </table>
+
+	    </div>
+	 </body>
+
+      </html>
+

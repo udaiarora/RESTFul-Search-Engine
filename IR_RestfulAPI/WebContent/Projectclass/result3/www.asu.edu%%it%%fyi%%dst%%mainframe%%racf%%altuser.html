@@ -1,0 +1,678 @@
+<html>
+
+<head>
+<title>ALTUSER</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h3>ALTUSER</h3>
+
+<PRE>
+HELP ALTUSER
+
+FUNCTION
+          5740-XXH  (c) Copyright IBM Corp. 1987
+
+     The ALTUSER command changes the RACF attributes of one or more
+     users or those attributes applicable to a particular group.
+
+     You may modify your name field and default group value.  If you
+     have the SPECIAL attribute, you can use all the operands except
+     UAUDIT or NOUAUDIT.  If you are the owner of the user's profile,
+     or have the group-SPECIAL attribute in the group, you can use any
+     of the operands for user-related attributes.  if you have JOIN,
+     CONNECT, or group-SPECIAL authority in the group, or are the
+     owner of the group, you may use the group, authority, and UACC
+     attributes.  If you are the owner of the user's profile, or have
+     group-SPECIAL authority in the group, and have the CLAUTH
+     attribute for the class to be added or deleted, you can specify
+     CLAUTH or NOCLAUTH.  If you have the AUDITOR attribute or the
+     group-AUDITOR attribute in the group owning the user profile, you
+     can specify UAUDIT or NOUAUDIT.  In addition, in order to specify
+     SUB-OPERANDS of the TSO operands, you must have the SPECIAL
+     attribute or have UPDATE authority via field level access
+     control.
+
+
+SYNTAX
+
+     ALTUSER         (userid...)
+                     NAME(user-name)
+                     PASSWORD(password) | NOPASSWORD
+                     OWNER(userid or group-name)
+                     GROUP(group-name)
+                     DFLTGRP(group-name)
+                     AUTHORITY(JOIN | CONNECT | CREATE | USE)
+                     UACC(ALTER | CONTROL | UPDATE | READ | NONE)
+                     CLAUTH(class-name...) |
+                       NOCLAUTH(class-name...)
+                     GRPACC | NOGRPACC
+                     ADSP | NOADSP
+                     SPECIAL | NOSPECIAL
+                     OPERATIONS | NOOPERATIONS
+                     UAUDIT | NOUAUDIT
+                     AUDITOR | NOAUDITOR
+                     OIDCARD | NOOIDCARD
+                     REVOKE(date)
+                     RESUME(date)
+                     DATA('installation-defined-data') |
+                       NODATA
+                     MODEL(model-data-set-name) |
+                       NOMODEL
+                     ADDCATEGORY(category-name ...) |
+                       DELCATEGORY(category-name ...|*)
+                     SECLEVEL(seclevel-name) |
+                       NOSECLEVEL
+                     WHEN(DAYS(day-info) TIME(time-info))
+                     TSO(JOBCLASS(class) |
+                           NOJOBCLASS
+                         MSGCLASS(message-class) |
+                           NOMSGCLASS
+                         HOLDCLASS(hold-class) |
+                           NOHOLDCLASS
+                         SYSOUTCLASS(sysout-class)) |
+                           NOSYSOUTCLASS
+                         ACCTNUM(account-number)
+                         PROC(logon-procedure-name)
+                         SIZE(default-region-sise)
+                         MAXSIZE(maximum-region-size) |
+                           NOMAXSIZE
+                         UNIT(unit-name)
+                         DEST(destination-id) |
+                           NODEST
+                         USERDATA(user-data)
+                        ) |
+                       NOTSO
+
+  REQUIRED - Userid - At least one userid must be specified
+  DEFAULTS - None.
+  ALIAS    - ALU
+  NOTE     - Certain operands require you to have the SPECIAL
+             attribute.  See operand descriptions.
+
+
+OPERANDS
+  userid...
+      Specifies the users for which the specified attributes are to be
+      modified.
+
+  NAME(user-name)
+      Specifies a new value for the user's name field in the RACF data
+      base.  The name may be from 1 to 20 alphameric, SPECIAL, or
+      national characters the first of which must be alphanumeric.
+
+  PASSWORD(password)
+      Specifies the sequence of 1 to 8 alphameric or national
+      characters to be used as a password for the user.  The default
+      is the default group name.  The password is set expired.
+
+  NOPASSWORD
+      Specifies that the user will not be required to enter a
+      password.
+
+  OWNER(userid or group-name)
+      Specifies a RACF-defined user or group name to be made owner of
+      the user to be altered.
+
+  GROUP(group-name)
+      Specifies the name of a group to which the user is connected.
+      User attributes specific to a group (UACC and authority
+      operands) will be modified for this group.  If this operand is
+      not specified and either UACC or authority are, the default
+      group of the user will be used.  If DFLTGRP was specified and
+      the above conditions exist, the modifications will be to the old
+      default group.
+
+  DFLTGRP(group-name)
+      Specifies a new default group for the user.  The user must be
+      connected to the group specified with at least USE authority.
+
+  AUTHORITY(JOIN | CONNECT | CREATE | USE)
+      Specifies a new access authority for the user to the group
+      specified.
+
+     The valid subfields are:
+
+       JOIN - JOIN authority to the group
+       CONNECT - CONNECT authority to the group
+       CREATE - CREATE authority to the group
+       USE - USE authority to the group
+
+  UACC(ALTER | CONTROL | UPDATE | READ | NONE)
+      Specifies the default universal access for data sets created by
+      the user while connected to the default connect group.
+
+      The valid subfields are:
+
+       ALTER - ALTER access authority
+       CONTROL - CONTROL access authority
+       UPDATE - UPDATE access authority
+       READ - READ access authority
+       NONE - No access authority
+
+  CLAUTH(class-name...)
+      Specifies that the user is allowed to define profiles to RACF
+      for the classes specified.  The valid class names are USER and
+      those defined in the class descriptor table.  Class names
+      specified are added to those previously defined for the user.
+      To specify this operand, you must either have the SPECIAL
+      attribute or be the owner of the user and have class
+      authorization for the class(es) specified.  If you have
+      insufficient authority to a class, that class is ignored and
+      processing continues with the next class name.
+
+  NOCLAUTH(class-name...)
+      Specifies that the user is not allowed to define profiles in the
+      classes specified.  The valid class names are USER and those
+      defined in the class descriptor table.  The class names
+      specified are removed from those previously defined for the
+      user.  To specify this operand you must either have the SPECIAL
+      attribute, or be the owner of the user and have class
+      authorization for the class(es) specified.  If you have
+      insufficient authority to a class, that class is ignored and
+      processing continues with the next class name.
+
+  GRPACC
+      Specifies who is initially authorized to access group data sets
+      created by the user.  If GRPACC is specified, then when the user
+      creates a group data set, that group (that is the group whose
+      name is the data set's first-level qualifier) will be added to
+      the data set's access list with UPDATE authority.
+
+  NOGRPACC
+      Specifies who is initially authorized to access group data sets
+      created by the user.  If NOGRPACC is specified, then when the
+      user creates a group data set, that group (that is the group
+      whose name is the data set's first-level qualifier) will not be
+      added to the data set's access list.
+
+  ADSP
+      Specifies that any permanent data sets created by the user will
+      be RACF protected.
+
+  NOADSP
+      Specifies that any permanent data sets created by the user will
+      not be RACF protected unless they are explicity protected by the
+      ADDSD command.
+
+  SPECIAL
+      Specifies that the user will have the SPECIAL attribute.  You
+      must have the SPECIAL attribute to specify this operand.
+
+  NOSPECIAL
+      Specifies that the user will not have the SPECIAL attribute.
+      You must have the SPECIAL attribute to specify this operand.
+
+  OPERATIONS
+      Specifies that the user will have the OPERATIONS attribute.  You
+      must have the SPECIAL attribute to specify this operand.
+
+  NOOPERATIONS
+      Specifies that the user will not have the OPERATIONS attribute.
+      You must have the SPECIAL attribute to specify this operand.
+
+  UAUDIT
+      Specifies that all activity by this user is to be logged.  You
+      must have the AUDITOR attribute to specify this operand.
+
+  NOUAUDIT
+      Specifies that activity by this user will not be logged.  The
+      NOUAUDIT attribute does not override other auditing options that
+      may be in effect.  You must have the AUDITOR attribute to
+      specify this operand.
+
+  AUDITOR
+      Specifies that the user will have the AUDITOR attribute.  You
+      must have the SPECIAL attribute to specify this operand.
+
+  NOAUDITOR
+      Specifies that the user will not have the AUDITOR attribute.
+      You must have the SPECIAL attribute to specify this operand.
+
+  OIDCARD
+      Specifies that the user must supply an operator identification
+      card when logging on to the system.  The command user will be
+      prompted to enter the OIDCARD for the user.
+
+  NOOIDCARD
+      Specifies that no operator identification card is required for
+      user identification.
+
+  REVOKE(date)
+      Prohibits the user from accessing the system but does not delete
+      the user or user data set entries from the RACF data base.  If
+      the optional date is specified, denial of access begins on the
+      specified date.  The format for date is mm/dd/yy.  Leading zeros
+      are optional for month and day.
+
+  RESUME(date)
+      Allows the user to access the system.  If the optional date is
+      specified, access will begin on the date specified.  The format
+      for date is mm/dd/yy.  Leading zeros are optional for month and
+      day.
+
+  DATA('installation-defined-data')
+      Specifies new installation data which will be listed by the
+      LISTUSER command.  Up to 255 characters enclosed in quotes can
+      be specified.  If more are given only the first 255 will appear
+      in the RACF data base.
+
+  NODATA
+      Specifies that existing installation-defined data should be
+      revoved from the specified entry.
+
+  MODEL(model-data-set-name)
+      Specifies the relative data set name that will be used as a
+      MODEL when new user data sets are created.  This data set name
+      must be a relative name (i.e.  Not enclosed in quotes).
+
+  NOMODEL
+      Specifies that the model information should be deleted from the
+      user entry.
+
+  ADDCATEGORY(category-name ...)
+      Specifies one or more installation defined category names.  The
+      arguments for this keyword must be members of the category
+      profile in the SECDATA class.
+
+  DELCATEGORY(category-name ...|*)
+      Specifies one or more category names to be deleted from the
+      profile.  If DELCATEGORY(*) Is specified all category names will
+      be deleted.  If DELCATEGORY is specified without any category
+      names, all undefined category names will be deleted.
+
+  SECLEVEL(seclevel-name)
+      Specifies an installation-defined security level name.  The
+      argument must be in the member list of the SECLEVEL profile in
+      the SECDATA class.
+
+  NOSECLEVEL
+      Specifies that the security level name will be deleted for this
+      profile.
+
+  WHEN(DAYS(day-info) TIME(time-info))
+      Specifies that the user is to be restricted from accessing the
+      system from a terminal, other than on certain days and/or hours.
+
+   day-info
+       Specifies days the user may access the system.
+
+       Valid specifications are:
+
+       ANYDAY   - No day restrictions apply.
+       WEEKDAYS - Access allowed Monday through Friday.
+       day...   - Names one or more days of the week when the user may
+                  access the system.  Days may be given in any order.
+
+   time-info
+       Specifies hours of each day when access is allowed.
+
+       Valid specifications are:
+
+       ANYTIME  - No time restrictions apply
+       start-time:end-time - in format hhmm:hhmm where hh is the hour
+                  in 24 hour notation (00-23), mm is minutes (00-59).
+
+  TSO
+      Specifies that TSO information is to be added or modified.
+
+  JOBCLASS(class)
+      Specifies the default job class for TSO.  The value is 1
+      alphanumeric character.
+
+  NOJOBCLASS
+      Specifies that the job class for TSO is to be deleted.
+
+  MSGCLASS(message-class)
+      Specifies the default message class for TSO.  The value is 1
+      alphanumeric character.
+
+  NOMSGCLASS
+      Specifies that the message class for TSO is to be deleted.
+
+  HOLDCLASS(hold-class)
+      Specifies the default hold class for TSO.  The value is 1
+      alphamumeric character.
+
+  NOHOLDCLASS
+      Specifies that the hold class for TSO is to be deleted.
+
+  SYSOUTCLASS(sysout-class))
+      Specifies the default SYSOUT class for TSO.  The value is 1
+      alphanumeric character.
+
+  NOSYSOUTCLASS
+      Specifies that the SYSOUT class for TSO is to be deleted.
+
+  ACCTNUM(account-number)
+      Specifies the default account number for TSO.  The value is 1 -
+      39 alphanumeric characters.
+
+  PROC(logon-procedure-name)
+      Specifies the default procedure to be executed at TSO logon
+      time.  The value is 1 - 8 alphanumeric characters, the first
+      being alphabetic.
+
+  SIZE(region-size)
+      Specifies the default region size for TSO at logon time.  The
+      value is an integer 0 - 2096128.
+
+  MAXSIZE(region-size)
+      Specifies the maximum region size for TSO that may be used at
+      logon time.  The value is an integer 0 - 2096128.
+
+  NOMAXSIZE
+      Specifies that the maximum region size for TSO is to be deleted.
+
+  UNIT(unit-name)
+      Specifies the UNIT for TSO, to be used by dynamic allocation.
+      The value is 1 - 8 alphanumeric characters.
+
+  DEST(destination-id)
+      Specifies the destination for TSO, to which SYSOUT data sets are
+      to be routed.  The value is 1 - 8 alphanumeric characters, the
+      first being alphabetic.
+
+  NODEST
+      Specifies that the destination ID for TSO is to be deleted.
+
+  USERDATA(user-data)
+      Specifies installation-defined data for TSO.  The value is 4
+      hexadecimal characters.
+
+  NOTSO
+      Specifies that all TSO information is to be deleted.
+
+  ICH21001I COMMAND ENDED DUE TO ERROR
+            UNABLE TO PROMPT FOR OIDCARD
+
+            Explanation:  You specified the OIDCARD operand but TSO
+            was unable to prompt you to enter the operator
+            identification card.
+
+            System Action:  The command is terminated.
+
+            User Response:  Be sure you are executing the command in
+            the foreground and in prompt mode.
+
+  ICH21002I COMMAND ENDED DUE TO ERROR
+            UNABLE TO ESTABLISH ESTAE
+
+            Explanation:  An ESTAE environment could not be
+            established.
+
+            System Action:  RACF terminates the command.
+
+  ICH21003I COMMAND ENDED DUE TO ERROR
+            PUTGET ERROR RETURN CODE IS xx
+
+            Explanation:  You specified the OIDCARD operand but the
+            TSO PUTGET service routine failed with a return code
+            indicated by xx while trying to read the operator
+            identification card.  For an explanation of the return
+            code, see one of the following:
+
+            o   For MVS/370, OS/VS2 TSO Guide to Writing a Terminal
+                Monitor Program or a Command Processor, GC28-0648
+            o   If TSO/E is installed, see one of the following:  TSO
+                Extensions Guide to Writing a Terminal Monitor Program
+                or a Command Processor or see TSO Extensions
+                Programming Services.  For the order number of the
+                book you need, see the TSO/E General Information
+                Manual.
+
+  ICH21004I (userid, DFLTGRP, OWNER, USER) NOT ALTERED
+
+            Explanation:  An error occurred during RACF processing.
+
+            System Action:  If a userid appears in the message, the
+            indicated operation on userid was not performed.  If USER
+            appears, the error occurred before a particular userid
+            could be determined.  Otherwise, the DFLTGRP or OWNER
+            fields were not altered.
+
+  ICH21005I NOT AUTHORIZED TO SPECIFY operand, OPERAND IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify the indicated operand.
+
+            System Action:  RACF ignores the operand and continues
+            processing with the next operand.
+
+  ICH21006I AUTHORITY SPECIFIED GREATER THAN THE COMMAND USER
+
+            Explanation:  You have CONNECT authority and cannot
+            specify JOIN authority.  The other operands were modified.
+
+  ICH21007I (NOPASSWORD, NOOIDCARD) OPERAND IGNORED
+
+            Explanation:  You specified the NOPASSWORD or NOOIDCARD
+            operand, but the OIDCARD or PASSWORD operand was not
+            specified on the command or had not been previously
+            established in the user's profile.
+
+            System Action:  RACF ignores the operand and continues
+            command processing with the next operand.
+
+  ICH21008I NOT AUTHORIZED TO SPECIFY CLAUTH/NOCLAUTH FOR
+            (USER, TAPEVOL, DASDVOL, TERMINAL), CLASS IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify the CLAUTH or NOCLAUTH operands for the indicated
+            class.
+
+            System Action:  RACF ignores the class and continues
+            command processing with the next class specified.
+
+  ICH21009I UNABLE TO LOCATE userid
+
+            Explanation:  The indicated userid could not be found in
+            the RACF data base.
+
+            System Action:  RACF terminates the command.
+
+  ICH21010I NOT AUTHORIZED TO ISSUE ALTUSER
+
+            Explanation:  You are not defined to RACF and cannot issue
+            the ALTUSER command, or RACF is not active.
+
+            System Action:  RACF terminates the command.
+
+  ICH21011I (AUTHORITY, UACC) NOT ALTERED
+
+            Explanation:  An error occurred during ALTUSER command
+            processing.
+
+            System Action:  The AUTHORITY or UACC fields are not
+            altered.
+
+  ICH21012I AUTHORIZED TO ISSUE ONLY UAUDIT/NOUAUDIT FOR userid;
+            REMAINING OPERANDS IGNORED
+
+            Explanation:  You specified operands in addition to UAUDIT
+            or NOUAUDIT, but for the indicated userid, you are only
+            authorized to specify the UAUDIT or NOUAUDIT operands.
+
+            System Action:  All operands other than UAUDIT or NOUAUDIT
+            are ignored.
+
+  ICH21013A ENTER OPERATOR IDENTIFICATION CARD
+
+            Explanation:  You have specified the OIDCARD operand.
+            This message is requesting that you enter the operator
+            identification card for the user being altered so that the
+            information on it can be put into the user's profile.
+
+            System Action:  Command processing waits for you to enter
+            the operator identification card.
+
+  ICH21014I COMMAND ENDED DUE TO ERROR
+            TERMINAL TYPE NOT SUPPORTED
+
+            Explanation:  You specified the OIDCARD operand, but when
+            the operator identification card was entered, it could not
+            be verified because it was entered on a terminal that is
+            not supported.
+
+            System Action:  The ALTUSER command is terminated.
+
+  ICH21015I CLASS class-name AND REMAINING CLASSES NOT ALTERED FOR
+            CLAUTH/NOCLAUTH
+
+            Explanation:  The indicated class and all remaining class
+            names in the CLAUTH/NOCLAUTH list were not added to or
+            deleted from the list of authorized classes in the user
+            profile because an error occurred in the RACF manager.
+
+            System Action:  A RACF manager error message precedes this
+            message and explains the error.  Other operands on the
+            command have been processed.
+
+  ICH21016I PASSWORD CHANGE FOR 'id' SUPPRESSED BY INSTALLATION
+            PASSWORD EXIT
+
+            Explanation:  The proposed password, as specified in the
+            PASSWORD operand on the ALTUSER command, does not obey the
+            syntax rules of the installation.  (These rules were
+            specified by the PASSWORD keyword, RULEn option, on the
+            SETROPTS command.)
+
+            System Action:  The command is terminated.
+
+            User Response:  See your local administrator for the rules
+            regarding new passwords.
+
+  ICH21017I NOT AUTHORIZED TO SPECIFY MODEL/NOMODEL, OPERAND IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify  MODEL or NOMODEL on the ALTUSER command. The
+            proper authority is either a user modifying his own entry,
+            OWNER of entry, or SPECIAL.
+
+            System Action:  The command is terminated.
+
+  ICH21018I WARNING, UNABLE TO LOCATE THE MODEL PROFILE FOR
+            data-set-name
+
+            Explanation:  You have specified a model profile data set
+            name that cannot be found on the RACF data base.  For
+            modeling to be effective for this data set name, a data
+            set profile must first be created.
+
+            System Action:  RACF adds the data set name you specified
+            to the user profile in anticipation that profile
+            information for this name will be completed (using the
+            ADDSD command) at a later time.  RACF continues to process
+            the ALTUSER command.
+
+  ICH21019I 'RESUME' IGNORED.  userid NOT CURRENTLY REVOKED
+
+            Explanation:  The indicated userid is not currently
+            revoked.
+
+            System Action:  RACF ignores the specification of a future
+            date with the RESUME operand.
+
+  ICH21020I category ALREADY DEFINED TO profile-name
+
+            Explanation:  The specified category has already been
+            defined in this profile.
+
+            System Action:  RACF ignores the category and continues
+            command processing with the next option.
+
+  ICH21021I category NOT DEFINED TO  profile-name
+
+            Explanation:  Because the specified category has not been
+            defined in this profile, RACF cannot delete it.
+
+            System Action:  RACF ignores the category and continues
+            command processing with the next option.
+
+  ICH21022I 'REVOKE' IGNORED.  userid IS CURRENTLY REVOKED
+
+            Explanation:  REVOKE was specified with a date, but the
+            user is already revoked.
+
+            System Action:  RACF ignores REVOKE processing  and
+            continues command processing with the next option.
+
+  ICH21023I COMMAND PROCESSING TERMINATED.  NO (SECLEVELS |
+            CATEGORIES) FOUND
+
+            Explanation:  RACF could not validate the name you
+            specified on the SECLEVEL or ADDCATEGORY keyword. This
+            happened for one of two reasons:
+
+            o   There is no SECLEVEL or CATEGORY profile.
+            o   A profile is defined, but it doesn't contain any
+                members.
+
+            System Action:  RACF terminates the command.
+
+  ICH21026I NOT AUTHORIZED TO UPDATE SPECIFIED FIELD(S) IN
+            TSO SEGMENT
+
+            Explanation:  You do not have sufficient authority to
+            access the TSO segment at the field level.
+
+  ICH21027I COMMAND PROCESSING COMPLETED BUT UNABLE TO
+            UPDATE 'SYS1.BRODCAST'.
+
+            Explanation:  The command you issued has completed;
+            however, your attempt to change the TSO data set
+            'SYS1.BRODCAST' has failed.
+
+  ICH21028I TSO OPERAND NOT PROCESSED
+
+            Explanation:  You have specified the TSO operand
+            incorrectly.  Correct the error and retry the command.
+
+  ICH21029I CONFLICT BETWEEN SIZE AND MAXSIZE.  OPERAND IS IGNORED.
+
+            Explanation:  The SIZE and MAXSIZE parameters differ.
+            Both parameters are ignored.
+
+  ICH21030I SIZE SPECIFIED GREATER THAN MAXSIZE.  SIZE
+            ADJUSTED EQUAL TO MAXSIZE.
+
+            Explanation:  The specified SIZE is greater than the
+            maximum allowable size, as specified on the MAXSIZE
+            parameter.
+
+            System Action:  RACF adjusts SIZE to equal the MAXSIZE
+            parameter.
+
+            User Response:  You can adjust the SIZE and MAXSIZE
+            parameters using the ALTUSER command.
+</PRE>
+
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

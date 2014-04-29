@@ -1,0 +1,1042 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>UNIX: APPC Access Method : System Configuration for the APPC Communications Environment </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381956.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381964.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0382047.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zconfenv">System Configuration for the APPC Communications Environment</A></FONT></H1>
+
+
+<DL>
+<DT><B>Network Administrator</B></DT>
+<DD>The procedure that you use to configure the APPC communications
+environment is based on the type of UNIX system that you are using. See the
+appropriate section according to the UNIX system type. 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>AIX</TD>
+<TD align="left"><A href="#zunixaix">Configuring the APPC Communications Environment for AIX</A>.</TD></TR>
+
+<TR align=left valign="top">
+<TD>HP-UX</TD>
+<TD align="left"><A href="#znixhpux">Configuring the APPC Communications Environment for HP-UX</A>.</TD></TR>
+
+<TR align=left valign="top">
+<TD>Solaris</TD>
+<TD align="left"><A href="#zsolaris">Configuring the APPC Communications Environment for Solaris</A>.</TD></TR>
+</TABLE>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zunixaix">Configuring the APPC Communications Environment for AIX</A></FONT></B></TD></TR></TABLE>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The following applies to configuring the SNA Server/6000 software
+only. If you are using another communications product, refer to that product's
+configuration instructions.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>You must perform
+several SNA Server/6000 configuration tasks
+before the APPC access method can be used with SAS/CONNECT and SAS/SHARE.
+Configuration may be unnecessary if other applications at your site already
+use SNA APPC.
+<P>The particular configuration tasks that you must perform are based on
+the capabilities of your SNA network.  If your SNA network supports APPN,
+you do not have to configure partner logical unit, location, and side information
+profiles. At a minimum, however, you must configure the following components: 
+<DL>
+<DT>node</DT>
+<DD>defines a set of default parameters that establish operational
+controls that you can modify. The node profile is created automatically when
+the SNA Server/6000 product is installed.<P></DD>
+
+<DT>control point</DT>
+<DD>defines local SNA aspects regarding PU/LU functionality,
+including APPN characteristics.<P></DD>
+
+<DT>data link control profile and link station profile</DT>
+<DD>defines transport layer attributes, such as network interface
+type and local control and remote link station.<P></DD>
+
+<DT>mode profile</DT>
+<DD>specifies that the mode must be defined on both the local
+and remote hosts.<P></DD>
+</DL>
+
+<P>The profile definitions are used during session setup to establish flow-control
+parameters, such as request unit sizes and pacing limits, and to control maximum
+session limits.  If your SNA network does not support APPN, partner logical
+unit, location, and side information, then profiles must be configured for
+each potential partner.
+<BR><H3>Sample AIX Configuration File</H3>
+
+
+<P>A sample AIX configuration file follows:  
+
+
+
+<PRE>   sna:
+prof_name                                     = "sna"
+max_sessions                                  = 200
+max_conversations                             = 200
+restart_action                                = once
+rrm_enabled                                   = no
+dynamic_inbound_partner_lu_definitions_allowed = yes
+standard_output_device                        = "/dev/console"
+standard_error_device                         = "/var/sna/sna.stderr"
+nmvt_action_when_no_nmvt_process              = reject
+trusted_group_ids                             = {system}
+comments                                      = ""
+
+   control_pt:
+prof_name                                     = "node_cp"
+xid_node_id                                   = "*"
+network_name                                  = "SASNET01"
+control_pt_name_alias                         = "P0CP1001"
+control_pt_name                               = "P0CP1001"
+control_pt_node_type                          = appn_end_node
+max_cached_trees                              = 500
+max_nodes_in_topology_database                = 500
+route_addition_resistance                     = 128
+comments                                      = ""
+
+   partner_lu6.2:
+prof_name                                     = "P0LU2001"
+fq_partner_lu_name                            = "SASNET01.P0LU2001"
+partner_lu_alias                              = "P0LU2001"
+session_security_supp                         = no
+parallel_session_supp                         = yes
+conversation_security_level                   = none
+comments                                      = ""
+
+   partner_lu6.2_location:
+prof_name                                     = "P0LU2001"
+fq_partner_lu_name                            = "SASNET01.P0LU2001"
+partner_location_method                       = owning_cp
+fq_partner_owning_cp_name                     = "SASNET01.P00U1000"
+local_node_is_network_server_for_len_node     = no
+fq_node_server_name                           = "SASNET01.P00U1000"
+local_lu_name                                 = ""
+link_station_profile_name                     = ""
+comments                                      = ""
+
+
+   side_info:
+prof_name                                     = "P0LU2001"
+local_lu_or_control_pt_alias                  = "P0CP1001"
+partner_lu_alias                              = ""
+fq_partner_lu_name                            = "SASNET01.P0LU2001"
+mode_name                                     = "MODE001"
+remote_tp_name_in_hex                         = no
+remote_tp_name                                = ""
+comments                                      = ""
+
+  link_station_token_ring:
+prof_name                                     = "TR3174"
+use_control_pt_xid                            = yes
+xid_node_id                                   = "*"
+sna_dlc_profile_name                          = "TR3174"
+stop_on_inactivity                            = no
+time_out_value                                = 0
+LU_registration_supported                     = no
+LU_registration_profile_name                  = ""
+link_tracing                                  = no
+trace_format                                  = long
+access_routing_type                           = link_address
+remote_link_name                              = ""
+remote_link_address                           = 0x400000000001
+remote_sap                                    = 0x04
+call_out_on_activation                        = yes
+verify_adjacent_node                          = no
+net_id_of_adjacent_node                       = "SASNET01"
+cp_name_of_adjacent_node                      = "P00U1000"
+xid_node_id_of_adjacent_node                  = "*"
+node_type_of_adjacent_node                    = learn
+solicit_sscp_sessions                         = yes
+activate_link_during_system_init              = yes
+activate_link_on_demand                       = no
+cp_cp_sessions_supported                      = yes
+cp_cp_session_support_required                = no
+adjacent_node_is_preferred_server             = yes
+initial_tg_number                             = 0
+restart_on_normal_deactivation                = no
+restart_on_abnormal_deactivation              = no
+restart_on_activation                         = no
+TG_effective_capacity                         = 4300800
+TG_connect_cost_per_time                      = 0
+TG_cost_per_byte                              = 0
+TG_security                                   = nonsecure
+TG_propagation_delay                          = lan
+TG_user_defined_1                             = 128
+TG_user_defined_2                             = 128
+TG_user_defined_3                             = 128
+comments                                      = ""
+
+   sna_dlc_token_ring:
+prof_name                                     = "TR3174"
+datalink_device_name                          = "tok0"
+force_timeout                                 = 120
+user_defined_max_i_field                      = no
+max_i_field_length                            = 30729
+max_active_link_stations                      = 100
+num_reserved_inbound_activation               = 0
+num_reserved_outbound_activation              = 0
+transmit_window_count                         = 8
+dynamic_window_increment                      = 1
+retransmit_count                              = 8
+receive_window_count                          = 8
+priority                                      = 0
+inact_timeout                                 = 48
+response_timeout                              = 4
+acknowledgement_timeout                       = 1
+link_name                                     = ""
+local_sap                                     = 0x04
+retry_interval                                = 60
+retry_limit                                   = 20
+dynamic_link_station_supported                = no
+trace_base_listen_link_station                = no
+trace_base_listen_link_station_format         = long
+dynamic_lnk_solicit_sscp_sessions             = yes
+dynamic_lnk_cp_cp_sessions_supported          = yes
+dynamic_lnk_cp_cp_session_support_required    = no
+dynamic_lnk_TG_effective_capacity             = 4300800
+dynamic_lnk_TG_connect_cost_per_time          = 0
+dynamic_lnk_TG_cost_per_byte                  = 0
+dynamic_lnk_TG_security                       = nonsecure
+dynamic_lnk_TG_propagation_delay              = lan
+dynamic_lnk_TG_user_defined_1                 = 128
+dynamic_lnk_TG_user_defined_2                 = 128
+dynamic_lnk_TG_user_defined_3                 = 128
+comments                                      = ""
+
+   mode:
+prof_name                                     = "MODE001"
+mode_name                                     = "MODE001"
+max_sessions                                  = 5000
+min_conwinner_sessions                        = 5000
+min_conloser_sessions                         = 0
+auto_activate_limit                           = 0
+max_adaptive_receive_pacing_window            = 16
+receive_pacing_window                         = 7
+max_ru_size                                   = 1024
+min_ru_size                                   = 256
+class_of_service_name                         = "#CONNECT"
+comments                                      = ""</PRE>
+<BR><H3>References</H3>
+
+
+<P>For complete details about how to install and configure the SNA server,
+see the following documents: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>AIX SNA Server/6000 Command Reference (SC31-7100)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>AIX SNA Server/6000 Diagnosis Guide and Messages (SC31-
+7101)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>AIX SNA Server/6000 User's Guide (SC31-7002)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>AIX SNA Server/6000 Transaction Program Reference (SC31-
+7003)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>AIX SNA Server/6000 Configuration Reference (SC31-7014)</B></TD></TR></TABLE>
+<P>Contact IBM for information about obtaining this
+documentation.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="znixhpux">Configuring the APPC Communications Environment for HP-UX</A></FONT></B></TD></TR></TABLE>
+
+<P>You must install and configure these products in order to configure
+the APPC communications environment for the HP-UX platform: 
+<P>
+<UL>
+
+<LI>SNAplusLink<P>
+
+<LI>SNAplusAPI.<P>
+</UL>
+
+<BR><H3>Configuring SNAplusLink</H3>
+
+
+<P>The SNAplusLink
+product allows three types of connectivity: 
+<P>
+<UL>
+
+<LI>Synchronous Data Link Control (SDLC),<P>
+
+<LI>Qualified Logical Link Control (QLLC),
+and<P>
+
+<LI>Token Ring (TR).<P>
+</UL>
+
+<P>To use SNAplus over QLLC link, either X.25/9000 Link for the Series
+700 or X.25/9000 Link for the Series 800 must be installed and configured
+before you can install and configure SNAplus.
+<P>To use SNAplus over a Token Ring link, either HP Token Ring/9000 for
+the Series 700 or HP Token Ring/9000 for the Series 800 must be installed
+and configured before you can install and configure SNAplus.
+<P>Before you install SNAplus, decide whether SNAplus software will function
+in a stand-alone or a client/server environment. In a stand-alone environment,
+all functionality is isolated to a single HP workstation. In a client/server
+environment, client HP workstations that run SNAplus Presentation Services
+products (SNAplusAPI) can access server HP workstations that run SNAplusLink
+where the physical link resides.
+<P>Use the 
+
+
+<CODE><B>snapconfig </B></CODE>program to configure SNAplusLink. This
+program allows you to configure the following: 
+<P>
+<UL>
+
+<LI>link (SDLC, QLLC, TR)<P>
+
+<LI>connection (logical path)<P>
+
+<LI>local node (PU
+2.1).<P>
+</UL>
+
+<P>The 
+
+
+<CODE><B>snapconfig</B></CODE> installation script automatically creates
+these configuration files: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><CODE><B>sna.ini</B></CODE></TD></TR>
+<TR valign="top"><TD></TD><TD><CODE><B>com.cfg</B></CODE></TD></TR>
+<TR valign="top"><TD></TD><TD><CODE><B>com.sec</B></CODE></TD></TR>
+<TR valign="top"><TD></TD><TD><CODE><B>sna.net</B></CODE>( for client/server environment only)</TD></TR></TABLE>
+<BR><H3>Configuring SNAplusAPI</H3>
+
+
+<P>You also use the 
+
+
+<CODE><B>snapconfig</B></CODE> program to configure
+SNAplusAPI APPC.  This program allows you to configure the following: 
+<P>
+<UL>
+
+<LI>APPC modes<P>
+
+<LI>remote APPC LUs<P>
+
+<LI>local APPC
+LUs.<P>
+</UL>
+
+<P>The SNAplus control daemon controls the SNAplusLink product (local nodes,
+links, and connections) and manages communication among SNAplus products and
+product components. You must start the SNAplus control daemon on each host
+on the LAN (and on each stand-alone computer) before you can use any of the
+SNAplus products that are installed on that host.
+<P>To start the SNAplus control daemon, issue the following command at
+the HP-UX command prompt:  
+
+
+
+<PRE>snapstart daemon</PRE>
+<P>Subsequently, you will use the 
+
+
+<CODE><B>snapmanage </B></CODE>program to start
+and stop SNAplus products (SNAplusLink local nodes, links, and connections),
+to view the status and monitor the use for SNAplus products, and to control
+logging and tracing.
+<BR><H3>Sample HP/UX Configuration File</H3>
+
+
+<P>The following HP/UX configuration file excerpt was created by using
+the
+
+
+<CODE><B> snaptextcfg </B></CODE> command.  The excerpt is limited to APPC information
+with Token Ring connection.  
+
+
+
+<PRE>;
+*****************************************************************************
+
+; SNAplus Binary to Text Configuration Utility
+; Copyright (C) 1993 Hewlett-Packard Company
+; Binary Configuration   = /usr/lib/sna/com.cfg
+; Security File          = /usr/lib/sna/com.sec
+; File version           = 100.20
+;
+*****************************************************************************
+
+;
+*****************************************************************************
+
+; Diagnostics Record (Mandatory)
+
+;
+*****************************************************************************
+
+[DIAGNOSTICS]
+
+connection           = ""               ; Name of network mgt connection
+UCF_user             = ""               ; User ID for UCF commands
+error_log            = "/usr/lib/sna/sna.err" ; Error log file
+audit_log            = "/usr/lib/sna/sna.aud" ; Audit log file
+audit_level          = 6                ; Detailed problem analysis
+send_overfl          = No               ; Send RTM when response counter max
+send_end             = No               ; Send RTM at end of session
+stop_timer           = screen           ; Data first reaches the screen
+boundary_1           = 0.5              ; RTM histogram time boundaries
+boundary_2           = 1.0
+boundary_3           = 2.0
+boundary_4           = 5.0
+pc_error_log         = "sna.err"        ; PC client error log file
+pc_audit_log         = "sna.aud"        ; PC client audit log file
+
+;
+*****************************************************************************
+
+; Local Node Record
+
+;
+*****************************************************************************
+
+[NODE]
+
+name                 = "NODE1"          ; Local Node
+Name
+description          = "Node for APPC"  ; Description of Local Node
+network              = "SASNET01"       ; Node Network Name
+
+;
+*****************************************************************************
+
+; APPC Local LU Record
+
+;
+*****************************************************************************
+
+[APPC_LOCAL_LU]
+
+alias                = "LOCLU001"       ; LU Alias
+node                 = "NODE1"          ; Local Node
+description          = "Local LU/CP"    ; Text description of LU
+net_name             = "SASNET01"       ; LU Network Name
+LU_name              = "LOCLU001"       ; Name of LU
+LU_number            = 0                ; LU Number
+session_lim          = 254              ; Session Limit
+default_LU           = Yes              ; LU in pool of Default LUs
+local_use            = Yes              ; LU can be used locally
+syncpoint            = No               ; LU supports syncpoint sessions
+conv_sec             = No               ; LU uses conversation level security
+partner_LU           = "PARTLU01,4"     ; List of Partner LUs and Modes
+partner_LU           = "PARTLU02,4"
+partner_LU           = "PARTLU03,4"
+partner_LU           = "PARTLU04,4"
+
+;
+*****************************************************************************
+
+; Token Ring Connection Record
+
+;
+*****************************************************************************
+
+[TR_CONN]
+
+name                 = "TRCON"          ; Name of connection
+node                 = "NODE1"          ; Name of node
+description          = "Token Ring connection" ; Description
+remote_end           = peer             ; Remote end is peer
+link_role            = negotiable       ; Station behaves as negotiable
+activation           = initially        ; Initially active
+node_send            = "05D.FF815"      ; Node id to send
+node_rcv             = "017.00000"      ; Node id to receive
+control_point        = "SASNET01.LOCALCP" ; Fully qualified control point name
+remote_address       = 400031740001     ; Address of remote TR network
+remote_sap           = 04               ; Remote SAP address
+retry_limit          = 10               ; Retry limit
+rcv_ack_limit        = 10               ; Receive acknowledgment threshold
+send_ack_limit       = 10               ; Unacknowledged send threshold
+max_btu              = 4096             ; Maximum BTU length
+link                 = "TOKEN"          ; link
+
+;
+*****************************************************************************
+
+; APPC Mode Record
+
+Note: Be generous in defining session limits. Define
+enough sessions so that session limits will never be
+reached. As an APPC API limitation, if session limits
+are reached, the next time a session is requested,
+the APPC layer will not return to the application
+layer until a session is available. This indefinite
+waiting condition may cause you to think that SAS
+is not responding or that it is in a loop when,
+in fact, the underlying APPC layer is waiting for a
+session to become available.
+
+;
+*****************************************************************************
+
+[APPC_MODE]
+
+name                 = "SASAPPC"        ; Mode name
+mode_ID              = 4                ; Unique Mode ID
+description          = "APPC Mode"      ; Description
+connection           = "TRCON"          ; Connection used by this mode
+priority             = high             ; Mode is High Priority
+session_limit        = 12               ; Mode Session Limit
+MCW                  = 12               ; Min Conwinner Sessions
+partner_MCW          = 0                ; Partner Min Conwinner Sessions
+auto_act             = 0                ; Auto activated sessions
+min_sendRU           = 256              ; Min Send RU size
+max_sendRU           = 4096             ; Max Send RU size
+send_pace            = 10               ; Send Pacing count
+min_rcvRU            = 256              ; Min Receive RU size
+max_rcvRU            = 4096             ; Max Receive RU size
+rcv_pace             = 10               ; Receive Pacing count
+
+;
+*****************************************************************************
+
+; APPC Remote LU Record
+
+;
+*****************************************************************************
+
+[APPC_REMOTE_LU]
+
+alias                = "PARTLU01"        ; LU Alias
+description          = "MVS remote LU"   ; Text description of LU
+net_name             = "SASNET01"        ; LU Network Name
+LU_name              = "PARTLU01"        ; Name of LU
+SSCP_Alias           = "PARTLU01"        ; SSCP LU Alias
+parallel_sess        = Yes               ; Parallel Sessions supported
+conv_sec             = Yes               ; LU uses conversation level security
+preval_sec           = No                ; LU can prevalidate security
+session_sec          = none              ; No Session Level Security
+
+;
+*****************************************************************************
+
+; APPC Remote LU Record
+
+;
+*****************************************************************************
+
+[APPC_REMOTE_LU]
+
+alias                = "PARTLU02"        ; LU Alias
+description          = "MVS Surrogate LU"; Text description of LU
+net_name             = "SASNET01"        ; LU Network Name
+LU_name              = "PARTLU02"        ; Name of LU
+SSCP_Alias           = "PARTLU02"        ; SSCP LU Alias
+parallel_sess        = Yes               ; Parallel Sessions supported
+conv_sec             = Yes               ; LU uses conversation level security
+preval_sec           = No                ; LU can prevalidate security
+session_sec          = none              ; No Session Level Security
+
+;
+*****************************************************************************
+
+; APPC Remote LU Record
+
+;
+*****************************************************************************
+
+[APPC_REMOTE_LU]
+
+alias                = "PARTLU03"       ; LU Alias
+description          = "Windows remote LU"  ; Text description of LU
+net_name             = "SASNET01"       ; LU Network Name
+LU_name              = "PARTLU03"       ; Name of LU
+SSCP_Alias           = "PARTLU03"       ; SSCP LU Alias
+parallel_sess        = Yes              ; Parallel Sessions supported
+conv_sec             = Yes              ; LU uses conversation level security
+
+preval_sec           = No               ; LU can prevalidate security
+session_sec          = none             ; No Session Level Security
+
+;
+*****************************************************************************
+
+; APPC Remote LU Record
+
+;
+*****************************************************************************
+
+[APPC_REMOTE_LU]
+
+alias                = "PARTLU04"       ; LU Alias
+description          = "OS/2 remote LU" ; Text description of LU
+net_name             = "SASNET01"       ; LU Network Name
+LU_name              = "PARTLU04"       ; Name of LU
+SSCP_Alias           = "PARTLU04"       ; SSCP LU Alias
+parallel_sess        = Yes              ; Parallel Sessions supported
+conv_sec             = Yes              ; LU uses conversation level security
+preval_sec           = No               ; LU can prevalidate security
+session_sec          = none             ; No Session Level Security
+
+;
+*****************************************************************************
+
+; APPC Remote LU Record
+
+;
+*****************************************************************************
+
+; Token Ring Link Record
+
+;
+*****************************************************************************
+
+[TR_LINK]
+name                 = "TOKEN"          ; Name of LU
+description          = "Token Ring link"; Text description of LU
+device_name          = "sna_TR"         ; Name of device file for link
+port_number          = 0                ; Adapter port
+
+;
+*****************************************************************************
+
+; Token Ring Link Usage Record
+
+;
+*****************************************************************************
+
+[TR_USAGE]
+node                 = "NODE1"          ; Node name
+link                 = "TOKEN"          ; Link name
+incoming             = Yes              ; Incoming calls accepted
+max_conn             = 1                ; Maximum number of connections
+local_sap            = 04               ; Local SAP address</PRE>
+<BR><H3>References</H3>
+
+
+<P>For complete details about how to install and configure SNAplusLink
+and SNAplusAPI, see the following documents: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>HP-UX SNAplus Installation Guide (J2220-61021)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>HP-UX SNAplusLink Administrator's Guide
+(J2220-61023)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>HP-UX SNAplusAPI Administrator's Guide (J2223-61008)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>HP-UX SNAplus Diagnostics Guide
+(J2220-61022)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Installing and Administering X.25/9000 (36940-90018)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>Installing and Administering Token Ring/9000
+(J21625-61001)</B>
+<P>Contact Hewlet-Packard for information about obtaining this documentation.</TD></TR>
+<TR valign="top"><TD></TD><TD><B>IBM SNA: Technical Overview
+(CC30-#073)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>IBM SNA: Formats(CA27-3136)</B>
+<P>Contact IBM for information about obtaining this
+documentation.</TD></TR></TABLE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zsolaris">Configuring the APPC Communications Environment for Solaris</A></FONT></B></TD></TR></TABLE>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The Solaris platform is not supported in Version 7 and
+later.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>You must perform the following
+procedures to configure the APPC
+communications environment for the Solaris platform: 
+<P>
+<UL>
+
+<LI>Install and configure link components.<P>
+
+<LI>Add gateways to your
+network.<P>
+
+<LI>Ensure that the appropriate daemons are running.<P>
+</UL>
+
+<BR><H3>Installing and Configuring Link Components</H3>
+
+
+<P>You must install and configure link components, such as SDLC
+or LLC drivers.  For example, if a Token Ring connection is desired, you must
+install and configure the SunLink Token Ring Interface/SBus software.
+<BR><H3>Adding Gateways to Your Network</H3>
+
+
+<P>To update
+or add gateways to your network, you must run the 
+
+
+<CODE><B>install.maps </B></CODE>script, which produces output that identifies workstations
+that are running SunLink SNA Peer-to-Peer gateways. Output is sent to the 
+
+
+<CODE><B>/etc/appcs</B></CODE> file, which has the following format:  
+
+
+
+<PRE><I>gateway_name  host_name:host_gateway_name</I></PRE>
+<P>Use the <B>gateway_name</B> value to set the APPC_GATEWAY environment
+variable or the  APPCGATE SAS  macro variable. See <A href="z0162133.htm#zappcsec">SAS/CONNECT and SAS/SHARE Variables</A> for information about these variables. <B>gateway-name</B> is used for
+attaching the SAS local transaction program
+to the specified peer-to-peer gateway.
+<P>If you are running NIS/NIS+, you can also run the 
+
+
+<CODE><B>install.maps</B></CODE>program to update the NIS/NIS+ databases with your new gateway configurations.
+<BR><H3>Ensuring that the Appropriate Daemons Are Running</H3>
+
+
+<P>If the SUNLINK_MAPPER daemon and the SNACOMMD daemon are not
+already running or do not start automatically, then you must start them. 
+The SUNLINK_MAPPER daemon allows client transaction programs (TPs) to find
+the SunLink SNA Peer-to-Peer gateway on the network. The 
+
+
+<CODE><B>snacommd</B></CODE> daemon manages and controls access to the DLC drivers protocol stacks.
+<BR><H3>Sample Solaris Configuration File</H3>
+
+
+<P>A sample Solaris configuration file follows:  
+
+
+
+<PRE>#*****************************************************************
+# PU definition                                                  *
+# When this verb is not specified, a system default is used.     *
+#*****************************************************************
+
+  :DEFINE_PU:
+
+  pu_name = XXXPU000, network_name = SASNET01, contents_id = 01234567
+
+
+#*****************************************************************
+# Node definition                                                *
+# When this verb is not specified, a system default is used.     *
+# Note:                                                          *
+# node_id is the control point name for my workstation -- it is  *
+# important since it will be used during XID negotiation         *
+#*****************************************************************
+
+  :DEFINE_NODE:
+
+  pu_name = XXXPU000; node_id = LOCALCP
+
+#*****************************************************************
+# Local LU definition (1 for each local lu)                      *
+# This LU corresponds to LOCLU001 defined in VTAM.               *
+# 'pu_name' is sifted down from ':DEFINE_NODE:'.                 *
+#*****************************************************************
+
+  :DEFINE_LOCAL_LU:
+
+  fql_lu_name      = SASNET01.LOCLU001
+
+  lu_local_address = 1                 # must be non-zero even for independent
+  lu_name          = LOCLU001
+  lu_session_limit = 512               # session limit
+
+#*****************************************************************
+# Partner LU definition                                          *
+# This is actually one of the subsystems of VTAM.                *
+# A local LU cannot communicate with the subsystem of VTAM unless*
+#   the partner LU (subsystem) is defined for the local LU.      *
+# 'pu_name' and 'lu_local_address' are sifted down from          *
+# ':DEFINE_LOCAL_LU:'                                            *
+#*****************************************************************
+
+  :DEFINE_PARTNER_LU:
+
+  fql_plu_name     = SASNET01.PLUNAM01
+  u_plu_name       = PLUNAM01
+  parallel_session = yes
+  lu_is_dependent  = no
+  initiate_type    = INITIATE_ONLY
+
+#*****************************************************************
+# Mode definition (1 for each mode)                              *
+# This is actually one of the MODENAME in VTAM or CICS.          *
+# A local LU cannot communicate with the subsystem               *
+#   of VTAM over a specific mode name unless                     *
+#   (1) the partner LU (subsystem)is defined for the local LU and*
+#   (2) the mode name is defined for the partner LU.             *
+# A transaction program uses (unique_session_name) in the        *
+#   allocate verb to establish a session between the local       *
+#   LU and the partner LU over the mode name.                    *
+#   'pu_name', 'lu_local_address', and 'fql_plu_name' are sifted *
+#   down from ':DEFINE_PARTNER_LU:'.                             *
+#*****************************************************************
+
+  :DEFINE_MODE:
+  mode_name                = SASAPPC
+  unique_session_name      = PLUNAM01   # remote partner name
+  snd_pac_window           = 0
+  rcv_pac_window           = 0
+  snd_max_ru_size          = 256
+  rcv_max_ru_size          = 256
+  sync_level               = none
+  auto_activate_limit      = 0
+  session_limit            = 30
+  min_conwinner_limit      = 15
+  min_conloser_limit       = 15
+
+
+#*****************************************************************
+# Partner LU definition                                          *
+# This is actually one of the subsystems of VTAM.                *
+# A local LU cannot communicate with the subsystem of VTAM unless*
+#   the partner LU (subsystem) is defined for the local LU.      *
+# 'pu_name' and 'lu_local_address' are sifted down from          *
+#   ':DEFINE_LOCAL_LU:'.                                         *
+#*****************************************************************
+
+  :DEFINE_PARTNER_LU:
+
+  fql_plu_name     = SASNET01.PLUNAM02
+  u_plu_name       = PLUNAM02
+  parallel_session = yes
+  lu_is_dependent  = no
+  initiate_type    = INITIATE_ONLY
+
+#*****************************************************************
+# Mode definition (1 for each mode)                              *
+# This is actually one of the MODENAME in VTAM or CICS.          *
+# A local LU cannot communicate with the subsystem of VTAM over  *
+#   a specific mode name unless                                  *
+#  (1) the partner LU (subsystem)is defined for the local LU and *
+#  (2) the mode name is defined for the partner LU.              *
+# A transaction program uses (unique_session_name) in the        *
+#    allocate verb to establish a session between the local      *
+#    LU and the partner LU over the mode name.                   *
+# 'pu_name', 'lu_local_address', and 'fql_plu_name' are sifted   *
+#    down from ':DEFINE_PARTNER_LU:'.                            *
+#*****************************************************************
+
+  :DEFINE_MODE:
+  mode_name                = SASAPPC
+  unique_session_name      = PLUNAM02
+  snd_pac_window           = 0
+  rcv_pac_window           = 0
+  snd_max_ru_size          = 256
+  rcv_max_ru_size          = 256
+  sync_level               = none
+  auto_activate_limit      = 0
+  min_conloser_limit       = 15
+
+#*****************************************************************
+# Partner LU definition                                          *
+# This is actually one of the subsystems of VTAM.                *
+# A local LU cannot communicate with the subsystem of VTAM unless*
+#   the partner LU (subsystem) is defined for the local LU.      *
+# 'pu_name' and 'lu_local_address' are sifted down from          *
+#   ':DEFINE_LOCAL_LU:'.                                         *
+#*****************************************************************
+
+  :DEFINE_PARTNER_LU:
+
+  fql_plu_name     = SASNET01.PLUNAM03
+  u_plu_name       = PLUNAM03
+  parallel_session = yes
+  lu_is_dependent  = no
+  initiate_type    = INITIATE_ONLY
+
+
+#*****************************************************************
+# Mode definition (1 for each mode)                              *
+# This is actually one of the MODENAME in VTAM or CICS.          *
+# A local LU cannot communicate with the subsystem of VTAM over  *
+#   a specific mode name unless                                  *
+#  (1) the partner LU (subsystem)is defined for the local LU and *
+#  (2) the mode name is defined for the partner LU.              *
+# A transaction program uses (unique_session_name) in the        *
+#    allocate verb to establish a session between the local      *
+#    LU and the partner LU over the mode name.                   *
+# 'pu_name', 'lu_local_address', and 'fql_plu_name' are sifted   *
+#    down from ':DEFINE_PARTNER_LU:'.                            *
+#*****************************************************************
+
+  :DEFINE_MODE:
+
+  mode_name            = SASAPPC
+  unique_session_name  = PLUNAM03   # remote partner name
+  snd_pac_window       = 0
+  rcv_pac_window       = 0
+  snd_max_ru_size      = 256
+  rcv_max_ru_size      = 256
+  sync_level           = none
+  auto_activate_limit  = 0
+  session_limit        = 30
+  min_conwinner_limit  = 15
+  min_conloser_limit   = 15
+
+#*****************************************************************
+# Partner LU definition                                          *
+# This is actually one of the subsystems of VTAM.                *
+# A local LU cannot communicate with the subsystem of VTAM unless*
+#   the partner LU (subsystem) is defined for the local LU.      *
+# 'pu_name' and 'lu_local_address' are sifted down from          *
+#   ':DEFINE_LOCAL_LU:'.                                         *
+#*****************************************************************
+
+  :DEFINE_PARTNER_LU:
+
+  fql_plu_name     = SASNET01.PLUNAM04
+  u_plu_name       = PLUNAM04
+  parallel_session = yes
+  lu_is_dependent  = no
+  initiate_type    = INITIATE_ONLY
+#*****************************************************************
+# Mode definition (1 for each mode)                              *
+# This is actually one of the MODENAME in VTAM or CICS.          *
+# A local LU cannot communicate with the subsystem of VTAM over  *
+#   a specific mode name unless                                  *
+#  (1) the partner LU (sub_system)is defined for the local LU and*
+#  (2) the mode name is defined for the partner LU.              *
+# A transaction program uses (unique_session_name) in the        *
+#    allocate verb to establish a session between the local      *
+#    LU and the partner LU over the mode name.                   *
+# 'pu_name', 'lu_local_address', and 'fql_plu_name' are sifted   *
+#    down from ':DEFINE_PARTNER_LU:'.                            *
+#*****************************************************************
+
+  :DEFINE_MODE:
+  mode_name            = SASAPPC
+  unique_session_name  = PLUNAM04   # remote partner name
+  snd_pac_window       = 0
+  rcv_pac_window       = 0
+  snd_max_ru_size      = 256
+  rcv_max_ru_size      = 256
+  sync_level           = none
+  auto_activate_limit  = 0
+  session_limit        = 30
+  min_conwinner_limit  = 15
+  min_conloser_limit   = 15
+#*****************************************************************
+
+
+#*****************************************************************
+# DLC definition (1 for each dlc)                                *
+# Currently, only one DLC per APPC gateway.                      *
+#*****************************************************************
+
+  :DEFINE_DLC:
+
+  dlc_name                  = DLC0
+  dlc_driver_name           = /dev/llc2
+  port_driver_name          = tr0
+  dlc_type                  = llc         # logical link control
+  maxdata                   = 265         # MAXDATA value
+  retries                   = 32
+  local_sap                 = 04
+  block_number              = 05D         # MUST be first of xid parameters
+  id_number                 = FF813
+  role                      = negotiable  # or primary, negotiable
+  tx_rx_capability          = alternating # or simultaneous
+  include_control_point     = yes         # xid control vector
+  include_link_station_name = no          # xid control vector
+  linkid                    = 0
+  xtwait                    = 10
+
+
+#*****************************************************************
+# ALS definition (1 for each als)                                *
+# Currently, only one ALS per APPC gateway.                      *
+#*****************************************************************
+
+  :DEFINE_ALS:
+
+  dlc_name        = DLC0
+  pu_name         = XXXPU000
+  als_name        = XXALS000
+  remote_mac_addr = 400000000001
+  remote_sap      = 04
+
+
+#*****************************************************************
+# DB_MSG definition                                              *
+# No field is necessary. Defaults (shown below) are used for     *
+#   those fields that are unspecified.                           *
+#*****************************************************************
+
+  :DB_MSG:
+
+  db_pc                   = no
+  db_mail                 = no
+  db_buf                  = no
+  db_dev                  = no
+  db_api_verb             = no
+  db_character_set        = iso
+  db_record_size          = long
+  file_mode               = create
+  file_name               = '/local/u/saspad/appc.trc'
+  db_tp_info              = yes
+  db_max_trc_sz           = 0     # unlimited (in MB)</PRE>
+<BR><H3><A name="z1refs">References</A></H3>
+
+
+<P>For complete details about how to install and configure Solaris 2.x/Sun
+Link see the following documents: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>SunLink SNA Peer-to-Peer 8.0 and SunLink SNA Peer-to-Peer RunTime
+8.0 Installation Guide</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SunLink SNA Peer-to-Peer 8.0 and SunLink SNA Peer-to- Peer RunTime
+8.0 Administrator's Guide</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SunLink HSI/S 2.0 Installation and Administration Guide</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SunLink TRI/S 3.0 Installation
+Guide</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>SunLink FDDI/S 2.0 Installation Guide</B>
+<P>Contact Sun Microsystems, Inc. for information about obtaining this
+documentation.</TD></TR>
+<TR valign="top"><TD></TD><TD><B>IBM SNA: Technical Overview (CC30-#073)</B></TD></TR>
+<TR valign="top"><TD></TD><TD><B>IBM SNA: Formats (CA27-3136)</B>
+<P>Contact IBM for information
+about obtaining this documentation.</TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0381956.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381964.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0382047.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zconfenv">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

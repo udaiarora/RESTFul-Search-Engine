@@ -1,0 +1,186 @@
+<HTML>
+<!-- This page produced Mon Jul 19 13:58:41 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Functions and CALL Routines : Using Random-Number Functions and CALL Routines </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1281551.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1277911.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Language Reference: Dictionary                                                                                        </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1281561">Using Random-Number Functions and CALL Routines</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Seed Values</FONT></B></TD></TR></TABLE>
+
+<P>Random-number
+functions and CALL routines generate streams of
+random numbers from an initial starting point, called a <I>seed</I>, that either the user or the computer clock supplies. A seed must be a nonnegative integer with a
+value less than 2<SUP>31</SUP>-1 (or 2,147,483,647). If you use a positive seed, you
+can always replicate the stream of random numbers by using the same DATA step.
+If you use zero as the seed, the computer clock initializes the stream, and
+the stream of random numbers is not replicable.
+<P>Each random-number function and CALL routine generates pseudo-random
+numbers from a specific statistical distribution. Every random-number function
+requires a seed value expressed as an integer constant or a variable that
+contains the integer constant. Every CALL routine calls a variable that contains
+the seed value. Additionally, every CALL routine requires a variable that
+contains the generated random numbers.
+<P>The seed variable must be initialized prior to the first execution of
+the function or CALL statement.  After each execution of a function, the current
+seed is updated internally, but the value of the seed argument remains unchanged.
+ After each iteration of the CALL statement, however, the seed variable contains
+the current seed in the stream that generates the next random number. With
+a function, it is not possible to control the seed values, and, therefore,
+the random numbers after the initialization.
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Comparison of Random-Number Functions and CALL Routines</FONT></B></TD></TR></TABLE>
+
+<P>Except for the NORMAL and UNIFORM functions, which are equivalent to
+the RANNOR and RANUNI functions, respectively, SAS provides a CALL routine
+that has the same name as each random-number function. Using CALL routines
+gives you greater control over the seed values. As an illustration of this
+control over seed values, all the random-number CALL routines show an example
+of interrupting the stream of random numbers to change the seed value. 
+<P>With a CALL routine, you can generate multiple streams of random numbers
+within a single DATA step. If you supply a different seed value to initialize
+each of the seed variables, the streams of the generated random numbers are
+computationally independent. With a function, however, you cannot generate
+more than one stream by supplying multiple seeds within a DATA step. The following
+two examples illustrate the difference. 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Examples</FONT></B></TD></TR></TABLE>
+
+<BR><H3>Example 1: Generating Multiple Streams from a CALL Routine</H3>
+
+
+<P>This example uses the CALL RANUNI routine to generate three streams
+of random numbers from the uniform distribution with ten numbers each. See
+the results in <A href="#z1281627">The CALL Routine Example</A>.
+ 
+<PRE>options nodate pageno=1 linesize=80 pagesize=60;
+
+data multiple(drop=i); 
+   retain Seed_1 1298573062 Seed_2 447801538 
+          Seed_3 631280; 
+   do i=1 to 10; 
+      call ranuni (Seed_1,X1); 
+      call ranuni (Seed_2,X2); 
+      call ranuni (Seed_3,X3);
+      output;  
+   end; 
+run;  
+
+proc print data=multiple; 
+   title 'Multiple Streams from a CALL Routine'; 
+run; </PRE>
+<P>
+<P>
+<B><I><A name="z1281627">The CALL Routine Example</A></I></B><BR>
+
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                      Multiple Streams from a CALL Routine                     1
+
+ Obs      Seed_1        Seed_2        Seed_3         X1         X2         X3
+
+   1    1394231558     512727191     367385659    0.64924    0.23876    0.17108
+   2    1921384255    1857602268    1297973981    0.89471    0.86501    0.60442
+   3     902955627     422181009     188867073    0.42047    0.19659    0.08795
+   4     440711467     761747298     379789529    0.20522    0.35472    0.17685
+   5    1044485023    1703172173     591320717    0.48638    0.79310    0.27536
+   6    2136205611    2077746915     870485645    0.99475    0.96753    0.40535
+   7    1028417321    1800207034    1916469763    0.47889    0.83829    0.89243
+   8    1163276804     473335603     753297438    0.54169    0.22041    0.35078
+   9     176629027    1114889939    2089210809    0.08225    0.51916    0.97286
+  10    1587189112     399894790     284959446    0.73909    0.18622    0.13269</PRE></TD></TR></TABLE>
+
+<P>
+<BR><H3>Example 2: Assigning Values from a Single Stream to Multiple Variables</H3>
+
+
+<P>Using the same three seeds that were used in Example 1, this example
+uses a function to create three variables. The results that are produced are
+different from those in Example 1 because the values of all three variables
+are generated by the first seed. When you use an individual function more
+than once in a DATA step, the function accepts only the first seed value that
+you supply and ignores the rest. 
+<PRE>options nodate pageno=1 linesize=80 pagesize=60;
+
+data single(drop=i); 
+   do i=1 to 3; 
+      Y1=ranuni(1298573062); 
+      Y2=ranuni(447801538); 
+      Y3=ranuni(631280);
+      output;  
+   end; 
+run; 
+
+proc print data=single; 
+   title 'A Single Stream across Multiple Variables'; 
+run;  </PRE>
+<P><A href="#z1281632">The Function Example</A>
+shows the results. The values of Y1, Y2, and Y3 in this example come from
+the same random-number stream generated from the first seed. You can see this
+by comparing the values by observation across these three variables with the
+values of X1 in <A href="#z1281627">The CALL Routine Example</A>. 
+
+<P>
+<B><I><A name="z1281632">The Function Example</A></I></B><BR>
+
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                   A Single Stream across Multiple Variables                   1
+
+                      Obs       Y1         Y2         Y3
+
+                       1     0.64924    0.89471    0.42047
+                       2     0.20522    0.48638    0.99475
+                       3     0.47889    0.54169    0.08225</PRE></TD></TR></TABLE>
+
+<P>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1281551.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1277911.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1281561">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

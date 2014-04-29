@@ -1,0 +1,281 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Authenticate Program : Authenticating Userid and Password Pairs </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172899.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="znid-235.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="znid-239.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zpauthen">Authenticating Userid and Password Pairs</A></FONT></H1>
+
+
+<P>For connections to a UNIX remote host when using the TCP/IP access
+method, SAS/CONNECT and SAS/SHARE use
+the default authentication program to verify the remote host userid and to
+verify that the password is correct for the specified userid.
+<P>The UNIX spawner program uses the native UNIX authentication mechanism,
+by default, to validate a userid and password pair. Alternatively, the user
+can invoke the UNIX spawner program with the -AUTHPROG option and an argument
+that specifies the name of the customized authentication program. See <A href="z3wner.htm">Starting the UNIX Spawner Program</A> for
+details about invoking the UNIX spawner with the -AUTHPROG option.
+<P>A SAS/SHARE server implicitly
+invokes the default authentication program when a user accesses a  SAS/SHARE 
+server that is running in secure mode. To secure a server, the server administrator
+sets the TCPSEC environment variable to _SECURE_ (
+
+
+<CODE><B>%let tcpsec=_secure_;</B></CODE>) and sets the options OAVALID and UAVALID to
+YES (
+
+
+<CODE><B>proc server UAVALID=YES OAVALID=YES;</B></CODE>).
+<P>By default, both UAVALID and OAVALID options are set to NO on all UNIX
+platforms. Therefore, you must explicitly set these options to YES to allow
+only validated client connections to the server.
+<P>Both SAS/CONNECT and SAS/SHARE users
+can use the sample utility program,  <B>!sasroot</B>
+
+
+<CODE><B>/utilities/bin/authenticate</B></CODE> , which is shipped with SAS software (Release 6.11 TS020 or a subsequent
+release), or they can use a customized Authenticate program.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Guidelines for Writing and Storing an Authentication Program</FONT></B></TD></TR></TABLE>
+
+<P>By
+default, the TCP/IP access method uses an external program named 
+
+
+<CODE><B>authenticate</B></CODE> to validate the userid and password pair. The program must take two
+arguments, <B>username</B> and <B>password</B>, and it must then
+verify that the password is correct for the specified user name. If the password
+is valid, the program exits with a zero return code. If the password is invalid,
+the program exits with a non-zero return code.
+<P>It is recommended that you write attempts, successes, and failures from
+the Authenticate program to a log. Also, it is recommended that you fail the
+authentication for any step in the process that has a problem.
+<P>After you finish testing the program, move it to the <B>!sasroot</B>
+
+
+<CODE><B>/utilities/bin</B></CODE> directory where SAS expects the program
+to be located.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Obtaining Password Information</FONT></B></TD></TR></TABLE>
+
+<P>Methods for obtaining
+password information vary by type of UNIX
+system. Many UNIX systems use conventional password files that contain the
+encrypted password. Other UNIX systems use a "shadow" password file.
+Encrypted passwords are stored in a separate file that is readable only by
+a user that has root privileges.
+<P>The password files and the types of UNIX systems that use them are: 
+<DL>
+<DT>conventional password file 
+
+
+<CODE><B>/etc/password</B></CODE></DT>
+<DD>SunOS 4.1, HP-UX, AIX<P></DD>
+
+<DT>shadow password file 
+
+
+<CODE><B>/etc/shadow</B></CODE></DT>
+<DD>SVR4-compliant systems  (SVR4 is an abbreviation for System
+V Revision 4.)<P></DD>
+</DL>
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Examples of
+SVR4-compliant systems are  Solaris 2 , MIPS ABI, and Intel ABI UNIX.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The AIX system also uses shadow passwords but in a different
+way than SVR4-compliant systems.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The sample programs in the <B>!sasroot</B>
+
+
+<CODE><B>/utilities/src</B></CODE> directory contain instructions that obtain the encrypted password
+from both the conventional password file and the shadow password file. See
+the following authentication program examples for details about setting up
+and running these programs. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The password that you set up and the
+one that was used to log on to the system do not have to be the same. Any
+user-supplied method of password validation is allowed.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Authentication Program Examples</FONT></B></TD></TR></TABLE>
+
+<P>The <B>!sasroot</B>
+
+
+<CODE><B>/utilities/src</B></CODE> directory contains documented examples
+of the following authentication programs: 
+<DL>
+<DT><CODE><B>auth.conv.c</B></CODE></DT>
+<DD>obtains the encrypted password from the conventional password
+file.<P></DD>
+
+<DT><CODE><B>auth.shadow.c</B></CODE></DT>
+<DD>obtains the encrypted password from the shadow file.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Compiling the Authenticate Program</FONT></B></TD></TR></TABLE>
+
+<P>In
+most cases, you can compile the working examples with the following commands:
+ 
+
+
+
+<PRE>% 
+cd !<I>sasroot</I>/utilities/src
+
+% 
+cc -o authenticate
+ <I>authentication-program</I></PRE>
+<P>Typically, the 
+
+
+<CODE><B>cc</B></CODE> command is the name of the C language
+compiler, but the command that you use on your system may be different. You
+do not need to set high optimization or to use an ANSI standard compiler to
+build the program because it already uses the standard C library functions
+for most of the work.  <B>authentication-program</B>  is either 
+
+
+<CODE><B>auth.conv.c</B></CODE>, which uses the conventional password file 
+
+
+<CODE><B>/etc/passwd</B></CODE>, or 
+
+
+<CODE><B>auth.shadow.c</B></CODE>, which uses the shadow password file 
+
+
+<CODE><B>/etc/shadow</B></CODE>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Changing the Permissions in the Executable File</FONT></B></TD></TR></TABLE>
+
+<P>After you compile the authentication program, you must change
+the permissions in the executable file so that it runs with root privileges.
+<P>Example 1:
+<P>For an SVR4-compliant system that uses the  
+
+
+<CODE><B>/etc/shadow</B></CODE>  file, change
+the file's ownership to root. Root must have a setuid (
+
+
+<CODE><B>s</B></CODE>)
+privilege.  
+
+
+
+<PRE>% 
+chown root authenticate
+
+% 
+chmod +s authenticate</PRE>
+<P>Example 2:
+<P>The standard AIX and SVR4 implementations of shadow passwords are different.
+The AIX system user must compile the 
+
+
+<CODE><B>auth.conv.c</B></CODE> file and change
+the resulting executable to setuid root, as follows:  
+
+
+
+<PRE>% 
+chown root authenticate
+
+% 
+chmod ogu+s authenticate</PRE>
+<P>Other UNIX systems may use different methods to enable programs to run
+with root privileges.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Testing the Authentication Program</FONT></B></TD></TR></TABLE>
+
+<P>You
+can perform all testing of the authentication program outside the SAS/CONNECT environment
+because the programs are stand-alone. The simplest way to test the programs
+is to check the UNIX status variable in the UNIX shell. For example, using
+the C shell, you might test the 
+
+
+<CODE><B>authenticate</B></CODE> program as
+follows:  
+
+
+
+<PRE>% 
+authenticate bass
+ <I>valid-password</I>
+% 
+echo $status
+
+0
+%</PRE>
+<P>You must supply a valid password for the userid, in this case, 
+
+
+<CODE><B>bass</B></CODE>. The password is valid because the exit status is 0.
+<P>In the following test, the password is invalid because the exit status
+is non-zero.  
+
+
+
+<PRE>% 
+authenticate bass
+ <I>invalid-password</I>
+% 
+echo $status
+
+1
+%</PRE>
+<P>After you test the program and are satisfied that it works correctly,
+move the program to the  <B>!sasroot</B>
+
+
+<CODE><B>/utilities/bin</B></CODE>   directory
+where SAS expects the program to be located.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172899.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="znid-235.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="znid-239.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zpauthen">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

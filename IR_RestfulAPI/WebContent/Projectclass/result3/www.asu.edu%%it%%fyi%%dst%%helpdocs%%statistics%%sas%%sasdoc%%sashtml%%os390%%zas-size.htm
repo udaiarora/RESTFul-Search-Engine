@@ -1,0 +1,197 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Allocating SAS Data Libraries : Estimating the Size of a SAS Data Set </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217297.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zas-list.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217304.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zas-size">Estimating the Size of a SAS Data Set</A></FONT></H1>
+
+
+<P><A name="z0550118">&#13;Under OS/390, a
+non-HFS SAS data library is a single file that
+contains the library's SAS data sets. You cannot obtain information from the
+file system on how large each member SAS data set is.</A>
+<P>To obtain a rough estimate of how much space you need for a disk-format,
+non-HFS SAS data set that was created by the V8 engine, follow these steps: 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;This procedure is valid only for uncompressed native
+SAS library members that were created with the V8 engine.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<OL START="1" type="1">
+<LI>Using the CONTENTS procedure, specify the DIRECTORY
+option and using the DATA option to specify the SAS library member.<P>
+
+<LI>Using the output of the CONTENTS procedure, divide
+the Data Set Page Size statistic for the SAS library member by the Blocksize
+statistic for the directory to obtain the number of blocks per page.<P>
+
+<LI>Multiply the number of blocks per page by the
+Number of Data Set Pages statistic for the SAS library member to obtain the
+number of blocks.<P>
+
+<LI>Increase the number of blocks by 5% to account
+for overhead associated with the library directory control structures associated
+with the SAS library member.<P>
+
+<LI>Divide the increased number of blocks by the Blocks
+Per Track statistic for the directory, then round up to the nearest whole
+track.<P>
+</OL>
+
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;
+<P>
+<UL>
+
+<LI>The number of tracks required for a member of
+a SAS data library can vary depending on the track size of the device on which
+the data library resides, on the block size of the SAS data library's operating
+environment data set, and on the data set page size for the member.<P>
+
+<LI>The Max Obs per Page statistic for the member
+may be used to adjust the Number of Data Set Pages statistic in step 3 above
+to estimate the space required to add a number of new observations. Divide
+the number of new observations by the Max Obs per Page statistic to get the
+number of new data set pages needed. Then add the number of new pages to the
+Number of Data Set Pages statistic.<P>
+</UL>
+&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>To determine the rough size in bytes of the allocation needed for a
+SAS library member, follow these steps:
+<OL START="1" type="1">
+<LI>Run the CONTENTS procedure using the DATA option to specify the
+SAS library member.<P>
+
+<LI>Using the output of the CONTENTS procedure, multiply the Pagesize
+value for the SAS library member by the number of pages for the member to
+obtain a number of bytes.<P>
+
+<LI>Increase the number of bytes by 5% to account for overhead associated
+with the library directory control structures associated with the library
+member.<P>
+</OL>
+
+<P>For additional information about estimating the size
+of a SAS data set, see 
+
+
+
+<B>Tuning SAS Applications in the MVS Environment</B>, by Michael Raithel.  This book is available
+from SAS Institute as part of the Books by Users program.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the CONTENTS Procedure to Determine Observation Length</FONT></B></TD></TR></TABLE>
+
+<P>To determine the length of each observation in a Version
+8 SAS data set, you can create a Version 8 SAS data set that contains one
+observation. Then run the CONTENTS procedure to determine the observation
+length. The CONTENTS procedure displays engine/host-dependent information,
+including page size and the number of observations per page for uncompressed
+SAS data sets. For example, the following input produces a SAS data set plus
+PROC CONTENTS output:  
+
+
+
+<PRE>data oranges;
+input variety $ flavor texture looks;
+cards;
+navel 9 8 6 ;
+proc contents data=oranges; 
+run;</PRE>
+<P>The output is shown in <A href="#zas-out1">CONTENTS Procedure Output</A>. 
+
+<P>
+<B><I><A name="zas-out1">CONTENTS Procedure Output</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                               The SAS System                           1
+                                   The CONTENTS Procedure
+     Data Set Name: WORK.ORANGES                        Observations:         1
+     Member Type:   DATA                                Variables:            4
+     Engine:        V8                                  Indexes:              0
+     Created:       14:27 Tuesday, March 5, 1999        Observation Length:   32
+     Last Modified: 14:27 Tuesday, March 5, 1999        Deleted Observations: 0
+     Protection:                                        Compressed:           NO
+     Data Set Type:                                     Sorted:               NO
+     Label:
+
+
+                       -----Engine/Host Dependent Information-----
+            Data Set Page Size:         6144            
+            Number of Data Set Pages:   1
+            First Data Page:            1
+            Max Obs per Page:           139
+            Obs in First Data Page:     4
+            Number of Data Set Repairs: 0
+            Physical Name:              SYS96065.T142625.RA000.USERID.R0000180
+            Release Created:            7.0000B2
+            Release Last Modified:      7.0000B2
+            Created by:                 USERID
+            Last Modified by:           USERID
+            Subextents:                 1
+            Total Blocks Used:          1
+
+                 -----Alphabetic List of Variables and Attributes-----
+#    Variable    Type    Len    Pos   Format      Informat   Label
+-----------------------------------------------------------------------------------
+2    FLAVOR      Num       8      8                          
+4    LOOKS       Num       8     24                          
+3    TEXTURE     Num       8     16                          
+1    VARIETY     Char      8      0   </PRE></TD></TR></TABLE>
+
+<P>      The only values that you need to pay attention to are 
+
+
+<CODE><B>Observation Length</B></CODE> and 
+
+
+<CODE><B>Compressed</B></CODE>: 
+<DL>
+<DT>Observation Length</DT>
+<DD>is the record size in bytes.<P></DD>
+
+<DT>Compressed</DT>
+<DD>has the value NO if records are not compressed;
+it has the value YES if records are compressed. (If the records are compressed,
+do not use the procedure given in <A href="#zas-size">Estimating the Size of a SAS Data Set</A>.)<P></DD>
+</DL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217297.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zas-list.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217304.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zas-size">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

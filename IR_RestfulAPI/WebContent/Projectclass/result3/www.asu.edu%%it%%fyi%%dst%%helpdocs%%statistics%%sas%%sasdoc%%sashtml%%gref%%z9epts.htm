@@ -1,0 +1,149 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The GREMOVE Procedure : Concepts </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zovechap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z11view.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z11ntax.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The GREMOVE Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z9epts">Concepts</A></FONT></H1>
+
+
+<P>The GREMOVE procedure processes the input map data set
+to remove internal boundaries and creates a new map data set.  The PROC GREMOVE
+statement identifies the input and output map data sets.  The ID statement
+identifies the variable or variables in the input map data set that define
+the current unit areas.  The BY statement identifies the variable or variables
+in the input map data set that define the new unit areas.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z5-set">About the Input Map Data Set</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0691465">&#13;
+ The input map data set must be in map data set format (see
+</A><A href="z4epts.htm#zta-sets">About Map Data Sets</A>)
+and it must contain these variables: 
+<P>
+<UL>
+
+<LI><A name="z0691466">&#13; a numeric variable
+named X that contains the horizontal coordinates
+of the map boundary points.</A><P>
+
+<LI><A name="z0691467">&#13; a numeric variable named Y that
+contains the vertical coordinates
+of the map boundary points.</A><P>
+
+<LI>one or more variables that uniquely identify the
+current unit areas in the map.  These variables are listed in the ID statement.
+ Each group of observations with a different ID variable value is evaluated
+as a separate unit area.<P>
+
+<LI>one or more variables that identify the new unit
+areas to be created in the output map data set.  These variables are listed
+in the BY statement.<P>
+</UL>
+
+<P><A name="z0691470">&#13; It may also contain the
+variable SEGMENT,
+which is used to distinguish non-conterminous segments of the same unit areas.
+ Other variables may exist in the input map data set, but they do not affect
+the GREMOVE procedure and they will not be carried into the output map data
+set.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z6-set">About the Output Map Data Set</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0691471">&#13;
+ The output map data set contains the newly defined unit areas.
+ These new unit areas are created by removing all interior line segments from
+the original unit areas.  All variables in the input map data set except X,
+Y, SEGMENT, and the variables listed in the BY statement are omitted from
+the output map data set.</A>
+<P>The output map data set may contain missing X, Y coordinates
+to construct any polygons that have enclosed boundaries (like lakes or combined
+regions that have one or more hollow interior regions).
+<P><A name="z0691473">&#13; The SEGMENT variable
+in the output map
+data set is ordered according to the size of the bounding box around the polygon
+that it describes.  A SEGMENT value of 1 describes the polygon whose bounding
+box is the largest in the unit area and so on.  This information is useful
+for removing small polygons that clutter up maps.</A>
+<P>All current unit areas with common BY-variable value(s)
+are combined into a single unit area in the output map data set.  The new
+unit area contains 
+<P>
+<UL>
+
+<LI>all boundaries that are not shared, such as islands
+and lakes<P>
+
+<LI>all boundaries that are shared by two different
+BY groups.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0206968">About Unmatched Area Boundaries</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0691477">&#13;   
+If you are using map data sets in which area boundaries do not match precisely
+(for example, if the boundaries were digitized with a different set of points),
+PROC GREMOVE will not be able to identify common boundaries properly, resulting
+in abnormalities in your output data set.</A>
+<P><A name="z0691478">&#13;
+If the points in the area boundaries match up except for precision differences,
+before using PROC GREMOVE round each X and Y value in your map data set accordingly,
+using the DATA step function ROUND.  See <B>SAS Language Reference: Dictionary</B> for information on the ROUND function.</A>
+<P>For example, if you have a map data set
+named APPROX
+in which the horizontal and vertical coordinate values for interior boundaries
+of unit areas are exactly equal only to three decimal places, this DATA step
+creates a new map data set, EXACT, that is better suited for use with the
+GREMOVE procedure: 
+
+
+
+<PRE>data exact;
+   set approx;
+   if x ne . then x=round(x,.001);
+   if y ne . then y=round(y,.001);
+run;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zovechap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z11view.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z11ntax.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z9epts">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

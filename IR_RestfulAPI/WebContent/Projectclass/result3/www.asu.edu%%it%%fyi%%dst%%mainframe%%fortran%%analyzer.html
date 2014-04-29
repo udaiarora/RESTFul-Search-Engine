@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+  <META NAME="GENERATOR" CONTENT="Adobe PageMill 3.0 Win">
+  <TITLE>IT: MVS FORTRAN: Execution Analyzer</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<H3><TABLE WIDTH="585" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+  <TR>
+    <TD WIDTH="585">
+    <H3><FONT SIZE="+0" FACE="Arial">Execution Analyzer</FONT></H3>
+
+    <P><FONT SIZE="-1" FACE="Arial">To help you find those sections
+    of code that use the most CPU cycles, the VS FORTRAN Version
+    2.3 Interactive Debug program can be used. As the name suggests,
+    it's primary function is to debug FORTRAN programs. However,
+    in a batch environment it is used to analyze the execution times
+    of the main program, subroutines, functions, and any system routines
+    your application uses. This information can assist you in vectorization
+    and in performance analysis.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The following is an example of
+    the JCL necessary to access this program. A discussion of all
+    the parameters and datasets follows.</FONT></P>
+
+    <PRE>
+   //         JOB
+   //         EXEC FORV2CLG,FOPTS='SDUMP',PARM.GO='DEBUG'
+   //FORT.SYSIN  DD DSN=WYL.XX.YYY.FLIB(PROG),DISP=SHR
+   //GO.AFFIN    DD DSN=WYL.XX.YYY.FLIB(DS1),DISP=SHR
+   //GO.AFFOUT   DD DSN=WYL.XX.YYY.FLIB(DS2),DISP=OLD
+   //GO.AFFON    DD DUMMY
+   //GO.AFFPRINT DD SYSOUT=A
+   //GO.SYSUDUMP DD SYSOUT=A
+   //</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The parameters on the EXEC mean
+    the following: the FORV2CLG parameter accesses the compile, link,
+    and go proceedure, FOPTS='SDUMP' instructs the compiler to create
+    a symbol table used by the debugger, PARM.GO='DEBUG' tells the
+    system that the debugger will control the execution of the program.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The next three datasets are shown
+    as residing in a library for ease of discussion. The FORT.SYSIN
+    dataset can be an in-stream data set. The GO.AFFIN and GO.AFFOUT
+    datasets must have a RECFM of F or FB and have a LRECL of 80.
+    The GO.AFFIN must exist before the job is executed, this dataset
+    contains the instructions for the debugger. The GO.AFFOUT dataset
+    is created by the debugger, it contains all the messages and
+    information issued by the debugger.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The last three datasets are normally
+    not used but they must be declared.</FONT></P>
+
+    <P><FONT SIZE="-1" FACE="Arial">The GO.AFFIN dataset contains
+    two lines, starting in column 1:</FONT></P>
+
+    <PRE>
+            ENDDEBUG SAMPLE
+            LISTSAMP * SUMMARY</PRE>
+
+    <P><FONT SIZE="-1" FACE="Arial">The first line tells the debugger
+    to execute the program with sampling turned on. What this does
+    is to determine the time spent in each subroutine, function,
+    etc. The next line tells the debugger to list this information
+    when execution is complete. The results will look something like
+    the following:</FONT></P>
+
+    <BLOCKQUOTE>
+      <PRE>
+=AFF010I VS FORTRAN VERSION 2 RELEASE 3 INTERACTIVE DEBUG
+=AFF011I 5668-806 (C) COPYRIGHT IBM CORP. 1985, 1988
+=AFF013I LICENSED MATERIALS-PROPERTY OF IBM
+=AFF296E THE AFFON FILE CANNOT BE READ; FILE IGNORED.
+=AFF995I WHERE: MAIN.8
+=* ENDDEBUG SAMPLE
+=AFF306I PROGRAM HAS TERMINATED; RC ( 0)
+=* LISTSAMP * SUMMARY
+=AFF550I PROGRAM SAMPLING INTERVAL WAS 10 MS
+=AFF551I DIRECT SAMPLES:
+=AFF556I PROGRAM UNIT             SAMPLES  %TOTAL
+=AFF558I MAIN                           1    0.02
+=AFF558I PRTINI                         0    0.00
+=AFF558I CADDR                          2    0.04
+=AFF558I RADDR                        203    3.82 *
+=AFF558I CMULTR                       618   11.61 **
+=AFF558I RMULTR                       720   13.53 ***
+=AFF558I CDIVR                        416    7.82 **
+=AFF558I RDIVR                       1514   28.45 ******
+=AFF558I PRTEXE                         0    0.00
+=AFF558I *UNKNOWN                    1847   34.71 *******
+=AFF824E END-OF-FILE ON AFFIN FILE.
+=* QUIT</PRE>
+    </BLOCKQUOTE>
+
+    <P><FONT SIZE="-1" FACE="Arial">One final note, using the debugger
+    to execute your program and keep track of the execution time
+    adds about 15% more to the total execution time of your program.</FONT>&nbsp;</TD>
+  </TR>
+</TABLE></H3>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

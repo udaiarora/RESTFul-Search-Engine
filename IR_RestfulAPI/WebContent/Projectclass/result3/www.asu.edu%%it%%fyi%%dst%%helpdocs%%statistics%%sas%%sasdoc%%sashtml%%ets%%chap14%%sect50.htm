@@ -1,0 +1,229 @@
+<HTML>
+<HEAD>
+<TITLE>Distributed Lag Models and the %PDL Macro</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect51.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Distributed Lag Models and the %PDL Macro  </H2>
+<P><A NAME="idxmod0472">&#13;</A><A NAME="idxmod0471">&#13;</A><A NAME="idxmod0474">&#13;</A><A NAME="idxmod0473">&#13;</A>In the following example,
+the variable <I>y</I> is modeled as a linear function of
+<I>x</I>, the first lag of <I>x</I>, the second lag of <I>x</I>, and so forth:
+<P>
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>y</I><sub><I>t</I></sub> = <I>a</I>+<I>b<SUb>0</SUb>x</I><sub><I>t</I></sub>+<I>b<SUb>1</SUb>x</I><sub><I>t</I>-1</sub>+<I>b<SUb>2</SUb>x</I><sub><I>t</I>-2</sub>+<I>b<SUb>3</SUb></I> <I>x</I><sub><I>t</I>-3</sub>+ ...  +<I>b</I><sub><I>n</I></sub><I>x</I><sub><I>t</I>-<I>l</I></sub></SPAN>
+</DL>
+<P>Models of this sort can introduce a great many parameters for the lags,
+and there may not be enough data to compute accurate independent
+estimates for them all. Often, the number of parameters is
+reduced by assuming that the lag coefficients follow some pattern.
+One common assumption is that the lag coefficients follow a polynomial
+in the lag length
+<P>
+<DL CLASS="equation"><DD><IMG WIDTH="111" HEIGHT="116"
+ SRC="images/modeq241.gif"
+ ALT="b_{i}=\sum_{j=0}^d{{\alpha}_{j} (i)^j}"></DL>
+<P>where <I>d</I> is the degree of the polynomial used.
+Models of this kind are called <I>Almon lag models</I>,
+<I>polynomial distributed lag models</I>, or <I>PDLs</I> for short.
+For example, <A HREF="sect50.htm#modpdlfig">Figure 14.53</A> shows the lag distribution that can be
+modeled with a low order polynomial.
+Endpoint restrictions can be imposed on a PDL to require that the
+lag coefficients be 0 at the 0th lag, or at the final lag, or at both.
+<P>
+<CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/modpdl.gif" ALT="modpdl.gif (1991 bytes)" HEIGHT="237" WIDTH="325">
+</TD></TR></TABLE></CENTER><P><A NAME="modpdlfig">&#13;</A><SPAN CLASS="ssften"><B>Figure 14.53:</B> Polynomial Distributed Lags</SPAN><P>
+<P>For linear single-equation models, SAS/ETS software includes
+the PDLREG procedure for estimating PDL models.
+See <A HREF="../chap15/index.htm">Chapter 15, &#34;The PDLREG Procedure,&#34;</A> for a more detailed 
+discussion of polynomial distributed lags and an explanation of endpoint 
+restrictions.
+<P>Polynomial and other distributed lag models can be estimated
+and simulated or forecast with PROC MODEL.
+For polynomial distributed lags, the %PDL macro can generate the
+needed programming statements automatically.
+<P><H3><I>The %PDL Macro</I></H3>
+The SAS macro %PDL generates the programming statements to compute the 
+lag coefficients of polynomial distributed lag models and to apply them
+to the lags of variables or expressions.
+<P>To use the %PDL macro in a model program, you first call it to declare
+the lag distribution; later, you call it again to apply the PDL to a
+variable or expression. The first call generates a PARMS statement for
+the polynomial parameters and assignment statements to compute the lag
+coefficients. The second call generates an expression that applies the
+lag coefficients to the lags of the specified variable or expression.
+A PDL can be declared only once, but it can be used any number of
+times (that is, the second call can be repeated).
+<P>The initial declaratory call has the general form
+<P><DL><DD><B CLASS="ssbeleven">%PDL</B> <I CLASS="ssieleven">( <I>pdlname, nlags, degree</I>, R=<I>code</I>, OUTEST=<I>dataset</I> )</I></DL>
+<A NAME="idxmod0475">&#13;</A>where <I>pdlname</I> is a name (up to eight characters) that you give to
+identify the PDL, <I>nlags</I> is the lag length,
+and <I>degree</I> is the degree of the polynomial for the distribution. 
+The R=<I>code</I> is optional for endpoint restrictions. 
+The value of <I>code</I> can be FIRST (for upper), LAST (for lower), 
+or BOTH (for both upper and lower endpoints).
+See chapter pdlreg, &#34;The PDLREG Procedure,&#34;
+for a discussion of endpoint restrictions.
+The option OUTEST=<I>dataset</I> creates a data set containing the
+estimates of the parameters and their covariance matrix.
+<P>The later calls to apply the PDL have the general form
+<P><PRE>
+   %PDL( pdlname, expression )
+</PRE>
+<P>where <I>pdlname</I> is the name of the PDL and <I>expression</I>
+is the variable or expression to which the PDL is to be applied. 
+The <I>pdlname</I> given must be the same as the name used to declare the PDL.
+<P>The following statements produce the output in <A HREF="sect50.htm#modestout">Figure 14.54</A>:
+<P><PRE>
+   proc model data=in list;
+      parms int pz;
+      %pdl(xpdl,5,2);
+      y = int + pz * z + %pdl(xpdl,x);
+      %ar(y,2,M=ULS);
+      id i;
+   fit y / out=model1 outresid converge=1e-6;
+   run;
+</PRE>
+<P><A NAME="modestout">&#13;</A><CENTER>
+         <TABLE BORDER="1" WIDTH="95%" CELLPADDING="10" CELLSPACING="0"
+          RULES="GROUPS" FRAME="BOX" BGCOLOR="#F0F0F0" 
+          BORDERCOLOR="#000000">
+          <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0"><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><A NAME="IDX"></A>
+<P>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i> 
+<TABLE  border=0 width=100% cellpadding=1 cellspacing=1 rules=NONE frame=VOID>
+<TR>
+ <TD ALIGN=CENTER><font  face="Verdana, Helvetica, helv" size="2" color="#003399"><b><i>The MODEL Procedure</i></b></font></TD>
+</TR>
+</TABLE>
+<P>
+</i></b></font><CENTER>
+<font  face="Verdana, Helvetica, helv" size="2" color="#003399"> 
+<TABLE  border=1 cellpadding=7 cellspacing=1 rules=GROUPS frame=BOX bordercolor="#000000">
+<thead>
+<TR>
+ <TD COLSPAN=6 ALIGN=CENTER VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Nonlinear OLS  Estimates </b></font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Term</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Estimate</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx Std Err</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>t&nbsp;Value</b></font></TD>
+ <TD ALIGN=RIGHT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Approx<br> Pr &gt; |t|</b></font></TD>
+ <TD ALIGN=LEFT VALIGN=BOTTOM bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>Label</b></font></TD>
+</TR>
+</thead>
+<tbody>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>XPDL_L0</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">1.568788</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0992</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">15.81</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PDL(XPDL,5,2) coefficient for lag0</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>XPDL_L1</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.564917</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0348</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">16.24</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">&lt;.0001</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PDL(XPDL,5,2) coefficient for lag1</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>XPDL_L2</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.05063</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0629</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.80</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.4442</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PDL(XPDL,5,2) coefficient for lag2</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>XPDL_L3</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.27785</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0549</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-5.06</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0010</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PDL(XPDL,5,2) coefficient for lag3</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>XPDL_L4</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-0.11675</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0390</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC" nowrap><font  face="Verdana, Helvetica, helv" size="2" color="#000000">-2.99</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0173</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PDL(XPDL,5,2) coefficient for lag4</font></TD>
+</TR>
+<TR>
+ <TD ALIGN=LEFT bgcolor="#AAAAAA"><font  face="Verdana, Helvetica, helv" size="2" color="#0033AA"><b>XPDL_L5</b></font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.43267</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.1445</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">2.99</font></TD>
+ <TD ALIGN=RIGHT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">0.0172</font></TD>
+ <TD ALIGN=LEFT bgcolor="#CCCCCC"><font  face="Verdana, Helvetica, helv" size="2" color="#000000">PDL(XPDL,5,2) coefficient for lag5</font></TD>
+</TR>
+</tbody>
+</TABLE>
+<P>
+</font></CENTER>
+<P>
+</TD></TR></TABLE></CENTER><SPAN CLASS="ssften"><B>Figure 14.54:</B> %PDL Macro ESTIMATE Statement Output</SPAN><P>
+<P>This second example models two variables, Y1 and Y2, and uses two PDLs:
+<PRE>
+   proc model data=in;
+      parms int1 int2;
+      %pdl( logxpdl, 5, 3 )
+      %pdl( zpdl, 6, 4 )
+      y1 = int1 + %pdl( logxpdl, log(x) ) + %pdl( zpdl, z );
+      y2 = int2 + %pdl( zpdl, z );
+      fit y1 y2;
+   run;
+</PRE>
+<P>A (5,3) PDL of the log of X is used in the equation for Y1. 
+A (6,4) PDL of Z is used in the equations for both Y1 and Y2. 
+Since the same ZPDL is used in both equations, 
+the lag coefficients for Z are the same for the Y1 and Y2 equations, 
+and the polynomial parameters for ZPDL are shared by the two equations.
+See <A HREF="sect76.htm">Example 14.5</A> for a complete example and comparison with PDLREG.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect49.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect51.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

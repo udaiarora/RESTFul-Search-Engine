@@ -1,0 +1,235 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>OS/390: APPC Access Method : System Configuration for the APPC Access Method for SAS/SHARE </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172548.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0382095.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0216242.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zpcshare">System Configuration for the APPC Access Method for SAS/SHARE</A></FONT></H1>
+
+
+<P>
+<DL>
+<DT><B>Network Administrator</B></DT>
+<DD>Configure resources for the OS/390 system that allow it
+to behave as either a client or a SAS/SHARE server
+when using the APPC access method.
+<P>This section highlights the general tasks that you perform to set up
+the APPC access method and to configure the OS/390 host as a remote host for
+specific local host connections.<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Configuring the SAS/SHARE Server</FONT></B></TD></TR></TABLE>
+
+<P>To configure the APPC access method for a SAS/SHARE server,
+ perform the following tasks: 
+<OL START="1" type="1">
+<LI>Define an LU for the server.<P>
+
+<LI>Define the server as a cross-domain resource, if
+necessary.<P>
+</OL>
+
+<BR><H3><A name="zsluserv">Defining an LU for the Server</A></H3>
+
+
+<P>You must
+define an LU for the server with an APPL statement in
+the APPC domain in which the server will run. All APPL statements must follow
+a VBUILD TYPE=APPL statement. Use a comma to separate each entry. The form
+of an APPL statement for a server is:  
+
+
+
+<PRE><I>server-id</I>  APPL      APPC=YES,
+                     DDRAINL=NALLOW,
+                     DLOGMOD=<I>mode-table-entry,</I>
+                     DMINWNL=0,
+                     DMINWNR=16384,
+                     DSESLIM=32767,
+                     MODETAB=<I>mode-table</I>,
+                     SECACPT=CONV</PRE>
+<P>An explanation of each entry follows: 
+<DL>
+<DT><B>server-id</B></DT>
+<DD>specifies the name of the server, which is the value for
+the SERVER= option in the PROC SERVER, PROC OPERATE, and LIBNAME statements.<P></DD>
+
+<DT>APPL</DT>
+<DD>declares an APPL definition statement.<P></DD>
+
+<DT>APPC=YES</DT>
+<DD>tells APPC that the application program can issue APPCCMD
+macros.<P></DD>
+
+<DT>DDRAINL=NALLOW</DT>
+<DD>does not allow the application to drain its allocation requests
+during shutdown.<P></DD>
+
+<DT>DLOGMOD=<B>mode-table-entry</B></DT>
+<DD>specifies the default name of the logon mode table entry.
+If you supply neither the MODETAB nor the DLOGMOD variables, the first entry
+in the logon mode table is used.  A logon mode entry determines which entry
+in the logon mode table is used for providing a set of session parameters
+to the application program. See <A href="z1nect.htm#zmodeent">Defining the Logon Mode Table Entries</A>
+for details about creating the logon mode table.<P></DD>
+
+<DT>DMINWNL=0</DT>
+<DD>specifies the minimum number of parallel sessions for a
+mode name group for a given remote LU of which the application program (local
+LU), not the remote LU, is guaranteed to be the contention winner. A mode
+name group is a group of sessions for a given mode name.<P></DD>
+
+<DT>DMINWNR=16384</DT>
+<DD>specifies the minimum number of parallel sessions for a
+mode name group for a given remote LU of which the remote LU, not the application
+program (local LU), is guaranteed to be the contention winner.<P></DD>
+
+<DT>DSESLIM=32767</DT>
+<DD>defines the maximum session limits allowed between the local
+application LU and a remote LU on a given mode name group.<P></DD>
+
+<DT>MODETAB=<B>mode-table</B></DT>
+<DD>specifies the logon mode table to be used to associate each
+logon mode name with a set of session parameters for the application program.
+The name that you supply must correspond to the name of a logon mode table
+that you have already created. See <A href="z1nect.htm#zmodeent">Defining the Logon Mode Table Entries</A>
+for details about creating the logon mode table.<P></DD>
+
+<DT>SECACPT=CONV</DT>
+<DD>specifies that this LU supports session requests that contain
+the access FMH5 security subfields.<P></DD>
+</DL>
+
+<BR><H3>Defining the Server as a Cross-Domain Resource</H3>
+
+
+<P>If the server will be communicating with clients in a different
+APPC domain, you must define the server as a cross-domain resource in the
+clients' domain. Use a CDRSC statement in the following form:  
+
+
+
+<PRE><I>server-id</I>     CDRSC CDRM=<I>cdrm-name</I>,ISTATUS=ACTIVE</PRE>
+<P>where <B>server-id</B> specifies the name of the server. The server
+name must be identical to the name in the APPL statement for the server in
+the controlling domain. <B>cdrm-name</B> specifies the name of the CDRM
+in the domain in which the server is defined as an APPL.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Defining a Client LU Pool</FONT></B></TD></TR></TABLE>
+
+<P>You must define to APPC a
+pool of LUs for the connecting clients
+in the APPC domain in which the clients will run.  Define this LU pool in
+a series of APPL statements. The APPC access method dynamically selects an
+available LU for a connecting client. The number of LUs in the pool should
+be greater than or equal to the maximum number of users that will be connected
+simultaneously to servers with the APPC access method.
+<P>All APPL statements must follow a VBUILD TYPE=APPL statement. Use a
+comma to separate each entry. The form of the APPL statement for a connecting
+client is
+
+
+
+<PRE><I>LU-name</I> APPL      ACBNAME=LUPREFIX+<I>length-of-LULAST</I>,
+                  APPC=YES,
+                  DDRAINL=NALLOW,
+                  DLOGMOD=<I>mode-table-entry</I>,
+                  DMINWNL=<I>conwin</I>,
+                  DMINWNR=0,
+                  DSESLIM=<I>seslimit</I>,
+                  MODETAB=<I>mode-table</I>,
+                  SECACPT=CONV</PRE>
+<P>An explanation of each entry follows: 
+<DL>
+<DT><B>LU-name</B></DT>
+<DD>specifies the name of the LU pool. This name must be unique
+across the SNA network.<P></DD>
+
+<DT>APPL</DT>
+<DD>declares an APPL definition statement.<P></DD>
+
+<DT>ACBNAME=LUPREFIX + <B>length-of-LULAST</B></DT>
+<DD>specifies the ACBNAME (minor node name assigned to this
+application program) that is associated with an LU pool. LUPREFIX is the name
+assigned to the LU pool whose size is determined by the value of the LULAST
+option. An ACBNAME results from combining the LUPREFIX with a value within
+the range defined by LULAST. See <A href="z0382078.htm#zvsluvar">SAS/CONNECT and SAS/SHARE Options</A>
+for an explanation and examples of how to name an LU pool and its members.
+<P>Although the ACBNAME parameter is not required, it is recommended that
+it be specified so that the ACBNAME can be shared by more than one OS/390
+system on the APPC network. ACBNAMEs must be unique only within a single domain.
+<P>If you do not define ACBNAME explicitly, an  <B>LU-name</B>  is
+inferred from the LUPREFIX and  LULAST  options. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;This LU pool
+can also be used by the VTAM  LU 6.2  access method for SAS/CONNECT remote
+sessions on OS/390 and the VTAM LU 0 access method for SAS/SHARE client
+sessions.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>For definitions of all other pool entries, see
+<A href="#zsluserv">Defining an LU for the Server</A>.<P></DD>
+</DL>
+
+<P>You have completed the configuration of the APPC system for
+SAS/SHARE.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">References</FONT></B></TD></TR></TABLE>
+
+<P>For complete details about configuring
+the APPC access method,
+see: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>VTAM Installation and Resource Definition (SC23-0111)</B></TD></TR></TABLE>
+<P>For details about configuring OS/390 as a remote host, see: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><B>MVS/ESA Planning: APPC Management (GC28-1110)</B></TD></TR></TABLE>
+<P>Contact IBM for information about obtaining this
+documentation.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172548.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0382095.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0216242.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zpcshare">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

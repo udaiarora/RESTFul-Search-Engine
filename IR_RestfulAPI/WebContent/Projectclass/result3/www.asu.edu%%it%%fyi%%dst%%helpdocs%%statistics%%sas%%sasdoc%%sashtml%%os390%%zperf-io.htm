@@ -1,0 +1,339 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Optimizing Performance : Optimizing I/O </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217305.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zf-stats.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zsorting.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zperf-io">Optimizing I/O</A></FONT></H1>
+
+
+<P>To optimize
+SAS input and output in the OS/390 environment, consider the following suggestions.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Put catalogs and data sets into separate libraries, using the optimal block size for each</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552465">&#13;The physical block size (BLKSIZE= ) of a SAS bound data
+library determines both the minimum page size and the minimum unit of space
+allocation for the library.  The 6KB default is relatively efficient across
+a range of device types, and it leads to lower memory requirements for catalog
+buffers.  However, when you use the 6KB default, more DASD space is needed
+to hold a given amount of data because smaller blocks lead to capacity losses.
+ In one test case on a 3380, an MXG daily PDB required 8% more tracks when
+it was stored in 6KB physical blocks instead of in half-track blocks.</A>
+<P>Because the optimal block sizes for SAS catalogs and
+SAS data sets are not necessarily the same, consider putting catalogs and
+data sets into separate libraries.  For catalog libraries, 6KB is a good general
+physical block size on any device.  For data sets, choose either a full-track
+or half-track block size, depending on whether the data library is stored
+on a device that supports full-track blocks.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Use the optimal buffer size and buffer number for your data</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552467">&#13;
+When a member of a direct access bound library is processed
+sequentially, the values of the SAS system options BUFSIZE= and BUFNO= are
+the primary factors that affect I/O performance. When a SAS data library is
+processed sequentially, the unit of I/O transfer, in bytes, is equal to BUFSIZE*BUFNO.</A>
+<P>BUFSIZE is the page size for the data set. You specify
+BUFSIZE only when you are creating an output data set; it then becomes a permanent
+attribute of the data set. BUFNO is the number of page buffers to allocate
+for the data set. For random access, BUFNO page buffers form a least-recently-used
+buffer pool that can significantly reduce physical I/O depending on the data-access
+pattern. Of course, the greater the number of page buffers, the more memory
+is required.  Page buffers are stored above the 16MB line.
+<P>Note that the product of BUFNO and BUFSIZE is the important
+factor in sequential I/O performance rather than the specific value of either
+option.  As BUFNO is increased, there is a marked reduction in I/O time and
+I/O count, although the cost of buffer storage increases. As a result, elapsed
+times can be significantly reduced.  For example, when BUFNO=16 and BUFSIZE=6144,
+the results are very similar to BUFNO=4 and BUFSIZE=23040.  Moreover, when
+BLKSIZE=6144, specifying BUFSIZE=24K yields performance results that are very
+close to those of BLKSIZE=23040 and BUFSIZE=23040.
+<P>Here are some guidelines for determining the optimal
+BUFSIZE and BUFNO values for your data: 
+<P>
+<UL>
+
+<LI>When BLKSIZE is set to a full- or half-track value,
+let BUFSIZE = BLKSIZE.<P>
+
+<LI>Set BUFNO to at least 2.<P>
+
+<LI>Do not allow BUFNO*BUFSIZE to exceed 135K (3 tracks
+for 3380 or 3390). Exceeding that value can be detrimental to other users
+of the system because long channel programs can monopolize devices and channels.
+Moreover, beyond that limit, further reductions in elapsed time are negligible.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zompress">Determine whether you should compress your data</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552474">&#13; Compressing data
+reduces I/O and disk space but increases CPU time. Therefore, whether or not
+data compression is worthwhile to you depends on the resource cost-allocation
+policy in your data center. Often your decision must be based on which resource
+is more valuable or more limited, DASD space or CPU time.</A>
+<P>You can use the portable SAS system option COMPRESS=
+to compress all data sets that are created during a SAS session. Or, use the
+SAS data set option COMPRESS= to compress an individual data set. Data sets
+that contain many long character variables generally are excellent candidates
+for compression.
+<P>The following tables illustrate the results of compressing
+SAS data sets under OS/390.  In both cases, PROC COPY was used to copy data
+from an uncompressed source data set into uncompressed and compressed result
+data sets, using the system option values COMPRESS=NO and COMPRESS=YES, respectively.<FONT size="-1"><A href="#footnote1">(footnote 1)</A></FONT> In the following tables, the CPU row shows how much time was used
+by an IBM 3090-400S to copy the data, and the SPACE values show how much storage
+(in megabytes) was used.
+<P>For the first table, the source data set was a problem-tracking
+data set. This data set contained mostly long, character data values, which
+often contained many trailing blanks. 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zenid-42">Compressed Data Comparison 1</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="CENTER" valign="MIDDLE" ><B> Resource</B></TH>
+  <TH  align="CENTER" valign="MIDDLE" ><B>Uncompressed</B></TH>
+  <TH  align="CENTER" valign="MIDDLE" ><B>Compressed</B></TH>
+  <TH  align="CENTER" valign="MIDDLE" ><B>Change</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="CENTER" valign="MIDDLE"> CPU</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">4.27 sec</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">27.46 sec</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">+23.19 sec</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="CENTER" valign="MIDDLE"> Space</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">235 MB</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">54 MB</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">-181 MB</TD>
+</TR>
+
+</TABLE>
+
+<BR>For the preceding table, the CPU cost per megabyte
+is 0.1 seconds.
+<P>For the next table, the source data set contained mostly
+numeric data from an MICS performance database.  The results were again good,
+although not as good as when mostly character data were compressed. 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zenid-43">Compressed Data Comparison 2</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="CENTER" valign="MIDDLE" ><B>Resource</B></TH>
+  <TH  align="CENTER" valign="MIDDLE" ><B>Uncompressed</B></TH>
+  <TH  align="CENTER" valign="MIDDLE" ><B>Compressed</B></TH>
+  <TH  align="CENTER" valign="MIDDLE" ><B>Change</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="CENTER" valign="MIDDLE">CPU</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">1.17 sec</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">14.68 sec</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">+13.51 sec</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="CENTER" valign="MIDDLE">Space</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">52 MB</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">39 MB</TD>
+  
+<TD  align="CENTER" valign="MIDDLE">-13 MB</TD>
+</TR>
+
+</TABLE>
+
+<BR>For the preceding table, the CPU cost per megabyte is
+1 second.
+<P>For more information about the pros and cons of compressing
+SAS data, see 
+
+
+
+<B>SAS Programming Tips: A Guide to Efficient SAS    Processing</B>.
+<BR><H3>Consider using SAS software compression in addition to hardware compression</H3>
+
+
+<P>Some storage devices perform hardware data compression
+dynamically.  Because this hardware compression is always performed, you may
+decide not to enable the SAS COMPRESS option when you are using these devices.
+However, if DASD space charges are a significant portion of your total bill
+for information services, you might benefit by using SAS software compression
+in addition to hardware compression.  The hardware compression is transparent
+to the operating system; this means that if you use hardware compression only,
+space charges are assessed for uncompressed storage.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Consider placing SAS data libraries in hiperspaces</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552508">&#13;
+  
+One effective method of avoiding I/O operations is to use the SAS System's
+HIPERSPACE engine option.  This option that is specific to OS/390 enables
+you to place a SAS data library in a hiperspace instead of on disk.</A>
+<P>A hiperspace overrides the specified physical data library.
+This means that the physical data library on disk is neither opened nor closed,
+and data are neither written to nor read from the data library. All data access
+is done in the hiperspace.
+<P>Because the specified data library is not written to,
+it should be a temporary data set. The only time the specified data library
+is used is when it is a DIV (Data-In-Virtual) data set, as explained in <A href="#z-hipdiv">Hiperspace Libraries and DIV Data Sets</A>.
+<P>The HIPERSPACE
+option is processed after the normal
+allocation processing is complete.  The requested data set is allocated first,
+as it is with any LIBNAME statement or LIBNAME function.  It is deallocated
+when you issue a LIBNAME CLEAR statement or when you terminate the SAS session.
+The hiperspace, in effect, overrides the data set.
+<BR><H3>Examples of Using the HIPERSPACE Engine Option</H3>
+
+
+<P><A name="z0552512">&#13;  Here is an
+example of using the HIPERSPACE engine option
+to place a data library in a hiperspace:  
+
+
+</A>
+<PRE>libname mylib '&amp;templib' hip;</PRE>
+<P>(HIP is an alias for the HIPERSPACE option.)
+<P>For a data library that was allocated externally with
+a DD statement or a TSO ALLOCATE command, specify a null data set name in
+quotes. For example, the following LIBNAME statement places a library that
+was allocated with the DDname "X" in a hiperspace:  
+
+
+
+<PRE>libname x '' hip;</PRE>
+<P>To place the WORK data library in a hiperspace, specify
+the HSWORK SAS system option when you invoke SAS. See <A href="z-hswork.htm">HSWORK</A> for a description
+of the HSWORK option.
+<BR><H3>Controlling the Size of a Hiperspace Library</H3>
+
+
+<P><A name="z0552516">&#13; Just as you use the
+SPACE=, DISP=, and BLKSIZE= engine options
+to allocate a physical data set, you use the HSLXTNTS=, HSMAXPGS=, and HSMAXSPC=
+SAS system options to control the size of hiperspace libraries. These options
+are described in </A><A href="z0216895.htm">HSMAXPGS=</A>.
+<P>The CONTENTS procedure reports all hiperspace libraries
+as residing on a 3380 device with a block size of 4096. These attributes may
+differ from the attributes of the physical data set.
+<BR><H3><A name="z-hipdiv">Hiperspace Libraries and DIV Data Sets</A></H3>
+
+
+<P><A name="z0552518">&#13; 
+The only time the allocated physical data set is actually used with the HIPERSPACE
+option is if the data set is a Data-In-Virtual (DIV) data set. </A><FONT size="-1"><A href="#footnote2">(footnote 2)</A></FONT> An empty DIV data set can be initialized by allocating it to a hiperspace
+library. An existing DIV data set that contains data can be read or updated,
+or both.
+<P>You can use the HSSAVE SAS system option to control
+whether the DIV pages are updated each time your application writes to the
+hiperspace or only when the data library is closed. See <A href="z-hssave.htm">HSSAVE</A> for more
+information about this option.
+<BR><H3>Performance Considerations for Hiperspace SAS Data Sets</H3>
+
+
+<P><A name="z0552521">&#13;
+ The major factor that affects hiperspace performance
+is the amount of expanded storage on your system. The best candidates for
+using hiperspace are jobs that execute on a system that has plenty of expanded
+storage.  If expanded storage on your system is constrained, the hiperspaces
+are moved to auxiliary storage. This eliminates much of the potential benefit
+of using the hiperspaces.</A>
+<P>For more information about using hiperspaces under OS/390,
+see the documentation for your operating environment. Also see 
+
+
+
+<B>Tuning SAS Applications in the MVS Environment</B>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Consider designating temporary SAS libraries as virtual I/O data sets</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0552523">&#13;  Treating data libraries as "virtual I/O" data sets is another
+effective method of avoiding I/O operations. This method works well with any
+temporary SAS data library--especially WORK.  To use this method, specify
+UNIT=VIO as an engine option in the LIBNAME statement or LIBNAME function.</A>
+<P>The VIO method is always effective for small libraries
+(&lt;10 cylinders). If your installation has set up your system to allow VIO
+to go to expanded storage, then VIO can also be effective for large temporary
+libraries (up to several hundred cylinders). Using VIO is most practical during
+evening and night shifts when the demands on expanded storage and on the paging
+subsystem are typically light.
+<P>The VIO method can also save disk space because it is
+an effective way of putting large paging data sets to double use. During the
+day, these data sets can be used for their normal function of paging and swapping
+back storage; during the night, they become a form of temporary scratch space.
+
+<HR><A name="footnote1"><FONT size="-1">FOOTNOTE 1:&nbsp;&nbsp;</FONT></A>When you use PROC COPY to compress a data
+set, you must include the NOCLONE option in your PROC statement. Otherwise,
+PROC COPY propagates all the attributes of the source data set, including
+its compression status.&nbsp;<A href="#zr2-when"><IMG border="0" src="../common/images/fntarrow.gif" alt="[arrow]"></A>
+<P><A name="footnote2"><FONT size="-1">FOOTNOTE 2:&nbsp;&nbsp;</FONT></A>DIV data sets are also referred to as VSAM linear data
+sets.&nbsp;<A href="#r3-div"><IMG border="0" src="../common/images/fntarrow.gif" alt="[arrow]"></A>
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0217305.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zf-stats.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zsorting.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zperf-io">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

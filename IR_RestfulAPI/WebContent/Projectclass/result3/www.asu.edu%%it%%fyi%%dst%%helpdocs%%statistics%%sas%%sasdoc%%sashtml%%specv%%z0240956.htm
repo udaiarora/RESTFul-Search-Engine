@@ -1,0 +1,139 @@
+<HTML>
+<!-- This page produced Thu Jul  8 09:27:58 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The G4GRID Procedure : The PROC G4GRID Statement </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0241009.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0241013.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0240989.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The G4GRID Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0240956">The PROC G4GRID Statement</A></FONT></H1>
+
+<HR>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>PROC G4GRID</B>
+&lt;DATA=<I>SAS-dataset</I>&gt;
+<BR>&lt;OUT=<I>SAS-dataset</I>&gt;
+<BR>&lt;GAMMA=<I>gamma-factor</I>&gt;
+<BR>&lt;D=<I>amplitude-factor</I>&gt;
+<BR>&lt;RADIUS=<I>search-radius-value</I>&gt;;
+</TD></TR></TABLE>
+<P><A name="z0782027">&#13;The PROC G4GRID statement initiates the G4GRID procedure. If
+necessary, it can specify the input data set, the output data set, or both.
+This statement is required.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zenid-61">Options</A></FONT></B></TD></TR></TABLE>
+<P>
+<DL>
+<DT><B>DATA= <B><I>SAS-dataset</I></B></B></DT>
+<DD><A name="z0782030">&#13;specifies the input data set. By default, the procedure
+uses the most recently created data set, or you can use the DATA= option to
+specify a data set.  If no data set has been created in the current SAS session
+and the DATA= option is not supplied, an error occurs and the procedure stops.</A>
+<P>The input data set must contain at least four numeric
+variables, and it must contain the numeric variables specified in the GRID
+statement used with the PROC G4GRID statement.<P></DD>
+
+<DT><B>OUT=<B><I>SAS-dataset</I></B></B></DT>
+<DD><A name="z0782033">&#13;specifies the output data set.  The data set will contain
+any BY variables specified, the values for the volume variables at the grid
+coordinates, and interpolated values for each response variable specified.
+ By default, the output data set uses the <I><B>variable-n</B></I> naming convention
+as the data set name.</A><P></DD>
+
+<DT><B>GAMMA=<B><I>gamma-factor</I></B></B></DT>
+<DD><A name="z0782035">&#13;is the first of three parameters that control the interpolation
+of data points. The GAMMA= value controls the "locality" of the data interpolation.</A>
+<P>The routine makes two passes through the data.  In each
+pass, a Gaussian weight is applied to each observation based on its distance
+from the grid point in question.  On the second pass, the interpolation function
+weighting is narrowed so that points nearer the grid point location contribute
+more than points farther away. The numeric value of <I><B>gamma-factor</B></I>
+controls the narrowness of this second Gaussian pass.
+<P>The valid range for the GAMMA= value lies between zero
+(non-inclusive) and one (inclusive).  A smaller value means closer points
+contribute more heavily during the second pass than when a larger value is
+specified.  A normal range for gamma is 0.3 to 0.5, with 0.3 being the default.<P></DD>
+
+<DT><B>D=<B><I>amplitude-factor</I></B></B></DT>
+<DD><A name="z0782039">&#13;is the second of three parameters that control the interpolation
+of data points. The D= value controls how the routine tries to resolve wavelengths
+embedded in the data.</A>
+<P>The procedure tries to resolve some fraction of a target
+wavelength.  The D= option indicates what fraction the procedure should attempt
+to resolve.  Shorter wavelengths are resolved with greater amplitudes, while
+longer wavelengths are resolved with lesser amplitudes.  The target wavelength
+that the procedure attempts to resolve is twice the average spacing of the
+input coordinates (that is, the smallest justifiable wavelength).
+<P>For example, assume that a data set has an average spacing
+of 3.5 units.  The target wavelength for the data set is 7.0 units.  The procedure
+attempts to resolve the D= fraction of the amplitude of this wave.  If D=0.6
+is specified, then the routine attempts to resolve 60 percent of amplitude
+of wavelengths in the data of 7.0 units. Longer waves have less than 60 percent
+of their amplitude resolved, while shorter waves have more than 60 percent
+resolved.  The larger the value, the greater the detail resolved.  However,
+too high a value results in spurious waves of smaller wavelengths being introduced
+into the data.  That is, the larger the value specified, the more detailed
+the result, but also the more noise is introduced.  The default value is 0.8.<P></DD>
+
+<DT><B>RADIUS=<B><I>search-radius-value</I></B></B></DT>
+<DD><A name="z0782043">&#13;is the third of three parameters that control the interpolation
+of data points. The RADIUS= value sets the limit of the search radius during
+interpolation.</A>
+<P>Points outside the search radius do not contribute to
+the interpolated value of the grid point in question. Data points that lie
+farther from a grid point contribute less to the interpolated value of that
+grid point. Some points are far enough away that their contribution can simply
+be ignored. Specifying a search radius that ignores them can significantly
+speed the data interpolation.
+<P>The valid range lies between zero (non-inclusive) and
+one (inclusive). For example, a search radius of 0.5 uses only data points
+that lie within half the grid volume distance from the grid location in question.
+To use all data points in the grid volume for each grid point, specify 
+
+
+<CODE><B>missing</B></CODE>. The default value is 0.5.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;If an
+output grid contains missing values, increasing the search radius may eliminate
+them.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR><P></DD>
+</DL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0241009.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0241013.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0240989.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0240956">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

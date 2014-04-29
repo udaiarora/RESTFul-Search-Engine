@@ -1,0 +1,185 @@
+<HTML>
+<!-- This page produced Mon Jul 19 13:58:41 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Functions and CALL Routines : INPUTC </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0180357.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0212557.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">INPUTC</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0212553">INPUTC</A></FONT></H1>
+
+<P><HR><BR><B>Enables you to specify a character informat at run time</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>Category:</B></TD>
+<TD bgcolor="#CCCCCC" align="left">Special
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z0212553.htm#zid-1136"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0212553.htm#zid-1137"><FONT size="2"><B>Arguments</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0212553.htm#z0226276"><FONT size="2"><B>Comparisons</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0212553.htm#z0226277"><FONT size="2"><B>Examples</b></FONT></A></TD></TR>
+<TR>
+<TD width="18"></TD>
+<TD><A href="z0212553.htm#z0226278"><FONT size="2">Example 1: Specifying Character Informats</FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0212553.htm#z0226281"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="zid-1136">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>INPUTC</B>(<I>source</I>,
+<I>informat</I>.&lt;,<I>w</I>&gt;)
+</TD></TR></TABLE>
+<BR><H3><A name="zid-1137">Arguments</A></H3>
+
+<P><A name="z0843706">&#13;</A>
+<DL>
+<DT><B><B><I>source</I></B></B></DT>
+<DD>is the SAS expression to which you want
+to apply the informat.<P></DD>
+
+<DT><B><B><I>informat.</I></B></B></DT>
+<DD>is an expression that contains the character
+informat you want to apply to <B><I>source</I></B>. <P></DD>
+
+<DT><B><B><I>w</I></B></B></DT>
+<DD>specifies a width to apply to the informat.
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="left" bgcolor="#F5F5F5" width="95" nowrap><B>Interaction:</B></TD>
+<TD align="left" bgcolor="#F5F5F5">If you specify a
+width here, it overrides any width specification in the informat.</TD>
+</TABLE>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0226276">Comparisons</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0843714">&#13;The INPUTN function enables you to specify a numeric informat
+at run time.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0226277">Examples</A></FONT></B></TD></TR></TABLE>
+
+<BR><H3> <A name="z0226278">Example 1: Specifying Character Informats</A> </H3>
+
+
+<P>The PROC FORMAT step in this example creates a format, TYPEFMT., that formats
+the variable values 1, 2, and 3 with the name of one of the three informats
+that this step also creates. The informats store responses of "positive,"
+"negative," and "neutral" as different words, depending on the type of question.
+After PROC FORMAT creates the format and informats, the DATA step creates
+a SAS data set from raw data consisting of a number identifying the type of
+question and a response. After reading a record, the DATA step uses the value
+of TYPE to create a variable, RESPINF, that contains the value of the appropriate
+informat for the current type of question. The DATA step also creates another
+variable, WORD, whose value is the appropriate word for a response. The INPUTC
+function assigns the value of WORD based on the type of question and the appropriate
+informat.
+
+
+
+<PRE>   proc format;
+      value typefmt 1='$groupx' 
+                    2='$groupy'
+                    3='$groupz';
+      invalue $groupx 'positive'='agree'
+                      'negative'='disagree'
+                      'neutral'='notsure';
+      invalue $groupy 'positive'='accept'
+                      'negative'='reject'
+                      'neutral'='possible';
+
+      invalue $groupz 'positive'='pass'
+                      'negative'='fail'
+                      'neutral'='retest';
+   run;
+
+   data answers;
+      input type response $;
+      respinformat = put(type, typefmt.);
+      word = inputc(response, respinformat);
+      datalines;
+   1 positive
+   1 negative
+   1 neutral
+   2 positive
+   2 negative
+   2 neutral
+   3 positive
+   3 negative
+   3 neutral
+   ;</PRE>
+
+
+The value of WORD for the first observation is 
+
+
+<CODE><B>agree</B></CODE>.
+The value of WORD for the last observation is 
+
+
+<CODE><B>retest</B></CODE>.
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0226281">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>Functions:
+<P>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><A href="z0180357.htm">INPUT</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0212557.htm">INPUTN</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0199354.htm">PUT</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0212562.htm">PUTC</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="z0212564.htm">PUTN</A></TD></TR></TABLE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0245852.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0180357.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0212557.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0212553">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

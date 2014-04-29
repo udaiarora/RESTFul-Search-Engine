@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+<TITLE>Transforming Series</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect11.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The EXPAND Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Transforming Series  </H2>
+<A NAME="idxexp0042">&#13;</A><A NAME="idxexp0041">&#13;</A><A NAME="idxexp0044">&#13;</A><A NAME="idxexp0043">&#13;</A>The interpolation methods used by PROC EXPAND assume that there
+are no restrictions on the range of values that series can have.
+This assumption can sometimes cause problems if the series 
+must be within a certain range.
+<P>For example, suppose you are converting monthly sales figures 
+to weekly estimates.
+Sales estimates should never be less than zero, 
+but since the spline curve ignores this restriction
+some interpolated values may be negative.
+One way to deal with this problem is to transform the input series before
+fitting the interpolating spline and then reverse transform
+the output series.
+<P>You can apply various transformations to the input series using the
+TRANSFORMIN= option on the CONVERT statement.
+(The TRANSFORMIN= option can be abbreviated as TRANSFORM= or TIN=.)
+You can apply transformations to the output series using the
+TRANSFORMOUT= option.
+(The TRANSFORMOUT= option can be abbreviated as TOUT=.)
+<P>For example, you might use a logarithmic transformation of the 
+input sales series and exponentiate the interpolated output series.
+The following statements fit a spline curve to the log of SALES
+and then exponentiate the output series.
+<P><PRE>
+   proc expand data=a out=b from=month to=week;
+      id date;
+      convert sales / observed=total 
+                      transformin=(log) transformout=(exp);
+   run;
+</PRE>
+<P>As another example, suppose you are interpolating missing values
+in a series of market share estimates. 
+Market shares must be between 0% and 100%, but applying a spline
+interpolation to the raw series can produce estimates outside of this range.
+<P>The following statements use the logistic transformation to 
+transform proportions in the range 0 to 1 
+to values in the range <IMG WIDTH="36" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/expeq1.gif"
+ ALT="{-{\infty}}"> to <IMG WIDTH="36" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/expeq2.gif"
+ ALT="{+{\infty}}">.The TIN= option first divides the market shares by 100 to 
+rescale percent values to proportions and then applies the LOGIT function.
+The TOUT= option applies the inverse logistic function ILOGIT to
+the interpolated values to convert back to proportions and
+then multiplies by 100 to rescale back to percentages.
+<P><PRE>
+   proc expand data=a out=b;
+      id date;
+      convert mshare / tin=( / 100 logit ) tout=( ilogit * 100 );
+   run;
+</PRE>
+<P>You can also use the TRANSFORM= (or TRANSFORMOUT=) option as a convenient
+way to do calculations normally performed with the SAS DATA step.
+For example, the following statements add the lead of X to 
+the data set A. 
+The METHOD=NONE option is used to suppress interpolation.
+<P><PRE>
+   proc expand data=a method=none;
+      id date;
+      convert x=xlead / transform=(lead);
+   run;
+</PRE>
+<P>Any number of operations can be listed in the 
+TRANSFORMIN= and TRANSFORMOUT= options.
+See <A HREF="sect26.htm#exptops">Table 11.1</A> for a list of the operations supported.
+<P>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect11.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect13.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

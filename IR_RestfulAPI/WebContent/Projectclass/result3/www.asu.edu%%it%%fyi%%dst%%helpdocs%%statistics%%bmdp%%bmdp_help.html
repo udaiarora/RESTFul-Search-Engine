@@ -1,0 +1,2419 @@
+<head>
+<title>
+BMDP Command Syntax
+</title>
+</head>
+<body bgcolor="#ffffff">
+<body>
+<h2><center>
+BMDP Command Syntax
+</center></h2>
+<p>	
+<h3>	
+1.  Commonly Used BMDP Instructions
+</h3>
+<pre>
+Paragraph       		Command
+
+        / INPUT Data on cards   VARIABLE= 
+                or disk         FORMAT= 
+                                FILE= or [UNIT= ]*
+                                CASES=
+                Data from       n       CODE=
+                BMDP File       n       FILE= or [UNIT= ]*
+                                CONTENT=
+                                DIRECTORY.
+                                LABEL=
+                                PORTABLE.
+                                CASE=
+         Additional options     MCHAR=
+                                TITLE=
+
+        / VARIABLE              NAME=   MINIMUM=        BEFORETRANS.
+                        USE=    MAXIMUM=        AFTERTRANS.
+                        LABEL=  MISSING=        RESET.
+                        GROUPING=       FREQ=   BLANK=ZERO
+                        ADD=    CWEIGHT=        or MISSING.
+
+        / GROUP or              CODE(j)=            NAME(j)=        ALPHA(j)=
+        / CATEGORY              CUTPOINT(j)=        RESET.
+
+        / SAVE          CODE=           CONTENT=                FORMAT=
+                        NEW.            LABEL=          FILE= or [UNIT= ]
+                        PORTABLE.       APPEND=         KEEP=
+                        MISS=           COMPLETE.       DELETE=
+
+        / TRANSFORM     LOG(X)  OMIT=   XMIS
+                SQRT(X) KASE    USE=
+                IF I THEN I
+
+        / PRINT LINE=   PAGE=   LEVEL=
+                NEWS.   VALUES. FIELDS=
+
+        / END
+</pre>
+<h3>
+2.  How to Write BMDP Instructions
+</h3>
+<pre>
+BMDP instructions are modeled after English and consist of 
+paragraphs and commands. All BMDP programs use a basic set of 
+paragraphs. For some programs the basic set is all you need; other 
+programs require one or more special paragraphs. 
+
+Because many options are preassigned to those most frequently 
+used, even complex programs can often be run with few additions. 
+Paragraphs and commands that are not used by a program are 
+ignored; e.g., program 3D ignores a 6D PLOT paragraph.
+
+  Arithmetic operators
+
+             Operator                           Example
+        a + b           Addition                X(4) = X(5) + X(7).
+        a - b           Subtraction             WT = WT - X(3).
+        a * b           Multiplication          DISTNCE = RATE * TIME.
+        a/b             Division [b NE 0]       X(1) = 1/TIME.
+        a**b            Exponentiation a**b 
+                        [a GE 0 or b = integer] X(1) = HEIGHT**3.
+        a MOD b         Remainder of a/b        month = age MOD 12.
+        y = a           A constant or the       X(7) = 10.
+                        value of another        X(7) = X(4).
+                        variable is placed in y
+</pre>
+<h3>
+3.  Functions
+</h3>
+<pre>
+                        Function                        Example
+
+LN(a)   Base e log of a [a > 0]         HT = LN(HT).
+LOG(a)  Base 10 log of a [a > 0]        WT = LOG(WT).
+SQRT(a) Square root of a [a GE 0]       INC = SQRT(INC).
+EXP(a)  ea  exponential [|a| LE 60]     X(1) = EXP(X(2)).
+ABS(a)  |a| absolute value of a         CHANGE = ABS(X(7)).
+SIN(a)  Sine of a in radians            X(1) = SIN(X(1)).
+COS(a)  Cosine a in radians             X(2) = COS(X(2)).
+TAN(a)  Tangent a in radians            X(4) = TAN(X(4)).
+ASIN(a) Arcsine [|a| LE 1]              X(6) = ASIN(X(6)).
+ACOS(a) Arccosine [|a| LE 1]            X(5) = ACOS(X(5)).
+ATAN(a) Arctangent                      X(3) = ATAN(X(3)).
+INT(a)  Integer part of a               AGE = INT(AGE).
+SIGN(a) -1 if a < 0,  0 if a = 0,       CHANGE = SIGN(X(1)).
+                 1 if a > 0
+CHAR(c) 1 to 4 characters (c) may       USE = SEX EQ CHAR(M).
+                be compared (EQ or NE)
+                with A format data
+</pre>
+<h3>
+4.  Logical operators
+</h3>
+<pre>
+        Operator        Result                   Example
+                        1 if    0 if
+        a LE b        a LE b    a > b           USE = WT85 LE WT86.
+        a LT b        a < b     a GE b          'dummy' = X(1) LT X(3).
+        a GE b        a GE b    a < b           USE = WEIGHT GE 50.
+        a GT b        a > b     a LE b          USE = WEIGHT GT 50.
+        a NE b        a NE b    a = b           USE = X(2) NE X(3).
+        a EQ b          a = b   a NE b          X(1) = X(2) EQ X(3).
+        a AND b         a true else             USE = AGE GT 20 AND
+                        and                     AGE LE 40.
+                        b true
+        a OR b          a true else             USE = CLINIC EQ 1 OR
+                        or                      CLINIC EQ 5.
+                        b true
+
+The result of a logical operation is true (1), false (0), or missing 
+(XMIS). Out-of-range values are treated as missing.
+
+If either of the values before or after a logical operator is XMIS or 
+missing, the result is always missing except in the following cases 
+(A is a nonmissing value):
+                false AND missing yields false (0)
+                true OR missing yields true (1)
+                missing EQ XMIS yields true
+                missing NE XMIS yields false
+                A EQ XMIS yields false
+                A NE XMIS       yields true
+
+</pre>
+<h3>
+5.  CA Correspondence Analysis
+</h3>
+<pre>
+Correspondence analysis is an exploratory technique for visually 
+interpreting multivariate data. Simple Correspondence Analysis (CA) 
+involves two categorical variables and the graphical display of the 
+corresponding two-way contingency table. Multiple Correspondence 
+Analysis (MCA) is an extension of this procedure to three or more 
+categorical variables. 
+
+Mathematically, CA decomposes a measure of association for the 
+table, which is proportional to the usual chi-square statistic and is called 
+inertia, into components in a manner similar to that of principal 
+components analysis for continuous data. CA can analyze data 
+recorded as cases, cell frequencies with indices, or a frequency 
+table. The frequency table and coordinate scores may be saved.
+</pre>
+<h3>
+6.  CA Correspondence Analysis Output Includes
+</h3>
+<pre>
+- two dimensional plots of row and column profiles, with optional 
+  plots of row profiles only or column profiles only
+- plots of rows and columns projected into one dimension or face-
+  plane projections for three dimensions. Supplementary points can be 
+  added to the plots.
+- printouts of the inertia decomposition and each row and column's 
+  coordinate scores in each dimension, along with measures of how 
+  well the row or column is represented in the graphical display
+- observed and expected frequency tables, and row, column, and cell 
+  percents
+</pre>
+<h3>
+7.  CA Correspondence Analysis Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               CATEGORY
+                /               END     
+                                TRANSFORM/
+                                CORRES/
+                                SUPPLEM/        
+                                PRINT/          
+                                PLOT/
+                                SAVE/
+                                END /
+</pre>
+<h3>
+8.  1D Simple Data Description
+</h3>
+<pre>
+1D computes descriptive statistics for each variable. The statistics 
+can be computed separately for each level of a grouping variable 
+(e.g., for males and females). You can list all cases or only cases 
+with missing values or values outside specified limits. The data can 
+be sorted on several variables.
+</pre>
+<h3>
+9.  1D Simple Data Description Output includes
+</h3>
+<pre>
+- for each variable: mean, std. dev., std. error of mean, coefficient of 
+  variation, smallest and largest values, smallest and largest z-
+  scores, range, and total no. of acceptable cases
+- frequencies of specified groups
+</pre>
+<h3>
+10.  1D Simple Data Description Order of instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               GROUP   
+                /               PRINT
+                /               END
+                                data
+</pre>
+<h3>
+11.  2D Detailed Data Description Including Frequencies
+</h3>
+<pre>
+2D computes the frequency, percent, and cumulative percent for each 
+distinct value. It calculates the mean, median, mode, standard 
+deviation, standard errors of the mean and median, skewness and 
+kurtosis, extreme values, and half the interquartile range. A 
+histogram and line plot are displayed. 
+
+Three robust alternatives to the mean are available. Stem and leaf 
+displays can be requested, and Shapiro and Wilk's W statistic is 
+available for testing normality.
+</pre>
+<h3>
+12.  2D Detailed Data Description Including Frequencies Output Includes
+</h3>
+<pre>
+- for each variable: mean, median, mode, std. dev., half interquartile 
+  range, max., min., range, std. errors of mean and median, skewness, 
+  kurtosis, and 95% confidence interval for the mean
+- frequency and cumulative percent for each distinct value
+- histogram
+- line plot of computed statistics
+- stem and leaf display
+</pre>
+<h3>
+13.  2D Detailed Data Desc. Including Freq. Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               COUNT  
+                /               PRINT
+                /               END
+                                data
+</pre>
+<h3>
+14.  3D t Tests
+</h3>
+<pre>
+3D performs two-group t tests (with and without the assumption of 
+equality of variances), matched (paired) t tests, and one-group t 
+tests. Nonparametric forms of the tests are also available. The 
+equality of group variances is evaluated by Levene's test. The means 
+of several variables can be tested simultaneously for equality 
+between two groups by Hotelling's T-squared and Mahalanobis D-squared.
+</pre>
+<h3>
+15.  3D t Tests Output Includes
+</h3>
+<pre>
+- for each variable in each group, the group mean, std. dev., std. error, 
+  min. and max., sample size, and a histogram
+- the test statistic, degrees of freedom, and p-value
+- for two groups, tests for the equality of group means with and 
+  without assuming equality of variances, Levene's test for equal 
+  variances. Optional trimmed t test, Mann-Whitney (Wilcoxon) rank-
+  sum test, Hotelling's T-squared and Mahalanobis D-squared. Correlations 
+  between variables in each group.
+- for matched samples or paired variables, the appropriate t 
+  statistic and Pearson correlation coefficient. Optional trimmed t 
+  test and nonparametric tests, including Spearman correlation and 
+  Wilcoxon signed-rank; Hotelling's T-squared and Mahalanobis D-squared.
+- for a single group, a one-sample t for testing whether the sample 
+  mean comes from a population with a specified mean. Options are 
+  similar to the other designs.
+- within each group for trimmed tests, the trimmed mean and the 2nd 
+  largest and smallest values
+</pre>
+<h3>
+16.  3D t Tests Order of instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM
+                /               SAVE            
+                /               TWOGROUP                
+                /               MATCHED 
+                /               ONEGROUP        
+                /               TEST
+                /               PRINT
+                /               END
+                                data
+                                TRANSFORM/
+                                GROUP /
+                                TWOGROUP/       
+                                MATCHED /       
+                                ONEGROUP/
+                                END /
+
+For interactive use, we recommend using a TWOGROUP, MATCHED, or 
+ONE-GROUP paragraph before the first END.
+</pre>
+<h3>
+17.  4D Character Frequencies P Numeric and Nonnumeric
+</h3>
+<pre>
+4D screens character positions of a data file for numbers and codes. 
+It prints frequencies for each character position and provides 
+options for printing data.
+</pre>
+<h3>
+18.  4D Character Frequencies Output Includes
+</h3>
+<pre>
+- table displaying frequency counts of all distinct characters found 
+  in each single column field
+- optional list of data as read or with character replacement
+</pre>
+<h3>
+19.  4D Character Frequencies Order of Instructions
+</h3>
+<pre>
+
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM       
+                /               PRINT   
+                /               END
+                                data
+</pre>
+<h3>
+20.  5D Histograms and Univariate Plots
+</h3>
+<pre>
+5D prints histograms and other univariate plots for ungrouped or 
+grouped data with symbols to identify each group. The groups can be 
+graphed separately or together. You can control the size and scale of 
+the plots, as well as the cutpoints for the histogram intervals, the 
+names of the intervals, and how many observations are represented 
+by each plot symbol. Frequencies, cumulative frequencies, 
+percentages, and a normal probability plot can be printed.
+</pre>
+<h3>
+21.  5D Histograms and Univariate Plots Output Includes
+</h3>
+<pre>
+- normal and half-normal probability plots, cumulative frequency 
+  distribution plots, and cumulative histograms
+</pre>
+<h3>
+22.  5D Histograms and Univariate Plots Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM        
+                /               PRINT    
+                /               SAVE   
+                /               PLOT    
+                /               END
+                                data
+                GROUP/
+                VARIABLE GROUP = var. /  
+                TRANSFORM/      
+                PLOT/           
+                END /
+</pre>
+<h3>
+23.  6D Bivariate (Scatter) Plots
+</h3>
+<pre>
+6D plots one variable against another and calculates correlations, p-
+values, and simple linear regression equations. Group membership 
+can be identified, and several variables can appear on the same plot, 
+or separate plots may be generated for each level of a grouping 
+variable. More than one pair of variables can be plotted in a single 
+plot. The size of the plot can be specified.
+</pre>
+<h3>
+24.  6D Bivariate (Scatter) Plots Output Includes
+</h3>
+<pre>
+- in addition to the plots above, other options are means, std. dev., 
+  correlation, equation for simple linear regression (y on x), and the 
+  residual mean square
+</pre>
+<h3>
+25.  6D Bivariate (Scatter) Plots Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM        
+                /               PRINT   
+                /               SAVE    
+                /               PLOT    
+                /               END
+                                data
+                GROUP/
+                VARIABLE GROUP = var. /  
+                TRANSFORM/      
+                PLOT/           
+                END /
+</pre>
+<h3>
+26.  7D One- and Two-Way Analysis of Variance with Data Screening
+</h3>
+<pre>
+7D performs basic analysis of variance, but includes descriptors, 
+histograms, and diagnostics for thorough data screening. Each 
+variable is analyzed in any number of groups, and side-by-side 
+histograms are plotted for each group. Missing or out-of-range 
+values are tallied separately. A one- or two-way analysis of 
+variance is performed to test the equality of means between the 
+groups. 
+
+7D also computes two statistics for unequal variances (the Welch 
+and Brown-Forsythe tests), and an analysis of variance based on 
+trimmed means. Diagnostic plots are available to help identify 
+possible variance-stabilizing transformations for the data. Any of 
+several pairwise mean comparison tests may be requested, including 
+Tukey, Scheffe, Bonferroni, Newman-Keuls, and specified orthogonal 
+contrasts.
+</pre>
+<h3>
+27.  7D One- and Two-Way Analysis of Variance Output Includes
+</h3>
+<pre>
+- mean, std. dev., std. error, count, min., max. for each variable for 
+  each group
+- one-way or two-way ANOVA table with F values and tail 
+  probability
+- optional correlations between variables for each group and all 
+  groups combined
+- optional trimmed means with confidence intervals for each group
+- optional Duncan and Newman-Keuls multiple range tests
+- optional test results and confidence intervals for the Bonferroni, 
+  Tukey, Scheffe, and Dunnett procedures
+- optional data listing in original order or after sorting cases 
+  according to the values of a variable
+</pre>
+<h3>
+28.  7D One- and Two-Way Analysis of Variance Order of instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM       
+                /               SAVE    
+                /               HISTOGRAM       
+                /               COMPARISON      
+                /               PRINT
+                /               END
+                                data
+                GROUP/
+                TRANSFORM/      
+                COMPARISON/     
+                PRINT/          
+                HISTOGRAM/
+                END /
+</pre>
+<h3>
+29.  8D Correlations with Missing Data
+</h3>
+<pre>
+8D computes and saves correlation matrices and has special options 
+for computing the correlation matrix when data are missing or out 
+of range. 8D can also perform t tests to help decide if a variable's 
+missing values are missing completely at random (MCAR) with 
+respect to the other variables. 8D uses four methods to compute 
+correlations:
+
+COMPLETE excludes all cases with values missing or out of range on
+any of the variables used in the analysis.
+
+CORPAIR computes the correlation of each pair of variables from the
+cases for which both variables are present, using the usual formula
+for correlation.
+
+COVPAIR computes the covariance of each pair of variables from
+cases for which both variables are present. The correlations are
+obtained from the COVPAIR covariances. Standard deviations are 
+computed once for each variable, whereas for CORPAIR a different
+standard deviation is required for each correlation of a variable
+with all the other variables. Thus COVPAIR correlations differ
+from CORPAIR, since the standard deviations are computed from a
+different set of cases.
+
+ALLVALUE is similar to COVPAIR except that ALLVALUE computes 
+the covariance using a mean based on all values of the variable that 
+are present, whereas COVPAIR uses means based only on those cases 
+for which pairs of variables have values present.
+The covariance or correlation matrix can be saved in a BMDP File for 
+input to other BMDP programs.
+</pre>
+<h3>
+30.  8D Correlations with Missing Data Output Includes
+</h3>
+<pre>
+- mean, variance, std. dev., and coefficient of variation for each 
+  variable
+- frequency table for existing pairs of variables, sum of weights, 
+  matrix of means (for COVPAIR and CORPAIR), and matrix of 
+  variances (for CORPAIR)
+- estimates of the correlations by the CORPAIR method; other 
+  methods are optional
+- pairwise t tests based on the pattern of incomplete data
+</pre>
+<h3>
+31.  8D Correlations with Missing Data Order of instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               CORRELATION     
+                /               PRINT
+                /               END
+                                data
+</pre>
+<h3>
+32. 9D Multiway Description of Groups
+</h3>
+<pre>
+9D plots and describes data that are classified into cells by one or 
+more grouping variables, making it a useful screening device for 
+ANOVA factorial and repeated measures designs. Miniplot options 
+allow you to plot the cell means to display levels of grouping 
+variables, trials of a variable across time, or several variables 
+simultaneously.
+</pre>
+<h3>
+33.  9D Multiway Description of Groups Output Includes
+</h3>
+<pre>
+- for each variable, cell means, std. dev., and frequencies
+- tests printed for each variable include a one-way ANOVA for 
+  testing equality of cell means, and a c-squared test for equality 
+  of cell frequencies
+- optional plots of cell means
+</pre>
+<h3>
+34.  9D Multiway Description of Groups Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM       
+                /               SAVE    
+                /               PRINT
+                /               TABULATE
+                /               END
+                                data
+                GROUP/          
+                TRANSFORM/      
+                TABULATE/       
+                END /
+</pre>
+<h3>
+35.  LE Maximum Likelihood Estimation
+</h3>
+<pre>
+LE estimates the parameters that maximize the likelihood function, 
+using the iterative Newton-Raphson algorithm. Given a collection of 
+observations, the program computes the analytically exact first and 
+second derivatives to estimate the gradient vector and the Hessian 
+matrix. Computation of first and second derivatives is done in double 
+precision.
+</pre>
+<h3>
+36.  LE Maximum Likelihood Estimation Output Includes
+</h3>
+<pre>
+- adjustment level, log-likelihood, and parameter estimates at each 
+  iteration
+- asymptotic correlations, standard errors, and tolerances for the 
+  parameters
+- inverse of the Hessian matrix
+- density estimate and log of density estimate for each case
+- density function plots
+</pre>
+<h3>
+37. LE Maximum Likelihood Estimation Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               ESTIMATE        
+                /               PARAMETERS     
+                /               DENSITY
+                /               FPARAMETERS
+                /               PRINT
+                /               END
+                                data
+                FIX/
+                PLOT/
+                ESTIMATE/      
+                PARAMETERS/     
+                DENSITY/        
+                FPARAMETERS/
+                END /
+</pre>
+<h3>
+
+38.  4F Two-Way and Multiway Frequency Tables
+</h3>
+<pre>
+4F analyzes qualitative or categorical data in two-way or multiway 
+tables using cell frequencies or data recorded case-by-case as input. 
+Statistics available for two-way tables include chi-square, 
+likelihood ratio test of independence, Fisher's exact test, Yates' 
+corrected chi-square, Yule's Q, McNemar's test of symmetry, and a 
+test of linear trend of the proportions.
+
+Tables can be analyzed using the log-linear model. Tests of marginal 
+and partial association for each effect are available to screen for 
+effects to include in your model, as well as a test-of-fit of each 
+model, and functions of the difference between the observed and 
+expected cell frequencies. 
+
+You can also specify structural zeros, or cells to be excluded from 
+the model fitting, and 4F provides a test of quasi-independence. 
+Unusual cells or strata can be identified by fitting a log-linear 
+model with each cell (or stratum) in turn.
+</pre>
+<h3>
+
+39.  4F Two-Way and Multiway Frequency Tables Output Includes
+</h3>
+<pre>
+- tables of observed frequencies, descriptive statistics, a list of 
+  cases not included, and a table showing the reasons for excluding 
+  those cases
+- optional percentages of row totals, column totals, or of the total 
+  frequency for two-way and multiway tables
+- optional marginal subtables by summing over one or more of the 
+  categorical variables
+- more than two dozen optional statistics that can be used as tests 
+  of independence or as measures of association and correlation
+</pre>
+<h3>
+
+40.  4F Two-Way and Multiway Frequency Tables Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               CATEGORY or GROUP       
+                /               TABLE   
+                /               FIT     
+                /               STATISTICS      
+                /               PRINT
+                /               END
+                                data
+
+The TABLE paragraph may be repeated as often as desired. The PRINT, 
+STATISTICS, and FIT paragraphs apply to the tables described in the 
+preceding TABLE paragraph. There may be multiple FIT paragraphs 
+for each TABLE paragraph.
+</pre>
+<h3>
+
+41.  1L Life Tables and Survivor Functions
+</h3>
+<pre>
+1L uses either the product-limit or the actuarial life table method 
+to estimate the time-to-response distribution of cases. Survival 
+curves can be reported for all cases or for subsets of cases, and the 
+equality of curves between groups can be tested. 
+
+You can perform a stratified analysis, comparing survivor functions 
+across treatment groups while controlling for another variable, 
+called a covariate, that affects the survival time. Input can be data 
+entered as survival time for each subject, as entry and termination 
+calendar dates for each subject, or as subjects grouped into a 
+tabular format.
+</pre>
+<h3>
+
+42.  1L Life Tables and Survivor Functions Output Includes
+</h3>
+<pre>
+- estimates of the survival distribution: product-limit (Kaplan-
+  Meier) and the actuarial life-table (Cutler-Ederer)
+- optional Mantel-Cox, Breslow, Tarone-Ware, and Peto-Prentice 
+  statistics for testing the equality of survival curves
+- plot of cumulative survivor function and the following optional 
+  plots: log of the survivor function, hazard function, cumulative 
+  hazard function, and death density function
+</pre>
+<h3>
+
+43. 1L Life Tables and Survivor Functions Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               PRINT   
+                /               FORM
+                /               GROUP
+                /               ESTIMATE
+                /               END
+                                data
+</pre>
+<h3>
+
+44.  2L Survival Analysis with Covariates
+</h3>
+<pre>
+2L analyzes survival data for which the time-to-response is 
+influenced by other measured variables. These explanatory variables, 
+often called prognostic factors or covariates, usually represent 
+either inherent differences among the study subjects (age, sex, etc.) 
+or constitute a set of one or more indicator variables representing 
+different treatment groups. The covariates may also describe 
+changes in a patient's prognostic status as a function of time. 
+
+Two analyses are available. The first is based on the Cox 
+proportional hazards regression model, which presumes failure 
+(death) rates may be modeled as log-linear functions of covariates. 
+The second analysis is the accelerated failure, or 'log-linear,' 
+model.
+
+For the Cox model, a set of regression coefficients is estimated 
+which gives the relative effect of each covariate on the survivor 
+function. In other applications the proportional hazards regression 
+model is used to test the significance of treatment effects while 
+simultaneously accounting for baseline patient characteristics. The 
+program may also be used in an exploratory manner to identify 
+subsets of variables associated with survival time. Interactive 
+stepwise selection of covariates is available.
+
+Hypothesis tests for the joint significance of subsets of regression 
+coefficients can be specified, and time-dependent covariates may be 
+specified. The data may be stratified into several groups, with the 
+survival function estimated separately for each stratum. Input can 
+be the survival time for each subject or study entry and termination 
+dates.
+
+In the accelerated failure model, the unknown baseline hazard 
+function of the proportional hazards model is replaced by a specified 
+distribution. Stratification and time-dependent covariates are not 
+allowed in the accelerated failure model.
+</pre>
+<h3>
+
+45.  2L Survival Analysis with Covariates Output Includes
+</h3>
+<pre>
+- for each covariate, regression coefficients, their asymptotic 
+  standard errors, and standardized coefficients
+- a global chi-square test of significance (with p-value) for the 
+  coefficients and the log of the maximized partial likelihood function
+- optional plots of the survivor function and the log minus log 
+  survivor (log cumulative hazard) function
+- optional plots of residuals against covariates
+</pre>
+<h3>
+
+46.  2L Survival Analysis with Covariates Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               GROUP
+                /               PRINT
+                /               FORM
+                /               REGRESS 
+                /               FUNCTION        
+                /               TEST
+                /               PLOT
+                /               END
+                                data
+                /               GROUP
+                /               PRINT
+                /               FORM
+                /               REGRESS 
+                /               FUNCTION        
+                /               TEST
+                /               PLOT
+                /               END
+</pre>
+<h3>
+
+47.  1M Cluster Analysis of Variables
+</h3>
+<pre>
+1M provides four measures of similarity for clustering variables, 
+and three criteria for linking or combining clusters. Initially, each 
+variable is considered as a separate cluster, then the two most 
+similar variables are joined to form a cluster. The amalgamating 
+process continues in a stepwise fashion until a single cluster is 
+formed that contains all the variables. Input can be data or a matrix 
+with measures of association or distance.
+</pre>
+<h3>
+
+48.  1M Cluster Analysis of Variables Output Includes
+</h3>
+<pre>
+- a summary table of the clusters formed
+- a tree showing the clusters formed at each step, with an 
+  explanation of the clustering process
+- shaded correlation matrix display and optional correlation matrix
+</pre>
+<h3>
+
+49. 1M Cluster Analysis of Variables Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               PROCEDURE       
+                /               PRINT   
+                /               END
+                                data
+                /               PROCEDURE       
+                /               END     
+
+</pre>
+<h3>
+
+50.  2M Cluster Analysis of Cases
+</h3>
+<pre>
+2M forms clusters of cases based on one of eleven distance 
+measures. Initially each case is considered a separate cluster. 2M 
+joins cases and clusters of cases in a stepwise process until all 
+cases are combined into one cluster. Clusters are joined using either 
+a single, centroid, or k nearest neighbor linkage algorithm.
+</pre>
+<h3>
+
+51.  2M Cluster Analysis of Cases Output Includes
+</h3>
+<pre>
+- tree diagram describing the sequence of cluster formation
+- a table that lists the amalgamation distance and the mean for each 
+  variable as each new cluster is formed
+- shaded distance matrix display
+- optional data listing in original units or standardized form
+- optional matrix of the distances between the cases
+</pre>
+<h3>
+
+52. 2M Cluster Analysis of Cases Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM       
+                /               SAVE    
+                /               PROCEDURE
+                /               PRINT
+                /               END
+                                data
+</pre>
+<h3>
+
+53.  3M Block Clustering
+</h3>
+<pre>
+3M constructs block clusters for categorical data, grouping subsets 
+of cases into clusters that are alike for subsets of variables. This 
+combines the procedures performed by 1M and 2M. Each block 
+consists of a group of cases defined by variable(s) that are constant 
+over the cases in the block. Some cases may belong to more than one 
+block. The constant value taken by a variable in a block is called the 
+modal value of that variable for that block. 
+
+3M reorders your original data matrix and prints it in a block symbol 
+matrix where each block is identified by a different symbol. This can 
+provide a succinct representation of your data by a few large blocks. 
+The rows and columns (cases and variables) are reordered so that 
+each block is as nearly contiguous as possible.
+</pre>
+<h3>
+
+54.  3M Block Clustering Output Includes
+</h3>
+<pre>
+- block symbol diagram
+- table of block symbols, counts, and values
+- for each variable, the frequency of each code
+</pre>
+<h3>
+
+55. 3M Block Clustering Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               CATEGORY        
+                /               BLOCK
+                /               PRINT
+                /               END
+</pre>
+<h3>
+
+56. 4M Factor Analysis
+</h3>
+<pre>
+4M provides four methods of initial factor extraction from a 
+correlation or covariance matrix, and several methods of factor 
+rotation. Input can be data, a correlation or covariance matrix, 
+factor loadings, or factor score coefficients. Output Includes a 
+series of Mahalanobis distances that can be used for detecting 
+outliers in multivariate data.
+</pre>
+<h3>
+
+57. 4M Factor Analysis Output Includes
+</h3>
+<pre>
+- descriptive statistics
+- rotated and unrotated factor loadings and their plots
+- display of sorted rotated factor loadings
+- factor score coefficients, scores for each case, and factor score 
+  plots
+- Mahalanobis distances from each case to the centroid of all cases 
+  for original data, factor scores, and their differences
+- correlation matrix, squared multiple correlation of each variable 
+  with all others, eigenvalues
+- display of the correlation matrix in sorted and shaded form
+- optional listing of data or standard scores, covariance matrix, 
+  inverse of correlation or covariance matrix, partial correlations, 
+  residual correlations
+</pre>
+<h3>
+
+58. 4M Factor Analysis Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               FACTOR
+                /               ROTATE  
+                /               PRINT   
+                /               PLOT
+                /               SAVE
+                /               END
+                                data
+</pre>
+<h3>
+
+59.  6M Canonical Correlation Analysis
+</h3>
+<pre>
+6M computes a canonical correlation analysis for two sets of 
+variables and Bartlett's test for the significance of the remaining 
+eigenvalues. Input can be data, a covariance matrix, or a correlation 
+matrix.
+</pre>
+<h3>
+
+60.  6M Canonical Correlation Analysis Output Includes
+</h3>
+<pre>
+- univariate summary statistics and data listing for the first five 
+  cases
+- correlation matrix, squared multiple correlations for each variable 
+  with the others in its set
+- canonical correlations with their associated eigenvalues
+- canonical variable loadings
+- optional canonical variable scores and coefficients, covariance 
+  matrix, and bivariate plots of variables and canonical variables
+</pre>
+<h3>
+
+61.  6M Canonical Correlation Analysis Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               CANONICAL      
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+</pre>
+<h3>
+
+62.  7M Stepwise Discriminant Analysis
+</h3>
+<pre>
+7M performs discriminant analysis between two or more groups by 
+computing the linear classification functions in a stepwise manner. 
+Forward stepping or backward stepping may be used. Group differences 
+can be specified as contrasts which guide the selection of variables.
+A jackknife procedure may be requested to reduce bias in the group 
+classifications.
+</pre>
+<h3>
+
+63.  7M Stepwise Discriminant Analysis Output Includes
+</h3>
+<pre>
+- for each group and all groups: mean, std. dev., and coefficients of 
+  variation
+- at each step, F statistics for entering variables, Wilks' L or U 
+  (with approximate F), Mahalanobis D-squared for group means
+- classification functions, classification matrix, jackknifed 
+  classification, and percent correct classification
+- summary table
+- posterior probabilities and Mahalanobis distances for each case 
+  being assigned to each group
+- canonical discriminant function coefficients and eigenvalues and 
+  canonical scores for each case
+- plot of the first two canonical variables
+</pre>
+<h3>
+
+64.  7M Stepwise Discriminant Analysis Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM
+                /               SAVE    
+                /               DISCRIMINANT    
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+</pre>
+<h3>
+
+65.  8M Boolean Factor Analysis
+</h3>
+<pre>
+8M estimates Boolean factors of dichotomous (binary) data. In 
+Boolean factor analysis, the arithmetic used in the matrix 
+multiplication is Boolean, so the factor scores and loadings are 
+binary. 
+
+The analysis in this program differs from that of classical factor 
+analysis (see 4M) on binary valued data even though the goal and 
+model (symbolically) appear similar. The goal is to express p 
+variables X = (X1, X2, ..., Xp) by m factors (F = f1, f2, ..., fm),
+where m is considerably smaller than p. (See the BMDP User's Digest
+for the model). In Boolean factor analysis, the arithmetic used in
+the matrix multiplication is Boolean, so the scores and loadings
+are binary.
+
+In classical factor analysis, the score for each case (for a particular 
+factor) is a linear combination of all the variables: the variables 
+with large loadings all contribute to the score. In Boolean factor 
+analysis, a case has a score of one if it has a positive response for 
+any of the variables dominant in the factor (those not having zero 
+loadings) and zero otherwise.
+
+We count both negative and positive discrepancies; the positive 
+discrepancy is the number of times the observed score is one and 
+the analysis estimates it to be zero, and the negative discrepancy 
+is the number of times the observed score is zero and the 
+estimated value is one.
+
+8M allows you to supply initial estimates of the loading matrix (or 
+the initial estimates for the loadings may be computed by the 
+program).
+</pre>
+<h3>
+
+66.  8M Boolean Factor Analysis Output Includes
+</h3>
+<pre>
+- at each step, the number of positive discrepancies, negative 
+  discrepancies, and total discrepancies is printed for each cycle
+- at selected steps the factor loadings are printed; printed scores 
+  are optional
+- after the last step, optional compact displays of the data matrix 
+  and discrepancies
+</pre>
+<h3>
+
+67.  8M Boolean Factor Analysis Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               LOAD
+                /               VARIABLE
+                /               TRANSFORM       
+                /               SAVE    
+                /               FACTOR
+                /               PRINT
+                /               END
+                                data
+</pre>
+<h3>
+
+68.  9M Linear Scores for Preference Pairs
+</h3>
+<pre>
+M constructs for each case a score that is a linear combination of 
+the variables:
+           score = Beta1X1 + Beta2X2 + ... + BetapXp
+where the coefficients are based on the judgments (preferences) of 
+experts, comparing two cases at a time. The analysis weights the 
+observed variables to best replicate the preference of the judge. The 
+expert does not have to judge all possible pairs of cases. The linear 
+function used in constructing the score is determined in a stepwise 
+manner. 
+
+Preferences from more than one expert on the same sets of pairs of 
+cases can be analyzed in the same run. Each case receives a score, 
+based on each judge's preferences.
+
+The input consists of a preference matrix and a data matrix. The 
+preference matrix contains pairs of case numbers and judgments of 
+one or more experts for each pair of cases being compared. For 
+example, if case number 5 is preferred over case number 3, a row in 
+the preference matrix is 5 3 1. The '1' indicates that the first case 
+(number 5) is preferred. '5 3 -1' would indicate that the second case 
+(number 3) is preferred. When there is no preference, a zero is 
+recorded.
+
+A judgment may also indicate the strength of the preference; for 
+example, a judgment of 2 is considered twice as preferred as a 
+judgment of 1. If we compare case 5 with each of cases 3 and 8, and 
+consider case 5 much better than case 8 and slightly better than 
+case 3, the preference matrix might read
+       5 3 1
+       5 8 4
+where both the strength and preference are indicated in the third 
+column.
+</pre>
+<h3>
+
+69.  9M Linear Scores for Preference Pairs Output Includes
+</h3>
+<pre>
+- for each judge, at each step, the coefficients of the variables 
+  entered in the linear function and their t values
+- for each pair of cases in the preference matrix, the judges'
+  original evaluation, the predicted judgment, and the error (judgment 
+  minus prediction)
+- for each case, the scores computed using the variables entered at 
+  the end of the stepping
+- if evaluations are given for more than one judge, the scores for 
+  each judge and their correlations
+- optional scatterplots using variables and scores
+</pre>
+<h3>
+
+70.  9M Linear Scores for Preference Pairs Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               PREFERENCE      
+                /               PLOT
+                /               PRINT
+                /               END
+                                preference matrix
+                                data matrix
+</pre>
+<h3>
+
+71.  AM Description and Estimation of Missing Data
+</h3>
+<pre>
+AM describes the pattern of missing data and estimates the 
+covariance and correlation matrices by any of three computational 
+methods (including an EM algorithm), or replaces missing or out-of-
+range values by estimated values using means, regression of the 
+variables most highly correlated with the missing variable, 
+regression on a highly correlated set of variables, or regression on 
+all available variables. Data can be described and estimated within a 
+group. The covariance matrix and the complete data matrix can be 
+saved in a BMDP File for further analysis by other programs.
+</pre>
+<h3>
+
+72.  AM Description and Estimation of Missing Data Output Includes
+</h3>
+<pre>
+- descriptive statistics and data listing for first five cases
+- cases-by-variables graphical display showing location or pattern 
+  of missing and extreme values
+- for each variable, the percent missing; for each case, the total 
+  missing
+- for each pair of variables, the number and percent missing; 
+  correlations for dichotomized variables (i.e., 0 if a value is missing, 
+  1 if it is present)
+- correlation matrix with its eigenvalues
+- optional squared multiple correlations of each variable with all 
+  others, and regression tests of significance
+- optional listing for each case that has estimates of missing values 
+  and values out of range, the R-squared of the estimated variable with
+  the variables estimating it, and the Mahalanobis D-squared of the 
+  case to the mean
+- optional plots displaying complete cases and cases with estimates
+</pre>
+<h3>
+
+73.  AM Desc. and Estimation of Missing Data Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM
+                /               SAVE    
+                /               ESTIMATE        
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+</pre>
+<h3>
+
+74.  KM K-Means Clustering of Cases
+</h3>
+<pre>
+KM partitions a set of cases (observations) into clusters using the 
+Euclidean distance to measure the distance between each case and 
+the center of each cluster (mean of cases in the cluster). The data 
+can be standardized four ways or left in original form, making five 
+distance measures available. An indicator variable that identifies 
+final cluster membership can be saved with the data in a BMDP File. 
+You can specify initial cluster centers or use an indicator variable 
+to identify initial cluster membership.
+</pre>
+<h3>
+
+75.  KM K-Means Clustering of Cases Output Includes
+</h3>
+<pre>
+- descriptive statistics for each variable in each cluster: mean, 
+  min., max., and variance
+- for each cluster, the distance from the cluster center to each case 
+  is printed; histograms display these distances both for cases in the 
+  clusters and cases not in the clusters
+- scatterplot of the orthogonal projection of cases into the plane 
+  defined by the centers of the 3 most populous clusters
+- summary of the cluster means and standard deviations for each 
+  variable
+- for each variable, an analysis of variance with descriptive F-ratio 
+  that compares the between-cluster mean square to the within-
+  cluster mean square
+- cluster profile: a graphical display for each cluster that shows the 
+  mean of each variable relative to the overall mean and marks the 
+  center 1 1 standard deviation
+- pooled within-cluster covariance and correlation matrices
+- optional distance between cluster centers
+- optional crosstabulation of clusters with user-specified variables
+</pre>
+<h3>
+
+76.  KM K-Means Clustering of Cases Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               CLUSTER
+                /               PRINT
+                /               END
+                                data
+</pre>
+<h3>
+
+77.  1R Linear Regression by Groups
+</h3>
+<pre>
+1R estimates a multiple linear regression equation on all the data 
+and, if requested, on subsets or groups of data. The equality of 
+regression lines across groups is tested.
+</pre>
+<h3>
+
+78.  1R Linear Regression by Groups Output Includes
+</h3>
+<pre>
+- descriptive statistics (cases with missing values excluded)
+- multiple R-squared and standard error of the estimate
+- ANOVA table on regression and summary table for the regression 
+  with coefficients and t tests for the coefficients
+- optional covariance and correlation matrices
+- optional residuals, predicted values, and data for each case
+- optional scatterplots, normal probability plots of residuals, and 
+  partial residual plots
+</pre>
+<h3>
+
+79.  1R Linear Regression by Groups Order of Instructions
+</h3>
+<pre>                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               GROUP
+                /               REGRESS
+                /               PRINT    
+                /               PLOT    
+                /               END
+                                data
+                GROUP/
+                VARIABLE GROUP = var. /
+                TRANSFORM/      
+                PRINT/  
+                PLOT/
+                REGRESS/
+                END /
+</pre>
+<h3>
+
+80.  2R Stepwise Regression
+</h3>
+<pre>
+2R computes estimates of the parameters of a multiple linear 
+regression in a stepwise manner. Variables are entered or removed 
+from the equation one at a time. Forward and backward stepping are 
+possible. Four criteria are available for stepping, and variables can 
+be forced into the equation. 
+
+You can group the independent variables so that all variables in a set 
+are entered into or removed from the regression equation in the same step. 
+Extensive regression diagnostics are available for printing and plotting, 
+including Cook's distance, standardized residuals, and the Andrews-
+Pregibon statistic. You can direct 2R interactively at the terminal, 
+specifying which variables to enter or remove at each step, and 
+which variables to use in diagnostic plots.
+</pre>
+<h3>
+
+81.  2R Stepwise Regression Output Includes
+</h3>
+<pre>
+- descriptive statistics for each variable (computed from complete 
+  cases)
+- R-squared, adjusted R-squared, and the standard error of the 
+  estimate
+- ANOVA table on regression
+- for variables included in the equation: regression coefficients, 
+  standard error of coefficients, standardized regression coefficient, 
+  tolerance, F-to-remove
+- for variables not yet entered: partial correlation, tolerance, F-to-
+  enter
+- summary table of the regression steps
+- table of regression coefficients
+- optional printing of data, predicted values, residuals
+- optional plots and printouts of regression diagnostics
+- optional covariance or correlation matrix
+- optional scatterplots, normal probability plots, and partial 
+  residual plots
+- optional summary table of partial correlations and F-to-enter and 
+- remove values
+</pre>
+<h3>
+
+82.  2R Stepwise Regression Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               REGRESS 
+                /               PRINT           
+                /               PLOT         
+                /               END
+                                data
+                TRANSFORM/
+                PRINT/  
+                PLOT/   
+                REGRESS/
+                END /
+</pre>
+<h3>
+
+83.  3R Nonlinear Regression
+</h3>
+<pre>
+3R gives least-squares estimates of the parameters of a nonlinear 
+function. Seven functions (and their derivatives) are built in. Other 
+functions can be fitted to the data by specifying the function in 
+BMDP instructions or FORTRAN statements (if you use FORTRAN, you 
+must also specify the functionUs derivatives). Linear equality 
+constraints for the parameters are available. You can specify 
+functions of the parameters. Maximum likelihood estimates can also 
+be computed. See Technical Report #82 for examples of how to use
+iteratively reweighted least squares to compute maximum likelihood
+estimates. Robust regression is available.
+</pre>
+<h3>
+
+84.  3R Nonlinear Regression Output Includes
+</h3>
+<pre>
+- descriptive statistics for all variables
+- for each iteration, the parameter estimates, the residual sum of 
+  squares, and the number of increment halvings
+- asymptotic correlation matrix of the parameters, standard 
+  deviation of the parameters, and serial correlation of the residuals
+- for each case, predicted and observed values of the dependent 
+  variable, residual, case weight, and the independent variable
+- optional scatterplots and normal probability plots
+- optional confidence curve plots
+</pre>
+<h3>
+
+85.  3R Nonlinear Regression Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               REGRESS
+                /               PARAMETER
+                /               FUNCTION        
+                /               FPARM   
+                /               PLOT
+                /               PRINT
+                /               END
+                                data
+                /               REGRESS
+                /               PARAMETER       
+                /               FUNCTION        
+                /               END
+</pre>
+<h3>
+
+86.  4R Regression on Principal Components and Ridge Regression
+</h3>
+<pre>
+4R computes a regression analysis for a dependent variable on a set 
+of principal components computed from the independent variables. 
+You can specify whether the principal components enter the 
+regression based on the magnitude of the eigenvalues or on the 
+magnitude of the correlations between the dependent variable and 
+the principal components. 
+
+The resulting coefficients are reported in terms of both the 
+principal components and the original or standardized variables. 
+Ridge regression deflates the multiple correlation among the 
+independent variables. You can control the amount of ridging.
+</pre>
+<h3>
+
+87.  4R Regression on Prin. Comp. and Ridge Regression Output Includes
+</h3>
+<pre>
+- means, std. devs., and correlation or covariance matrix
+- eigenvalues and eigenvectors (principal component coefficients) 
+  with cumulative proportion of total variance explained
+- correlation between components and dependent variable
+- regression coefficients of components
+- for each step: the component entered, residual sum of squares, F 
+  ratio, R-squared, and coefficients of the independent variables
+- optional principal component scores for each case
+- optional scatterplots and normal probability plots
+- with ridge options, R-squared, the residual sum of squares, and the 
+  regression coefficients for each set of ridge factors
+- optional trace plot of ridge factors and plots of R-squared and the 
+  residual sum of squares
+</pre>
+<h3>
+
+88.  4R Regression on Prin. Comp. and R. Regression Order of 
+Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               REGRESS    
+                /               PRINT   
+                /               PLOT
+                /               END
+                                data
+</pre>
+<h3>
+
+89.  5R Polynomial Regression
+</h3>
+<pre>
+5R computes the least squares fit of a polynomial in one independent 
+variable to the dependent variable. The form of the regression 
+equation is
+y = Beta0 + Beta1X + Beta2X2 + I + BetapXp + e
+
+5R reports polynomials of degrees one through a degree (less than or 
+equal to 15) specified by you, with goodness-of-fit statistics for 
+each equation. Orthogonal polynomials are used for the goodness-of-
+fit computations. You can specify case, frequency, and regression 
+weights.
+</pre>
+<h3>
+
+90.  5R Polynomial Regression Output Includes
+</h3>
+<pre>
+- for each degree polynomial: the regression coefficients with 
+  standard errors and t values for each orthogonal polynomial, the 
+  regression coefficient for each power of the independent variable, 
+  and the residual mean square
+- summary table with goodness-of-fit statistics
+- optional listing of residuals, fitted values, orthogonal polynomial 
+  values, and data for each case
+- optional scatterplots and normal probability plots
+</pre>
+<h3>
+
+91.  5R Polynomial Regression Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               REGRESS 
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+                /               REGRESS
+                /               PRINT   
+                /               PLOT    
+                /               END
+</pre>
+<h3>
+
+92.  6R Partial Correlation and Multivariate Regression
+</h3>
+<pre>
+6R computes the partial correlation of a set of variables after 
+removing the linear effects of a second set of variables. 6R can also 
+be used for regression to predict several dependent variables with 
+the same set of independent variables.
+
+6R performs computations in double precision. You can use data, a 
+covariance matrix, or a correlation matrix as input.
+</pre>
+<h3>
+
+93.  6R Partial Correlation and Multivariate Regression Output Includes
+</h3>
+<pre>
+- descriptive statistics for each variable and a data listing for the 
+  first five cases
+- correlation matrix and shaded correlation matrix
+- R-squared of each independent variable with all other independent 
+  variables
+- R-squared of each dependent variable with the independent variables
+- partial correlations between the dependent variables after 
+  removing the effects of the independent variables
+- optional covariance matrix and partial covariances
+- optional regression coefficients for each dependent variable, with 
+  tests of significance and the covariances and correlations of the 
+  regression coefficients
+- optional scatterplots and normal probability plots
+</pre>
+<h3>
+
+94. 6R Partial Correlation and Multivariate Regression Order of 
+Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               REGRESS 
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+</pre>
+<h3>
+
+95.  9R All Possible Subsets Regression
+</h3>
+<pre>
+9R estimates regression equations for "best" subsets of predictor 
+variables and does extensive residual analysis. Three criteria are 
+available to define best: the sample R-squared, adjusted R-squared, 
+or Mallows' Cp.  You can specify the number of subsets to be 
+identified.
+
+Critical computations are performed in double precision. Case, 
+frequency, and regression weights are available. You can use data, a 
+covariance matrix, or a correlation matrix as input. BMDP Technical 
+Report #48 provides annotated output for 9R and 2R.
+</pre>
+<h3>
+
+96.  9R All Possible Subsets Regression Output Includes
+</h3>
+<pre>
+- descriptive statistics
+- correlation matrix, shaded correlation matrix, and optional 
+  covariance matrix
+- 5 best subsets according to Mallows' Cp. For each subset: R-squared, 
+  adjusted R-squared, standard error of the estimate, and F test of the 
+  regression coefficients. For each variable: the regression coefficient 
+  with its standard error, the standardized regression coefficient, t 
+  statistic, and tolerance
+- at each subset size, up to 10 subsets are reported with R-squared, 
+  adjusted R-squared, and Cp
+- optional residuals, standardized residuals, deleted residuals, 
+  weighted residuals, and predicted values
+- optional correlations of estimates of the regression coefficients
+- optional scatterplots and normal probability plots
+- optional Mahalanobis distances and CookUs distances
+- optional Durbin-Watson statistic and serial correlation are printed 
+  when residuals are computed
+- optional histogram of studentized residuals
+</pre>
+<h3>
+
+97.  9R All Possible Subsets Regression Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE    
+                /               REGRESS 
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+</pre>
+<h3>
+
+98.  AR Derivative-Free Nonlinear Regression
+</h3>
+<pre>
+AR estimates the parameters of a nonlinear function by least 
+squares, and can be used to compute maximum likelihood estimates. 
+AR is appropriate for a wide variety of functions that are not linear 
+in the parameters, and for which derivatives are difficult to specify 
+or costly to compute. Seven functions are built in. Other functions 
+can be specified by transformations in the FUNCTION paragraph or by 
+FORTRAN statements.
+
+You can fix the value of a parameter or impose upper and lower 
+limits on individual parameters or on arbitrary linear combinations 
+of parameters. AR can also estimate functions of the parameters and 
+their standard errors. You can specify weights for each case and 
+obtain iteratively reweighted and maximum likelihood parameter 
+estimates. You can also obtain ridged estimates. The DIFEQ and DIFIN 
+paragraphs enable you to handle differential equations.
+</pre>
+<h3>
+
+99.  AR Derivative-Free Nonlinear Regression Output Includes
+</h3>
+<pre>
+- descriptive statistics for all variables
+- at each iteration, residual sum of squares, estimates of the 
+  parameters, and number of increment halvings
+- estimate of the asymptotic correlation matrix
+- estimates of the asymptotic standard deviations
+- for each case, the residual, predicted value with standard error, 
+  case weight (if any), and values of the dependent and independent 
+  variables
+- optional serial correlation, Durbin-Watson statistic, and runs test 
+  for residuals
+- optional scatterplots of residuals, predicted values, and variables
+- optional normal probability plot of residuals
+</pre>
+<h3>
+
+100. AR Derivative-Free Nonlinear Regression Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               REGRESS
+                /               PARAMETER
+                /               DIFIN
+                /               DIFEQ   
+                /               FUNCTION        
+                /               FPARM
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+                /               REGRESS
+                /               PARAMETER
+                /               DIFIN   
+                /               DIFEQ   
+                /               FUNCTION
+                /               END
+
+</pre>
+<h3>
+
+101.  LR Stepwise Logistic Regression
+</h3>
+<pre>
+LR selects predictor (independent) variables in a stepwise manner, 
+and estimates the coefficients for a logistic regression. The 
+stepwise process is interactive. The dependent (outcome or 
+response) variable is a binary variable that records events such as 
+success or failure. 
+
+The predicted proportion of success (s/n) is assumed to follow the 
+logistic model
+                        exp (u)/(1 + exp(u))
+where s is the sum of binary (0,1) dependent variable values, n is the 
+total sample size, and u is a linear function of one or more 
+independent variables. The independent variables can be categorical 
+or continuous. 
+
+LR generates three types of design variables for categorical 
+variables and their interactions. Step selections are based on the 
+maximum likelihood ratio (MLR) or an approximate asymptotic 
+covariance estimate (ACE).
+</pre>
+<h3>
+
+102.  LR Stepwise Logistic Regression Output Includes
+</h3>
+<pre>
+- number of cases read with number of responses represented
+- descriptive statistics for interval-scaled variables
+- for categorical variables: distinct values with their frequency
+- at each step, the log-likelihood, change in log-likelihood from the 
+  previous step, a goodness-of-fit chi-square, the Hosmer goodness-of-fit 
+  test, and the C. C. Brown goodness-of-fit test
+- regression coefficients, standard error of coefficients, ratios of 
+  the coefficients to their standard errors, and the asymptotic 
+  correlation matrix of the coefficients
+- at each step, statistics for the entry or removal of each term: F 
+  statistics when ACE is used, chi-square statistic for MLR
+- summary table of the steps, including the log-likelihood, the 
+  improvement, and goodness-of-fit chi-square
+- optional histograms of predicted probabilities of each group
+- table of correct and incorrect classifications, using different 
+  cutpoints on the computed probabilities
+- frequencies of successes and failures, observed proportion, 
+  predicted probability, standardized residuals, and predicted log odds 
+  for each distinct pattern of independent variables
+- scatterplots of observed proportion of the first group vs. predicted 
+  proportion, and observed proportion vs. predicted log odds, for each 
+  distinct pattern of independent variables
+</pre>
+<h3>
+
+103.  LR Stepwise Logistic Regression Order of Instructions
+</h3>
+<pre>
+                /               PROBLEM
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM       
+                /               SAVE    
+                /               REGRESS
+                /               PRINT
+                /               PLOT
+                /               END
+                                data
+</pre>
+<h3>
+
+104.  PR Polychotomous Stepwise Logistic Regression
+</h3>
+<pre>
+PR computes the maximum likelihood estimates of parameters of 
+logistic models for multinomial data. The dependent or response 
+variable may be either nominal or ordinal. PR enters independent or 
+predictor variables in a stepwise manner; it will also fit speciied 
+models.
+</pre>
+<h3>
+
+105.  PR Polychotomous Stepwise Logistic Regression Output Includes
+</h3>
+<pre>
+- descriptive statistics for interval-scaled variables
+- for categorical variables: distinct values with their frequency
+- at each step, the log-likelihood, change in log-likelihood from the 
+  previous step, a goodness-of-fit chi-square, the Hosmer goodness-of-fit 
+  test, and the C. C. Brown goodness-of-fit test
+- regression coefficients, standard error of coefficients, ratios of 
+  the coefficients to their standard errors, and the asymptotic 
+  correlation matrix of the coefficients
+- at each step, statistics for the entry or removal of each term: F 
+  statistics when ACE is used, chi-square statistic for MLR
+- summary table of the steps, including the log-likelihood, the 
+  improvement, and goodness-of-fit chi-square
+- optional histograms of predicted probabilities of each group
+- table of correct and incorrect classifications, using different 
+  cutpoints on the computed probabilities
+- frequencies of successes and failures, observed proportion, 
+  predicted probability, standardized residuals, and predicted log odds 
+  for each distinct pattern of independent variables
+- scatterplots of observed proportion of the first group vs. predicted 
+  proportion, and observed proportion vs. predicted log odds, for each 
+  distinct pattern of independent variables
+</pre>
+<h3>
+
+106.  PR Polychotomous Stepwise Logistic Reg. Order of Instructions
+</h3>
+<pre>
+                /               PROBLEM
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM       
+                /               REGRESS 
+                /               PRINT
+                /               PLOT
+                /               SAVE
+                /               END
+                                data
+</pre>
+<h3>
+
+107.  3S Nonparametric Statistics
+</h3>
+<pre>
+The statistics computed by 3S include the sign test and Wilcoxon 
+signed-rank test; the Mann-Whitney rank-sum test and the Kruskal-
+Wallis one-way analysis of variance; the Friedman two-way analysis 
+of variance with multiple comparisons; Kendall's coefficient of 
+concordance; and Kendall and Spearman rank correlations.
+</pre>
+<h3>
+
+108.  3S Nonparametric Statistics Output Includes
+</h3>
+<pre>
+- descriptive statistics for each variable
+- sign test: # of nonzero differences, smaller number of like-sign 
+  differences, and level of significance
+- Wilcoxon signed-rank test: number of nonzero differences, smaller 
+  sum of like-signed ranks, and level of significance
+- Friedman test and Kendall coefficient of concordance: rank-sum 
+  for each variable, test statistics, and level of significance
+- Kruskal-Wallis and Mann-Whitney test: rank-sum for each variable, 
+  test statistics, and level of significance
+- correlation matrices of Kendall and Spearman rank-correlation 
+  coefficients
+- optional pairwise mean comparisons for the KRUSKAL and 
+  FRIEDMAN tests
+</pre>
+<h3>
+
+109.  3S Nonparametric Statistics Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM
+                /               SAVE    
+                /               TEST    
+                /               PRINT
+                /               END
+                                data
+                /               TEST    
+                /               END     
+
+</pre>
+<h3>
+
+110.  1T Univariate and Bivariate Spectral Analysis
+</h3>
+<pre>
+1T provides graphical displays and descriptive statistics for any 
+time series or any pair of time series, including condensed or 
+detailed plots over time. 1T decomposes each time series into a sum 
+of sine waves at different frequencies. The spectral density 
+function, or spectrum, is then estimated and plotted, showing the 
+relative contribution of each frequency band to the overall variance 
+of the time series. 
+
+Bivariate spectral analysis estimates the degree of coherence 
+between two variables in different frequency bands. Data may be 
+adjusted or smoothed prior to spectral estimation by estimating and 
+removing seasonal means or linear trends, or by constructing a 
+linear filter to augment or reduce the effect of a specified 
+frequency band.
+</pre>
+<h3>
+
+111.  1T Univariate and Bivariate Spectral Analysis Output Includes
+</h3>
+<pre>
+(All but the first are optional; a printout is available for each plot.)
+- descriptive statistics and a listing of the first five cases
+- snapshot of any time series, i.e., moving trimmed means, with time 
+  on the horizontal axis
+- plots of one or more time series with time on the vertical axis
+- lagged scatterplots, with points of the form (X(t), Y(tPu)) for a 
+  fixed lag, u, and for a range of t-values
+- complex demodulation, a plot of the amplitude and phase of a 
+  frequency band component of a time series
+- plot of the amplitude and phase of the frequency response function 
+  of a given or computed filter
+- plotted estimates from the spectral analysis, e.g., the spectrum of 
+  a single series, coherence and phase between a pair of series, and 
+  filter coefficients for fitting a dependent series by a filtered 
+  version of an independent series
+- plotted periodograms and covariance functions
+</pre>
+<h3>
+
+112.  1T Univariate and Bivariate Spectral Analysis Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               PRINT
+                /               SAVE
+                /               TFAXIS
+                /               END     
+                                data    
+                                SNAPSHOT I /
+                                TPLOT I /
+                                LSCATTER I /
+                                DEMODULATE I /
+                                REPLACE I /
+                                ADJUST I /      
+                                BANDPASS I /    
+                                FILTER I /
+                                AREG I /
+                                SPECTRA I /
+                                SAVE I /
+                                END /
+
+The SNAPSHOT, TPLOT, LSCATTER, DEMODULATE, REPLACE, ADJUST, 
+BANDPASS, FILTER, AREG, SPECTRA, and SAVE paragraphs can each 
+be repeated before the END paragraph as often as desired. Note that 
+the slash must come at the end of each of these paragraphs, and that 
+each of these paragraphs must start on a new line. An END paragraph 
+signals the end of the current analysis.
+</pre>
+<h3>
+
+113.  2T Box-Jenkins Time Series Analysis
+</h3>
+<pre>
+2T analyzes interactively a parametric time domain model. The 
+iterative process has three stages: the selection of a tentative 
+model, estimation of the model parameters, and testing for adequacy 
+of fit (residual analysis). 
+
+Once a suitable model is obtained, you may forecast future 
+observations. The class of univariate time domain models includes 
+ARIMA (Autoregressive Integrated Moving Average), regression, 
+intervention, and transfer function models.
+</pre>
+<h3>
+
+114.  2T Box-Jenkins Time Series Analysis Output Includes
+</h3>
+<pre>
+- plots of one or several time series in the same frame or in 
+  different frames
+- computed and plotted autocorrelation function
+- computed and plotted partial autocorrelation function
+- computed and plotted cross-correlation function between two time 
+  series
+- the ARIMA component of a time series model
+- the functional form of the parameters of an input series 
+  associated with the output series
+- checking the specification of a time series model
+- estimate of the parameters of the specified time series model
+- filtering a time series using the specified model
+- psi-weights and variance of a time series specified in the ARIMA 
+  paragraph
+- forecasts of future values of a time series using the specified or 
+  estimated model
+</pre>
+<h3>
+
+115.  2T Box-Jenkins Time Series Analysis Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               PRINT
+                /               SAVE
+                /               END
+                                data
+                                PRINT I /
+                                SAVE I /
+                                TPLOT I /
+                                BLOCK I /   
+                                ACF I / 
+                                PACF I /
+                                CCF I /
+                                DIFFERENCEI /
+                                FILTER I /      
+                                ARIMA I /       
+                                INDEP I /
+                                ESTIMATION I /
+                                PSIWEIGHT I /
+                                FORECAST I /
+                                CHECK I /
+                                ERASE I /
+                                END /
+
+The PRINT, SAVE, TPLOT, BLOCK, ACF, PACF, CCF, DIFFERENCE, 
+ARIMA, INDEP, CHECK, ERASE, FILTER, ESTIMATION, PSIWEIGHT, and 
+FORECAST paragraphs can be repeated in any order before END. Note 
+that these paragraphs are executed one at a time, that the slash 
+must come at the end of each of these paragraphs, and that each 
+paragraph must start on a new line. The END paragraph signals the 
+end of the current analysis.
+</pre>
+<h3>
+
+116.  1V One-Way Analysis of Covariance
+</h3>
+<pre>
+1V performs a one-way analysis of covariance for each dependent 
+variable to test the equality of adjusted group means. The slopes of 
+the covariates are tested for equality (parallelism) among groups. 
+User-specified linear contrasts of group means can be tested. 1V 
+may be used when performing an analysis of covariance with one 
+main effect and one or more covariates. For an analysis of 
+covariance with a more complex experimental design, use program 
+2V. 1V can also perform a one-way analysis of variance.
+</pre>
+<h3>
+
+117.  1V One-Way Analysis of Covariance Output Includes
+</h3>
+<pre>
+- mean for each group and all groups combined
+- optional within-group statistics: min. and max. values, covariance 
+  and correlation matrices
+- regression coefficients, standard errors, and t-values
+- group means, adjusted group means, and standard errors
+- ANOVA table with tests of zero slope and equality of slopes
+- within-group slope for each covariate
+- pairwise t-tests for adjusted group means
+- optional scatterplots of (1) observed and predicted values vs. the 
+  covariate, (2) residuals vs. the covariate, (3) residuals vs. the 
+  predicted values, and (4) residuals squared vs. predicted values
+- optional correlations between regression coefficients or between 
+  adjusted group means
+</pre>
+<h3>
+
+118.  1V One-Way Analysis of Covariance Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM
+                /               SAVE    
+                /               DESIGN    
+                /               PRINT   
+                /               END
+                                data
+                GROUPI/
+                VARIABLE GROUP = var. /
+                TRANSFORMI/     
+                PRINTI/ 
+                DESIGNI/
+                END /
+</pre>
+<h3>
+
+119.  2V Analysis of Variance and Covariance with Repeated Measures
+</h3>
+<pre>
+2V performs an analysis of variance or covariance for a wide variety 
+of fixed effects and repeated measures designs with equal or 
+unequal cell sizes. You can analyze models that have grouping 
+factors, within factors, or both. Grouping factors are also called 
+between-groups or whole-plot factors. Within factors are also 
+called trial, split-plot, repeated measures, or within-subjects 
+factors. The grouping and within factors must be crossed, not 
+nested.
+
+Group sizes may be unequal for combinations of grouping factors, but 
+each subject must have a response for every combination of within 
+factors. Fixed effects models include factorial designs, Latin 
+squares, fractional factorials, and incomplete blocks. 
+
+You can request an orthogonal decomposition of the within factors, 
+check the assumptions necessary for a valid test of the within 
+factors with a sphericity test, and obtain conservative tests of the 
+within factors (Greenhouse-Geisser and Huynh-Feldt tests) if these 
+assumptions are not met.
+</pre>
+<h3>
+
+120.  2V ANOVA and ANCOVA with Repeated Measures Output Includes
+</h3>
+<pre>
+- means, std. devs., and number of observations per cell for 
+  dependent variables and covariates
+- adjusted cell means and regression coefficients (when covariates 
+  are present)
+- Greenhouse-Geisser and Huynh-Feldt adjustments to the degrees of 
+  freedom for tests of the repeated-measures factor
+- optional orthogonal decomposition of the trial factors where the 
+  user may specify spacing of points
+- optional test for compound symmetry
+- optional printing of predicted values and residuals, or saving them 
+  in a BMDP File
+- optional miniplots of cell means for repeated measures designs
+- optional printout of unweighted marginal means
+</pre>
+<h3>
+
+121.  2V ANOVA and ANCOVA with Repeated Measures Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM       
+                /               SAVE    
+                /               DESIGN
+                /               PLOT
+                /               PRINT
+                /               END
+                                data
+</pre>
+<h3>
+
+122.  3V General Mixed Model Analysis of Variance
+</h3>
+<pre>
+3V uses the maximum likelihood (ML) and restricted maximum 
+likelihood (REML) approaches to the fixed and random coefficients 
+model. It handles mixed models of quite arbitrary form without 
+requiring the balance demanded by 2V and 8V. 
+
+For balanced data, REML estimates of mean and variance components 
+agree with those obtained from classical analysis of variance 
+whenever the latter produces nonnegative variance component 
+estimates. For other situations, this program is somewhat 
+experimental in nature, since maximum likelihood experience with 
+the general mixed model is limited. 
+
+The fixed effects sum to zero, and the random effects are assumed 
+to be sampled from independent normal populations with zero means. 
+You specify the hypotheses to be tested.
+</pre>
+<h3>
+
+123.  3V General Mixed Model Analysis of Variance Output Includes
+</h3>
+<pre>
+- descriptive statistics for the dependent variable and the 
+  covariate(s) for each cell (formed for all combinations of levels of 
+  the fixed effects)
+- estimates of the parameters of the model, their asymptotic 
+  standard errors, t statistics, and probabilities
+- minus 2 times the logarithm of the likelihood function
+- estimate of the parameter covariance matrix
+- program-generated dummy variables
+- observed and predicted mean for each cell defined by the fixed 
+  effects and standard error of the predicted cell mean
+- predicted cell mean covariance matrix
+- pairwise tests for predicted cell means
+- residuals
+- parameter estimates for specified hypotheses (submodels), log 
+  likelihoods, and likelihood ratio tests with degrees of freedom and 
+  tail probability
+</pre>
+<h3>
+
+124.  3V General Mixed Model Analysis of Variance Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM       
+                /               SAVE    
+                /               PRINT   
+                /               DESIGN
+                /               HYPOTHESIS    
+                /               END
+                                data
+</pre>
+<h3>
+
+125.  4V Uni- and Multivariate ANOVA & ANCOVA with Rep. Measures
+</h3>
+<pre>
+4V is a general purpose analysis of variance and covariance program 
+for univariate and multivariate analyses covering equal or unequal 
+cell sizes. Repeated measures, split-plot, and changeover designs 
+are included. 
+
+Additional flexibility and features in 4V permit specification of cell 
+weights; analysis of designs having empty cells; simultaneous 
+univariate, repeated measures, and multivariate analyses; tests of 
+user-specified contrasts across levels of a factor or across cell 
+means; and user-defined orthogonalization of effects. Factor level 
+weights or cell weights indicate the importance of each factor level 
+or cell. Weights give a flexibility to 4V that enables it to carry out 
+analyses performed by other popular analysis of variance programs 
+as well as analyses not easily obtained by other programs.
+
+4V can perform repeated analyses of the same input data within a 
+single problem. The program is designed to let you analyze your data 
+interactively, requesting subproblems within a problem after 
+viewing some of the results. Many features found in 4V are described 
+in BMDP Technical Reports #59, #67,  #75, and #83. Technical 
+Report #67 is a complete user's manual for 4V.
+</pre>
+<h3>
+
+126.  4V ANOVA & ANCOVA with Rep. Measures Output Includes
+</h3>
+<pre>
+- summary statistics: means, std. devs., min., max., etc. for all 
+  variates; optional printing of marginal statistics
+- analysis of variance table
+- univariate statistics for each dependent variate
+- multivariate statistics
+- Greenhouse-Geisser and Huynh-Feldt adjustments for repeated 
+  measures analysis
+- analysis of covariance
+- optional printing of eigenvalues and eigenvectors; dispersion 
+  matrices
+- optional printing of D- or contrast matrices (also called design 
+  matrices)
+</pre>
+<h3>
+
+127.  4V ANOVA & ANCOVA with Rep. Measures Order of Instructions
+</h3>
+<pre>
+                /               PROBLEM
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM
+                /               SAVE
+                /               BETWEEN 
+                /               WITHIN  
+                /               WEIGHTS 
+                /               PRINT
+                /               END
+                                data    
+                                DESIGN I /      
+                                INTERACT I /
+                                ORTH I /        
+                                DELETE I /      
+                                CONVERT I /
+                                PRINT I /
+                                ANALYSIS I /
+                                END /
+
+Each ANALYSIS paragraph signals the program to perform an analysis 
+using the information specified to that point. Some subset of the 
+DESIGN, INTERACT, ORTH, DELETE, CONVERT, and PRINT paragraphs 
+may precede each ANALYSIS paragraph. The ANALYSIS paragraph can 
+be used alone if no additional specification of the design is required. 
+
+The DESIGN, INTERACT, ORTH, CONVERT, and PRINT paragraphs can be 
+repeated in any order before the ANALYSIS paragraph. Note that 
+these paragraphs are executed one at a time and that the slash 
+comes at the end of each. Each paragraph must start on a new line. 
+
+The END paragraph signals the end of the current analysis segment. 
+The BETWEEN, WITHIN, WEIGHTS, and PRINT paragraphs can be 
+respecified for a subproblem using the same data.
+</pre>
+<h3>
+
+128.  5V Unbal. Repeated Measures Models/Structured Covariance Matrices
+</h3>
+<pre>
+5V analyzes repeated measures data for a wide class of 
+experimental designs and models--including those with unequal 
+variances, covariance matrices of a specified pattern, and 
+incomplete data. 
+
+The program uses maximum likelihood (ML) or restricted maximum 
+likelihood (REML) approaches to obtain estimates of the regression 
+and covariance parameters. You can use 5V with longitudinal studies 
+and repeated measures experiments, balanced or unbalanced designs, 
+and time-varying covariates.
+</pre>
+<h3>
+
+129.  5V Unbal. Rep. Meas. Models/Structured Cov. Matrices Output Includes
+</h3>
+<pre>
+- log-likelihood and change in log-likelihood at each iteration
+- Akaike's information criterion
+- estimates of covariance parameters, and asymptotic standard 
+  errors obtained from the expected information matrix
+- estimated within-subject covariance matrix and all-pairs within-
+  subject covariance matrix, and corresponding correlation matrices
+- estimates of regression parameters, their asymptotic standard 
+  errors, and the ratio of the estimates to their standard errors
+- Wald-type chi-square statistic
+- optional covariance matrix of estimated regression parameters
+- optional printing of responses, residuals, and standardized 
+  residuals
+</pre>
+<h3>
+
+130.  5V Unbal. Rep. Meas. Models/Struct. Cov. Matrices Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               GROUP
+                /               TRANSFORM       
+                /               DESIGN  
+                /               MODEL   
+                /               STRUCTURE
+                /               COMPUTE
+                /               PRINT
+                /               SAVE
+                /               END
+                                data
+                GROUP I /
+                TRANSFORM I /
+                DESIGN I /
+                MODEL I /       
+                STRUCTURE I /   
+                PRINT I /
+                COMPUTE I /
+                END /
+</pre>
+<h3>
+
+131.  8V General Mixed Model ANOVA/Equal Cell Sizes
+</h3>
+<pre>
+8V performs an analysis of variance for any complete design with 
+equal cell sizes. This includes nested, crossed, and partially nested 
+and partially crossed designs for fixed-effects, mixed (including 
+repeated measures), and random-effects models. 
+
+Separate analyses can be performed for several dependent variables. 
+Expected mean squares for each traditional analysis of variance 
+table are defined in terms of variance components.
+
+Very careful attention must be paid to the organization of the input 
+data for 8V, as it does not use grouping information and depends on 
+the input data structure to formulate analyses.
+</pre>
+<h3>
+
+132.  8V Gen. Mixed Model ANOVA/Equal Cell Sizes Output Includes
+</h3>
+<pre>
+- ANOVA table with expected mean squares
+- estimates of variance components
+- optional cell means, marginal means, residuals, and other cell 
+  deviations from marignal means
+</pre>
+<h3>
+
+133.  8V Gen. Mixed Model ANOVA/Equal Cell Sizes Order of Instructions
+</h3>
+<pre>
+                /               INPUT
+                /               VARIABLE
+                /               TRANSFORM       
+                /               PRINT  
+                /               SAVE
+                /               DESIGN
+                /               END
+                                data
+</pre>
+<br><br>
+<p align=right>7/97, jjc</p>
+</body>
+</html>

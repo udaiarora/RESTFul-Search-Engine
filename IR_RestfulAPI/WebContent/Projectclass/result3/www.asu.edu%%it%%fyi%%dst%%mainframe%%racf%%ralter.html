@@ -1,0 +1,597 @@
+<html>
+
+<head>
+<title>RALTER</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h3>RALTER</h3>
+
+<PRE>
+HELP RALTER
+
+FUNCTION
+          5740-XXH  (c) Copyright IBM Corp. 1987
+
+     The RALTER command is used to change an existing profile for one
+     or more named resources in a specified class.
+
+    The checks listed below are performed for each resource to
+    determine if you have sufficient authority to perform the
+    operation.  When any condition is true, you have sufficient
+    authority.
+         - You have the SPECIAL attribute, or
+         - You have the group-SPECIAL attribute and the profile is
+           owned by the group or by a user owned by the group, or
+         - You have the AUDITOR attribute or group-AUDITOR authority
+           over the resource, or
+         - You are the owner of the resource, or
+     (for discrete names only)
+         - You are authorized to the resource with ALTER authority, or
+         - You are not explicitly authorized to the resource, but your
+           current connect group is authorized to the resource with
+           ALTER authority, or
+         - Neither you nor your current connect group is explicitly
+           authorized to the resource, but the universal access to the
+           resource is ALTER.
+
+     If the ADDVOL operand is specified, you must be authorized to
+     define resources in the TAPEVOL class or have the SPECIAL
+     attribute.
+
+     If the GLOBALAUDIT operand is specified, you must have the
+     AUDITOR attribute or group-AUDITOR authority over the resource.
+     Having the AUDITOR attribute alone is sufficient authority if
+     only the GLOBALAUDIT operand is specified.
+
+     If the ADDMEM operand is specified, you must have sufficient
+     authority to the member resource. If the member resource is not
+     RACF protected, you must be authorized to define resources in
+     the member resource class. If the member resource is RACF
+     protected, you must have ALTER authority to, be the owner of,
+     or have group-SPECIAL authority over the resource.
+
+     If the class-name is given as GLOBAL then only one
+     profile-name may be given, and it must be either data set or a
+     NON-GROUP class defined in the class descriptor table.  In
+     addition, if the ADDMEM or DELMEM operand is given and
+     profile-name is given as data set, then the above authority
+     rules are replaced by the following:
+       (1) you have the SPECIAL attribute, or
+       (2) the high-level qualifier of the member name is equal to
+           your  userid.
+
+     If you have group-SPECIAL authority in a group and ALTER
+     authority to the global data set resource group, you can add or
+     delete global data set names where the high-level qualifier is
+     the group identifier, or is a userid owned by the group.
+
+
+SYNTAX
+
+  RALTER class-name (profile-name...)
+         OWNER(userid or group-name)
+         UACC(ALTER | CONTROL | UPDATE | READ | NONE)
+         AUDIT(NONE | SUCCESS | FAILURES | ALL | (access-type))
+         GLOBALAUDIT(NONE | SUCCESS | FAILURES | ALL | (access-type))
+         LEVEL(nn)
+         ADDVOL(volume-serial...) | DELVOL(volume-serial...)
+         ADDMEM(member-name...) | DELMEM(member-name...)
+         DATA('installation-defined-data') |
+           NODATA
+         APPLDATA('application-defined-data') |
+           NOAPPLDATA
+         WARNING | NOWARNING
+         TVTOC | NOTVTOC
+         SINGLEDS | NOSINGLEDS
+         NOTIFY(userid) | NONOTIFY
+         ADDCATEGORY(category-name ...) |
+           DELCATEGORY(category-name ...|*)
+         SECLEVEL(seclevel-name) |
+           NOSECLEVEL
+         WHEN(DAYS(day-info) TIME(time-info))
+         TIMEZONE(E | W hh.mm) | NOTIMEZONE
+
+      REQUIRED - class-name
+                 profile-name...
+      DEFAULTS - None.
+      ALIAS    - RALT
+
+
+OPERANDS
+
+   class-name
+      Specifies the class to which the resource belongs.
+
+   profile-name...
+      Specifies the name of one or more profiles whose RACF
+      definitions are to be changed.
+
+  OWNER(userid or group-name)
+      Specifies a RACF-defined user or group that is to be assigned as
+      the owner of the resource(s) being defined.
+
+  UACC(ALTER | CONTROL | UPDATE | READ | NONE)
+      Specifies the universal access to be associated with the
+      resource.
+
+      The valid subfields are:
+
+            ALTER   - ALTER access authority
+            CONTROL - CONTROL access authority
+            UPDATE  - UPDATE access authority
+            READ    - READ access authority
+            NONE    - No access authority
+
+  AUDIT(NONE | ALL | SUCCESS | FAILURES | (access-type))
+      Specifies  when logging is to occur for the profile.
+
+      The valid subfields are:
+
+            NONE     - Do not log
+
+      or one of the following:
+
+            ALL      - Log all accesses
+            FAILURES - Log only access failures
+            SUCCESS  - Log only successful accesses
+
+      optionally followed by an access type in parentheses:
+
+            READ     - Log all access types
+            UPDATE   - Log UPDATE, CONTROL, and ALTER access types
+            CONTROL  - Log CONTROL and ALTER access types
+            ALTER    - Log only ALTER access types
+
+      This operand is ignored for the TERMINAL class.
+
+  GLOBALAUDIT(NONE | ALL | SUCCESS | FAILURES | (access-type))
+      Specifies when, in addition to that specified by the AUDIT
+      keyword, logging is to occur for the profile.
+
+      The valid subfields are:
+
+            NONE     - Do not log
+      or one of the following:
+            ALL      - Log all accesses
+            FAILURES - Log only access failures
+            SUCCESS  - Log only successful accesses
+      optionally followed by an access type in parentheses:
+            READ     - Log all access types
+            UPDATE   - Log UPDATE, CONTROL, and ALTER access types
+            CONTROL  - Log CONTROL and ALTER access types
+            ALTER    - Log only ALTER access types
+
+      This operand is ignored for the TERMINAL class.
+
+  LEVEL(nn)
+      Specifies the LEVEL number to be associated with the resource.
+
+  ADDVOL(volume-serial...)
+      Specifies the volume serial number(s) of tape volume(s) to be
+      added to the volume set to which the resource belongs.  If this
+      operand is specified, only a single volume serial number can be
+      specified as the profile name.
+
+      This operand applies to the TAPEVOL class only, and is ignored
+      for generic names.
+
+  DELVOL(volume-serial...)
+      Specifies the volume serial number(s) of tape volume(s) to be
+      deleted from the volume set to which resource belongs.  If this
+      operand is specified, only a single volume serial number can be
+      specified as the profile name.
+
+      This operand applies to the TAPEVOL class only, and is ignored
+      for generic names.
+
+  ADDMEM(member-name...)
+      Specifies the resource name(s) to be added to the resource
+      group(s) indicated by the second positional operand.  The member
+      resource may be RACF protected, but need not be.  For members of
+      resources in the global class, the member name may be followed
+      by an access level ( /NONE, /READ, /UPDATE, /CONTROL, or
+      /ALTER).  The default access level is /READ.
+
+      This operand applies to resource group classes only.
+
+  DELMEM(member-name...)
+      Specifies the resource name(s) to be deleted from the resource
+      group(s) indicated by the second positional operand.  For
+      members of resources in the global class, the member name may be
+      followed by an access level (/NONE, /READ, /UPDATE, /CONTROL,
+      or /ALTER).  The default access level is /READ.
+
+      This operand applies to resource group classes only.
+
+  DATA('installation-defined-data')
+      Specifies a text string that will be associated with the
+      resource(s).  The maximum length for the text string is 255
+      characters.
+
+  NODATA
+      Deletes the installation-defined data in the specified profile.
+
+  APPLDATA('application-defined-data')
+      Specifies a text string that will be associated with the
+      resource(s).  The maximum length for the text string is 255
+      characters.
+
+  NOAPPLDATA
+      Specifies that the application-defined data is to be deleted
+      from the specified profile.
+
+  WARNING
+      Indicates that a warning message should be issued if access
+      authority is insufficient, but access should be allowed.
+
+  NOWARNING
+      Indicates that no warning message should be issued if access
+      authority is insufficient, and access should be disallowed.
+
+  TVTOC
+      Specifies that this tape volume may have a TVTOC created for it
+      when needed.
+
+  NOTVTOC
+      Specifies that this tape volume may not have a TVTOC built for
+      it.
+
+  SINGLEDS
+      Specifies, for TAPEVOL class only, that the volume being defined
+      may only contain one tape data set.
+
+  NOSINGLEDS
+      Specifies, for TAPEVOL class only, that the volume being defined
+      may contain up to 9999 tape data sets.
+
+  NOTIFY(userid)
+      Specifies a RACF-defined user to be notified when this profile
+      denies access to a resource.  If notify is entered with no
+      userid, the command issuer will be notified.
+
+  NONOTIFY
+      Specifies that a RACF-defined user will not be notified when
+      this profile denies access to a resource.
+
+  ADDCATEGORY(category-name ...)
+      Specifies one or more installation defined category names.  The
+      arguments for this keyword must be members of the category
+      profile in the SECDATA class.
+
+  DELCATEGORY(category-name ...|*)
+      Specifies one or more category names to be deleted from the
+      profile.  If DELCATEGORY(*) is specified all category names will
+      be deleted.  If DELCATEGORY is specified without any category
+      names, all undefined category names will be deleted.
+
+  SECLEVEL(seclevel-name)
+      Specifies an installation-defined security level name.  The
+      argument must be in the member list of the SECLEVEL profile in
+      the SECDATA class.
+
+  NOSECLEVEL
+      Specifies that the security level name will be deleted for this
+      profile.
+
+  WHEN(DAYS(day-info) TIME(time-info))
+      Specifies for resources in the TERMINAL class, that they may
+      only be used to access the system on certain days and/or hours.
+
+      day-info
+          Specifies days the user may access the system.
+
+          Valid specifications are:
+
+             ANYDAY   - No day restrictions apply.
+             WEEKDAYS - Access allowed Monday through Friday.
+             Day...   - Names one or more days of the week when the
+                        terminal may access the system.  Days may be
+                        given in any order.
+
+      time-info
+          Specifies hours of each day when access is allowed.
+
+          Valid specifications are:
+
+             ANYTIME  - No time restrictions apply
+             start-time:end-time - In format hhmm:hhmm where hh is
+                        the hour in 24 hour notation (00-23), and
+                        mm is minutes (00-59).
+
+  TIMEZONE(E | W hh.mm)
+      Specifies the time zone location of a remote terminal so that
+      time calculations for the WHEN parameter can be correctly
+      handled by the system.  The location relative to the CPU is
+      indicated by either E for east or W for west, with hh indicating
+      hours.  Valid values are 0 thru 11.  For irregular timezones, mm
+      indicates minutes in excess of whole hours.  Valid values are 0
+      thru 59.
+
+  NOTIMEZONE
+      Specifies that the terminal is located in the same time zone as
+      the CPU.
+
+  ICH11001I NOT AUTHORIZED TO SPECIFY GLOBALAUDIT FOR entity-name;
+            OPERAND IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify the GLOBALAUDIT operand for the entity indicated
+            in the message.
+
+            System Action:  RACF ignores the operand.  Command
+            processing continues with the next operand.
+
+  ICH11002I AUTHORIZED TO ISSUE ONLY GLOBALAUDIT FOR entity-name;
+            REMAINING OPERANDS IGNORED
+
+            Explanation:  You have specified operands in addition to
+            GLOBALAUDIT, but only for the indicated entity name, are
+            you authorized to specify the GLOBALAUDIT operand.  RACF
+            ignores all operands other than GLOBALAUDIT.
+
+            System Action:  Command processing continues with the next
+            operand.
+
+  ICH11003I NOT AUTHORIZED TO SPECIFY OWNER FOR entity-name;
+            OPERAND IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify the OWNER operand for the indicated entity name.
+
+            System Action:  RACF ignores the OWNER operand.  Command
+            processing continues with the next operand.
+
+  ICH11004I operand DOES NOT APPLY TO class-name CLASS ENTITIES;
+            OPERAND IGNORED
+
+            Explanation:  The indicated operand does not apply to the
+            indicated class.
+
+            System Action:  RACF ignores the operand.  Command
+            processing continues with the next operand.
+
+  ICH11005I LIST OF ENTITY NAMES SPECIFIED; operand OPERAND IGNORED
+
+            Explanation:  You have specified an entity name list.
+            Only a single entity name is allowed (1) when the ADDVOL
+            or DELVOL operands are specified or (2) when the class
+            name is specified as GLOBAL or SECDATA and the ADDMEM or
+            DELMEM operands are specified.
+
+            System Action:  RACF ignores the operand.  Command
+            processing continues with the next operand.
+
+  ICH11006I NOT AUTHORIZED TO SPECIFY ADDVOL; OPERAND IGNORED
+
+            Explanation:  You do not have sufficient authority to
+            specify the ADDVOL operand.
+
+            System Action:  RACF ignores the operand.  Command
+            processing continues with the next operand.
+
+  ICH11007I entity-name CANNOT BE SPECIFIED IN DELVOL LIST;
+            entity-name NOT DELETED
+
+            Explanation:  The volume serial number indicated by
+            entity-name was specified on the profile-name operand and
+            the DELVOL operand.
+
+            System Action:  RACF ignores the request to delete the
+            entity name.  Command processing continues with the next
+            volume serial number specified on the DELVOL operand.
+
+  ICH11008I (seclevel-name | category-name) TO BE DELETED
+            SHOULD BE REMOVED FROM ALL USER AND RESOURCE PROFILES
+
+            Explanation:  A category or security level has been
+            deleted from a profile in the SECDATA class. The security
+            categories or security levels that correspond to the
+            name(s) deleted should be deleted from all user and
+            resource profiles or unexpected errors in RACF processing
+            may occur.
+
+  ICH11009I RACLISTED PROFILES FOR class-name WILL NOT REFLECT THE
+            UPDATE(S) UNTIL A SETROPTS REFRESH IS ISSUED
+
+            Explanation:  The profile class exists in common storage,
+            but the profile updates will not become effective until
+            the SETROPTS command is issued with the REFRESH operand.
+
+  ICH11102I entity-name NOT DEFINED TO CLASS class-name
+
+            Explanation:  The indicated entity name has not been
+            previously defined to RACF in the indicated class.
+
+            System Action:  Command processing continues with the next
+            entity name.
+
+  ICH11103I NOT AUTHORIZED TO ALTER entity-name
+
+            Explanation:  You do not have sufficient authority to
+            alter the indicated entity.
+
+            System Action:  Command processing continues with the next
+            entity name.
+
+  ICH11104I volser NOT IN VOLUME SET OF entity-name; VOLUME
+            NOT DELETED
+
+            Explanation:  The indicated volume serial number (volser)
+            specified on the DELVOL operand does not belong to the
+            volume set of the indicated entity.
+
+            System Action:  The volume serial number is not deleted.
+            Command processing continues with the next operand.
+
+  ICH11105I member-name ALREADY DEFINED TO GROUP entity-name
+
+            Explanation:  The resource name specified on the ADDMEM
+            operand is already a member of the resource group being
+            altered.
+
+            System Action:  Command processing continues with the next
+            member name.
+
+  ICH11106I volser ALREADY DEFINED TO CLASS TAPEVOL
+
+            Explanation:  The volume serial number (volser) specified
+            on the ADDVOL operand is already defined to RACF in the
+            TAPEVOL class.
+
+            System Action:  Command processing continues with the next
+            operand.
+
+  ICH11107I member-name NOT DEFINED TO GROUP entity-name
+
+            Explanation:  The resource name specified on the DELMEM
+            operand is not a member of the resource group being
+            altered.
+
+            System Action:  Command processing continues with the next
+            member name.
+
+  ICH11108I NOT AUTHORIZED TO ADD member-name
+
+            Explanation:  The user of the RALTER command does not have
+            sufficient authority to specify the indicated resource
+            name on the ADDMEM operand.
+
+            System Action:  Command processing continues with the next
+            member name.
+
+  ICH11111I SINGLEDS IGNORED.  VOLUME volser CONTAINS MORE
+            THAN ONE DATA SET - xxxxx IGNORED
+
+            Explanation:  The indicated volume already contains more
+            than one entry in the TVTOC.
+
+            System Action:  Command processing continues with the next
+            operand.
+
+  ICH11112I TVTOC IN USE. NOTVTOC IGNORED
+
+            Explanation:  A TVTOC that  protects a tape data set
+            already exists.
+
+            System Action:  RACF ignores the NOTVTOC operand.  Command
+            processing continues with the next operand.
+
+  ICH11113I DELVOL volume PROCESSING IGNORED.  A TVTOC ENTRY
+            EXISTS FOR A DATA SET ON THE VOLUME.
+
+            Explanation:  The DELVOL operand was specified for a
+            volume that has TVTOC entries for a tape data set(s) on
+            the volume. The data set(s) must be deleted before the
+            volume can be deleted.
+
+            System Action:  Command processing continues with the next
+            option.
+
+  ICH11114I category ALREADY DEFINED TO profile-name
+
+            Explanation:  The security category indicated in the
+            message has already been defined in this profile.
+
+            System Action:  RACF ignores the operand.  Command
+            processing continues with the next operand.
+
+  ICH11115I category NOT DEFINED TO profile-name
+
+            Explanation:  The security category indicated in this
+            message has not been defined to this profile.
+
+            System Action:  RACF ignores the operand.  Command
+            processing continues with the next operand.
+
+  ICH11118I COMMAND PROCESSING TERMINATED.  NO (SECLEVELS | CATEGORIES)
+            FOUND
+
+            Explanation:  RACF could not validate the name you
+            specified on the SECLEVEL or ADDCATEGORY keyword. This
+            happened for one of two reasons:
+
+            o   There is no SECLEVEL or CATEGORY profile.
+            o   A profile is defined, but it doesn't contain any
+                members.
+
+            System Action:  RACF terminates the command.
+
+  ICH11201I NOT AUTHORIZED TO ISSUE RALTER
+
+            Explanation:  You are not defined to RACF and cannot issue
+            the RALTER command, or RACF is not active.
+
+            System Action:  RACF terminates the command.
+
+  ICH11301I entity-name AND REMAINING ENTITIES NOT ALTERED
+
+            Explanation:  The indicated entity-name and remaining
+            entity names in the list were not altered because of one
+            of the following:
+
+            o   A RACF manager error occurred.  In this case, the
+                message is preceded by a RACF manager error message
+                explaining the error.
+
+            o   A system error occurred while building in-storage
+                profiles (via RACLIST) for the entity names specified
+                by the ADDMEM operand or the member class associated
+                with the specified class is currently inactive.
+
+            o   A system error occurred while checking (via FRACHECK)
+                the user's authority to the entities specified by the
+                ADDMEM operand.
+
+  ICH11302I VOLUME volser AND REMAINING VOLUMES NOT (ADDED/DELETED)
+
+            Explanation:  The indicated volser and all remaining
+            volumes in the ADDVOL/DELVOL list were not added to or
+            deleted from a volume set because an error occurred in the
+            RACF manager.  A RACF manager error message precedes this
+            message and explains the error.
+
+            System Action:  Other operands on the command have been
+            processed.  RACF terminates the command.
+
+  ICH11303I MEMBER member-name AND REMAINING MEMBERS NOT PROCESSED
+            FOR ENTITY entity-name
+
+            Explanation:  An error occurred in the RACF manager that
+            prevented the indicated resource from being added to or
+            deleted from the indicated resource group.  A RACF manager
+            error message precedes this message.
+
+            System Action:  Other operands on the command have been
+            processed.
+</PRE>
+
+<br>
+
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

@@ -1,0 +1,430 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS/GRAPH Statements : Example 10.  Creating a Bar Chart with Drill-down for the Web </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0724351.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zods1-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0724429.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zods2-ex">Example 10.  Creating a Bar Chart with Drill-down for the Web</A></FONT></H1>
+
+
+<P><A name="z0752249">&#13;<B>Features:</B>
+
+
+</A>
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>GOPTIONS statement  option:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>  RESET=</TD></TR></TABLE></TD></TR>
+<TR valign="top"><TD></TD><TD> ODS HTML statement options:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD> BODY=</TD></TR>
+<TR valign="top"><TD></TD><TD> NOGTITLE</TD></TR>
+<TR valign="top"><TD></TD><TD> PATH=</TD></TR></TABLE></TD></TR></TABLE>
+<P> <B>Sample library member:</B> 
+GR08N10
+<P> This example shows you how to
+create a drill-down graph
+in which the user can select an area of the graph in order to display additional
+information about the data.  The program creates one vertical bar chart of
+total sales for each site and three reports that break down the sales figures
+for each site by department and quarter. <A href="#zs2-vbar">Vertical Bar Chart of Total Sales</A> shows the bar chart of sales.
+
+<P>
+<B><I><A name="zs2-vbar">Vertical Bar Chart of Total Sales</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329191.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><A href="#z2-print">PROC REPORT Output Displayed in a Web Browser</A>
+shows the PROC REPORT output that appears when you click on the bar for Atlanta. 
+<P>
+<B><I><A name="z2-print">PROC REPORT Output Displayed in a Web Browser</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329192.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>For additional information about this
+program, see <A href="#zdescrip">Details</A>.
+ 
+<P><B>Assign the Web-server path</B>. FILENAME assigns the fileref
+ODSOUT, which specifies a destination for the HTML and GIF files produced
+by the example program. To assign that location as the HTML destination for
+program output, ODSOUT is specified later in the program on the ODS HTML statement's
+PATH= option. ODSOUT must point to a Web-server location if procedure output
+is to be viewed on the Web.   
+
+
+
+<PRE>filename odsout '<I>path-to-Web-server-space</I>';</PRE>
+<P><B>Close the ODS Listing destination for procedure
+output, and set the graphics environment.</B> To conserve system resources,
+ODS LISTING CLOSE closes the Listing destination for procedure output. On
+the GOPTIONS statement, DEVICE=GIF causes the ODS HTML statement to generate
+the graphics output as GIF files. TRANSPARENCY causes the graphics output
+to use the Web-page background as the background of the graph.
+
+
+
+<PRE>ods listing close;
+goptions reset=global gunit=pct
+         colors=(black blue green red)
+         hsize=7 in vsize=5 in ftitle=zapfb
+         ftext=swiss htitle=6 htext=4
+         device=gif transparency noborder;</PRE>
+<P>  <B>Add the HTML variable to <A href="zods1-ex.htm#z0724276">TOTALS</A> and create the
+NEWTOTAL data set.</B> The HTML variable SITEDRILL contains the targets
+for the values of the variable SITE. Each HREF value specifies the HTML body
+file and the name of the anchor within the body file that identifies the target
+graph.
+
+
+
+<PRE>data newtotal;
+   set totals;
+   length sitedrill $40;
+if site='Atlanta' then
+   sitedrill='HREF="report_deptsales.html#IDX1"';
+
+else if site='Paris' then
+   sitedrill='HREF="report_deptsales.html#IDX2"';
+
+else if site='Sydney' then
+   sitedrill='HREF="report_deptsales.html#IDX3"';
+run;</PRE>
+<P>  <B>Open the ODS HTML destination.</B> BODY=
+names the file for storing HTML output. PATH= specifies the ODSOUT fileref
+as the HTML destination for all the HTML and GIF files. NOGTITLE suppresses
+the graph titles from the SAS/GRAPH output
+and displays them in the HTML.
+
+
+
+<PRE>ods html path=odsout
+    body='report_body.html'
+    nogtitle;</PRE>
+<P>  <B>Define title and footnote.</B>
+
+
+
+<PRE>title1 'Total Sales for All Sites';
+footnote1 h=3 j=l 'click on bars' j=r 'REPORT3D ';</PRE>
+<P>  <B>Assign a pattern color for the bars.</B>
+Each bar in the graph uses the same PATTERN definition.
+
+
+
+<PRE>pattern color=cyan;</PRE>
+<P>  <B>Define axis characteristics.</B> The VBAR3D
+statement assigns AXIS1 to the response axis and AXIS2 to the midpoint axis.
+
+
+
+<PRE>axis1 order=(0 to 100000 by 20000)
+      minor=(number=1)
+      label=none;
+axis2 label=none offset=(9,9);</PRE>
+<P>  <B>Generate the vertical bar chart of total sales
+for each site.</B> HTML= specifies SITEDRILL as the variable that contains
+the name of the target. Specifying HTML= causes SAS/GRAPH to
+add an image map to the HTML body file. NAME= specifies the name of the catalog
+entry.
+
+
+
+<PRE>proc gchart data=newtotal;
+   format sales dollar8.;
+   vbar3d site / discrete
+                 width=15
+                 sumvar=sales
+                 inside=sum
+                 html=sitedrill
+                 coutline=black
+                 cframe=blue
+                 maxis=axis2
+                 raxis=axis1
+                 name='report3d ';
+run;
+quit;</PRE>
+<P>  <B>Open the file for the PROC REPORT output.</B>
+Assigning a new body file closes REPORT_BODY.HTML. 
+
+
+
+<PRE>ods html body='report_deptsales.html' path=odsout;</PRE>
+<P>  <B>Sort the data set NEWTOTAL.</B> The data
+must be sorted in order of the BY variable before running PROC REPORT with
+BY-group processing.
+
+
+
+<PRE>proc sort data=newtotal;
+   by site dept quarter;
+run;
+quit;</PRE>
+<P>  <B>Clear the footnote.</B>
+
+
+
+<PRE>goptions reset=footnote1;</PRE>
+<P>  <B>Suppress the default BY-line and define a title
+that includes the BY-value.</B> #BYVAL inserts the value of the BY variable
+SITE into the title of each report.
+
+
+
+<PRE>options nobyline;
+title1 'Sales Report for #byval(site)';</PRE>
+<P>  <B>Print a report of departmental sales for each
+site.</B>
+
+
+
+<PRE>proc report data=newtotal nowindows;
+  by site;
+  column site dept quarter sales;
+  define site    / noprint group;
+  define dept    / display group;
+  define quarter / display group;
+  define sales   / display sum format=dollar8.;
+  compute after site;
+          dept='Total';
+  endcomp;
+  break after site / summarize style=rowheader page;
+run;
+quit;</PRE>
+<P>  <B>Close the ODS HTML destination, and open the
+ODS Listing destination.</B>
+
+
+
+<PRE>ods html close;
+ods listing;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zdescrip">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>This section provides additional information about the
+pieces of this program and how they work together to generate SAS/GRAPH output
+with drill-down functionality. It describes 
+<P>
+<UL>
+
+<LI>how  an HREF value is built<P>
+
+<LI>how the HTML= option creates an image map
+in the
+HTML file<P>
+
+<LI>how the HTML file references the SAS/GRAPH
+output.<P>
+</UL>
+
+<P>For a description of the relationship between the parts
+of the program and the HTML and GIF files, see "About SAS/GRAPH Output
+and the Web."
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Building an HREF value</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0752280">&#13;
+In the DATA step, the variable SITEDRILL is assigned a string that defines
+the link target for a data value. For example,  
+
+
+</A>
+<PRE>if site='Atlanta' then
+   sitedrill='HREF="report_deptsales.html#IDX1"';</PRE>
+<P>The link target is specified by the HTML HREF attribute.
+ The HREF value tells the Web page where to link to when a user selects the
+region associated with the value 
+
+
+<CODE><B>Atlanta</B></CODE>.
+<P>For example, clicking on the first bar in the chart
+links to the target defined by 
+
+
+<CODE><B>report_deptsales.html#IDX1</B></CODE>.
+This target is composed of a filename and an anchor. The file, 
+
+
+<CODE><B>report_deptsales.html</B></CODE>, is generated by the PROC REPORT step.  
+
+
+<CODE><B>IDX1</B></CODE> is the anchor that
+identifies the section of the file that contains the report for the first
+BY group, 
+
+
+<CODE><B>Atlanta</B></CODE>.
+<P>Because anchor names increment, in order to assign them
+accurately you must know how many pieces of output your program generates
+and in what order. For example, this table lists in order the pieces of output
+generated by this example and their default anchor names: 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B>Procedure </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Output</B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Anchor name </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">GCHART  </TD>
+  
+<TD  align="LEFT" valign="TOP">report3d.gif
+   </TD>
+  
+<TD  align="LEFT" valign="TOP">IDX</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">REPORT   </TD>
+  
+<TD  align="LEFT" valign="TOP">Atlanta report   </TD>
+  
+<TD  align="LEFT" valign="TOP">IDX1</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">REPORT    </TD>
+  
+<TD  align="LEFT" valign="TOP">Paris report    </TD>
+  
+<TD  align="LEFT" valign="TOP">IDX2</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">REPORT    </TD>
+  
+<TD  align="LEFT" valign="TOP">Sydney report    </TD>
+  
+<TD  align="LEFT" valign="TOP">IDX3</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Creating an image map</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0752299">&#13;
+The HTML= option in the GCHART procedure is assigned the variable with the
+target information - in this case, SITEDRILL.  
+
+
+</A>
+<PRE>html=sitedrill</PRE>
+<P>This option causes SAS/GRAPH to generate in the HTML
+body file the MAP and AREA elements that compose the image map. It loads the
+HREF attribute value from SITEDRILL into the AREA element. This image map,
+which is named 
+
+
+<CODE><B>gqcke00k_map</B></CODE>, is stored in 
+
+
+<CODE><B>report_body.html</B></CODE> (ODS generates unique map names each time you run the program, so
+the next time this program runs, the map name will be different):  
+
+
+
+<PRE>&lt;MAP NAME="gqcke00k_map">
+   &lt;AREA SHAPE="POLY"
+       HREF="report_deptsales.html#IDX3"
+       COORDS="423,409,423,242,510,242,510,409" >
+   &lt;AREA SHAPE="POLY"
+       HREF="report_deptsales.html#IDX2"
+       COORDS="314,409,314,139,401,139,401,409" >
+   &lt;AREA SHAPE="POLY"
+       HREF="report_deptsales.html#IDX1"
+       COORDS="205,409,205,199,292,199,292,409" >
+&lt;/MAP></PRE>
+<P>The AREA element defines the regions within the graph
+that you can select to link to other locations. It includes attributes that
+define the shape of the region (SHAPE=) and position of the region (COORDS=)
+as well as the link target (HREF=).
+<P>The value assigned to the HREF= attribute is contained
+in the variable assigned to HTML=, in this case SITEDRILL.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Referencing SAS/GRAPH output</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0752303">&#13; In the GOPTIONS statement, DEVICE=GIF causes SAS/GRAPH to
+create GIF files from the SAS/GRAPH output.
+It also adds to the open body file an IMG element that points to the GIF file.
+In this case, SAS/GRAPH adds the following IMG element to 
+
+
+</A><CODE><B>report_body.html</B></CODE>:  
+
+
+
+<PRE>&lt;IMG SRC="report3d.gif" USEMAP="#gqcke00k_map"></PRE>
+<P>The IMG element tells the Web page to get the image
+from the file 
+
+
+<CODE><B>report3d.gif</B></CODE>.  It also tells the Web page to use
+the image map 
+
+
+<CODE><B>#report3d_map</B></CODE> to define the hot spots of the bar
+chart.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0724351.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zods1-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0724429.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zods2-ex">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

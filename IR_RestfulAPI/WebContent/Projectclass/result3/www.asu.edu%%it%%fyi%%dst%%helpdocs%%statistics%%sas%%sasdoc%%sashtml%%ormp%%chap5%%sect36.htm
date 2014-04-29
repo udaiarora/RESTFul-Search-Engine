@@ -1,0 +1,223 @@
+<HTML>
+<HEAD>
+<TITLE>Computational Problems</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="nlpcp">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Computational Problems</H2>
+<P><A NAME="idxnlp0494">&#13;</A><H3><I>First Iteration Overflows</I></H3>
+<A NAME="idxnlp0495">&#13;</A><A NAME="idxnlp0496">&#13;</A>If you use bad initial values for the parameters, the
+computation of the value of the objective function (and
+its derivatives) can lead to arithmetic overflows in the
+first iteration. 
+The line-search algorithms that work with cubic extrapolation
+are especially sensitive to arithmetic overflows. If an
+overflow occurs with an optimization technique that uses
+line-search, you can use the INSTEP= option to reduce the
+length of the first trial step during the line-search of the
+first five iterations or use the DAMPSTEP or MAX STEP
+option to restrict the step length of the initial <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha">in subsequent iterations. If an arithmetic overflow occurs in
+gthe first iteration of the trust-region, double dogleg, or
+Levenberg-Marquardt algorithm, you can use the INSTEP= option
+to reduce the default trust region radius of the first iteration.
+You can also change the minimization technique or the line-search
+method. If none of these methods helps, consider the following
+actions:
+<UL>
+<LI> scale the parameters
+<LI> provide better initial values
+<LI> use boundary constraints to avoid the region
+         where overflows may happen
+<LI> change the algorithm (specified in program
+         statements) which computes the objective function
+</UL>
+<P><H3><I>Problems in Evaluating the Objective Function</I></H3>
+The starting point <SPAN CLASS="mathfont"><I>x<SUP>(0)</SUP></I></SPAN> must be a point that can be evaluated by 
+all the functions involved in your problem. 
+However, during optimization the optimizer may 
+iterate to a point <SPAN CLASS="mathfont"><I>x</I><SUP>(<I>k</I>)</SUP></SPAN> where
+the objective function or nonlinear constraint
+functions and their derivatives cannot be evaluated. 
+If you can identify the problematic region, 
+you can prevent the algorithm from reaching it by adding another 
+constraint to the problem. Another possiblity is a modification 
+of the objective function, that will, as a result, get a large, undesired 
+function value.  As a result, the optimization algorithm
+reduces the step length and stays closer to the point that
+has been evaluated successfully in the previous iteration.
+For more information, refer to the section <A HREF="sect40.htm#nlpmiss">&#34;Missing Values in Program Statements&#34;</A>.
+<P><H3><I>Problems with Quasi-Newton Methods for Nonlinear Constraints</I></H3>
+<A NAME="idxnlp0497">&#13;</A>The sequential quadratic programming algorithm in QUANEW,
+that is used for solving nonlinearly constrained problems,
+can have problems updating the Lagrange multiplier vector
+<IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq8.gif"
+ ALT="\mu">. This results usually in very high values of the
+Lagrange function and in <I>watchdog</I> restarts indicated
+in the iteration history. If this happens,
+there are three actions you can try:
+<UL>
+<LI> By default, the Lagrange vector <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq8.gif"
+ ALT="\mu">      is evaluated in the same way as Powell (1982) describes.
+      This corresponds  to VERSION=2. 
+      By specifying VERSION=1, a modification of this
+      algorithm replaces the update of the Lagrange vector <IMG WIDTH="14" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq8.gif"
+ ALT="\mu"> with
+      the original update of Powell (1978), <A NAME="idxnlp0493">&#13;</A>that
+      is used in VF02AD.
+<LI> You can use the INSTEP= option to
+      impose an upper bound for the step size <IMG WIDTH="15" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/nlpeq64.gif"
+ ALT="\alpha"> during
+      the first five iterations.
+<LI> You can use the INHESSIAN[=r] option to specify a
+      different starting approximation for the Hessian.
+      Choosing simply the INHESSIAN option will use the Cholesky
+      factor of a (possibly ridged) finite difference approximation
+      of the Hessian to initialize the quasi-Newton update process.
+</UL>
+<P><H3><I>Other Convergence Difficulties</I></H3>
+<A NAME="idxnlp0498">&#13;</A>There are a number of things to try if the optimizer fails to 
+converge.
+<P><UL>
+<LI> Check the derivative specification: <BR>If derivatives are specified by using the GRADIENT, HESSIAN,
+  JACOBIAN, CRPJAC, or JACNLC statement, you can compare the
+  specified derivatives with those computed by finite-difference
+  approximations (specifying the FD and FDHESSIAN option).
+  Use the GRADCHECK option to check if the gradient <SPAN CLASS="mathfont"><I>g</I></SPAN>
+  is correct. For more information, refer to the section <A HREF="sect30.htm#nlpttgs">&#34;Testing the Gradient Specification&#34;</A>.
+<LI> Forward-difference derivatives specified with the FD[=]
+  or FDHESSIAN[=] option may not be precise enough to satisfy
+  strong gradient termination criteria. You may need to specify
+  the more expensive central-difference formulas or use
+  analytical derivatives. 
+  The finite difference intervals
+  may be too small or too big and the finite difference
+  derivatives may be erroneous. You can specify the FDINT=
+  option to compute better finite difference intervals.
+<LI> Change the optimization technique: <BR>For example, if you use the default TECH=LEVMAR, you can
+  <UL>
+<LI> change to TECH=QUANEW or to TECH=NRRIDG
+<LI> run some iterations with TECH= CONGRA, write the results
+        in an OUTEST= or OUTVAR= data set, and use them as initial
+        values specified by an INEST= or INVAR= data
+        set in a second run with a different TECH= technique
+  </UL>
+<LI> Change or modify the update technique
+  and the line-search algorithm: <BR>This method applies only to TECH=QUANEW, TECH=HYQUAN, or TECH= CONGRA.
+  For example, if you use the default update formula and the
+  default line-search algorithm, you can
+  <UL>
+<LI> change the update formula with the UPDATE= option
+<LI> change the line-search algorithm with the LIS= option
+<LI> specify a more precise line-search with the
+        LSPRECISION= option, if you use LIS=2 or LIS=3
+  </UL>
+<LI> Change the initial values by using a grid search specification
+   to obtain a set of good feasible starting values.
+</UL>
+<P><H3><I>Convergence to Stationary Point</I></H3>
+<A NAME="idxnlp0499">&#13;</A><A NAME="idxnlp0500">&#13;</A><A NAME="idxnlp0501">&#13;</A><A NAME="idxnlp0502">&#13;</A>The (projected) gradient at a stationary point is zero and that translates into
+a zero step size. The stopping criteria are satisfied.
+<P>There are two ways to avoid this situation: 
+      <UL>
+<LI> Use the PARMS statement to specify a grid of
+            feasible starting points.
+<LI> Use the OPTCHECK[=<SPAN CLASS="mathfont"><I>r</I></SPAN>] option to
+            avoid terminating at the stationary point.
+      </UL>
+<P>The signs of the eigenvalues of the (reduced) Hessian matrix
+contain information regarding a stationary point.
+<UL>
+<LI> If all eigenvalues are positive,
+      the Hessian matrix is positive definite and
+      the point is a minimum point.
+<LI> If some of the eigenvalues are positive and all
+      remaining eigenvalues are zero,
+      the Hessian matrix is positive semidefinite and
+      the point is a minimum or saddle point.
+<LI> If all eigenvalues are negative,
+      the Hessian matrix is negative definite and
+      the point is a maximum point.
+<LI> If some of the eigenvalues are negative and all
+      remaining eigenvalues are zero,
+      the Hessian matrix is negative semidefinite and
+      the point is a maximum or saddle point.
+<LI> If all eigenvalues are zero,
+      the point can be a minimum, maximum, or saddle point.
+</UL>
+<P><H3><I>Precision of Solution</I></H3>
+<A NAME="idxnlp0503">&#13;</A>In some applications, PROC NLP may result in parameter
+estimates that are not precise enough. Usually this means
+that the procedure terminated too early at a point
+too far from the optimal point. The termination
+criteria define the size of the termination region around the
+optimal point. Any point inside this region can be accepted for
+terminating the optimization process.
+The default values of the termination criteria are set to satisfy
+a reasonable compromise between the computational effort (computer
+time) and the precision of the computed estimates for the most
+common applications. However, there are a number of circumstances
+where the default values of the termination criteria
+specify a region that is either too large or is too small.
+If the termination region is too large, then it can contain
+points with low precision.
+In such cases, you should inspect
+your log or list output to find the message stating which
+termination criterion terminated the optimization process.
+In many applications, you can obtain a solution with higher
+precision by simply using the old parameter estimates as
+starting values in a subsequent run where you specify a
+smaller value for the termination criterion that was
+satisfied at the former run.
+<P>If the termination region is too small,
+the optimization process may take longer
+to find a point inside such a region or cannot even find such
+a point due to rounding errors in function values and
+derivatives. This can easily happen in applications where
+finite difference approximations of derivatives are used
+and the GCONV and ABSGCONV termination criteria are too
+small to respect rounding errors in the gradient values.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect35.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

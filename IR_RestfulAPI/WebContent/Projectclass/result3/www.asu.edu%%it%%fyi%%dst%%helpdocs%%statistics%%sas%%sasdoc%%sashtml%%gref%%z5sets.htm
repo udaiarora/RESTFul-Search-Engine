@@ -1,0 +1,205 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The GMAP Procedure : Creating Map Data Sets </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0729027.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z2sets.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0729062.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The GMAP Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z5sets">Creating Map Data Sets</A></FONT></H1>
+
+
+<P><A name="z0758855">&#13;  In addition to using map data sets that are supplied with SAS/GRAPH software,
+you may want to create your own map data sets. Map data sets are not limited
+to geographic data; you use them to define other spaces such as floor plans
+or street diagrams.  This section explains more about the structure of map
+data sets.</A>
+<P> A unit area is defined by observations in the map data
+set that have the same identification (ID) variable value.  A unit area may
+be composed of a single polygon or a collection of polygons. A polygon is
+defined by all of the observations that have the same SEGMENT variable value. 
+<P>
+<UL>
+
+<LI>If the unit area is a single polygon, all values
+of SEGMENT are the same.<P>
+
+<LI>If the unit area contains multiple polygons, such
+as islands, the SEGMENT variable has multiple values.  For example, in the
+MAPS.US data set, the state of Hawaii (a unit area) contains six different
+values in the SEGMENT variable, one for each island in the state.<P>
+
+<LI>If the unit area contains enclosed polygons, such
+as lakes, the SEGMENT variable has one value but the interior polygon is defined
+by separate boundaries. For example, in the CANADA2 data set supplied with SAS/GRAPH,
+the map data for the Northwest Territories (a unit area) use enclosed polygons
+for two lakes.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0729058">Creating a unit area that is a single polygon.</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0758860">&#13;  This DATA step creates a SAS data set that contains coordinates
+for a unit area with a single polygon, a square:  
+
+
+</A>
+<PRE>data square;
+   input id x y;
+   datalines;
+1 0 0
+1 0 40
+1 40 40
+1 40 0
+;</PRE>
+<P>This data set does not have a SEGMENT variable.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0729059">Creating a unit area that contains multiple polygons.</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0758862">&#13;  Use different values of the SEGMENT variable to create separate
+polygons within a single unit area. For example, this DATA step assigns two
+values to the SEGMENT variable. The resulting data set produces a single unit
+area that contains two polygons, as shown in </A><A href="#zap-fig4">Single Unit Area with Two Segments (Polygons)</A>:  
+
+
+
+<PRE>data map;
+   input id $ 1-8 segment x y;
+   datalines;
+square   1 0 0
+square   1 0 4
+square   1 4 4
+square   1 4 0
+square   2 5 5
+square   2 5 7
+square   2 7 7
+square   2 7 5
+;</PRE>
+
+
+ 
+<P>
+<B><I><A name="zap-fig4">Single Unit Area with Two Segments (Polygons)</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329309.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0729060">Creating a unit area that contains enclosed polygons as holes.</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0758863">&#13;  Use separate boundaries to create an enclosed polygon (that
+is, a polygon that falls within the primary polygon for a single segment).
+The separate boundaries are separated from the primary polygon boundary by
+missing values for X and Y.  For example, the data set that is created by
+this DATA step produces the map shown in </A><A href="#zap-fig6">Single Unit Area with Hole</A>:  
+
+
+
+<PRE>data map;
+   input id $ 1-8 segment x y;
+   datalines;
+square   1 0 0
+square   1 0 4
+square   1 4 4
+square   1 4 0
+square   1 . .
+square   1 1 1
+square   1 2 2
+square   1 3 1
+;</PRE>
+
+
+ 
+<P>
+<B><I><A name="zap-fig6">Single Unit Area with Hole</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329310.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0729061">Creating a unit area that contains enclosed polygons as cities.</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0758864">&#13;  Ordinarily, if one unit area is surrounded by another, the pattern
+of the external unit area is drawn over the pattern for the internal one,
+instead of around it.  Avoid this problem by adding an observation to the
+map data for the external unit area with missing values for X and Y, followed
+by the coordinates of the internal unit area, but using the ID values for
+the external unit area.  For example, this DATA step creates a data set that
+produces the map shown in </A><A href="#zap-fig7">Unit Area within a Unit Area</A>:
+ 
+
+
+
+<PRE>data map;
+   input id $ 1-8 segment x y;
+   datalines;
+square   1 0 0
+square   1 0 4
+square   1 4 4
+square   1 4 0
+square   1 . .
+square   1 1 1
+square   1 2 2
+square   1 3 1
+triangle 1 1 1
+triangle 1 2 2
+triangle 1 3 1
+;</PRE>
+
+
+ 
+<P>
+<B><I><A name="zap-fig7">Unit Area within a Unit Area</A></I></B><BR>
+
+
+<P><IMG border="0" src="./images/01329311.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;A single map segment (a
+section of a unit area with
+a single value of the SEGMENT variable) cannot contain multiple polygons without
+at least one observation with missing values for X and Y.  All segments within
+the map data sets that are supplied by SAS/GRAPH contain
+a single polygon that can have one or more separate boundaries, each separated
+by an observation with missing values for X and Y.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0729027.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z2sets.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0729062.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z5sets">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

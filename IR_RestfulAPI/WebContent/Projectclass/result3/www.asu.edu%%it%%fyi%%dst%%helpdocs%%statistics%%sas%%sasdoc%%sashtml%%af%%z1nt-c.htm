@@ -1,0 +1,175 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>SAS Session Component : Using the SAS Session Event Component </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z30-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z30over.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z40ttrs.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1nt-c">Using the SAS Session Event Component</A></FONT></H1>
+
+
+<P>You can use the SAS Session Event Component by creating an instance
+of the class and then adding handlers for the events you want to receive.
+Each event has an associated data argument that provides information specific
+to the event (such as a library name or catalog entry name). 
+<P>You can use a SAS session component to listen for the following events:
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD><B>Event
+Name</B></TD>
+<TD align="left"><B>Event Data</B></TD></TR>
+
+<TR align=left valign="top">
+<TD>catalog entry created</TD>
+<TD align="left">Character
+string containing the four-level name of the newly-created catalog, such as
+'WORK.MYCAT.NEW.FRAME'</TD></TR>
+
+<TR align=left valign="top">
+<TD>catalog entry deleted</TD>
+<TD align="left">Character
+string containing the four-level name of the deleted catalog</TD></TR>
+
+<TR align=left valign="top">
+<TD>catalog entry renamed</TD>
+<TD align="left">Character
+string containing the <B>previous</B> four-level name of the renamed
+entry</TD></TR>
+
+<TR align=left valign="top">
+<TD>fileref assigned</TD>
+<TD align="left">Character string
+containing filename and path, such as 'MYFILE d:\myfile'</TD></TR>
+
+<TR align=left valign="top">
+<TD>fileref deassigned</TD>
+<TD align="left">Character string
+containing filename and path, such as 'MYFILE'</TD></TR>
+
+<TR align=left valign="top">
+<TD>library assigned</TD>
+<TD align="left">Character string
+containing libname, engine, and path of newly created library, such as 'MYLIB
+V7 d:\mydir'</TD></TR>
+
+<TR align=left valign="top">
+<TD>library deassigned</TD>
+<TD align="left">Character string
+containing libname of deassigned library, such as 'MYLIB'</TD></TR>
+
+<TR align=left valign="top">
+<TD>member created</TD>
+<TD align="left">Character string
+containing name of newly created library member, such as 'WORK.MYDATA.DATA'</TD></TR>
+
+<TR align=left valign="top">
+<TD>member deleted</TD>
+<TD align="left">Character string
+containing name of deleted libary member, such as 'WORK.MYCAT.CATALOG'</TD></TR>
+</TABLE>
+
+<P><B>Example</B>
+<P>The following example instantiates a SAS session
+event component
+to check for library information:
+<OL START="1" type="1">
+<LI>Edit a new frame.<P>
+
+<LI>In the Components window, add the class Sashelp.Classes.Sessionevent_c.class.
+<P>(Adding
+this component to the Components window allows you to drop the
+component on a frame.)<P>
+
+<LI>Drag and drop a list box control on the frame, then drag and drop
+a library list model on top of the list box control.<P>
+
+<LI>Drag and drop a SAS session component on the frame (but not on
+the list box).<P>
+
+<LI>Open the Properties window, then expand the tree for <B>Librarylist1</B> to view its event handlers.<P>
+
+<LI>Add a new event handler with
+the following information: Sender=_SESSION_,
+Event Name=library assigned, Method Name=onLibraryAssigned.
+<P>When the Add Method dialog appears, click <B>Yes</B>
+to invoke the New method window. Immediately click <B>OK</B>
+to end out of the New method window.<P>
+
+<LI>Add another event handler for the library deassigned event using
+Method Name=onLibraryDeassigned. Click <B>Yes</B> to add
+the new method.<P>
+
+<LI>Click the <B>Source</B> button in the New
+Method window and add the following SCL code:
+
+
+
+<PRE>onLibraryAssigned: public 
+ method libraryInfo:output:char; 
+  dcl char libname; 
+  dcl num rc;
+  libname=scan(libraryInfo,1,' '); 
+  rc=insertc(_self_.items, libname, -1); 
+  rc=sortlist(_self_.items); 
+  _self_._sendEvent('contents updated'); 
+endmethod; 
+onLibraryDeassigned: public method
+ libraryInfo:output:char; 
+  dcl char libname; 
+  dcl num rc index;
+  libname=scan(libraryInfo,1,' '); 
+  index = searchc(_self_.items, libname); 
+  if (index) then do; 
+    rc=delitem(_self_.items, index);
+    _self_._sendEvent('contents updated'); 
+  end; 
+endmethod; </PRE> <P>
+
+<LI>Compile and save the SCL, then click <B>OK</B>
+in the New Method window.<P>
+
+<LI>Test the frame by assigning a new libname from either the SAS
+Explorer or Program Editor. You should see the new libname appear automatically
+in the frame's list box control. Likewise, by removing the libname, you should
+see the list box update accordingly.<P>
+</OL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z30-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z30over.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z40ttrs.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1nt-c">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

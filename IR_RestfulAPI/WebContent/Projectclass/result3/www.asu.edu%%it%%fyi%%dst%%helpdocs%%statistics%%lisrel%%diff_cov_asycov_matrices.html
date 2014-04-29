@@ -1,0 +1,266 @@
+<html>
+<head>
+<title>
+Differences between covariance and asymptotic covariance matrices
+</title>
+</head>
+<body bgcolor="#ffffff">
+<font SIZE="-1" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<h2><center>
+Differences between covariance and asymptotic covariance matrices
+</center></h2>
+<p>
+ Some of our LISREL users, with good reason, have experienced problems
+ with the concepts of a covariance matrix and an asymptotic covariance
+ matrix.
+<p>
+ One of the misconceptions is that the ACM replaces the usual covariance
+ matrix (or correlation matrix) as the input to LISREL/SIMPLIS
+ when dealing with non-normal data.
+<p> 
+ To illustrate the differences between an ACM and the sample covariance
+ matrix, consider the following 3 small datasets, each representing ten
+ measurements on the three variables Y1, Y2 and Y3:
+<pre>
+  Y1  Y2  Y3      Y1  Y2  Y3        Y1  Y2  Y3
+  --------------------------------------------
+  78 115 229      86 114 155        60  92 194
+  87 125 285      85 103 149       103 109 252
+  75  78 159     135 104 211        80  92 180
+  69 106 175     118  94 160       134 106 244
+  85 126 213      92  87 211       108  92 149
+ 100 133 270      94  76 185       132 125 156
+ 108 124 175      85 133 189        95 102 163
+  78 103 132      92 105 196        65 111 159
+ 104  93 265      90  97 207       118 117 310
+  95  91 157      80 107 177        79 114 276
+</pre>
+ The sample covariance matrices for these datasets are:
+<pre>
+     Sample Covariance Matrix: Dataset 1
+                   Y1       Y2       Y3
+              --------   --------   --------
+         Y1    176.544
+         Y2     66.600    329.600
+         Y3    262.111    502.667   2933.778
+
+     Means:     87.900    109.400    206.000
+
+         Sample Covariance Matrix: Dataset 2
+                    Y1       Y2       Y3
+                --------   --------   --------
+         Y1    297.122
+         Y2    -57.778    237.111
+         Y3    106.778    -58.556    538.667
+
+     Means:     95.700    102.000    184.000
+
+         Sample Covariance Matrix: Dataset 3
+                    Y1       Y2       Y3
+               --------   --------  --------
+         Y1    688.933
+         Y2    135.556    131.556
+         Y3    299.533    239.889   3316.678
+
+     Means:     97.400    106.000    208.300
+</pre>
+     The number of non-duplicated elements of a covariance matrix
+     equals k = p*(p+1)/2, where p is the number of variables.
+     For the datasets above p equals 3 and therefore k = 3*4/2=6,
+     as can easily be verified from the printouts above.
+<p> 
+     These non-duplicated elements can be presented as a row
+     of numbers, as follows
+<p> 
+     S11, S21, S22, S31, S32, S33
+<p> 
+     For continuous data the formula to calculate these variances
+     and covariances is illustrated by considering the covariance
+     between Y1 and Y2
+<p> 
+     S12 = SUM[Y1 -Mean(Y1)][Y2 -Mean(Y2)]/(n-1),
+     where
+     Mean(Y1) = SUM(Y1)/n, Mean(Y2) = SUM(Y2)/n;
+     and where n denotes the number of observations.
+<p> 
+     The 3 covariance matrices can therefore be summarized
+     as 3 rows of a data matrix with six variables, these
+     being:
+<pre>
+      S11        S21       S22       S31        S32       S33
+    -------    ------    -------   -------    -------   -------
+    176.544    66.600    329.600   262.111    502.667   2933.778
+    297.122   -57.778    237.111   106.778    -58.556    538.667
+    688.933   135.556    131.556   299.533    239.889   3316.678
+</pre>
+
+   Now, suppose that instead of 3 datasets, we had 500 datasets based
+   on the same 3 variables Y1, Y2, Y3. From these datasets one can
+   calculate 500 sample covariance matrices, which, in turn, can be
+   represented as a dataset with 6 columns and 500 rows.
+<p> 
+   One estimate of the asymptotic covariance of Y1, Y2 and Y3 would
+   be to use the sample covariance matrix of S11, S21, . . ., S33.
+<p> 
+   This ACM matrix has k*(k+1)/2 non-duplicated elements, where
+   k=p*(p+1)/2. In our case k=6 and therefore the ACM has 21 non-duplicated
+   elements. It is left to the reader to verify that k, if the number
+   of observed variables (p) equals 80 is equal to 5,250,420. For the
+   sake of interest it should further be noted that it requires 8 bytes
+   of memory to store one element of the ACM. Hence, one would
+   require approximately 40 megabytes of disk space to store an ACM
+   based on 80 observed variables.
+<p> 
+   In practice, a researcher would not have the luxury of having a large
+   number of datasets to his disposal. The ACM is therefore calculated
+   from the information in a single dataset and the formula used depends
+   on whether the variables are continuous or ordinal or a mixture of
+   continuous and ordinal variables.
+<p> 
+   An alternative approach to the calculation of an ACM is to use
+   the bootstrap method discussed in the PRELIS manual. According
+   to this method, the researcher randomly draws a large number of
+   datasets from the original raw data. Note that drawing is done with
+   replacement meaning that the same row of the raw dataset can be selected
+   more than once. To illustrate, one bootstrap sample of size 10 from
+   dataset 1 is shown below:
+<pre>
+                          Y1  Y2  Y3
+                          ------------
+                          87 125 285
+                          87 125 285
+                          75  78 159
+                          69 106 175
+                          85 126 213
+                          85 126 213
+                         108 124 175
+                          78 103 132
+                          78 103 132
+                          78 103 132
+</pre>
+    In LISREL the chi-square statistic corresponds to testing the
+    null hypothesis
+<p> 
+    H0: The population covariance matrix can be estimated by SIGMAO,
+
+              against the alternative hypothesis
+<p> 
+    H1: The population covariance matrix is estimated by the sample
+        covariance matrix S.
+<p> 
+    Note that the covariance matrix SIGMAO is a function of the postulated
+    structural equation model, and hence, the elements of  SIGMAO are
+    determined by the values of the estimated parameters.
+<p> 
+    A perfect fit, indicated by a chi-square value of 0, implies
+    that SIGMA0 equals S. Goodness of fit, generally speaking, is
+    a measure of similarity between these two matrices. Fit statistics are
+    therefore based on some function of the differences between the
+    sample covariances and the fitted covariances.
+<p> 
+    For example, in weighted least squares we minimize a function F,
+<pre>
+        F = SUM[Ei*INV(Wij)*Ej)
+            i,j
+
+        where E1 = S11 - SIGMAO11,
+              E2 = S21 - SIGMAO21,
+              E3 = S22 - SIGMAO22,
+              E4 = S31 - SIGMAO31,
+              E5 = S32 - SIGMAO32,
+              E6 = S33 - SIGMAO33, etc..
+
+         and
+
+              W11 = Variance(S11)
+              W21 = Covariance(S21, S11)
+              W22 = Variance(S21)
+              W31 = Covariance(S22, S11)
+              W32 = Covariance(S22, S21)
+              W33 = Variance(S22),
+                  |
+                  |
+              W66 = Variance(S33), etc..
+</pre>
+       In the notation above Wij represents a typical element of
+       the ACM.
+<p> 
+       Under normality, it is well known that the ACM can be expressed
+       as the so-called Kronecker product of the population covariance
+       matrix with itself. It is also well known that the inverse
+       of the ACM in the case of multivariate normality is
+       the Kronecker product of inverse(SIGMA) and inverse(SIGMA).
+<p> 
+       By specifying that the method of maximization is normal maximum
+       likelihood, one avoids the necessity of inverting the usually large
+       k x k ACM matrix obtained by PRELIS.
+<p> 
+       In general, there are two ways in which the ACM can be used when
+       dealing with non-normal data. It should, however, be pointed out
+       that in both cases LISREL/SIMPLIS additionally requires the
+       sample covariance/correlation matrix as input. For example
+<pre>
+
+       LISREL:
+       CM = socmob.cov
+       AC = socmob.acm
+
+       SIMPLIS:
+       Covariance matrix from file socmob.cov
+       Asymptotic covariance matrix from file socmob.acm
+</pre>
+<blockquote>
+       The two approaches to the use of the ACM are:
+<p> 
+<ol>
+      <li> Use the ACM as a weight matrix that has to be inverted
+           by specifying the method of optimization as weighted
+           least squares.
+<p> 
+       <li> Specify the method of optimization as normal maximum likelihood,
+       in which case the ACM is not inverted, but is used as a multiplying
+       factor in an expression containing the normal theory weight matrix
+       ( inverse(SIGMA0) Kronecker inverse(SIGMA0) ) to correct for
+       bias in standard errors and fit statistics.
+</ol>
+       Final Remarks
+<p> 
+<ol>
+      <li> When an ACM matrix is used as input to LISREL, it does not
+         replace the sample covariance matrix, but is used as a weight
+         matrix in the WLS procedure, or as a matrix which adjusts the
+         normal-theory weight matrix in the sense that the chi-square
+         statistic and standard-errors are less biased.
+<p> 
+     <li> The ACM of a correlation matrix:
+<br>
+          A correlation matrix has p*(p-1)/2 non-duplicated correlations,
+          since all the diagonal elements are equal to one. For the
+          Y1, Y2, Y3 example these correlations are (3 x 2)/2 = 3
+          namely R21, R31 and R32, and hence the number of non-duplicated
+          elements of the ACM is 3 x 4/2 = 6.
+          The ACM of a correlation matrix therefore has less elements than
+          that of a covariance matrix.
+<p> 
+      <li> From the above, it is clear that if an ACM is calculated in
+         PRELIS, the appropriate moment matrix (covariances or correlations)
+         must be selected prior to requesting the calculation of an ACM.
+<p> 
+
+        In our fortcoming LISREL workshop starting November 29,1999
+        (for information go to www.ssicentral.com or www.ies-online.org)
+        Prof Karl Joreskog will deal with this as well as many other 
+	structural equation modeling issues.
+</blockquote>
+
+<p> 
+    Dr Stephen du Toit<br>
+    Scientific Software International<br>
+    October 27, 1999.<br>
+
+<br><br>
+<p align=right>10/99, jjc</p>
+
+</body>
+</html>	
+

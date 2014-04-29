@@ -1,0 +1,149 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The Annotate Data Set : Creating an Annotate Data Set </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zatachap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z-grelem.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-output.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zcreatds">Creating an Annotate Data Set</A></FONT></H1>
+
+
+<P><A name="z0689855">&#13;  Once you have determined what
+you are going to draw and how
+you want it to appear in the output, you need to build an Annotate data set
+that contains the observations that are needed to generate the output. Although
+there are many ways to create SAS data sets, the most commonly used method
+for creating Annotate data sets is with a DATA step that uses either </A>
+<P>
+<UL>
+
+<LI>assignment statements that you explicitly output
+as separate observations<P>
+
+<LI>Annotate macros, which implicitly assign values
+to Annotate variables.<P>
+</UL>
+
+<P>Most of the examples in this book use a DATA step with
+assignment statements. For more information on creating SAS data sets, see <B>SAS Language Reference: Concepts</B> and <B>SAS Language Reference:
+Dictionary</B>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zusedata">Using the DATA Step</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0689859">&#13;
+  When you use the SAS DATA step with assignment statements,
+each statement provides a value for an Annotate variable.  After you have
+assigned all of the variable values for an observation, you must use an OUTPUT
+statement to write the observation to the data set. For example, the following
+statements create the TRIANGLE data set shown in </A><A href="zaboutds.htm#zboxdata">Listing of the Annotate Data Set TRIANGLE</A>:  
+
+
+
+<PRE>data triangle;
+
+      /* declare variables */
+   length function style color $ 8 text $ 25;
+   retain hsys xsys ysys '3';
+
+      /* create observation to draw the title */
+   function='label'; x=20; y=85; position='6';
+      text='Sample Annotate Graphics';
+      style='swissb'; color='green'; size=6;
+      output;
+
+      /* create observations to draw the triangle */
+   function='move'; x=28; y=30; output;
+   function='draw'; x=68; y=30; size=.8; line=1;
+      color='red'; output;
+   function='draw'; x=48; y=70; output;
+   function='draw'; x=28; y=30; output;
+run;
+
+proc ganno data=triangle;
+run;
+quit;</PRE>
+<P> Notice that a RETAIN statement sets the values of the
+HSYS, XSYS, and YSYS variables.  RETAIN statements are useful when you want
+to select the values for variables that are required for many functions and
+the value is the same for all of them.
+<P>The SIZE,  LINE, and COLOR variables are included with
+only the first DRAW function.  Using this method to create the data set, the
+values set in the first DRAW function carry over to subsequent DRAW functions.
+<P>The PROC GANNO step creates the output shown in
+<A href="zaboutds.htm#z-boxfig">Annotate Output from the TRIANGLE Data Set</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using Annotate Macros in the DATA Step</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0689863">&#13;
+  
+A set of Annotate macros is provided in the SAS sample library.  You can use
+macro calls in a DATA step to create observations in an Annotate data set.
+ You can also use Annotate macros and explicit variable assignments together
+in the same DATA step. For complete information, see </A><A href="zt-macro.htm">Annotate Macros</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Effect of Missing Values</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0689864">&#13;  
+ Annotate data sets follow the same rules for missing values
+as any other SAS data set. (See <B>SAS Language Reference: Concepts</B>
+for information on the effect of missing values in a data set.)</A>
+<P>Variables that have a missing value use a default value.
+ For example, if the COLOR variable has a missing value, then the first color
+in either the colors list that is defined by the COLORS= graphics option,
+if specified, or the device's default colors list is used.  If the FUNCTION
+variable has a missing value, LABEL is used.  If the X variable is missing,
+the value of the XLSTT internal coordinate is used for text functions and
+the XLAST internal coordinate is used for nontext functions. See <A href="zict-var.htm">Annotate Variables</A>  for the default value
+of each Annotate variable.
+<P>You probably should not depend on this effect when you
+create an Annotate data set.  If the data set is structured so that observations
+depend on prior observations setting attributes for them, then you may have
+extra work to do if you change the order of observations later.
+<P> Sometimes missing values are required to produce the
+desired results. If you have calculated the coordinates of a point and have
+the values stored in (XLAST,YLAST) or (XLSTT,YLSTT), you can force Annotate
+to use the internal coordinates by supplying missing values for the X and
+Y variables. See <A href="z-incoor.htm">Annotate Internal Coordinates</A>
+for details on using the (XLAST,YLAST) and (XLSTT,YLSTT) internal coordinates.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="zatachap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z-grelem.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z-output.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zcreatds">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

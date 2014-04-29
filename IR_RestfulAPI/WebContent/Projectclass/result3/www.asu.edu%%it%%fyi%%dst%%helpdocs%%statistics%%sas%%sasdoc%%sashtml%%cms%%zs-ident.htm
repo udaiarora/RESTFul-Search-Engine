@@ -1,0 +1,356 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using SAS Files : Identifying SAS Data Libraries </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zhoosing.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1106548.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the CMS Environment                                                                                     </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zs-ident">Identifying SAS Data Libraries</A></FONT></H1>
+
+
+<P><A name="z0592574">&#13;  
+Under other operating environments, a typical method of identifying a SAS
+data library (or an individual file in a SAS data library) is to first use
+the SAS LIBNAME statement or function within a SAS session or program to assign
+a libref to the data library. (See </A><A href="z1name.htm">LIBNAME</A> for complete information about using
+the LIBNAME statement under CMS.)  The libref identifies the library and some
+of its characteristics to the SAS System. Thereafter, you can use the libref
+as a convenient way of referring to the library in your SAS programs.
+<P>However, keep in mind the following points when you
+identify SAS data libraries under CMS: 
+<P>
+<UL>
+
+<LI>Under CMS, you often do not need to assign a libref
+to disk-format data libraries.  (For sequential files on tape or on disk,
+a libref is always required.  A libref is also required for disk-format files
+that are stored in an unaccessed SFS directory.) See <A href="zaccdisk.htm">Working with SAS Files on Disk</A> for an
+explanation of how SAS locates disk-format data libraries. <P>
+
+<LI>Under CMS, you can also use the CMS FILEDEF command
+to assign a DDname to the data library. Thereafter, you can use the DDname
+just as you would use a libref.  However, see <A href="#z-libadv">Advantages of Using the LIBNAME Statement or Function</A> 
+
+
+
+for some important considerations. For information about the CMS FILEDEF command,
+see <A href="#zfiledef">Using the CMS FILEDEF Command</A> 
+
+
+
+.<P>
+
+<LI>In DMS mode, which is accessible through the SAS
+Explorer or the LIBASSIGN command, is the "New Library" dialog
+for assigning librefs.<P>
+</UL>
+ 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the LIBNAME Statement or Function</FONT></B></TD></TR></TABLE>
+
+<BR><H3><A name="z-libadv">Advantages of Using the LIBNAME Statement or Function</A></H3>
+
+
+<P><A name="z0592579">&#13; 
+ 
+ Although you can use the CMS FILEDEF statement to assign DDnames
+to your SAS data libraries, there are several reasons for using the LIBNAME
+statement or function (and librefs) instead:  </A>
+<P>
+<UL>
+
+<LI>The CMS FILEDEF command is not portable to other
+operating environments. The LIBNAME statement or function is portable with
+minor changes to the <B>physical name</B> and options parameters.<P>
+
+<LI>If you use the LIBNAME statement or function,
+you can allocate your data library for only as long as you need it, and then
+"free" (deallocate) it.  By contrast, DDnames that are allocated externally
+remain allocated for the duration of the SAS session or job. (The LIBNAME
+CLEAR statement clears an externally allocated libref, but it does not deallocate
+the file. See <A href="zdealloc.htm">Clearing Librefs and DDnames</A> 
+
+
+
+.)<P>
+
+<LI>DDnames that are allocated externally cannot be
+reassigned later by a LIBNAME statement or function.  You receive an error
+message in the SAS log that states that the DDname is currently assigned.<P>
+
+<LI>By using macro statements and the LIBNAME statement
+or function, you can conditionally allocate files.<P>
+
+<LI>You cannot assign an engine when you allocate
+a file externally.  SAS uses the procedure described in <A href="zwithout.htm">How SAS Assigns an Engine When No Engine Is Specified</A> 
+
+
+
+to determine which engine to use. It is more efficient to specify an engine
+explicitly in a LIBNAME statement or function.  Also, the following SAS engines
+must be specified in a LIBNAME statement or function because they are not
+assigned by default: XPORT, BMDP, SPSS, SPSSX, OSIRIS, V5TAPE, V6TAPE, V7TAPE,
+V8TAPE, and REMOTE.<P>
+
+<LI>DDnames that are allocated externally are not
+included in the list that is produced by the LIBNAME LIST statement or in
+the LIBNAME window until after they have been used as librefs in your SAS
+session. (See <A href="zas-list.htm">Listing Your Current Librefs</A> 
+
+
+
+.)<P>
+</UL>
+
+<BR><H3><A name="z-libsyn">LIBNAME Statement Syntax</A></H3>
+
+
+<P><A name="z0592588">&#13;This section provides an overview of the
+LIBNAME statement. For
+complete information about the LIBNAME statement see </A><A href="z1name.htm">LIBNAME</A>.
+<P>The general form of the LIBNAME statement
+is
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>LIBNAME</B> <I>libref</I> &lt;<I>engine</I>&gt; '<I>physical-name</I>'
+&lt;<I>engine/host-options</I>&gt;;
+</TD></TR></TABLE> 
+<DL>
+<DT><B>libref</B></DT>
+<DD>is the logical name by which the library
+is referenced during your SAS session.  The libref must begin with a letter
+and must contain one to eight characters consisting of letters or numbers.
+<P>When choosing a libref, follow the rules for SAS names,
+but do not use underscores.  Also observe the restrictions listed in <A href="#zestrict">Restrictions on Librefs</A> 
+
+
+
+.
+<P>To read, update, or create files that belong to a permanent
+SAS data library, you must include the libref as the first part of a two-level
+SAS member name in your program statements, as follows:<FONT size="-1"><A href="#footnote1">(footnote 1)</A></FONT>    
+
+<PRE><I>libref.member</I></PRE>
+   <P></DD>
+
+<DT><B>engine</B></DT>
+<DD>tells SAS which engine to use for accessing
+the library.  See <A href="zengines.htm#zines-t1">SAS Library Engines for CMS</A> 
+
+
+
+for information about valid engine names. If you do not specify an engine,
+SAS uses the procedures described in <A href="zwithout.htm">How SAS Assigns an Engine When No Engine Is Specified</A> 
+
+
+
+to assign an engine for you. If the engine name that you supply does not match
+the actual format or attributes of the data library, then any attempt to access
+the library will fail.<P></DD>
+
+<DT>'<B>physical-name</B>'</DT>
+<DD>enclosed in quotation marks, describes the
+physical location of the library. The <B>physical-name</B> can be specified
+in the following ways: 
+<P>
+<DL>
+<DT>'<B>filemode</B>'</DT>
+<DD>specifies the disk-mode letter or the disk-mode
+letter and optional filemode access number.  Use this form for <B>physical-name</B> when you want to use a filemode other than the default.  If you specify
+the filemode as a pair of single quotation marks (  
+<CODE><B>`'</B></CODE>) or as an asterisk surrounded by single quotation
+marks (  
+<CODE><B>`*'</B></CODE>), SAS uses
+the standard CMS search order to locate an existing SAS library. If the library
+exists on more than one minidisk, then SAS stops searching as soon as it finds
+a member. Consequently, only the member on that minidisk is used. Otherwise,
+if the library does not exist, the assignment defaults to the first R/W accessed
+disk.<P></DD>
+
+<DT>'<B>filetype filemode</B>'</DT>
+<DD>specifies the filetype to be used for the
+library and the disk-mode letter.  <B>filemode </B> can also include
+a filemode access number. Use this form for <B>physical-name</B> when
+you want to use the libref as an alias for the filetype.<P></DD>
+
+<DT>'<B>filetype sfs-dir</B>'</DT>
+<DD>specifies an SFS directory to be used as
+a SAS library. Use this form for <B>physical-name</B> when you want
+to use the libref as an alias for the filetype. <P></DD>
+
+<DT>'<B>sfs-dir</B>'</DT>
+<DD>specifies an SFS directory to be used as
+a SAS library.<P></DD>
+
+<DT>'<B>filename filetype filemode</B>'</DT>
+<DD>specifies the complete CMS fileid.  Use
+this form for <B>physical-name</B> with the BMDP, OSIRIS, SPSS, and
+XPORT engines.<P></DD>
+
+<DT>('<B>filetype-1 &lt;filemode-1 | SFS-directory-1></B>' . . .'<B>filetype-n &lt;filemode-n | SFS-directory-n'>)</B></DT>
+<DD>specifies a concatenation of more than one library that
+will be accessed by SAS in order of specification using a single fileref.
+See <A href="z1106548.htm">Concatenating SAS Data Libraries</A>
+for more information on concatenation of SAS data libraries.<P></DD>
+
+<DT>'TAP<B>n</B>'</DT>
+<DD>specifies the tape device for a sequential
+library.  <B>n </B> is a hex character from 0 through F.<P></DD>
+</DL>
+<P></DD>
+
+<DT><B>engine/host-options</B></DT>
+<DD>are options that apply to the SAS data library.
+ <P></DD>
+</DL>
+   
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The libref
+remains valid for the duration of the SAS job or session unless you clear
+it.  See <A href="zdealloc.htm">Clearing Librefs and DDnames</A> 
+
+
+
+for information about clearing a libref.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3><A name="zestrict">Restrictions on Librefs</A></H3>
+
+
+<P><A name="z0592625">&#13;  Under CMS, you should observe the following restrictions on
+librefs: </A>
+<P>
+<UL>
+
+<LI>Do not use a libref that is reserved for use by
+the SAS System, as described in <A href="z1104013.htm">CMS Filetypes Used by SAS</A>.<P>
+
+<LI>Do not use   
+<CODE><B>SAS</B></CODE> as a libref; it is
+reserved as the filetype for files that contain SAS programming statements
+in noninteractive SAS programs and in the %INCLUDE statement.<P>
+
+<LI>Do not use as a libref a filetype that is reserved
+by CMS. (See the <B>VM/ESA CMS User's Guide</B> for a list of filetypes
+that are reserved by CMS.)<P>
+
+<LI>Do not use the filetype of an external file as
+the libref of a SAS file.<P>
+
+<LI>Librefs that begin with TAPE are reserved for
+SAS files that are written in the Version 5 tape format.  Use a libref that
+begins with TAPE only for Version 5 tape format files.<P>
+
+<LI>Specify the SAS system option NOREPLACE to prevent
+existing SAS data sets from being replaced.<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zfiledef">Using the CMS FILEDEF Command</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592632">&#13;
+  There are
+several advantages to using the LIBNAME statement
+or function to make your SAS data libraries available to your SAS programs.
+(See </A><A href="#z-libadv">Advantages of Using the LIBNAME Statement or Function</A> 
+
+
+
+.)  However, in most cases you can also use the CMS FILEDEF command for this
+purpose. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You cannot use the CMS FILEDEF command
+to assign a DDname to a SAS data library that resides on an unaccessed SFS
+directory.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>If you choose to issue a CMS FILEDEF command for a SAS
+data library, then use the following form of the command:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>FILEDEF</B> <I>DDname</I> DISK <I>dummy
+filemode</I>
+</TD></TR></TABLE>
+<DL>
+<DT><B>DDname</B></DT>
+<DD>is the libref that you want to use for the
+data library.<P></DD>
+
+<DT><B>dummy</B></DT>
+<DD>specifies any valid character string for
+the filename and filetype positions in the command.  You can use the same
+value in both positions, and SAS will substitute the correct filename and
+filetype.  Thus, you need to issue only one FILEDEF command per libref, regardless
+of the number of SAS data libraries that have or will have that libref.<P></DD>
+
+<DT><B>filemode</B></DT>
+<DD>references the  correct  minidisk  for the
+ data library.<P></DD>
+</DL>
+
+<P>Remember, though, that if you choose to issue your own
+CMS FILEDEF command, you cannot subsequently issue a LIBNAME statement or
+function that uses the DDname that is assigned by the FILEDEF command as a
+libref.  
+<BR><H3><A name="z-ddname">Using a DDname as a Libref</A></H3>
+
+
+<P><A name="z0592643">&#13;
+  After a DDname has been assigned,
+you can use it in a SAS job
+in the same way you would use a libref.  For example:    
+</A>
+<PRE>proc contents data=books._all_;
+run;</PRE>
+<P>The first time that the DDname BOOKS is used in this
+manner, SAS assigns it as a libref for the SAS data library.
+<P>When a DDname is allocated externally, it is not listed
+by the LIBNAME LIST statement or in the LIBNAME window until after you have
+used it as a libref in your SAS session. (See <A href="zas-list.htm">Listing Your Current Librefs</A> 
+
+
+
+.)
+
+<HR><A name="footnote1"><FONT size="-1">FOOTNOTE 1:&nbsp;&nbsp;</FONT></A>An exception is a SAS file in the WORK or USER library.
+In this case, you can use a one-level name.  See <A href="zsf-work.htm#zsf-user">Directing Temporary SAS Data Sets to the USER Library</A> 
+
+
+
+for more information about the USER library.&nbsp;<A href="#r1-an"><IMG border="0" src="../common/images/fntarrow.gif" alt="[arrow]"></A>
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zhoosing.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1106548.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zs-ident">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

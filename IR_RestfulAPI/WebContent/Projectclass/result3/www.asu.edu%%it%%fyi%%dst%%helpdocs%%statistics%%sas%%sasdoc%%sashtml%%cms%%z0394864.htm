@@ -1,0 +1,187 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Functions and CALL Routines : DINFO </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0426384.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zcollate.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0529965.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">DINFO</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0394864">DINFO</A></FONT></H1>
+
+<P><HR><BR><B>Returns information from the directory of an aggregate external
+file</B><p>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B>CMS specifics:</B></TD>
+<TD bgcolor="#CCCCCC" align="left"><B>info-item</B>
+</TD></TR>
+</TABLE><HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z0394864.htm#znid-106"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0394864.htm#z0635134"><FONT size="2"><B>DINFO Output for SFS Directories</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0394864.htm#z1126873"><FONT size="2"><B>DINFO Output for Minidisks</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0394864.htm#z0394865"><FONT size="2"><B>See Also</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="znid-106">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+<B>DINFO</B>
+(<I>directory-id</I>,<I>info-item</I>)
+</TD></TR></TABLE><A name="znid-107">&#13;</A>
+<P><A name="z0594326">&#13; 
+ </A>
+<DL>
+<DT><B><B><I>directory-id</I></B></B></DT>
+<DD>specifies the identifier that was assigned
+when the aggregate external files was opened (generally by the DOPEN function).<P></DD>
+
+<DT><B><B><I>info-item</I></B></B></DT>
+<DD>specifies the information item to be retrieved.
+Under CMS, the single valid value for <I><B>info-item</B></I> is DIRECTORY,
+which returns the directory path associated with <I><B>directory-id</B></I>.
+If <I><B>directory-id</B></I> represents a single aggregate, the information
+returned by DINFO will be of the form '<I><B>pathname</B></I>'. If <I><B>directory-id</B></I> represents a concatenated series of aggregates, the information returned
+by DINFO will be of the form ('<I><B>pathname_1</B></I>', ... '<I><B>pathname_n</B></I>').<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0635134">DINFO Output for SFS Directories</A></FONT></B></TD></TR></TABLE>
+
+<P>The following example and output illustrate the use of
+DINFO and the other directory access functions for SFS directories:  
+
+<PRE>data _null_;                                      
+   length opt $100 optval $100;                   
+   rc=FILENAME('mydir', 'user1.');  /* allocate directory     */
+   dirid = DOPEN('mydir');          /* open directory         */
+   infocnt=DOPTNUM(dirid); /* get number of information items */
+   
+   /* retrieve information items and print to log*/
+   put @1 'Information for an SFS Directory:';
+   do j=1 to infocnt;
+      opt = DOPTNAME(dirid,j);
+      optval  = DINFO(dirid,upcase(opt));
+      put @1 opt @20 optval;
+      end ;
+
+   rc = DCLOSE(dirid);            /* close the directory      */
+   rc = FILENAME('mydir');        /* deallocate the directory */
+run;</PRE>
+
+<P>
+<B><I>DINFO Output for an SFS Directory</I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>Information for an SFS Directory:                     
+Directory          SFSFP:USER1 .                            
+NOTE: DATA statement used:                                  
+      real time           0.85 seconds                      
+      cpu time            0.28 seconds                      
+                                                            </PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z1126873">DINFO Output for Minidisks</A></FONT></B></TD></TR></TABLE>
+
+<P>The following example and output illustrate the use of
+DINFO and the other directory access functions for minidisks:  
+
+<PRE>data _null_;
+   length opt $100  optval $100;
+   rc=FILENAME('mydir', 'A'); /* allocate directory */
+   dirid = DOPEN('mydir'); /* open directory */
+   infocnt=DOPTNUM(dirid); /* Get number of information items */
+
+   /* Retrieve information items and print to log*/
+   put @1 'Information for a Minidisk Directory:';
+   do j=1 to infocnt;
+      opt = DOPTNAME(dirid,j);
+      optval  = DINFO(dirid,upcase(opt));
+      put @1 opt @20 optval;
+   end;
+   
+   rc = DCLOSE(dirid);  /* close the directory */
+   rc = FILENAME('mydir'); /* deallocate the directory */
+run;                                                  </PRE>
+<P>
+<B><I>DINFO Output for a Minidisk</I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                                                                
+Information for a Minidisk Directory:                           
+Directory          A                                            
+NOTE: DATA statement used:                                      
+      real time           0.18 seconds                          
+      cpu time            0.18 seconds                                                                 </PRE></TD></TR></TABLE>
+
+<P>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><FONT size="5"><A name="z0394865">See Also</A></FONT>
+</FONT></B></TD></TR></TABLE>
+<P>
+<P>
+<UL>
+
+<LI><A href="z0529965.htm">DOPEN</A><P>
+
+<LI><A href="z0394866.htm">DOPTNAME</A><P>
+
+<LI><A href="z0394868.htm">DOPTNUM</A><P>
+
+<LI>
+
+<B>SAS Language Reference: Dictionary</B><P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0426384.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zcollate.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0529965.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0394864">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,418 @@
+<html>
+
+<head>
+<title>SEARCH</title>
+</head>
+
+<body BGCOLOR="#FFFFFF">
+
+<MAP NAME="headerMap21">
+     <AREA SHAPE="circle" COORDS="560,22,22" HREF="http://www.asu.edu/it/fyi/search/">
+     <AREA SHAPE="rect" COORDS="65,3,258,20" HREF="http://www.asu.edu/it/">
+     <AREA SHAPE="rect" COORDS="3,2,64,43" HREF="http://www.asu.edu/">
+     <AREA SHAPE="circle" COORDS="506,22,22" HREF="http://www.asu.edu/it/fyi/">
+ </MAP>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/header.GIF" WIDTH="583" HEIGHT="43" 
+ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="3" USEMAP="#headerMap21" ISMAP><BR>
+
+<h3>SEARCH</h3>
+
+<PRE>
+HELP SEARCH
+
+FUNCTION
+          5740-XXH  (c) Copyright IBM Corp. 1987
+
+  The SEARCH command is used to obtain a list of resource names in a
+  given class from the RACF data base.  You may specify AGE and VOLUME
+  criteria for the resources that are to be listed, and you may
+  specify that resource names which meet all criteria be put into a
+  CLIST data set along with specified leading and trailing strings.
+
+  In order to list the name of a resource which meets all the
+  criteria you specify:
+        - You must be the owner of the resource, have the SPECIAL,
+          OPERATIONS, or AUDITOR attribute, or if you are listing
+          data sets, your userid must match the first-level qualifier
+          of the data set, or
+        - You have group-SPECIAL, group-AUDITOR, or group-OPERATIONS
+          authority in a group and (1) the resource is owned by the
+          group or by a user owned by the group or (2) the resource
+          is a data set profile and its high-level qualifier is the
+          group name or a userid owned by the group, or
+        - If you are explicitly authorized to the resource, you must
+          have at least READ authority, or
+        - If your current connect group is explicitly authorized to
+          the resource, the authority must be at least READ, or
+        - The universal access of the resource must be READ.
+
+
+SYNTAX
+
+      SEARCH  CLASS(profile-name-class)
+              MASK(char1 | *,char2) | NOMASK
+              FILTER(filter-string)
+              VOLUME(volume-serial...)
+              AGE(days)
+              LIST | NOLIST
+              CLIST('string1','string2')
+              ALL | GENERIC | NOGENERIC | VSAM | NOVSAM | MODEL | TAPE
+              WARNING
+              EXPIRES(days)
+              LEVEL(number)
+              SECLEVEL(seclevel-name)
+              CATEGORY(category-name)
+              USER(userid)
+
+   DEFAULTS - CLASS(data set)
+            - If both MASK and NOMASK are omitted, your userid is used
+              for char1 if data sets are being searched. For other
+              classes all resources will be searched.
+            - LIST is the default
+            - ALL is the default
+   ALIAS    - SR
+
+
+OPERANDS
+
+  CLASS(profile-name-class)
+      The name of the class to which the resource belongs (e.g.,
+      DATASET, DASDVOL, TAPEVOL, TERMINAL, USER, GROUP).
+
+  MASK(char1 | *,char2)
+      Specifies the MASK against which entries in the RACF data base
+      are compared.  To meet the MASK criteria, the name of the entry
+      must begin with char1 and if char2 is provided, must contain
+      this string somewhere in the name beginning after char1.  If
+      char1 is *, your userid is substituted if the class is data set,
+      otherwise char1 is considered to be omitted and the SEARCH for
+      CHAR2 begins in position 1 of each name.
+
+  NOMASK
+      Specifies that all resources (to which you are authorized) in
+      the specified classes will be selected.
+
+  FILTER(filter-string)
+      Specifies the string of characters used to search the RACF data
+      base. FILTER is an alternative to MASK operand and is mutually
+      exclusive to it. FILTER allows much more flexibility than MASK,
+      since it allows to generalize the character string you specify
+      to match multiple qualifiers or multiple characters within
+      a profile name. You can also specify a character string to match
+      a single character regardless of its value or search for
+      a character string anywhere in a profile name.
+      The following generic characters can be used:
+
+              %    Matches any one character in the profile name,
+                   including a generic character.
+
+              *    Matches zero or more characters in the profile name.
+                   For the data set profiles matches a whole qualifier
+                   or the remainder of a qualifier. For the general
+                   resource name matches the whole name or the
+                   remainder of the name.
+
+              **   Matches zero or more qualifiers. ** cannot be
+                   mixed with other characters within a qualifier.
+                   ** can only be used to search for data set
+                   profiles.
+
+  VOLUME(volume-serial...)
+      If the VOLUME keyword is specified, VOLUME information will be
+      listed for those data sets that meet all SEARCH criteria.  If
+      the volume serial list is also provided, only data sets that
+      reside on at least one of the specified volumes are listed.
+      VOLUME is ignored for classes other than data set.
+
+  AGE(days)
+      Only resources which have not been referenced for more than the
+      specified number of days are listed.  If CLASS(group) is
+      specified, the AGE is determined from the DATE that the group
+      was created.
+
+  LIST
+      Resource names that meet the selection criteria are listed at
+      the terminal.  Volume information is listed for data sets if the
+      VOLUME keyword is also specified.
+
+  NOLIST
+      No resource names or VOLUME information are listed at the
+      terminal.
+
+  CLIST('string1','string2')
+      The CLIST operand causes a data set named userid.EXEC.RACF.CLIST
+      to be created.  One record is put into the CLIST data set for
+      each selected resource name.  Two quoted strings may also be
+      specified.  string1 is placed directly before each selected name
+      and string2 is placed directly after each name.
+
+  ALL
+      Specifies that both VSAM and non-VSAM data sets are to be
+      selected.  This operand is ignored for classes other than the
+      data set class.  All is the default if VSAM, non-VSAM, ALL,
+      MODEL, GENERIC, and NOGENERIC are omitted.
+
+  GENERIC
+      Specifies that only generic profiles are to be selected.  this
+      operand is ignored if generic command processing is inactive.
+
+  NOGENERIC
+      Specifies that only discrete profiles are to be selected.  this
+      operand is ignored if generic command processing is inactive.
+
+  VSAM
+      Specifies that only VSAM data sets are to be selected.  This
+      operand is ignored for classes other than the data set class.
+
+  NONVSAM
+      Specifies that only non-VSAM data sets are to be selected.  This
+      operand is ignored for classes other than the data set class.
+
+  MODEL
+      Specifies that only the MODEL data set profiles are to be
+      selected.  This operand is ignored for classes other than the
+      data set class.
+
+  TAPE
+      Specifies that only tape data sets are to be selected.  This
+      operand is ignored for classes other than data set.
+
+  WARNING
+      Specifies that only resources with the WARNING attribute are to
+      be selected.  This operand is ignored when the class is
+      specified as user or group.
+
+  EXPIRES(days)
+      Specifies that only tape volumes on which all data sets are
+      expired, or will expire within the number of days specified, are
+      to be selected.  The range of days which can specified is
+      1-65533 or 99999 to find TAPEVOL profiles with data sets all of
+      which will never expire.  This operand will be ignored for
+      classes other than TAPEVOL.
+
+  LEVEL(number)
+      Specifies that only profiles with a value in the LEVEL field
+      equal to the given LEVEL, are to be selected.  Number may be a
+      value from 0 to 99.  This operand is ignored for classes other
+      than data set and general resource classes.
+
+  SECLEVEL(seclevel-name)
+      Specifies that only profiles with the given security LEVEL are
+      to be selected.  If SECLEVEL is specified without a
+      seclevel-name, only profiles with invalid (undefined) security
+      level names are selected.  This operand is ignored for classes
+      other than data set, user, or a class name defined in the RACF
+      class descriptor table.
+
+  CATEGORY(category-name)
+      Specifies that only profiles with the given category name are to
+      be selected.  If category is specified without a category name,
+      only profiles with invalid (undefined) category names are
+      selected.  This operand is ignored for classes other than data
+      set, user or a class name defined in the RACF class descriptor
+      table.
+
+  USER(userid)
+      Specifies the user on whose behalf the SEARCH command is to be
+      processed. The issuer of the SEARCH command must be authorised
+      to list information about the specified user.
+
+  ICH31001I NOT AUTHORIZED TO ISSUE SEARCH
+
+            Explanation:  You are not defined to RACF and cannot issue
+            the SEARCH command, or RACF is not active.
+
+            System Action:  RACF terminates the command.
+
+  ICH31002I UNABLE TO OPEN CLIST DATA SET, COMMAND TERMINATED
+
+            Explanation:  SEARCH command processing could not open the
+            specified CLIST data set.
+
+            System Action:  RACF terminates the command.
+
+  ICH31003I MASK TOO LONG, COMMAND TERMINATED
+
+            Explanation:  The character string specified on the MASK
+            operand is longer than the maximum allowable length for
+            the entity name in the specified class.  For the DATASET
+            class, the maximum length is 44 characters; for the
+            DASDVOL and TAPEVOL classes, the maximum length is 6
+            characters; and for the TERMINAL class, the maximum length
+            is 8 characters.
+
+            System Action:  RACF terminates the command.
+
+  ICH31004I LIST AND CLIST OMITTED, COMMAND TERMINATED
+
+            Explanation:  CLIST must be specified on the SEARCH
+            command when NOLIST is specified.
+
+            System Action:  RACF terminates the command.
+
+  ICH31005I NO ENTRIES MEET SEARCH CRITERIA
+
+            Explanation:  You do not have sufficient authority to list
+            the entries in the RACF data set for the class specified
+            on the command that meet the criteria specified on the
+            MASK operand, or no entries exist in the class that meet
+            the search criteria.
+
+  ICH31006I CLIST DATA SET ORGANIZATION IS NOT SEQUENTIAL,
+            COMMAND TERMINATED
+
+            Explanation:  The CLIST data set found does not have
+            physical sequential organization.
+
+            System Action:  RACF terminates the command.
+
+  ICH31007I COMMAND ENDED DUE TO ERROR
+
+            Explanation:  A RACF manager error occurred.  This message
+            is accompanied by a message explaining the error.
+
+  ICH31008I CATEGORY category-name IGNORED
+
+            Explanation:  The user does not have sufficient authority
+            to list the entries in the RACF data set for the security
+            category name specified on the command, or the security
+            category name does not exist.
+
+  ICH31009I FILTER STRING LONGER THAN PROFILE NAME
+
+            Explanation:  A filter string was specified longer than
+            the maximum allowable for a profile name in that class.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31010I FILTER AND MASK BOTH SPECIFIED
+
+            Explanation:  The FILTER operand is an alternative to the
+            MASK operand; they are mutually exclusive.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31011I BLANK FOUND IN FILTER STRING
+
+            Explanation:  The filter string cannot contain blanks.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31012I CHARACTER FOUND AFTER ** IN FILTER STRING
+
+            Explanation:  Double asterisks must be the last
+            (rightmost) characters in the filter string.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31013I INVALID LEADING CHARACTER IN FILTER STRING
+
+            Explanation:  A character that is not considered valid was
+            used to start a filter string.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31014I INVALID USE OF ** IN FILTER STRING
+
+            Explanation:  Double asterisks can not be mixed with other
+            characters within a qualifier.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31015I INVALID USE OF * IN FILTER STRING
+
+            Explanation:  The asterisk is used incorrectly.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31016I INVALID CHARACTER IN FILTER STRING
+
+            Explanation:  A character(s) that is not considered valid
+            was specified in a filter string.  Only alphanumeric
+            characters, a single asterisk (*), a double asterisk (**),
+            or the percent sign (%) are allowed.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31017I FILTER QUALIFIER LENGTH INVALID FOR CLASS
+
+            Explanation:  The specified filter string is too long.
+            The filter string length must not exceed 44 characters for
+            a tape or DASD data set name.  For general resource
+            classes, the filter string must not exceed the length
+            specified in the class descriptor table.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31018I INVALID FILTER STRING
+
+            Explanation:  An error was detected in the specified
+            filter string.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31021I NOT AUTHORIZED TO SPECIFY USER userid
+
+            Explanation:  The issuer of the command is not authorized
+            to list information about the user specified by the USER
+            operand.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31022I USER userid IS NOT DEFINED TO RACF
+
+            Explanation:  The user specified by the USER operand is
+            not defined to RACF.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31023I RACINIT WAS FAILED BY THE INSTALLATION EXIT ROUTINE
+
+            Explanation:  RACINIT processing for the user specified by
+            the USER operand was failed by the installation exit
+            routine.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31024I THE ACCESS OF THE SPECIFIED USER HAS BEEN REVOKED
+
+            Explanation:  RACINIT processing for the user specified by
+            the USER operand failed because the access of the user has
+            been revoked.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31025I USER ACCESS TO THE DEFAULT GROUP HAS BEEN REVOKED
+
+            Explanation:  RACINIT processing for the USER specified by
+            the USER operand failed because this user's access to the
+            default group has been revoked.
+
+            System Action:  RACF terminates command processing.
+
+  ICH31026I UNEXPECTED RETURN CODE return-code FROM RACINIT
+
+            Explanation:  RACINIT processing for the user specified by
+            the USER operand failed with an unexpected return code.
+
+            System Action:  RACF terminates command processing.
+</PRE>
+
+<br>
+<IMG SRC="http://www.asu.edu/it/fyi/menus/images/yellow-bar.GIF" WIDTH="579" HEIGHT="12" ALIGN="BOTTOM" BORDER="0"
+NATURALSIZEFLAG="3">
+<BR>   
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">
+<A HREF="http://www.asu.edu/it/fyi/">FYI Home</a> | <A HREF="http://www.asu.edu/it/fyi/search/">FYI Search</A>
+| <A HREF="http://www.asu.edu/">ASU Home</a> | <A HREF="http://www.asu.edu/asuweb/disclaimer">ASU Disclaimer</A><br>
+<A HREF="mailto:helpdesk@asu.edu">helpdesk@asu.edu</A>
+</FONT><br>
+<FONT SIZE="-2" FACE="Arial, Helvetica, Verdana, Arial Narrow">Page
+Last Updated: Tuesday July  2, 2002</FONT><BR>
+<align=right>
+<script src="http://www.asu.edu/it/fyi/includes/fyiwatermark.js">
+</script>
+
+
+</BODY>
+</HTML>

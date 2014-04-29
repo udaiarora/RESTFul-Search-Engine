@@ -1,0 +1,983 @@
+<HTML>
+<HEAD>
+<TITLE>Estimation Methods</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Estimation Methods  </H2>
+<A NAME="idxmod0203">&#13;</A><A NAME="idxmod0202">&#13;</A>Consider the general nonlinear model:
+<DL CLASS="equation"><DD><IMG WIDTH="149" HEIGHT="117" ALIGN="left"
+ SRC="images/modeq25.gif"
+ ALT="{{\epsilon}}_{t}\hspace*{2pt}
+ &=&
+ q(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}})
+ \cr
+ z_{t}
+ &=&
+ Z(x_{t})\hspace*{2pt} "><BR CLEAR="ALL">
+</DL>
+where <B>q</B><IMG WIDTH="37" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq26.gif"
+ ALT="{\in}{ R^g}"> is a real vector valued function, of
+<B>y</B><SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN><IMG WIDTH="37" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq26.gif"
+ ALT="{\in}{ R^g}">, <B>x</B><SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN><IMG WIDTH="35" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq27.gif"
+ ALT="{\in}
+{ R^l}">,<B><IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq28.gif"
+ ALT="{\theta}"></B><IMG WIDTH="37" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq29.gif"
+ ALT="{\in}{ R^p}">, <I>g</I> is the number of equations, 
+<I>l</I> is the number of exogenous
+variables (lagged endogenous variables are considered exogenous here),
+<I>p</I> is the number of parameters and <I>t</I> ranges from 1 to <I>n</I>.
+<SPAN CLASS="mathfont"><b>z</b><sub><I>t</I></sub></SPAN><IMG WIDTH="38" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq30.gif"
+ ALT="{\in}R^k"> is a vector
+of instruments. <B><IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"></B><SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN> is an unobservable disturbance
+vector with the following properties:
+<DL CLASS="equation"><DD><IMG WIDTH="114" HEIGHT="119" ALIGN="left"
+ SRC="images/modeq31.gif"
+ ALT="E({{\epsilon}}_{t}) &=& 0 \cr
+E({{\epsilon}}_{t} {{\epsilon}}^{'}_{t} ) &=& {\Sigma} "><BR CLEAR="ALL">
+</DL>
+<A NAME="idxmod0204">&#13;</A>All of the methods implemented in PROC MODEL aim to minimize an 
+<I>objective function</I>. The following table summarizes the objective
+functions defining the estimators and the corresponding
+<A NAME="idxmod0205">&#13;</A>estimator of the covariance of the parameter estimates for each method.
+<P></P><A NAME="modest1"><SPAN CLASS="ssften"><B>Table 14.1:</B> Summary of PROC MODEL Estimation Methods</SPAN></A><TABLE COLS=4 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL><COLGROUP><COL>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Method</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Instruments</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Objective Function</B></FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv"><B>Covariance of <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq28.gif"
+ ALT="{\theta}"></B></FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>OLS</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>no</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont"><b>r</b>'<b>r</b>/<I>n</I></SPAN></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="187" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq32.gif"
+ ALT="{( X'(\rm{diag}(S)^{-1} {\otimes} I)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>ITOLS</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>no</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="159" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq33.gif"
+ ALT="{r'(\rm{diag}(S)^{-1} {\otimes} I)r/n}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="187" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq32.gif"
+ ALT="{( X'(\rm{diag}(S)^{-1} {\otimes} I)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>SUR</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>no</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="122" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq34.gif"
+ ALT="{r'( S^{-1}_{\rm{OLS}} {\otimes} I)r/n}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="139" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq35.gif"
+ ALT="{( X'(S^{-1} {\otimes} I)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>ITSUR</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>no</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="112" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq36.gif"
+ ALT="{r'(S^{-1} {\otimes} I)r/n}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="139" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq35.gif"
+ ALT="{( X'(S^{-1} {\otimes} I)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>N2SLS</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yes</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="103" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq37.gif"
+ ALT="{r'(I {\otimes} W)r/n}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="201" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq38.gif"
+ ALT="{( X'(\rm{diag}(S)^{-1} {\otimes} W)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>IT2SLS</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yes</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="173" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq39.gif"
+ ALT="{r'(\rm{diag}(S)^{-1} {\otimes} W)r/n}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="201" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq38.gif"
+ ALT="{( X'(\rm{diag}(S)^{-1} {\otimes} W)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>N3SLS</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yes</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="150" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq40.gif"
+ ALT="{r'( S^{-1}_{\rm{N2SLS}} {\otimes} W)r/n}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="153" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq41.gif"
+ ALT="{( X'(S^{-1} {\otimes} W)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>IT3SLS</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yes</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="126" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq42.gif"
+ ALT="{r'(S^{-1} {\otimes} W)r/n}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="153" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq41.gif"
+ ALT="{( X'(S^{-1} {\otimes} W)X)^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>GMM</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yes</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="211" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq43.gif"
+ ALT="{[n{m}_{n}({\theta})]' \hat{V}\hspace*{1pt}^{-1}_{\rm{N2SLS}}[n{m}_{n}({\theta})]}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="163" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq44.gif"
+ ALT="{ [(Y{X})'\hat{V}^{-1}(Y{X})]^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>ITGMM</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>yes</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="187" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq45.gif"
+ ALT="{[n{m}_{n}({\theta})]' \hat{V}\hspace*{1pt}^{-1}[n{m}_{n}({\theta})]}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="163" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq44.gif"
+ ALT="{ [(Y{X})'\hat{V}^{-1}(Y{X})]^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>FIML</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>no</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><SPAN CLASS="mathfont"><I>constant</I>+[<I>n</I>/2]ln(det(<b>S</b>))</SPAN></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP><IMG WIDTH="129" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq46.gif"
+ ALT="{ [\hat{Z} ' ( S ^{-1} {\otimes} I) \hat{Z}]^{-1}}"></TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<IMG WIDTH="108" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq47.gif"
+ ALT="{-\sum_{1}^n{{\ln} |(J_{t})| }}"></TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>&#160;</TD></TR></TBODY>
+</TABLE>
+<P><A NAME="idxmod0206">&#13;</A>The column labeled &#34;Instruments&#34; identifies the estimation methods that
+require instruments. The variables used in this table and the remainder of this
+chapter are defined as follows:
+<P><SPAN CLASS="mathfont"><I>n</I> = </SPAN> is the number of nonmissing observations.
+<P><SPAN CLASS="mathfont"><I>g</I> = </SPAN> is the number of equations.
+<P><SPAN CLASS="mathfont"><I>k</I> = </SPAN> is the number of instrumental variables.
+<P><IMG WIDTH="83" HEIGHT="108" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq48.gif"
+ ALT="{{r } = [\matrix{r_{1} \cr r_{2} \cr {\vdots} \cr r_{g}}] }">is the <SPAN CLASS="mathfont"><I>ng</I> &times;1</SPAN> vector of residuals for the <I>g</I> equations stacked together.
+<P><IMG WIDTH="169" HEIGHT="109" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq49.gif"
+ ALT="{r_{i} = [\matrix{q_{i}(y_{1}\hspace*{1pt}, x_{1}\hspace*{1pt}, {{\theta}}) \cr ...
+ ...) \cr {\vdots} \cr q_{i}(y_{n}\hspace*{1pt}, x_{n}\hspace*{1pt}, {{\theta}}) }]}">is the <SPAN CLASS="mathfont"><I>n</I> &times;1</SPAN> column vector of residuals for the <I>i</I>th equation.
+<P><DL>
+<DT><B>S</B> 
+<DD><A NAME="idxmod0198">&#13;</A><A NAME="idxmod0197">&#13;</A>is a <SPAN CLASS="mathfont"><I>g</I> &times;<I>g</I></SPAN> matrix that estimates <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}">, the
+covariances of the errors across equations (referred to as the <B>S</B> matrix).
+<BR><BR><DT><B>X</B> 
+<DD>is an <SPAN CLASS="mathfont"><I>ng</I> &times;<I>p</I></SPAN> matrix of partial derivatives of the residual with
+respect to the parameters.
+<BR><BR><DT><B>W</B>
+<DD>is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I></SPAN> matrix, <SPAN CLASS="mathfont"><b>Z</b>(<b>Z</b>'<b>Z</b>)<sup>-1</sup><b>Z</b>'</SPAN>.
+<BR><BR><DT><B>Z</B> 
+<DD>is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>k</I></SPAN> matrix of instruments.
+<BR><BR><DT><B>Y</B>
+<DD>is a <SPAN CLASS="mathfont"><I>gk</I> &times;<I>ng</I></SPAN> matrix of instruments. 
+<IMG WIDTH="91" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq50.gif"
+ ALT="{Y = I_{g} {\otimes} Z'}">.<BR><BR><DT><IMG WIDTH="16" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq51.gif"
+ ALT="{\hat Z}"><DD><IMG WIDTH="161" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq52.gif"
+ ALT="{\hat{Z} = ( \hat{Z}_{1}, \hat{Z}_{2}, { ... },\hat{Z}_{p} )}">is an <SPAN CLASS="mathfont"><I>ng</I> &times; <I>p</I></SPAN> matrix. <IMG WIDTH="21" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq53.gif"
+ ALT="{\hat{Z}_{i}}"> is a <SPAN CLASS="mathfont"><I>ng</I> &times; 1</SPAN>
+column vector obtained from stacking the columns of
+<DL CLASS="equation"><DD><IMG WIDTH="373" HEIGHT="123" ALIGN="left"
+ SRC="images/modeq54.gif"
+ ALT="U \frac{1}n \sum_{t=1}^n{
+ (
+ \frac{\partial q(y _{t}\hspace*{1pt}, x_{t}\hspace...
+ ...t}\hspace*{1pt},{{\theta}})'}{{\partial} y_{t}{\partial} {\theta}_{i}}
+ - Q_{i} "><BR CLEAR="ALL">
+</DL><BR><DT><B>U</B>
+<DD>is an <SPAN CLASS="mathfont"><I>n</I> &times; <I>g</I></SPAN> matrix of residual errors. 
+<IMG WIDTH="141" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq55.gif"
+ ALT="{U = {\ssbeleven {{\epsilon}}_{1}, {{\epsilon}}_{2}, { ... }, {{\epsilon}}_{n}}'}"><BR><BR><DT><B>Q</B>
+<DD>is the <SPAN CLASS="mathfont"><I>n</I> &times; <I>g</I></SPAN> matrix <IMG WIDTH="331" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq56.gif"
+ ALT="{{\ssbeleven q(y _{1}\hspace*{1pt}, x_{1}\hspace*{1pt}, {{\theta}}), q(y _{2}\hs...
+ ...{{\theta}}),{ ... }, q(y _{n}\hspace*{1pt}, x_{n}\hspace*{1pt}, {{\theta}}) }
+'}">.<BR><BR><DT><B>Q</B><SPAN CLASS="mathfont"><SUB><I>i</I></SUB></SPAN>
+<DD>is an <SPAN CLASS="mathfont"><I>n</I> &times; <I>g</I></SPAN> matrix <IMG WIDTH="28" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq57.gif"
+ ALT="{\frac{{\partial}Q}{{\partial} {\theta}_{i}} }">.<BR><BR><DT><B>I</B> 
+<DD>is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>n</I></SPAN> identity matrix.
+<BR><BR><DT><B>J</B><SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>
+<DD>is <IMG WIDTH="82" HEIGHT="43" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq58.gif"
+ ALT="{\frac{{\partial} q(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}})}{{\partial}y_{t}^{'}}}"> which is a <SPAN CLASS="mathfont"><I>g</I> &times;<I>g</I></SPAN> Jacobian matrix.
+<A NAME="idxmod0199">&#13;</A><DT><SPAN CLASS="mathfont"><b>m</b><sub><I>n</I></sub></SPAN>
+<DD>is first moment of the crossproduct <IMG WIDTH="117" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq59.gif"
+ ALT="{q(y_{t}, x_{t}, {{\theta}}) {\otimes} z_{t}}">.<BR><BR><IMG WIDTH="232" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq60.gif"
+ ALT="{m_{n}=\frac{1}n \sum_{t=1}^n{q(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}}) {\otimes} z_{t}}}"><BR><BR><DT><B>z</B><SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN>
+<DD>is a <SPAN CLASS="mathfont"><I>k</I></SPAN> column vector of instruments for observation <SPAN CLASS="mathfont"><I>t</I></SPAN>. <SPAN CLASS="mathfont"><b>z</b>'<sub><I>t</I></sub></SPAN>
+is also the <SPAN CLASS="mathfont"><I>t</I></SPAN>th row of <B>Z</B>.
+<BR><BR><DT><IMG WIDTH="19" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq61.gif"
+ ALT="{\hat{V}}"> 
+<DD>is the <SPAN CLASS="mathfont"><I>gk</I> &times;<I>gk</I></SPAN> matrix representing the variance of the moment functions.
+<BR><BR><DT><I>k</I> 
+<DD>is the number of instrumental variables used.
+<BR><BR><DT><I>constant</I> 
+<DD>is the constant <IMG WIDTH="118" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq62.gif"
+ ALT="{\frac{ng}2 (1 + {\ln}( 2 {\pi} ))}">.<BR><BR><DT><IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq63.gif"
+ ALT="{\otimes}"> 
+<DD>is the notation for a Kronecker product.
+</DL><BR>All vectors are column vectors unless otherwise noted.
+Other estimates of the covariance matrix for FIML are also available.
+<BR><BR><H3><I>Dependent Regressors and Two-Stage Least Squares</I></H3>
+<A NAME="idxmod0207">&#13;</A><A NAME="idxmod0208">&#13;</A>Ordinary regression analysis is based on several assumptions.
+A key assumption is that the independent variables are in fact
+statistically independent of the unobserved error component of the model.
+If this assumption is not true--if the regressor varies systematically
+with the error--then ordinary regression produces inconsistent results.
+The parameter estimates are <I>biased</I>.
+<BR><BR>Regressors might fail to be independent variables because they are dependent
+variables in a larger simultaneous system.
+<A NAME="idxmod0209">&#13;</A>For this reason, the problem of dependent regressors is
+often called <I>simultaneous equation bias</I>.
+For example, consider the following two-equation system.
+<BR><BR>
+<DL CLASS="equation"><DD><IMG WIDTH="204" HEIGHT="72"
+ SRC="images/modeq64.gif"
+ ALT="y_{1} = a_{1} + b_{1} y_{2} + c_{1} x_{1} + {\epsilon}_{1}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="204" HEIGHT="72"
+ SRC="images/modeq65.gif"
+ ALT="y_{2} = a_{2} + b_{2} y_{1} + c_{2} x_{2} + {\epsilon}_{2}"></DL><BR>In the first equation, y<SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> is a dependent, or <I>endogenous</I>, variable.
+As shown by the second equation, y<SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> is a function of y<SPAN CLASS="mathfont"><SUB>1</SUB></SPAN>,
+which by the first equation is a function of <IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN>,
+and therefore y<SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> depends on <IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"><SPAN CLASS="mathfont"><SUB>1</SUB></SPAN>.
+Likewise, y<SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> depends on <IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"><SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> and is a dependent regressor
+in the second equation.
+This is an example of a <I>simultaneous equation</I> system;
+y<SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> and y<SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> are a function of all the variables in the system.
+<BR><BR>Using the ordinary least squares (OLS) estimation method to estimate
+these equations produces biased estimates.
+One solution to this problem is to replace y<SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> and y<SPAN CLASS="mathfont"><SUB>2</SUB></SPAN>
+on the right-hand side of the equations with predicted values,
+thus changing the regression problem to the following:
+<BR><BR>
+<DL CLASS="equation"><DD><IMG WIDTH="204" HEIGHT="72"
+ SRC="images/modeq66.gif"
+ ALT="y_{1} = a_{1} + b_{1} \hat{y}_{2} + c_{1} x_{1} + {\epsilon}_{1}"></DL>
+
+<DL CLASS="equation"><DD><IMG WIDTH="204" HEIGHT="72"
+ SRC="images/modeq67.gif"
+ ALT="y_{2} = a_{2} + b_{2} \hat{y}_{1} + c_{2} x_{2} + {\epsilon}_{2}"></DL><BR><A NAME="idxmod0210">&#13;</A>This method requires estimating the predicted values
+<IMG WIDTH="20" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq68.gif"
+ ALT="{\hat{y}_{1}}"> and <IMG WIDTH="20" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq69.gif"
+ ALT="{\hat{y}_{2}}"> through a
+preliminary, or &#34;first stage,&#34;
+<I>instrumental regression</I>.
+An instrumental regression is a regression of the dependent regressors
+<A NAME="idxmod0211">&#13;</A>on a set of <I>instrumental variables</I>, which can be any independent variables useful for predicting the dependent regressors.
+In this example, the equations are linear and the exogenous variables
+for the whole system are known.
+Thus, the best choice for instruments (of the variables in the model) 
+are the variables x<SPAN CLASS="mathfont"><SUB>1</SUB></SPAN> and x<SPAN CLASS="mathfont"><SUB>2</SUB></SPAN>.
+<BR><BR>This method is known as <I>two-stage least squares</I> or 2SLS,
+or more generally as the <I>instrumental variables method</I>.
+The 2SLS method for linear models is discussed in Pindyck (1981, p. 191-192).
+For nonlinear models this situation is more complex, but the idea is the same.
+In nonlinear 2SLS, the derivatives of the model with respect to the parameters
+are replaced with predicted values.
+See the section &#34;Choice of Instruments&#34; for further
+discussion of the use of
+instrumental variables in nonlinear regression.
+<BR><BR>To perform nonlinear 2SLS estimation with PROC MODEL,
+specify the instrumental variables with an INSTRUMENTS statement and
+specify the 2SLS or N2SLS option on the FIT statement.
+The following statements show how to estimate the first equation in
+the preceding example with PROC MODEL.
+<BR><BR><PRE>
+   proc model data=in;
+      y1 = a1 + b1 * y2 + c1 * x1;
+      fit y1 / 2sls;
+      instruments x1 x2;
+   run;
+</PRE>
+<BR><BR>The 2SLS or instrumental variables estimator can be computed using a
+first-stage regression on the instrumental variables as described previously.
+However, PROC MODEL actually uses the equivalent but computationally more
+appropriate technique of projecting the regression problem into the
+linear space defined by the instruments.
+Thus PROC MODEL does not produce any &#34;first stage&#34; results when you use 2SLS.
+<A NAME="idxmod0212">&#13;</A>If you specify the FSRSQ option on the FIT statement,
+PROC MODEL prints &#34;first-stage R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN>&#34; statistic for each parameter 
+estimate.
+<BR><BR>Formally, the <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq70.gif"
+ ALT="{\hat{{{\theta}}}}"> that minimizes
+<DL CLASS="equation"><DD><IMG WIDTH="575" HEIGHT="128" ALIGN="left"
+ SRC="images/modeq71.gif"
+ ALT="\hspace*{-0.40in}\hat{S}_{n} = \frac{1}n
+ (\sum_{t=1}^n{(q(y_{t}\hspace*{1pt},
+ ...
+ ...1}^n{(q(y_{t}\hspace*{1pt}, 
+ x_{t}\hspace*{1pt},{{\theta}}) {\otimes} z_{t})}) "><BR CLEAR="ALL">
+</DL>
+is the N2SLS estimator of the parameters. The estimate of <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}"> at the
+final iteration is used in the covariance of the parameters
+given in <A HREF="sect32.htm#modest1">Table 14.1</A>. Refer to Amemiya (1985, p. 250)
+for details on the properties of nonlinear two-stage least squares.
+<BR><BR><H3><I>Seemingly Unrelated Regression</I></H3>
+<A NAME="idxmod0213">&#13;</A><A NAME="idxmod0214">&#13;</A>If the regression equations are not simultaneous, so there are 
+no dependent regressors, <I>seemingly unrelated regression</I> (SUR)
+can be used to estimate systems of equations with correlated random errors.
+The large-sample efficiency of an estimation can be improved 
+if these cross-equation correlations are taken into account.
+SUR is also known as <I>joint generalized least squares</I> or 
+<I>Zellner regression</I>. Formally, 
+the <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq70.gif"
+ ALT="{\hat{{{\theta}}}}"> that minimizes
+
+<DL CLASS="equation"><DD><IMG WIDTH="301" HEIGHT="109"
+ SRC="images/modeq72.gif"
+ ALT="\hat{S}_{n} = \frac{1}n
+ \sum_{t=1}^n{q(y_{t}\hspace*{1pt},
+ x_{t}\hspace*{1pt},...
+ ...
+ \hat{{\Sigma}}^{-1} 
+ q(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt},
+ {{\theta}}}) "></DL>
+is the SUR estimator of the parameters.
+<BR><BR><A NAME="idxmod0216">&#13;</A><A NAME="idxmod0215">&#13;</A>The SUR method requires an estimate of the cross-equation covariance matrix,
+<IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}">.PROC MODEL first performs an OLS estimation, computes
+an estimate, <IMG WIDTH="17" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq12.gif"
+ ALT="{\hat{\Sigma}}">, from the OLS residuals,
+and then performs the SUR estimation based on <IMG WIDTH="17" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq12.gif"
+ ALT="{\hat{\Sigma}}">.The OLS results are not printed unless you specify the OLS option
+in addition to the SUR option.
+<BR><BR>You can specify the <IMG WIDTH="17" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq12.gif"
+ ALT="{\hat{\Sigma}}"> to use for SUR by storing
+the matrix in a SAS data set and naming that data set
+in the SDATA= option.
+<A NAME="idxmod0217">&#13;</A>You can also feed the <IMG WIDTH="17" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq12.gif"
+ ALT="{\hat{\Sigma}}"> computed from the SUR residuals
+back into the SUR estimation process by specifying the ITSUR option.
+You can print the estimated covariance matrix <IMG WIDTH="17" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq12.gif"
+ ALT="{\hat{\Sigma}}">using the COVS option on the FIT statement.
+<BR><BR>The SUR method requires estimation of the <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}"> matrix,
+and this increases the sampling variability of the estimator
+for small sample sizes.
+The efficiency gain SUR has over OLS is a large sample property,
+and you must have a reasonable amount of data to realize this gain.
+For a more detailed discussion of SUR, refer to Pindyck (1981, p. 331-333).
+<BR><BR><H3><I>Three-Stage Least-Squares Estimation</I></H3>
+<A NAME="idxmod0218">&#13;</A><A NAME="idxmod0219">&#13;</A>If the equation system is simultaneous, you can combine the 2SLS and SUR
+methods to take into account both dependent regressors and
+cross-equation correlation of the errors.
+This is called <I>three-stage least squares</I> (3SLS).
+<BR><BR>Formally, the <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq70.gif"
+ ALT="{\hat{{{\theta}}}}"> that minimizes
+<DL CLASS="equation"><DD><IMG WIDTH="575" HEIGHT="128" ALIGN="left"
+ SRC="images/modeq71.gif"
+ ALT="\hspace*{-0.40in}\hat{S}_{n} = \frac{1}n
+ (\sum_{t=1}^n{(q(y_{t}\hspace*{1pt},
+ ...
+ ...1}^n{(q(y_{t}\hspace*{1pt}, 
+ x_{t}\hspace*{1pt},{{\theta}}) {\otimes} z_{t})}) "><BR CLEAR="ALL">
+</DL>
+is the 3SLS estimator of the parameters. For more details on
+3SLS, refer to Gallant (1987, p. 435).
+<BR><BR>Residuals from the 2SLS method are used to estimate the <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}"> matrix
+required for 3SLS.
+The results of the preliminary 2SLS step are not printed unless the
+2SLS option is also specified.
+<BR><BR>To use the three-stage least-squares method,
+specify an INSTRUMENTS statement 
+and use the 3SLS or N3SLS option on either the PROC MODEL statement
+or a FIT statement.
+<BR><BR><H3><I>Generalized Method of Moments - GMM</I></H3>
+<A NAME="idxmod0220">&#13;</A><A NAME="idxmod0222">&#13;</A><A NAME="idxmod0221">&#13;</A><A NAME="idxmod0223">&#13;</A>For systems of equations with heteroscedastic errors, generalized
+method of moments (GMM) can be used to obtain 
+efficient estimates of the parameters. 
+See the &#34;Heteroscedasticity&#34; section
+for alternatives to GMM.
+<BR><BR>Consider the nonlinear model
+<DL CLASS="equation"><DD><IMG WIDTH="151" HEIGHT="117" ALIGN="left"
+ SRC="images/modeq73.gif"
+ ALT="{\epsilon}_{t}\hspace*{2pt}
+ &=&
+ q(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}})
+ \cr
+ z_{t}
+ &=&
+ Z(x_{t})\hspace*{2pt} "><BR CLEAR="ALL">
+</DL>
+where <SPAN CLASS="mathfont"><b>z</b><sub><I>t</I></sub></SPAN> is a vector of instruments and 
+<B><IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"></B><SPAN CLASS="mathfont"><SUB><I>t</I></SUB></SPAN> is an unobservable disturbance
+vector that can be serially correlated and nonstationary.
+<BR><BR>In general, the following orthogonality condition
+is desired:
+
+<DL CLASS="equation"><DD><IMG WIDTH="104" HEIGHT="74"
+ SRC="images/modeq74.gif"
+ ALT="E ({\epsilon}_{t} {\otimes} z_{t}) = 0"></DL>
+which states that the expected crossproducts of the unobservable
+disturbances, <IMG WIDTH="18" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq75.gif"
+ ALT="{{{\epsilon}}_{t}}">, and functions of the
+observable variables are set to 0. The first moment of the
+crossproducts is
+<DL CLASS="equation"><DD><IMG WIDTH="280" HEIGHT="143" ALIGN="left"
+ SRC="images/modeq76.gif"
+ ALT="m_{n}
+ &=&
+ \frac{1}n \sum_{t=1}^n{m(y_{t}\hspace*{1pt},
+ x_{t}\hspace*{1pt}, {{...
+ ...}})
+ &=&
+ q(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}}) {\otimes} z_{t} "><BR CLEAR="ALL">
+</DL>
+where <IMG WIDTH="139" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq77.gif"
+ ALT="{m(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}}){\in} R^{gk}}">.<BR><BR>The case where <SPAN CLASS="mathfont"><I>gk</I> &#62; <I>p</I></SPAN> is considered here, where <I>p</I> is 
+the number of parameters.
+<BR><BR>Estimate the true parameter vector <IMG WIDTH="20" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq78.gif"
+ ALT="{{\theta}^0}">by the value of <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq79.gif"
+ ALT="{\hat{{\theta}}}"> that minimizes
+
+<DL CLASS="equation"><DD><IMG WIDTH="263" HEIGHT="76"
+ SRC="images/modeq80.gif"
+ ALT="S({\theta}, V) = [n{m}_{n}({\theta})]' V\hspace*{1pt}^{-1}[n{m}_{n}({\theta})]"></DL>
+where
+<A NAME="idxmod0225">&#13;</A><A NAME="idxmod0224">&#13;</A><DL CLASS="equation"><DD><IMG WIDTH="252" HEIGHT="96" ALIGN="left"
+ SRC="images/modeq81.gif"
+ ALT="V = \rm{Cov}([n{m}_{n}({\theta}^0)], [n{m}_{n}({\theta}^0)]') "><BR CLEAR="ALL">
+</DL><BR>The parameter vector that minimizes this objective function
+is the GMM estimator.
+GMM estimation is requested
+on the FIT statement with the GMM option.
+<BR><BR>The variance of the moment functions, <SPAN CLASS="mathfont"><I>V</I></SPAN>, can be
+expressed as
+<DL CLASS="equation"><DD><IMG WIDTH="289" HEIGHT="205" ALIGN="left"
+ SRC="images/modeq82.gif"
+ ALT="V
+ &=&
+ E (\sum_{t=1}^n{{{\epsilon}}_{t} {\otimes} z_{t}})
+ (\sum_{s=1}^n{{{\eps...
+ ...} {\otimes} z_{t})
+ ( {{\epsilon}}_{s} {\otimes} z_{s})']}
+ \cr
+ &=&
+ n S_{n}^0 "><BR CLEAR="ALL">
+</DL><BR>where <SPAN CLASS="mathfont"> <I>S</I><SUB><I>n</I></SUB><SUP>0</SUP></SPAN> is estimated as
+<BR><BR>
+<DL CLASS="equation"><DD><IMG WIDTH="390" HEIGHT="109"
+ SRC="images/modeq83.gif"
+ ALT="\hat{S}_{n} = \frac{1}n \sum_{t=1}^n
+ \sum_{s=1}^n{(q(y_{t}\hspace*{1pt},
+ x_{t}...
+ ...z_{t})(q(y_{s}\hspace*{1pt}, x_{s}\hspace*{1pt},
+ {{\theta}}) {\otimes} z_{s})'}"></DL>
+Note that <IMG WIDTH="24" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq84.gif"
+ ALT="{\hat{S}_{n}}"> is a <SPAN CLASS="mathfont"><I>gk</I>&times;<I>gk</I></SPAN> matrix.
+Because Var <IMG WIDTH="38" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq85.gif"
+ ALT="{(\hat{S}_{n})}"> will not decrease with
+increasing <I>n</I>
+we consider estimators of <SPAN CLASS="mathfont"> <I>S</I><SUB><I>n</I></SUB><SUP>0</SUP></SPAN> of the
+form:
+<DL CLASS="equation"><DD><IMG WIDTH="583" HEIGHT="198" ALIGN="left"
+ SRC="images/modeq86.gif"
+ ALT="\hat{S}_{n}(l(n)) &=&
+ \sum_{{\tau} = -n + 1}^{n-1}{w {{\tau} \overwithdelims ()...
+ ...t-{\tau}}]'} &
+ {\tau}\gt=0\space \cr
+ (\hat{S}_{n,-{\tau}})' &
+ {\tau}\lt\cr
+ }"><BR CLEAR="ALL">
+</DL>
+where <SPAN CLASS="mathfont"><I>l</I>(<I>n</I>)</SPAN> is a scalar function that computes the bandwidth parameter,
+<SPAN CLASS="mathfont"><I>w</I>(&#183;)</SPAN> is a scalar
+valued kernel, and the diagonal matrix <SPAN CLASS="mathfont"><I>D</I></SPAN> is used for a
+small sample degrees of freedom correction (Gallant 1987). 
+The initial <IMG WIDTH="25" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq87.gif"
+ ALT="{{\theta}^{\char93 }}">used for the estimation of <IMG WIDTH="24" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq84.gif"
+ ALT="{\hat{S}_{n}}"> is obtained
+from a 2SLS estimation of the system.
+<A NAME="idxmod0226">&#13;</A>The degrees of freedom correction is handled by the
+VARDEF= option as for the <B>S</B> matrix estimation.
+<BR><BR><A NAME="idxmod0227">&#13;</A><A NAME="idxmod0228">&#13;</A><A NAME="idxmod0229">&#13;</A>The following kernels are supported by PROC MODEL. They are listed
+with their default bandwidth functions:
+<BR><BR>Bartlett: KERNEL=BART
+<DL CLASS="equation"><DD><IMG WIDTH="242" HEIGHT="152" ALIGN="left"
+ SRC="images/modeq88.gif"
+ ALT="w(x)
+ &=&
+ \cases{
+ 1-| x| & | x|\lt= 1\space \cr
+ 0 & otherwise \cr
+ }
+ \cr
+ l(n)
+ &=&
+ \frac{1}2 n^{1 / 3}
+ "><BR CLEAR="ALL">
+</DL><BR>Parzen: KERNEL=PARZEN
+<DL CLASS="equation"><DD><IMG WIDTH="368" HEIGHT="159" ALIGN="left"
+ SRC="images/modeq89.gif"
+ ALT="w(x)
+ &=&
+ \cases{
+ 1-6| x|^2+6| x|^3 & 0\lt=| x|\lt=\frac{1}2\space \cr
+ 2(1-| ...
+ ...rac{1}2\lt=| x|\lt=1\space \cr
+ 0 & otherwise \cr
+ }
+ \cr
+ l(n)
+ &=&
+ n^{1 / 5} "><BR CLEAR="ALL">
+</DL><BR>Quadratic Spectral: KERNEL=QS
+<DL CLASS="equation"><DD><IMG WIDTH="371" HEIGHT="152" ALIGN="left"
+ SRC="images/modeq90.gif"
+ ALT="w(x)
+ &=& \frac{25}{12{\pi}^2 x^2}
+ ( \frac{{sin}(6{\pi}x/5)}{6{\pi}x/5} - {cos}(6{\pi}x/5) )
+ \cr
+ l(n)
+ &=&
+ \frac{1}2 n^{1 / 5} "><BR CLEAR="ALL">
+</DL><BR><A NAME="modkernel">&#13;</A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/modker.gif" ALT="modker.gif (2878 bytes)" HEIGHT="342" WIDTH="382">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 14.15:</B> Kernels for Smoothing</SPAN><BR><BR>Details of the properties of these and other kernels are given in
+Andrews (1991).
+Kernels are selected with the KERNEL= option;  KERNEL=PARZEN is
+the default. The general form of the KERNEL= option is
+<BR><BR><PRE>
+      KERNEL=( PARZEN | QS | BART, c, e )
+</PRE>
+<BR><BR>where the <SPAN CLASS="mathfont"><I>e</I> &#62;= 0</SPAN> and <SPAN CLASS="mathfont"><I>c</I> &#62;= 0</SPAN> are used to compute the bandwidth
+parameter as
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>l</I>(<I>n</I>) = <I>c n</I><SUP><I>e</I></SUP>
+</SPAN>
+</DL>
+The bias of the standard error estimates increases for
+large bandwidth parameters. A warning message is produced for 
+bandwidth parameters greater than <SPAN CLASS="mathfont"><I>n<SUp>(1/3)</SUp></I></SPAN>.
+For a discussion
+of the computation of the optimal <SPAN CLASS="mathfont"><I>l</I>(<I>n</I>)</SPAN>, refer to Andrews (1991).
+<BR><BR>The &#34;Newey-West&#34; kernel (Newey (1987)) corresponds to the Bartlett
+kernel with bandwith parameter <SPAN CLASS="mathfont"><I>l</I>(<I>n</I>) = <I>L</I> +1</SPAN>. That is, if the
+&#34;lag length&#34; for the Newey-West kernel is <SPAN CLASS="mathfont"><I>L</I></SPAN> then the
+corresponding Model procedure syntax is KERNEL=( bart, L+1, 0).
+<BR><BR>Andrews (1992) has shown that using prewhitening in combination with
+GMM can improve
+confidence interval coverage and reduce over rejection of <I>t</I>-statistics
+at the cost of inflating the variance and MSE of the estimator. Prewhitening
+can be performed using the %AR macros.
+<BR><BR>For the special case that the errors are not serially correlated, that is
+
+<DL CLASS="equation"><DD><IMG WIDTH="249" HEIGHT="74"
+ SRC="images/modeq91.gif"
+ ALT="E{\ssbeleven (e_{t} {\otimes} z_{t})(e_{s} {\otimes} 
+z_{s})} = 0 \hspace*{3em} t {\ne} s"></DL>
+the estimate for <SPAN CLASS="mathfont"> <I>S</I><SUB><I>n</I></SUB><SUP>0</SUP></SPAN> reduces to
+
+<DL CLASS="equation"><DD><IMG WIDTH="348" HEIGHT="109"
+ SRC="images/modeq92.gif"
+ ALT="\hat{S}_{n} = \frac{1}n
+ \sum_{t=1}^n{[q(y_{t}\hspace*{1pt},
+ x_{t}\hspace*{1pt}...
+ ..._{t}] [q(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt},
+ {{\theta}}) {\otimes} z_{t}]'}"></DL>
+The option KERNEL=(<I>kernel</I>,0,) is used to select this type of
+estimation when using GMM.
+<BR><BR><H4><I>Testing Over-Identifying Restrictions</I></H4>
+<A NAME="idxmod0230">&#13;</A>Let <I>r</I> be the number of unique instruments times the number of equations.
+The value <I>r</I> represents the number of orthogonality conditions imposed 
+by the GMM method.
+Under the assumptions of the GMM method,
+<SPAN CLASS="mathfont"><I>r</I>-<I>p</I></SPAN> linearly independent combinations of the orthogonality
+should be close to zero. The GMM estimates are computed by setting
+these combinations to zero. 
+When <I>r</I> exceeds the number of parameters to be estimated,
+the OBJECTIVE*N, reported at the end of the estimation, is an asymptoticly 
+valid statistic to test the null hypothesis that the over-identifying 
+restrictions of the model are valid.  The OBJECTIVE*N is distributed 
+as a chi-square with <SPAN CLASS="mathfont"><I>r</I>-<I>p</I></SPAN> degrees of freedom (Hansen 1982, p. 1049).
+<BR><BR><H3><I>Iterated Generalized Method of Moments - ITGMM</I></H3>
+<A NAME="idxmod0231">&#13;</A><A NAME="idxmod0232">&#13;</A>Iterated generalized method of moments is similar to the
+iterated versions of 2SLS, SUR, and 3SLS. The variance matrix for 
+GMM estimation
+is re-estimatedg at each iteration with the parameters determined by
+the GMM estimation. The iteration terminates when the variance matrix
+for the equation errors change less than the CONVERGE= value. Iterated
+generalized method of moments is selected by the ITGMM option on the
+FIT statement. For some indication of the small sample properties of
+ITGMM, refer to Ferson (1993).
+<BR><BR><H3><I>Full Information Maximum Likelihood Estimation - FIML</I></H3>
+<A NAME="idxmod0233">&#13;</A><A NAME="idxmod0235">&#13;</A><A NAME="idxmod0234">&#13;</A>A different approach to the simultaneous equation bias problem
+is the full information maximum likelihood (FIML) estimation method
+(Amemiya 1977).
+<BR><BR>Compared to the instrumental variables methods (2SLS and 3SLS),
+the FIML method has these advantages and disadvantages:
+<BR><BR><UL>
+<LI> FIML does not require instrumental variables.
+<LI> FIML requires that the model include the full equation system,
+with as many equations as there are endogenous variables.
+With 2SLS or 3SLS you can estimate some of the equations
+without specifying the complete system.
+<LI> FIML assumes that the equations errors have a multivariate 
+normal distribution. If the errors are not normally distributed,
+the FIML method may produce poor results.
+2SLS and 3SLS do not assume a specific distribution for the errors.
+<LI> The FIML method is computationally expensive.
+</UL>
+<BR><BR>The full information maximum likelihood estimators of <IMG WIDTH="12" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq28.gif"
+ ALT="{\theta}"> and
+<IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq93.gif"
+ ALT="{{\sigma}}"> are
+<A NAME="idxmod0236">&#13;</A>the <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq79.gif"
+ ALT="{\hat{{\theta}}}"> and <IMG WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq94.gif"
+ ALT="{\hat{{\sigma}}}"> that minimize
+the negative log likelihood function:
+<DL CLASS="equation"><DD><IMG WIDTH="505" HEIGHT="180" ALIGN="left"
+ SRC="images/modeq95.gif"
+ ALT="l_{n}({{\theta}}, {{\sigma}}) =
+ &\frac{ng}2& {\ln}(2{\pi}) -
+ \sum_{t=1}^n{{\ln...
+ ...*{1pt}, {{\theta}})
+ q'(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}})} )
+ "><BR CLEAR="ALL">
+</DL><BR>The option FIML requests full information maximum likelihood estimation.
+If the errors are distributed normally, FIML produces efficient estimators
+of the parameters. If instrumental variables are not provided the
+starting values for the estimation are obtained from a SUR estimation.
+If instrumental variables are provided, then the starting
+values are obtained from a 3SLS estimation. The negative log likelihood value
+and the l<SPAN CLASS="mathfont"><SUB>2</SUB></SPAN> norm of the gradient of the negative log likelihood function
+are shown in the estimation summary.
+<BR><BR><H4><I>FIML Details</I></H4>
+<BR><BR>To compute the minimum of <IMG WIDTH="61" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq96.gif"
+ ALT="{l_{n}({{\theta}}, {{\sigma}})}">,this function is <I>concentrated</I> using the relation:
+
+<DL CLASS="equation"><DD><IMG WIDTH="285" HEIGHT="109"
+ SRC="images/modeq97.gif"
+ ALT="{\Sigma}({\theta}) = \frac{1}n
+ \sum_{t=1}^n{q(y_{t}\hspace*{1pt},
+ x_{t}\hspace*{1pt}, {{\theta}})
+ q'(y_{t}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}})}"></DL><BR>This results in the concentrated negative log likelihood function:
+
+<DL CLASS="equation"><DD><IMG WIDTH="477" HEIGHT="109"
+ SRC="images/modeq98.gif"
+ ALT="l_{n}({{\theta}})
+ =
+ \frac{ng}2 (1 + {\ln}(2{\pi})) -
+ \sum_{t=1}^n{{\ln}\biggl...
+ ..._{t}\hspace*{1pt}, {{\theta}})
+ \biggr|} +
+ \frac{n}2 {\ln} |{\Sigma}({\theta}|)"></DL><BR>The gradient of the negative log likelihood function is :
+
+<DL CLASS="equation"><DD><IMG WIDTH="159" HEIGHT="109"
+ SRC="images/modeq99.gif"
+ ALT="\frac{{\partial}}{{\partial} {\theta}_{i}} l_{n}({{\theta}})
+=
+\sum_{t=1}^n{{\nabla}_{i}(t)}"></DL>
+<DL CLASS="equation"><DD><IMG WIDTH="412" HEIGHT="252"
+ SRC="images/modeq100.gif"
+ ALT="\hspace*{-0.65em} {\nabla}_{i}(t) &=&
+ -{\rm tr}( ( 
+ \frac{{\partial}q(y_{t}\hs...
+ ..._{t}\hspace*{1pt},
+ x_{t}\hspace*{1pt}, {{\theta}})}
+ {{\partial} {\theta}_{i}} "></DL><BR>where
+<BR><BR>
+<DL CLASS="equation"><DD><IMG WIDTH="314" HEIGHT="109"
+ SRC="images/modeq101.gif"
+ ALT="\frac{{\partial}{\Sigma}({\theta})}{{\partial} {\theta}_{i}} =
+ \frac{2}n \sum_{...
+ ...}\hspace*{1pt}, x_{t}\hspace*{1pt}, {{\theta}})'}
+ {{\partial} {\theta}_{i}} 
+ }"></DL><BR>The estimator of the variance-covariance of <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq79.gif"
+ ALT="{\hat{{\theta}}}"> (COVB)
+for FIML can be selected with the COVBEST= option with the following arguments:
+<A NAME="idxmod0237">&#13;</A><A NAME="idxmod0238">&#13;</A><DL>
+<DT>CROSS
+<DD>selects the crossproducts estimator of the covariance matrix (default)
+(Gallant 1987, p. 473):
+<DL CLASS="equation"><DD><IMG WIDTH="206" HEIGHT="128" ALIGN="left"
+ SRC="images/modeq102.gif"
+ ALT="C = ( \frac{1}n \sum_{t=1}^n
+ {{\nabla}(t) {\nabla}'(t)} )^{-1} "><BR CLEAR="ALL">
+</DL><BR>where <IMG WIDTH="255" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq103.gif"
+ ALT="{{\nabla}(t) = [{\nabla}_{1}(t), {\nabla}_{2}(t), { ... },{\nabla}_{p}(t)]'}"><A NAME="idxmod0200">&#13;</A><DT>GLS
+<DD>selects the generalized least-squares estimator
+of the covariance matrix. This is computed as (Dagenais 1978)
+
+<DL CLASS="equation"><DD><IMG WIDTH="189" HEIGHT="77"
+ SRC="images/modeq104.gif"
+ ALT="C = [ \hat{Z} ' ( {\Sigma}({\theta})^{-1} {\otimes} I) 
+ \hat{Z}]^{-1}"></DL>
+where <IMG WIDTH="162" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq105.gif"
+ ALT="{\hat{Z} = ( \hat{Z}_{1}, \hat{Z}_{2}, { ... },\hat{Z}_{p} )}">is <SPAN CLASS="mathfont"><I>ng</I> &times;<I>p</I></SPAN> and each <IMG WIDTH="21" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq53.gif"
+ ALT="{\hat{Z}_{i}}"> column vector is
+obtained from stacking the columns of
+<DL CLASS="equation"><DD><IMG WIDTH="371" HEIGHT="123" ALIGN="left"
+ SRC="images/modeq106.gif"
+ ALT="U \frac{1}n \sum_{t=1}^n{(
+ \frac{{\partial}q(y _{t}\hspace*{1pt}, x_{t}\hspace*...
+ ...ce*{1pt},{{\theta}})'}
+ {{\partial} y_{n}^{'}{\partial} {\theta}_{i}}
+} -
+Q_{i} "><BR CLEAR="ALL">
+</DL>
+<SPAN CLASS="mathfont"><I>U</I></SPAN> is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>g</I></SPAN> matrix of residuals and <SPAN CLASS="mathfont"><I>q</I><SUB><I>i</I></SUB></SPAN>
+is an <SPAN CLASS="mathfont"><I>n</I> &times;<I>g</I></SPAN> matrix
+<IMG WIDTH="28" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq57.gif"
+ ALT="{\frac{{\partial}Q}{{\partial} {\theta}_{i}} }">.<BR><BR><A NAME="idxmod0201">&#13;</A><DT>FDA
+<DD>selects the inverse of concentrated likelihood Hessian
+as an estimator of the covariance matrix. The Hessian is computed
+numerically, so for a large problem this is computationally expensive.
+</DL><BR>The HESSIAN= option controls which approximation to the Hessian is
+used in the minimization procedure. Alternate approximations 
+are used to improve convergence and execution time. The choices are
+<A NAME="idxmod0239">&#13;</A><DL>
+<DT>CROSS
+<DD>The crossproducts approximation is used.
+<BR><BR><DT>GLS
+<DD>The generalized least-squares approximation is used (default).
+<BR><BR><DT>FDA
+<DD>The Hessian is computed numerically by finite differences.
+</DL><BR>HESSIAN=GLS has better convergence properties in general,
+but COVBEST=CROSS produces the most pessimistic standard error bounds.
+When the HESSIAN= option is used, the default estimator of the
+variance-covariance of <IMG WIDTH="12" HEIGHT="21" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq79.gif"
+ ALT="{\hat{{\theta}}}"> is the inverse of
+the Hessian selected.
+<BR><BR><H3><I>Properties of the Estimates</I></H3>
+<A NAME="idxmod0241">&#13;</A><A NAME="idxmod0240">&#13;</A>All of the methods are consistent. 
+Small sample properties may not be good for nonlinear models.
+The tests and standard errors
+reported are based on the convergence of the distribution of the
+estimates to a normal distribution in large samples.
+<BR><BR>These nonlinear estimation methods reduce to the corresponding linear
+systems regression methods if the model is linear. 
+If this is the case, PROC MODEL produces the same estimates as PROC SYSLIN.
+<BR><BR>Except for GMM, the estimation methods assume that the equation errors 
+for each observation are
+identically and independently distributed with a 0 mean vector and
+positive definite covariance matrix <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}"> consistently estimated by
+<B>S</B>. For FIML, the errors need to be normally distributed.
+There are no other assumptions concerning the distribution of
+the errors for the other estimation methods.
+<BR><BR>The consistency of the parameter estimates relies on the assumption
+that the <B>S</B> matrix is a consistent estimate of <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}">.These standard error estimates are asymptotically valid, but for nonlinear
+models they may not be reliable for small samples.
+<BR><BR>The <B>S</B> matrix used for the calculation of the covariance of the parameter
+estimates is the best estimate available
+for the estimation method selected. For <B>S</B>-iterated methods this
+is the most recent estimation of <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}">. For OLS and 2SLS,
+an estimate of the <B>S</B> matrix is computed from OLS or 2SLS residuals and
+used for the calculation of the covariance matrix. For a complete
+list of the <B>S</B> matrix used for the calculation of the covariance of 
+the parameter estimates, see <A HREF="sect32.htm#modest1">Table 14.1</A>.
+<BR><BR><H3><I>Missing Values</I></H3>
+<A NAME="idxmod0243">&#13;</A><A NAME="idxmod0242">&#13;</A>An observation is excluded from the estimation if any variable used
+for FIT tasks is missing,
+if the weight for the observation is not greater
+than 0 when weights are used, or if a DELETE statement is executed by
+the model program. Variables used for FIT tasks include the
+equation errors for each equation, the instruments, if any, and the
+derivatives of the equation errors with respect to the parameters
+estimated. Note that variables can become missing as a result of
+computational errors or calculations with missing values.
+<BR><BR>The number of usable observations can change when different parameter
+values are used; some parameter values can be invalid and cause
+execution errors for some observations. PROC MODEL keeps track of the
+number of usable and missing observations at each pass through the data,
+and if the number of missing observations counted during a pass exceeds
+the number that was obtained using the previous parameter vector, the
+pass is terminated and the new parameter vector is considered infeasible.
+PROC MODEL never takes a step that produces more missing observations than
+the current estimate does.
+<BR><BR><A NAME="idxmod0245">&#13;</A><A NAME="idxmod0244">&#13;</A>The values used to compute the Durbin-Watson, R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN>,
+and other statistics of fit are from the observations used
+in calculating the objective function and do not include any 
+observation for which any needed variable was missing 
+(residuals, derivatives, and instruments).
+<BR><BR><H3><I>Details on the Covariance of Equation Errors</I></H3>
+<A NAME="idxmod0247">&#13;</A><A NAME="idxmod0246">&#13;</A><A NAME="idxmod0249">&#13;</A><A NAME="idxmod0248">&#13;</A>There are several <B>S</B> matrices that can be involved in the various
+estimation methods and in forming the estimate of the covariance of
+parameter estimates. These <B>S</B> matrices are estimates of <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}">,the true covariance of the equation errors. 
+Apart from the choice of instrumental or noninstrumental methods,
+many of the methods provided by PROC MODEL differ
+in the way the various <B>S</B> matrices are formed and used.
+<BR><BR><A NAME="idxmod0250">&#13;</A>All of the estimation methods result in a final estimate of <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}">,which is included in the output if the COVS
+option is specified. The final <B>S</B> matrix of each method provides the
+initial <B>S</B> matrix for any subsequent estimation.
+<BR><BR>This estimate of the covariance of equation errors is defined as
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><b>S</b> = <b>D</b>(<b>R</b>'<b>R</b>)<b>D</b></SPAN>
+</DL><BR>where <SPAN CLASS="mathfont"><b>R</b> = (<b>r</b><sub>1</sub>, ... ,<b>r</b><sub><I>g</I></sub>)</SPAN>
+is composed of the equation residuals computed from the current parameter
+estimates in an <SPAN CLASS="mathfont"><I>n</I> &times;<I>g</I></SPAN> matrix and <B>D</B> is a diagonal matrix 
+that depends on the VARDEF= option.
+<A NAME="idxmod0251">&#13;</A><A NAME="idxmod0252">&#13;</A>For VARDEF=N, the diagonal elements of <B>D</B> are <IMG WIDTH="48" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq107.gif"
+ ALT="{1/\sqrt{n}}">,where <I>n</I> is the number of nonmissing observations.
+For VARDEF=WGT, <I>n</I> is replaced with the sum of the weights.
+For VARDEF=WDF, <I>n</I> is replaced with the sum of the weights minus
+the model degrees of freedom.
+For the default VARDEF=DF, the <I>i</I>th diagonal element of <B>D</B> is
+<IMG WIDTH="91" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq108.gif"
+ ALT="{1/\sqrt{n-df_{i}}}">, where <I>df<SPAN CLASS="mathfont"><SUB><I>i</I></SUB></SPAN></I> is
+the degrees of freedom (number of parameters) for the <I>i</I>th
+equation.  Binkley and Nelson (1984) show the importance of using a
+degrees-of-freedom correction in estimating <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}">.  Their
+results indicate that the DF method produces more
+accurate confidence intervals for N3SLS parameter estimates in the
+linear case than the alternative approach they tested. VARDEF=N
+is always used for the computation of the FIML estimates.
+<BR><BR><A NAME="idxmod0253">&#13;</A><A NAME="idxmod0254">&#13;</A>For the fixed <B>S</B> methods, the OUTSUSED= option writes
+the <B>S</B> matrix used in the estimation to a data set. This <B>S</B> matrix
+is either the estimate of 
+the covariance of equation errors matrix from the preceding estimation, 
+or a prior <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}"> estimate read in from a data set 
+when the SDATA= option is specified.
+<A NAME="idxmod0255">&#13;</A>For the diagonal <B>S</B> methods, all of the off-diagonal elements of the <B>S</B> matrix
+are set to 0 for the estimation of the parameters and for the OUTSUSED= 
+data set, but the output data set produced by
+the OUTS= option will contain the off-diagonal elements.
+For the OLS and N2SLS methods, there is no previous estimate of the 
+covariance of equation errors matrix, and the option OUTSUSED= 
+will save an identity matrix 
+unless a prior <IMG WIDTH="17" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq11.gif"
+ ALT="{\Sigma}"> estimate is supplied by the SDATA= option.
+For FIML the OUTSUSED= data set contains the <B>S</B> matrix computed
+with VARDEF=N. The OUTS= data set contains the <B>S</B> matrix computed
+with the selected VARDEF= option.
+If the COVS option is used, the method is not <B>S</B>-iterated, 
+and <B>S</B> is not an identity, the OUTSUSED= matrix is included 
+in the printed output.
+<BR><BR>For the methods that iterate the covariance of equation errors matrix, 
+the <B>S</B> matrix is iteratively re-estimated from the residuals produced by the 
+current parameter estimates. 
+This <B>S</B> matrix estimate iteratively replaces the previous estimate until
+both the parameter estimates and the estimate of the covariance 
+of equation errors matrix converge. 
+The final OUTS= matrix and OUTSUSED= matrix are thus identical 
+for the <B>S</B>-iterated methods.
+<BR><BR><H3><I>Nested Iterations</I></H3>
+<A NAME="idxmod0257">&#13;</A><A NAME="idxmod0256">&#13;</A><A NAME="idxmod0259">&#13;</A><A NAME="idxmod0258">&#13;</A>By default, for <B>S</B>-iterated methods, the <B>S</B> matrix is held constant until the
+parameters converge once. Then the <B>S</B> matrix is re-estimated. One
+iteration of the parameter estimation algorithm is performed, and
+the <B>S</B> matrix is again re-estimated. This latter process is repeated
+until convergence of both the parameters and the <B>S</B> matrix.
+Since the objective of the
+minimization depends on the <B>S</B> matrix, this has the effect of 
+chasing a moving target.
+<BR><BR><A NAME="idxmod0260">&#13;</A>When the NESTIT option is specified, iterations are performed to
+convergence for the structural parameters with a fixed <B>S</B> matrix.
+The <B>S</B> matrix is then re-estimated, the parameter iterations
+are repeated to convergence, 
+and so on until both the parameters and the <B>S</B> matrix
+converge. This has the effect of fixing the objective function for
+the inner parameter iterations.
+It is more reliable, but usually more expensive, to nest the iterations.
+<BR><BR><H3><I><SPAN CLASS="mathfont"><I>R<SUP>2</SUP></I></SPAN></I></H3>
+<A NAME="idxmod0262">&#13;</A><A NAME="idxmod0261">&#13;</A><A NAME="idxmod0264">&#13;</A><A NAME="idxmod0263">&#13;</A>For unrestricted linear models with an intercept successfully
+estimated by OLS, R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> is always between 0 and 1.
+However, nonlinear models do not necessarily encompass the dependent mean
+as a special case and can produce negative R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> statistics. 
+Negative R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN>'s can also be produced even for linear models when
+an estimation method other than OLS is used and no intercept term
+is in the model.
+<BR><BR>R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> is defined for normalized equations as
+
+<DL CLASS="equation"><DD><IMG WIDTH="190" HEIGHT="96"
+ SRC="images/modeq109.gif"
+ ALT="R^2 = 1 - \frac{SSE}{SSA - \bar{y}^2 x n}"></DL>
+where SSA is the sum of the squares of the actual <SPAN CLASS="mathfont"><I>y</I></SPAN>'s 
+and <IMG WIDTH="13" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/modeq110.gif"
+ ALT="{\bar{y}}"> are the actual means.
+R<SPAN CLASS="mathfont"><SUP>2</SUP></SPAN> cannot be computed for models in general form because of
+the need for an actual Y.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect31.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect33.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

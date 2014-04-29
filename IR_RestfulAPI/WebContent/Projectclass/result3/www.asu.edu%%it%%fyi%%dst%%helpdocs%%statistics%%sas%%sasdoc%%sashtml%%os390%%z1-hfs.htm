@@ -1,0 +1,549 @@
+<HTML>
+<!-- This page produced Thu Jul  8 15:57:47 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Accessing External Files : Accessing UNIX System Services Files </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0166056.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zexf-non.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217269.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the OS/390 Environment                                                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1-hfs">Accessing UNIX System Services Files</A></FONT></H1>
+
+
+<P><A name="z0549554">&#13;IBM's UNIX System Services
+implements a directory-based
+file system that is very similar to the file systems used in UNIX. The SAS
+System under OS/390 enables you to read and write UNIX System Services files
+and to pipe data between SAS and UNIX System Services commands.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0217259">Allocating UNIX System Services Files</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549556">&#13; You can
+allocate a UNIX System Services file
+either externally (using a JCL DD statement or the TSO ALLOCATE command) or
+internally (using the SAS FILENAME statement or FILENAME function).  For information
+about allocating UNIX System Services files externally, see your IBM documentation.</A>
+<P>There are four ways to specify that a file is in UNIX
+System Services when you use the FILENAME statement or FILENAME function: 
+<P>
+<UL>
+
+<LI>Include a slash or tilde in the path name:  
+
+
+
+<PRE>filename input1 '/u/sasusr/data/testset.dat';
+filename input2 '~/data/testset2.dat';</PRE><P>
+
+<LI>Specify HFS (for hierarchical file system) as
+the file type:  
+
+
+
+<PRE>filename input hfs 'testset.dat';</PRE><P>
+
+<LI>Specify HFS as the file prefix:
+
+
+
+<PRE>filename input 'HFS:testset.dat';</PRE><P>
+
+<LI>Rely on the setting of the FILESYSTEM= system
+option:
+
+
+
+<PRE>options filesystem=HFS;
+filename 'testset.dat';</PRE><P>
+</UL>
+
+<P>You can also use these specifications in combination.
+For example, you can specify the UNIX System Services file type and use a
+slash in the pathname.
+<P>If you do not specify the entire pathname of a UNIX
+System Services file, then the directory component of the pathname is the
+working directory that was current when the file was allocated, not when the
+fileref is used. For example, if your working directory was 
+
+
+<CODE><B>/usr/local/sasusr</B></CODE> when you allocated the file, then the following FILENAME statement
+associates the INPUT fileref with the following path: 
+
+
+
+<PRE>/usr/local/sasusr/testset.dat</PRE>
+
+
+
+
+
+
+<PRE>filename input hfs 'testset.dat';</PRE>
+<P>If you change your current working directory to 
+
+
+<CODE><B>/usr/local/sasusr/testdata</B></CODE> then the following statement still refers
+to 
+
+
+<CODE><B>/usr/local/sasusr/testset.dat</B></CODE>, not to 
+
+
+<CODE><B>/usr/local/sasusr/testdata/testset.dat</B></CODE>: 
+
+
+
+<PRE>infile input;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Allocating a UNIX System Services Directory</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549563">&#13; To allocate a UNIX System Services
+directory, create the directory if necessary, then allocate the directory
+using any standard method, such as a JCL DD statement, a TSO ALLOCATE command,
+or a FILENAME statement such as those listed in </A><A href="#z0217259">Allocating UNIX System Services Files</A>.
+<P>To open a particular file in a directory for
+input or
+output, you must specify the file name in the SAS INFILE or FILE statement,
+as described in <A href="#zf-apfhd">Accessing a Particular File in a UNIX System Services Directory</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Specifying File-Access Permissions and Attributes</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549566">&#13; How you specify
+file-access permissions and attributes depends on which method you use to
+allocate a UNIX System Services file: </A>
+<P>
+<UL>
+
+<LI>When you use a JCL DD statement or a TSO ALLOCATE
+command to allocate a UNIX System Services file, you can use the PATHMODE
+and PATHOPTS options to specify file-access permissions and attributes for
+the file. If you later use the file's DDname in a SAS session, SAS uses the
+values of those options when it opens the file.
+<P>For example, if you use the following TSO ALLOCATE command
+to allocate the DDname INDATA and SAS attempts to open it for output, then
+SAS issues an "insufficient authorization" error message and does
+not permit the file to be opened for output. (The ORDONLY value of PATHOPTS
+specifies "open for reading only.")  
+
+
+
+<PRE>alloc file(indata) 
+   path('/u/sasusr/data/testset.dat')
+   pathopts(ordonly)</PRE>
+<P>In other words, you could use the DDname INDATA in a
+SAS INFILE statement, but not in a FILE statement.  Similarly, if you specify
+OWRONLY, then you can use the DDname in a FILE statement but not in an INFILE
+statement. <DL>
+<DT><B><FONT color="FF00007">CAUTION:</FONT></B></DT><DD><B>PATHOPTS values OAPPEND and OTRUNC take precedence
+over FILE statement options OLD and MOD.</B>
+ If you specify OAPPEND ("add new data to the end of the file"), the FILE
+statement option OLD does not override this behavior.  Similarly, if you specify
+OTRUNC ("if the file exists, erase it and re-create it"), the FILE statement
+options OLD and MOD do not override this behavior. (See <A href="zptfmain.htm#zt-stand">Standard Host Options for the FILE Statement under OS/390</A> for details about
+these FILE statement options.)&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"></DD></DL><P>
+
+<LI>If you use the FILENAME statement or FILENAME
+function to allocate a UNIX System Services file, or if you use a JCL DD statement
+or a TSO ALLOCATE command but do not specify values for PATHMODE and PATHOPTS,
+then SAS uses the following values for those options: 
+<P>
+<UL>
+
+<LI>For PATHMODE, SAS uses the file-access mode 
+
+
+<CODE><B>-rw-rw-rw-</B></CODE>; however, this mode may be modified by the current file-mode
+creation mask. (For detailed information about the file-mode creation mask,
+see your IBM documentation.)<P>
+
+<LI>For PATHOPTS, the file-access mode that SAS supplies
+depends on how the fileref or DDname is being used: 
+<P>
+<UL>
+
+<LI>If the fileref or DDname appears only in a FILE
+statement, SAS opens the file for writing only, and if the file does not exist,
+SAS creates it.<P>
+
+<LI>If the fileref appears only in an INFILE statement,
+SAS opens the file for reading only.<P>
+
+<LI>If the fileref appears in both FILE and INFILE
+statements within the same DATA step, SAS opens the file for reading and writing.
+For the FILE statement, SAS also creates the file if it does not already exist.<P>
+</UL>
+<P>
+</UL>
+<P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using UNIX System Services File Names in SAS Statements and Commands</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549577">&#13;To use an actual
+UNIX System Services filename (rather than a fileref or DDname) in a SAS statement
+or command, include a slash or tilde in the pathname, or use the HFS prefix
+with the filename. You can use a UNIX System Services file name anywhere that
+an external file name can be used, such as in a FILE or INFILE statement,
+in an INCLUDE or FILE command in the windowing environment, or in the SAS
+Explorer window.  If the file is in the current directory, specify the directory
+component as 
+
+
+</A><CODE><B>./</B></CODE>.  For example:  
+
+
+
+<PRE>include './testprg.sas'</PRE>
+<BR><H3>Concatenating UNIX System Services Files</H3>
+
+
+<P><A name="z0549578">&#13;
+ To associate a fileref with a concatenation of UNIX System Services
+files or directories, enclose the pathnames in parentheses. The fileref can
+be opened only for input.  For example:  
+
+
+</A>
+<PRE>filename test ('data/test1.dat' 'data/test2.dat');</PRE>
+<P>All of the pathnames in the concatenation must be for
+UNIX System Services files or directories. If your program reads data from
+different types of files in the same DATA step, you can use the EOF= option
+in each INFILE statement to direct program control to a new INFILE statement
+after each file has been read.  (See 
+
+
+
+<B>SAS Language Reference: Dictionary</B> for more information about the
+EOF= option of the INFILE statement.)
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zf-apfhd">Accessing a Particular File in a UNIX System Services Directory</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549580">&#13; If you have associated a fileref
+with a UNIX System Services directory or with a concatenation of UNIX System
+Services directories, you can open a particular file in the directory for
+reading or writing by using an INFILE or FILE statement in the form shown
+below:  
+
+
+</A>
+<PRE>infile <I>fileref</I>(<I>file</I>);
+file   <I>fileref</I>(<I>file</I>);</PRE>
+<P>If you do not enclose <B>file</B> in quotes, then
+SAS appends a file extension to the file name.  In the windowing environment
+commands INCLUDE and FILE, the file extension is ".sas". In the INFILE and
+FILE statements, the file extension is ".dat".
+<P>If the file is opened for input, SAS searches all of
+the directories that are associated with the fileref in the order in which
+they appear in the FILENAME statement or FILENAME function.  If the file is
+opened for output, SAS creates the file in the first directory that was specified.
+If the file is opened for updating but does not exist, SAS creates the file
+in the first directory.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Piping Data between SAS and UNIX System Services Commands</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549583">&#13; To pipe data between SAS and UNIX System Services commands,
+you first specify the PIPE file type and the command in a FILENAME statement
+or FILENAME function. Enclose the command in single quotes.  For example,
+this FILENAME statement assigns the command 
+
+
+</A><CODE><B>ls -lr</B></CODE> to the fileref OECMD:
+ 
+
+
+
+<PRE>filename oecmd pipe 'ls -lr';</PRE>
+<P>To send the output from the command as input to the
+SAS System, you then specify the fileref in an INFILE statement. To use output
+from SAS as input to the command, you specify the fileref in a FILE statement.
+<P>You can associate more than one command with a single
+fileref. Commands are executed in the order in which they appear in the FILENAME
+statement or FILENAME function. For example:  
+
+
+
+<PRE>filename oecmd pipe ('ls *.sas' 'ls *.data');</PRE>
+<BR><H3>Piping Data from a UNIX System Services Command to SAS</H3>
+
+
+<P>When a pipe is opened for input by the INFILE statement,
+any output that the command writes to standard output or to standard error
+is available for input. For example, here is a DATA step that reads the output
+of the 
+
+
+<CODE><B>ls -l</B></CODE> command and saves it in a SAS data set:  
+
+
+
+<PRE>filename oecmd pipe 'ls -l';
+data dirlist;
+   infile oecmd truncover;
+   input mode $ 1-10 nlinks 12-14 user $ 16-23
+         group $25-32 size 34-40 lastmod $ 42-53
+         name $ 54-253;
+run;</PRE>
+<BR><H3><A name="z0217266">Piping Data from SAS to an UNIX System Services Command</A></H3>
+
+
+<P>When a pipe is opened for output by the FILE statement,
+any lines that are written to the pipe by the PUT statement are sent to the
+command's standard input.  For example, here is a DATA step that uses the
+UNIX System Services  
+
+
+<CODE><B>od</B></CODE> command to write the contents of
+the file in hexadecimal format to the UNIX System Services file 
+
+
+<CODE><B>dat/dump.dat</B></CODE>, as follows:  
+
+
+
+<PRE>filename oecmd pipe 'od -x -tc - >dat/dump.dat';
+data _null_;
+   file oecmd;
+   input line $ 1-60;
+   put line;
+cards;
+The SAS System is an integrated system of software
+products, enabling you to perform data management,
+data analysis, and data presentation tasks.
+;
+run;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="zhfsopts">Host-Specific Options for UNIX System Services Files</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549588">&#13; </A><A href="#zfstable">Host-Specific Options for UNIX System Services Files and Pipes</A> shows which host-specific options are
+recognized by the FILENAME, FILE, and INFILE statements for UNIX System Services
+files and pipes. No other options are recognized, including such options specific
+to OS/390 as DISP, CLOSE, and DCB.  Descriptions of the options follow the
+table. 
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="1">
+<CAPTION align="top"><B><I><A name="zfstable">Host-Specific Options for UNIX System Services Files and Pipes</A></I></B></CAPTION>
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="TOP" ><B><A name="zfstable">&#13;Option</A></B></TH>
+  <TH  align="CENTER" valign="TOP" ><B>FILENAME</B></TH>
+  <TH  align="CENTER" valign="TOP" ><B>FILE</B></TH>
+  <TH  align="CENTER" valign="TOP" ><B>INFILE</B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">OLD</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP"><BR></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">MOD</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP"><BR></TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">LRECL=</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP">RECFM=</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+  
+<TD  align="CENTER" valign="TOP">X</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+
+<DL>
+<DT>OLD</DT>
+<DD>replaces the previous contents of the file.
+This is the default. This option has no effect on a pipe.<P></DD>
+
+<DT>MOD</DT>
+<DD>appends the output lines to the file. This
+option has no effect on a pipe.<P></DD>
+
+<DT>LRECL=<B>value</B></DT>
+<DD>specifies the maximum number of characters
+in a line (unless the file has been opened with RECFM=N).  The default is
+255. Lines longer than <B>value</B> are truncated. <B>value</B>
+must be between 1 and 32,767, inclusive.<P></DD>
+
+<DT>RECFM=<B>record-format</B></DT>
+<DD>specifies the record format of the file.
+ Valid values are 
+<TABLE cellpadding="5" cellspacing="0">
+<TR align=left valign="top">
+<TD>F</TD>
+<TD align="left">specifies that all lines in the file
+have the length specified in the LRECL option.  In output files, lines that
+are shorter than the LRECL value are padded on the right with blanks.</TD></TR>
+
+<TR align=left valign="top">
+<TD>V | D</TD>
+<TD align="left">specifies that the lines in the file
+are of variable length, ranging from 1 character to the number of characters
+specified by LRECL=. This is the default.</TD></TR>
+
+<TR align=left valign="top">
+<TD>P</TD>
+<TD align="left">specifies that the file has variable-length
+records and is in print format.</TD></TR>
+
+<TR align=left valign="top">
+<TD>N</TD>
+<TD align="left">specifies that the file is in binary
+format. The file is treated as a byte stream; that is, line boundaries are
+not recognized.</TD></TR>
+</TABLE>
+<P></DD>
+</DL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Using the X Statement to Issue UNIX System Services Commands</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549625">&#13;
+
+To start the UNIX System Services shell, issue the following X statement:
+ 
+
+
+</A>
+<PRE>x omvs;</PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;UNIX System Services commands are
+case sensitive.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>You can also use the X statement to issue any of three
+UNIX System Services commands: 
+<DL>
+<DT><CODE><B>x cd <I>directory</I>;</B></CODE></DT>
+<DD>changes the current working directory to <B>directory</B>. If <B>directory</B> is omitted, the current working
+directory is changed to the working directory that was initially assigned
+to your login name.<P></DD>
+
+<DT><CODE><B>x umask <I>mask</I>;</B></CODE></DT>
+<DD>changes the current file-mode creation mask
+value to <B>mask</B>. According to UNIX conventions, <B>mask</B>
+is a one- to three-digit octal number. The file-mode creation mask modifies
+the file mode of new files. Each 1 bit in the file-mode creation mask causes
+the corresponding permission bit in the file mode to be disabled. If a bit
+is 0 in the mask, the corresponding file-mode bit can be enabled.  For UNIX
+System Services files that are created by SAS, the file mode for new files
+is "-rw-rw-rw-"; however, this mode is modified by the current file-mode creation
+mask. For example, 
+
+
+<CODE><B>x umask 022 </B></CODE> ensures that each newly
+created file can be written to only by its owner. (For detailed information
+about the file-mode creation mask, see your IBM documentation.)
+<P>The new value is displayed in the SAS log. If <B>mask</B> is not specified, the current value is
+simply displayed in the
+SAS log; the current file-mode creation mask value remains unchanged.<P></DD>
+
+<DT><CODE><B>x pwd;</B></CODE></DT>
+<DD>displays your current working directory
+in the SAS log.<P></DD>
+</DL>
+
+<P>To issue other UNIX System Services commands, use the
+PIPE access method.
+<P>To issue a TSO command or CLIST that has the same name
+as one of the case-sensitive commands (a CLIST named CD, for example), either
+enter the command using uppercase characters, or use the 
+
+
+<CODE><B>TSO:</B></CODE>
+prefix and enclose the command in quotes, as in the following examples:  
+
+
+
+<PRE>x CD option1 option2 ...;
+x 'tso:cd option1 option2 ...';</PRE>
+<P>For more information about the X statement, see <A href="z-stmt-x.htm">X</A>.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Restrictions in SAS System Support for UNIX System Services</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0549638">&#13;It is not possible to run SAS under the
+UNIX System Services shell. However, you can run the shell after you initialize
+SAS by using the 
+
+
+</A><CODE><B>x omvs;</B></CODE> statement.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0166056.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zexf-non.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0217269.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1-hfs">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

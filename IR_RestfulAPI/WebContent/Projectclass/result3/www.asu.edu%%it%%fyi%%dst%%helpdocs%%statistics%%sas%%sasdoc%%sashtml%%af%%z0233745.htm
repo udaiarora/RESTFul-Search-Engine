@@ -1,0 +1,187 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Image Data Model Class : Image Data Model: _onError </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z13slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0233743.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1259853.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Image Data Model: _onError</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0233745">Image Data Model: _onError</A></FONT></H1>
+
+<P><HR><BR><B>Determines actions in case of an
+error</B><p>
+ <HR>
+<TABLE cellspacing="0" cellpadding="1">
+<TR>
+<TD colspan="2"><A href="z0233745.htm#zid-6504"><FONT size="2"><B>Syntax</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0233745.htm#z0233746"><FONT size="2"><B>Details</b></FONT></A></TD></TR>
+<TR>
+<TD colspan="2"><A href="z0233745.htm#z0233747"><FONT size="2"><B>Example</b></FONT></A></TD></TR></TABLE>
+<TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><H2><A name="zid-6504">Syntax</A></H2></TD></TR></TABLE>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+CALL SEND (<I>object-id</I>,
+'_onError'&lt;<I>message</I>&gt;&lt;<I>abort</I>&gt;);
+</TD></TR></TABLE><A name="zid-6505">&#13;</A>
+<P>
+<P>
+<TABLE cellpadding="6" cellspacing="0" border="0">
+
+
+<TR valign="bottom" bgcolor="#CCCCCC">
+  <TH  align="LEFT" valign="BOTTOM" ><B>Argument </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Type </B></TH>
+  <TH  align="LEFT" valign="BOTTOM" ><B>Description </B></TH>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><B>message</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the string MESSAGE or NOMESSAGE to indicate whether a   message should
+be written when an error occurs</TD>
+</TR>
+
+
+<TR valign="top" bgcolor="#FFFFFF">
+  
+<TD  align="LEFT" valign="TOP"><B>abort</B><BR></TD>
+  
+<TD  align="LEFT" valign="TOP">C </TD>
+  
+<TD  align="LEFT" valign="TOP">the string ABORT or NOABORT to indicate whether the program should abort
+when an error occurs</TD>
+</TR>
+
+</TABLE>
+
+<BR>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0233746">Details</A></FONT></B></TD></TR></TABLE>
+
+<P>  If you specify either <B>message</B> or <B>abort</B> but
+not both, the omitted action defaults to its current value, which is the value
+last specified.  For example, if you specify 
+
+
+<CODE><B>'</B></CODE>MESSAGE NOABORT
+
+
+<CODE><B>'</B></CODE>
+and later you specify 
+
+
+<CODE><B>'</B></CODE>NOMESSAGE
+
+
+<CODE><B>'</B></CODE>, the NOABORT remains
+in effect.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0233747">Example</A></FONT></B></TD></TR></TABLE>
+
+<P>  This example shows how to override the default behavior so that the
+SCL program does not abort. When you do this, make sure to check SYSRC to
+see if each method completed successfully.  
+
+
+
+<PRE>   /* Create the nondisplay object */
+image_class =loadclass('sashelp.fsp.imgdat.
+                        class');
+imgdat_id=instance(image_class);
+
+filename='/usr/local/color/misc/candy.jif';
+
+   /* Set _onError state to not abort so
+      we can   */
+   /* do our own error recovery if
+      _read fails.    */
+call send(imgdat_id, '_getOnErrorOptions',
+          prevoptions);
+call send(imgdat_id, '_onError', 'NOMESSAGE
+          NOABORT');
+
+read:
+   call send(imgdat_id, '_read', filename);
+   sysrc();
+   put filename= ;
+   if (rc ne 0) then goto error;
+
+      /* Set _onError back to the original
+         state so we don't have to */
+      /* check return codes every time since
+         the code below shouldn't  */
+      /* fail and we don't know how to recover
+         even if it does (only   */
+      /* cases are out-of-memory
+                         and file I/O errors).
+                                         */
+   call send(imgdat_id, '_onError',
+             prevoptions);
+   call send(imgdat_id, '_quantize', 100);
+   call send(imgdat_id, '_rotate', 90);
+   call send(imgdat_id, '_negate');
+   call send(imgdat_id, '_scale', 100, 100);
+   call send(imgdat_id, '_write',
+            'output.gif', 'format=gif');
+return;
+
+error:
+      /* Error handling may reprompt user
+         for new image filename to read */
+   put 'Replacing JIF in filename with TIFF -
+        and retrying the _read';
+   filename='/usr/local/color/misc/candy.tif';
+
+      /* Now continue with the _read
+         method again. */
+   goto read;
+return;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z13slam.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0233743.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1259853.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0233745">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

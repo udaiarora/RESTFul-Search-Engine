@@ -1,0 +1,290 @@
+<HTML>
+<HEAD>
+<TITLE>Warm Starts</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="netflowwarmstarts">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect53.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect55.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NETFLOW Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Warm Starts</H2>
+<A NAME="idxnet1428">&#13;</A><A NAME="idxnet1429">&#13;</A>Using a warm start can increase the overall
+speed of PROC NETFLOW when it is used repetitively on
+problems with similar structure.
+It is most beneficial when a solution of a previous optimization
+is close to the optimum of the same
+network with some of its parameters, for example, arc costs,
+changed.
+Whether a problem is changed or not,
+a nonoptimal solution resulting from a previous optimization can be
+used to
+restart optimization, thereby saving PROC NETFLOW from having to repeat
+work to reach the warm start already available.
+<P>Time also is saved in the data
+structure initialization part of the NETFLOW procedure's execution.
+Information about the previous optimal solution, particularly
+concerning the size of the problem, a
+description of the basis spanning tree structure, and what is basic
+in constraint rows, is known.
+Information about
+which nonbasic arcs have capacity flow and which nonbasic nonarc variables 
+are at their respective upper bounds also
+makes up part of the warm start.
+The procedure can place arc data into the internal arc length arrays in
+precisely defined locations, in order of ascending head node
+internal number.
+It is not necessary to have
+multiple passes through the data because literals such as node, 
+nonarc variable, arc, constraint, and special row names
+are defined and meaning is attached to each.
+This saves a considerable amount of memory as well.
+None of the pre-optimization feasibility checks need be
+repeated.
+<P>Warm starts also are useful if you want to determine
+the effect of arcs being closed to
+carrying flow.
+The costs of these arcs are set high enough to ensure
+that the next optimal solution never has flow through them.
+Similarly, the effect of opening arcs can be determined
+by changing the cost of such arcs from an extreme to a reasonable value.
+<P>Specify the <A HREF="sect30.htm#netflowfuture1">FUTURE1</A> or <A HREF="sect30.htm#netflowfuture2">FUTURE2</A> option to ensure that
+additional data about a solution to be used as
+a warm start are output to output data sets.
+<A NAME="idxnet1430">&#13;</A><A NAME="idxnet1431">&#13;</A><A NAME="idxnet1432">&#13;</A><A NAME="idxnet1433">&#13;</A>If the <A HREF="sect30.htm#netflowfuture1">FUTURE1</A> option is specified, extra observations with
+information on what is to be the warm start are set up for the
+<A HREF="sect15.htm#netflownodeout">NODEOUT</A>= and <A HREF="sect15.htm#netflowarcout">ARCOUT</A>= data sets.
+<A NAME="idxnet1434">&#13;</A><A NAME="idxnet1435">&#13;</A><A NAME="idxnet1436">&#13;</A><A NAME="idxnet1437">&#13;</A>The warm start solution in these
+data sets is a solution obtained after optimization
+neglecting side constraints.
+Any cost list variable value in the <A HREF="sect15.htm#netflowarcout">ARCOUT</A>= data set  (and,
+if there are side constraints, any constraint data in
+the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set) can be changed before the solution
+is used as a warm start in a subsequent PROC NETFLOW run.
+<A NAME="idxnet1438">&#13;</A><A NAME="idxnet1439">&#13;</A>Any nonarc variable data in the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set can be changed at this time as
+well. New nonarc variables not present in the original problem
+when the warm start was generated can also be added to the <A HREF="sect15.htm#netflowcondata">CONDATA</A>= data set
+before the problem is warm started.
+<P>If the <A HREF="sect30.htm#netflowfuture2">FUTURE2</A> option is specified, extra variables containing
+information on what will be the warm start solution are set up for the
+<A HREF="sect15.htm#netflowdualout">DUALOUT</A>= and <A HREF="sect15.htm#netflowconout">CONOUT</A>= data sets.
+<A NAME="idxnet1440">&#13;</A><A NAME="idxnet1441">&#13;</A><A NAME="idxnet1442">&#13;</A><A NAME="idxnet1443">&#13;</A>The warm start solution in these
+data sets is obtained after optimization
+that considers side constraints has been performed.
+Part of the warm start is concerned with the constraint part of the
+basis.
+Only cost list variable values in the <A HREF="sect15.htm#netflowconout">CONOUT</A>= data set can
+be changed before the solution
+is used as a warm start in a subsequent PROC NETFLOW run.
+<P>If a Primal Simplex
+optimization is to use a warm start, the <A HREF="sect15.htm#netflowwarm">WARM</A> option
+must be specified in the <A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement.
+<A NAME="idxnet1444">&#13;</A><A NAME="idxnet1445">&#13;</A>Otherwise, the Primal Simplex Network
+algorithm processes the data for a cold
+start and the extra information is not used.
+<P>The <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set is either the <A HREF="sect15.htm#netflowarcout">ARCOUT</A>= data set 
+from a previous run of PROC NETFLOW
+with the <A HREF="sect30.htm#netflowfuture1">FUTURE1</A> option specified
+(if an unconstrained warm start is used)
+or the <A HREF="sect15.htm#netflowconout">CONOUT</A>= data set from a previous run of PROC NETFLOW
+with the <A HREF="sect30.htm#netflowfuture2">FUTURE2</A> option specified
+(if the warm start was obtained after optimization that considers
+side constraints was used).
+<A NAME="idxnet1446">&#13;</A><A NAME="idxnet1447">&#13;</A>The <A HREF="sect15.htm#netflownodedata">NODEDATA</A>= data set is
+the <A HREF="sect15.htm#netflownodeout">NODEOUT</A>= data set from a
+previous run of PROC NETFLOW with <A HREF="sect30.htm#netflowfuture1">FUTURE1</A> specified
+if an unconstrained warm start is being used.
+<A NAME="idxnet1448">&#13;</A><A NAME="idxnet1449">&#13;</A>Otherwise, the <A HREF="sect15.htm#netflownodedata">DUALIN</A>= is the <A HREF="sect15.htm#netflowdualout">DUALOUT</A>= data sets 
+from a previous run of PROC NETFLOW
+with <A HREF="sect30.htm#netflowfuture2">FUTURE2</A> specified,
+if the warm start was obtained after optimization that considers
+side constraints was used.
+<A NAME="idxnet1450">&#13;</A><A NAME="idxnet1451">&#13;</A>You never need to alter the
+<A HREF="sect15.htm#netflownodeout">NODEOUT</A>= data set or the <A HREF="sect15.htm#netflowdualout">DUALOUT</A>= data set between the
+time they are generated and when they are used as a warm start.
+The results would be unpredictable if incorrect changes were made to
+these data sets, or if a <A HREF="sect15.htm#netflownodedata">NODEDATA</A>= or a
+<A HREF="sect15.htm#netflownodedata">DUALIN</A>= data set were used with an <A HREF="sect15.htm#netflowarcdata">ARCDATA</A>= data set of
+a different solution.
+<P>It is possible, and often useful, to specify <A HREF="sect15.htm#netflowwarm">WARM</A> and either <A HREF="sect30.htm#netflowfuture1">FUTURE1</A>
+or <A HREF="sect30.htm#netflowfuture2">FUTURE2</A>, or both, in the same 
+<A HREF="sect15.htm#netflownetflow">PROC NETFLOW</A> statement
+if a new warm start is to be generated from the present warm start.
+<P>The extent of the changes allowed to a Primal Simplex warm start
+between the time it is generated and when it is
+used depends on whether
+the warm start describes an unconstrained or constrained solution.
+The following list describes
+parts of a constrained or
+an unconstrained warm start that can be altered:
+<P><UL>
+<LI>
+<A HREF="sect20.htm#netflowcost">COST</A> list variable values
+<A NAME="idxnet1426">&#13;</A><A NAME="idxnet1427">&#13;</A><LI>
+the value of an arc's capacity,
+as long as
+the new capacity value is not less than the lower flow bound or
+the flow through the arc
+<LI>
+any nonarc variable information, in an unconstrained warm start
+<LI>
+for an unconstrained warm start, any side constraint data
+</UL>
+<P>The changes that can be made in constraint data 
+for a constrained warm start are more
+restrictive than those for an unconstrained warm start.
+The lhs coefficients type, and
+rhs value of a constraint can be changed
+as long as that constraint's slack, surplus, or artificial
+variable is basic. The constraint name cannot be changed.
+<P><H3><I>Example of a Warm Start</I></H3>
+The following sample SAS session demonstrates how
+the warm start facilities
+are used to obtain optimal solutions to an unconstrained
+network where some arc cost changes occur or optimization is
+halted before the optimum is found.
+<PRE>
+                  /* data already in data sets node0 and arc0 */
+   proc netflow
+        nodedata=node0  /* if supply_demand information  */
+                        /* is in this SAS data set       */
+        arcdata=arc0;
+                  /* variable list specifications go here    */
+                  /* assume that they are not necessary here */
+                  /* if they are, they must be included in   */
+                  /* all the PROC NETFLOW calls that follow  */
+      reset
+         future1
+         nodeout=node2  /* nodeout and arcout are necessary  */
+                        /* when FUTURE1 is used              */
+         arcout=arc1;
+   proc print
+         data=arc1;     /* display the optimal solution      */
+   proc fsedit
+         data=arc1;     /* change some arc costs             */
+   data arc2;
+      reset arc1;
+         oldflow=_flow_;
+         oldfc=_fcost_;
+                  /* make duplicates of the flow and flowcost*/
+                  /* variables. If a id list was explicitly  */
+                  /* specified, add oldflow and oldfc to this*/
+                  /* list so that they appear in subsequently*/
+                  /* created arcout= data sets               */
+</PRE>
+
+<P>The following PROC NETFLOW uses the warm start created previously, performs
+250 stage 2 iterations and saves that solution, which (as future1 and
+arcout= data set and nodeout= data set are specified) can be used 
+as a warm start in another PROC NETFLOW run.
+<PRE>
+   proc netflow
+        warm
+        nodedata=node2
+        arcdata=arc2;
+      reset
+        maxit1=250
+        future1;
+      run;
+      save
+        nodeout=savelib.node3
+        arcout=savelib.arc3;
+               /* optimization halted because 250 iterations */
+               /* were performed to resume optimization,     */
+               /* possibly in another session (the output    */
+               /* data sets were saved in a SAS library      */
+               /* called savelib)                            */
+</PRE>
+
+<P>Using the latest warm start, PROC NETFLOW is re-envoked to find the 
+optimal solution.
+<PRE>
+   proc netflow
+        warm
+        nodedata=savelib.node3
+        arcdata=savelib.arc3;
+      reset
+        future1
+        nodeout=node4
+        arcout=arc4;
+   run;
+</PRE>
+
+<P>If this problem has constraints with data in a data set called
+CON0, then in each of the previous PROC NETFLOW statements, specify
+CONDATA=CON0.
+Between PROC NETFLOW runs, you can change constraint data.
+In each of the RESET statements,
+you could specify the <A HREF="sect15.htm#netflowconout">CONOUT</A>= data set
+to save the last (possibly optimal) solution reached by the optimizer
+if it reaches stage 2.
+You could specify FUTURE2 and the DUALOUT= data set 
+to generate a constrained warm start.
+<PRE>
+   proc netflow
+        warm
+        nodedata=node4
+        arcdata=arc4
+        condata=con0;
+      reset
+        maxit2=125 /* optional, here as a reason why         */
+                   /* optimum will not be obtained           */
+        scratch    /* optional, but warm start might be good */
+                   /* enough to start stage 2 optimization   */
+        future2
+      run;
+        /* optimization halted after 125 stage 2 iterations  */
+      save dualout=dual1 conout=conout1;
+</PRE>
+
+<P>Stage 2 optimization halted before optimum was reached. 
+Now you can make cost and nonarc variable objective function 
+coefficient changes. Then to restart optimization, use
+<PRE>
+   proc netflow
+        warm
+        condata=con0 
+              /* NB. NETFLOW reads constraint data only     */
+        dualin=dual1
+        arcdata=con1;
+      reset
+        future2
+        dualout=dual2
+        conout=con2;
+      run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect53.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect55.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

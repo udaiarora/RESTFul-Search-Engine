@@ -1,0 +1,484 @@
+<HTML>
+<!-- This page produced Tue Jul  6 11:09:12 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using SAS Files : Working with SAS Files on Tape </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zaccdisk.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zeondisk.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS Companion for the CMS Environment                                                                                     </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0380567">Working with SAS Files on Tape</A></FONT></H1>
+
+
+<P><A name="z0592674">&#13;When you write more than one SAS data
+library on a tape, remember
+that each library is a single tape file as long as the same libref is used
+for each SAS library member.  A SAS data library that contains more than one
+member on tape is just one tape file.</A>
+<P>Under CMS, SAS uses CMS tape-handling facilities to
+process tape libraries.  Before you use tape libraries, see <A href="#z0613317">Tape Processing</A>.  Also, read about tape
+processing under CMS in the <B>CMS User's Guide</B> and in the <B>CMS Command Reference</B>. 
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0613317">Tape Processing</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592800">&#13; The
+SAS System under CMS enables you to exploit the tape-handling facilities that
+are provided by CMS.  Both SAS data libraries and external files are accessed
+through the Basic Sequential Access Method (BSAM).  This standard interface
+supports labeled or unlabeled tapes as well as multifile and multivolume facilities.
+ Any supported external tape management system can be used.  Read about tape
+processing in <B>VM/ESA CMS User's Guide</B> and in <B>VM/ESA CMS
+Command Reference</B>.</A>
+<P>For Version 8, four tape engines are supported: V5TAPE
+(READ-only), V6TAPE, V7TAPE, and V8TAPE. Specifying only TAPE defaults to
+the current release.
+<BR><H3><A name="z0606462">Using the LIBNAME and FILENAME Options for Tape Processing</A></H3>
+
+
+<P><A name="z0592801">&#13;    SAS uses a LIBNAME statement or function to access SAS data libraries
+and a FILENAME statement to access external files.  See </A><A href="z0395560.htm">Statements in the CMS Environment</A> for details about these
+statements.  The LIBNAME and FILENAME statements provide the following special
+options particular to tape processing: 
+<DL>
+<DT>DISP=MOD</DT>
+<DD>specifies that the COPY procedure is to append new members
+to the end of a sequential library that is allocated with this option. By
+default, the COPY procedure replaces all existing members in the sequential
+library with the new members copied from the source library. The DISP=MOD
+option is valid only for libraries that use the V6TAPE or later engine, and
+is valid only with the COPY procedure. When this option is in effect, SAS
+does not check the destination sequential library for duplicate members. Any
+duplicate members that are not renamed will not be accessed by SAS, since
+SAS will always access the existing member with the same name first.<P></DD>
+
+<DT><A name="z0592802">&#13;
+LABEL=BLP <B>n</B></A></DT>
+<DD>label processing is bypassed.  An integer <B>n</B> (the default value is 1) causes positioning to a specific file on
+a multifile tape when it is opened.<P></DD>
+
+<DT>LABEL=LABOFF</DT>
+<DD>indicates that no tape label processing
+is desired.  A tape is not repositioned before open processing or after close
+processing; a CMS TAPE command is used to reposition the tape if needed.<P></DD>
+
+<DT>LABEL=NL <B>n</B></DT>
+<DD>unlabeled tapes are desired. An NL tape
+is always rewound at open to perform label checks. A standard labeled tape
+is not opened when NL is specified. After label checking, the tape is positioned
+to logical file <B>n</B>.<P></DD>
+
+<DT>LABEL=SL <B>n</B></DT>
+<DD>indicates that IBM standard labels are needed.
+Standard labeled tapes enable SAS data libraries or external files to span
+multiple tape volumes.  If a tape management system is installed, the mounting
+of SL tapes can be deferred until the files are opened.<P></DD>
+
+<DT><A name="z0592810">&#13;
+LEAVE=YES</A></DT>
+<DD>indicates that a multifile tape is not repositioned
+at open for LABOFF or BLP processing.  For SL tapes, LEAVE=YES does not reposition
+before label processing.  Omitting LEAVE or specifying LEAVE=NO causes a tape
+to be rewound and repositioned each time a file is opened.<P></DD>
+
+<DT><A name="z0592812">&#13;
+SYSPARM=<B>value</B></A></DT>
+<DD>is used to pass tape mounting parameters
+to an external tape management system.  When <B>value</B> contains blanks
+or parentheses, use the form SYSPARM=?  to cause an ENTER SYSPARM prompt.
+ At the prompt, 130 characters of SYSPARM values can be entered.  See the
+documentation for your external tape management system for valid values.<P></DD>
+
+<DT><A name="z0592814">&#13;
+VOLID=<B>vvvvvv</B></A></DT>
+<DD>defines a one- to six-character volume serial
+identifier for standard labeled tapes.  When you use the VOLID= option, the
+VOL1 label on the tape is verified when a tape file is opened.  When you omit
+VOLID=, no VOL1 check is made.<P></DD>
+</DL>
+
+<BR><H3>Using CMS Command Options for Tape Processing</H3>
+
+
+<P><A name="z0592816">&#13; When SL tapes are used, use a CMS LABELDEF command to supplement
+a SAS LIBNAME or FILENAME statement.  The LABELDEF command enables you to
+define fields in the standard HDR1 or EOF1 tape labels.  The defined fields
+or their default values are checked for input files or are written for output
+files.  The LABELDEF command is required when multivolume tape files are used,
+when input checking is needed, or when specific values are to be written into
+standard labels.  See the <B>VM/ESA CMS Command Reference</B> for more
+details.  The filename field in a LABELDEF command should be the same name
+that is used as a libref in a LIBNAME statement or function or as the fileref
+in a FILENAME statement.</A>
+<BR><H3>Mounting Tapes</H3>
+
+
+<P><A name="z0592817">&#13;
+ 
+The method that is used to have a tape mounted and a drive attached to your
+userid is specific to your computing installation.  Some installations have
+special commands for tape mounts; others require that you send messages to
+your computer operator.  Ask your SAS Installation Representative or other
+installation personnel about your local procedures.</A>
+<P>If an external tape management system is available at
+your installation, it may be possible to defer mounting of tapes until the
+tape file is opened.  In most cases, however, the tape drive must be attached
+to your userid with a tape mounted and ready before the tape file can be opened.
+<BR><H3>Positioning Tapes</H3>
+
+
+<P><A name="z0592819">&#13;     When
+LABEL=SL, NL, or BLP, SAS automatically
+positions a tape to the proper file when the file is opened.  No manual repositioning
+is needed in most cases.</A>
+<P>When either LABEL=LABOFF or LEAVE=YES is used, tape
+positioning becomes a user responsibility.  The CMS commands TAPE REW (rewind),
+TAPE FSF (forward space file), and TAPE BSF (backspace file) are needed to
+position a tape to the proper file before processing.
+<BR><H3>Miscellaneous Tape Notes</H3>
+
+
+<P>
+<P>
+<UL>
+
+<LI>Using DISP=MOD in a FILEDEF command or in a FILE,
+FILENAME, or INFILE statement to append output to the end of the file works
+only for SL tapes.  SAS facilities that append data to existing tape data
+sets are also restricted to standard labeled tapes.<P>
+
+<LI>Using DISP=MOD in a LIBNAME statement to specify that copied members
+are to be appended to the end of the library works only on sequential libraries
+that use the V6TAPE or later engines, and only in conjunction with the COPY
+procedure. Note that when DISP=MOD is asserted in a LIBNAME statement of a
+V6TAPE or later sequential library, SAS does not check the library for duplicate
+members.<P>
+
+<LI>The SAS LIBNAME and FILENAME statements do not
+support the ALT= option that the FILEDEF command supports. If the ALT= option
+is needed for multivolume processing, use a CMS FILEDEF command instead of
+a LIBNAME or FILENAME statement.<P>
+
+<LI>The SAS system option TAPECLOSE specifies tape
+positioning when a SAS data library on tape is closed.  The REWIND and REREAD
+arguments are treated as REWIND. No processing occurs under CMS for the FREE
+and DISP arguments.<P>
+
+<LI>If a tape is initialized with a TAPE WVOL1 command,
+it contains a dummy HDR1 record. To use this tape with a LIBNAME statement
+or function, issue a LABELDEF command with a file identifier that is specified
+to cause the dummy HDR1 record to be rewritten.<P>
+</UL>
+
+<BR><H3>Tape Processing Example 1: Creating a SAS Data Library without Label Processing</H3>
+
+
+<P><A name="z0592826">&#13;   
+</A>
+<PRE>/* Assume that the tape has been premounted */
+/* at virtual address 182                   */
+
+libname favorite tape 'tap2';
+cms tape rew;
+data favorite.fruits( filedisp=new );
+   set mylib.oranges;
+run;</PRE>
+<P>The TAPE REW command ensures that the tape is rewound
+to file 1. FILEDISP=NEW is needed to create the first member in any tape library.
+<BR><H3>Tape Processing  Example 2: Adding a New Member to an Existing SAS Data Library</H3>
+
+
+<P>
+<PRE>/* Assume a premounted tape at address 183 */
+
+libname fall89 tape 'tap3' label=NL 2;
+data fall89.scores;
+   input student $11. test 3.0;
+cards;
+...<I>more data lines</I>...
+
+run;</PRE>
+<P>For NL tapes, positioning is handled by the SAS System
+under CMS.  No TAPE commands are used.  FILEDISP=NEW is not specified because
+the SAS data library already exists in file 2.
+<BR><H3>Tape Processing  Example 3: Creating a Multivolume External File</H3>
+
+
+<P>
+<PRE>/* Assume the first tape volume VM0202 is */
+/* mounted at address 181                 */
+
+cms labeldef test1 fid ? volid ?;
+DMSLBD220R Enter dataset name:
+external.test.file
+DMSLBD441R Enter VOLID information:
+vm0202 vm0203
+DMSLBD441R Enter VOLID information:
+ ...<I>null line entered</I>...
+
+filename test1 tape 'tap1' label=sl;
+data; file test1;
+   do i = 1 to 100000; 
+      put i; 
+   end;
+run;
+DMSTLM428I TAP1(181) EOV1 label written on VM0202
+DMSTVS265I Attempting to change tape volume for DDNAME TEST1
+DMSTVS266I To cancel the tape volume switch, type CANCEL
+DMSTVS268I Message sent to userid OPERATOR:
+DMSTVS269I Mount tape volume VM0203 on virtual 181 with a write ring;
+request number 1</PRE>
+<P>The CMS interface module uses the arguments for the
+LABELDEF command to switch to the second volume when the first volume is filled
+and its EOV1 label has been written.
+<BR><H3>Tape Processing  Example 4: Retrieving a Multivolume Tape File Managed by an External Tape Management System</H3>
+
+
+<P>
+<PRE>/* Assume the tape management system */
+/* supports deferred tape mounts     */
+
+cms labeldef test2 fid ?;
+DMSLBD220R Enter dataset name:
+wx.test.file
+filename test2 tape 'tap1' label=sl sysparm=queue;
+Beginning DMSTVI SYSPARM processing.
+
+data;
+   infile test2;
+   input x y z;
+run;
+
+Beginning DMSTVI OPEN processing
+TAPE nnnn ATTACHED TO userid 0181
+
+...<I>more system output</I>...
+
+DMSTLM427I TAP1(181) EOV1 label read
+Beginning DMSTVI EOV processing.
+TAPE 0181 DETACHED
+TAPE nnnn ATTACHED TO userid 0181
+ 
+...<I>more system output</I>...
+  
+Beginning DMSTVI CLOSE processing.</PRE>
+<P>The external tape system handles the tape mounts when
+the tape file is opened and when the volume switch occurs.  The LABELDEF command
+identifies the file by its data set name.
+<BR><H3>Tape Processing  Example 5: Retrieving a SAS Data Library from One Tape File and an External File from a Second Tape File</H3>
+
+
+<P>
+<PRE>/* Assume the tape has been mounted as 184*/
+
+libname first tape 'tap4' label=blp;
+cms tape rew;
+data a;
+   set first.member;
+run;
+
+filename second tape 'tap4' label=blp 2 leave=yes;
+
+data;
+   infile second;
+   input a b;
+run;</PRE>
+<P>The CMS TAPE REW command positions the tape initially
+to the load point. Because LEAVE=YES is specified, the tape is not repositioned
+when the file SECOND is read.  Without LEAVE=YES, the program still runs,
+but when SECOND is opened, the tape is rewound and is spaced forward unnecessarily.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5"><A name="z0380568">Assigning a Libref to a Sequential Library</A></FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592675">&#13; 
+When a LIBNAME statement or function defines a libref for a
+library that is in sequential format, SAS automatically issues a FILEDEF command
+for the library. If you issue a FILEDEF command prior to the LIBNAME statement
+or function, then that FILEDEF is used.</A>
+<P>Most of the options that you can specify in a CMS FILEDEF
+command can also be specified as LIBNAME statement or function options.  Options
+that are needed for sequential processing are also available with the LIBNAME
+statement or function. (See <A href="z1name.htm">LIBNAME</A> for a complete list of LIBNAME statement
+or function options.) Therefore, it is feasible for you to replace all FILEDEF
+commands in an existing SAS application with corresponding LIBNAME statement
+or functions.
+<P>To process a sequential data library, use the following
+form of the LIBNAME statement or function:
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+LIBNAME <I>libref</I> TAPE TAP<I>n</I>;
+</TD></TR></TABLE>
+<P>The
+<B>libref</B> is any valid SAS libref. TAPE
+designates the TAPE (sequential) engine, and TAP<B>n</B> specifies the
+tape device.  Here are some examples of LIBNAME statements and explanations
+of where the library is assumed to be located:
+<UL>
+
+<LI>This example is a sequential library on the first
+R/W disk. It is assumed to be on disk because no tape device is specified.
+   
+
+<PRE>libname mytaplib tape;</PRE><P>
+
+<LI>This example is a sequential library on tape device
+181:    
+
+<PRE>libname mytaplib tape 'tap1';</PRE><P>
+</UL>
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Specifying an Old or New Library with the FILEDISP= Option</FONT></B></TD></TR></TABLE>
+
+<P><A name="z0592682">&#13; When writing
+a SAS file to a sequential library, you must be aware of the effects of the
+SAS data set option FILEDISP= .  The FILEDISP= data set option tells SAS whether
+the file being written is a member of an existing SAS data library on the
+tape or is the first member of a new library.</A>
+<P>When FILEDISP=OLD (the default) is in effect, SAS assumes
+that you are writing a member to an existing sequential library. During such
+a write, SAS searches the sequential library, which consists of a single SAS
+file, for a member that has the same name.  If a matching member is found,
+SAS writes the new member over the existing member. Any members that appeared
+after the updated member are lost. If SAS does not find a matching member,
+it assumes that it has come to the end of the library. SAS then writes the
+new member at the end of the library.
+<P>If you specify FILEDISP=NEW, SAS assumes that you are
+creating a new library, and writes the new member at the beginning of the
+SAS file that represents the sequential library. After the initial write,
+SAS assumes FILEDISP=OLD for that libref. Subsequent writes can be submitted
+with FILEDISP=NEW, but the NEW value will be ignored. This prevents unintentional
+data loss after the initial write. To reiterate, FILEDISP=NEW affects only
+the first write to a given libref. For all subsequent writes to that libref,
+FILEDISP=NEW is ignored, and FILEDISP=OLD is assumed.<DL>
+<DT><B><FONT color="FF00007">CAUTION:</FONT></B></DT><DD><B>Do not specify FILEDISP=NEW for the first write to a newly
+allocated libref that represents an existing sequential library. Doing so
+writes the new member at the beginning of the library and any other members
+in the library are lost.</B>
+&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"></DD></DL>Remember, if you assigned the libref with a LIBNAME
+statement or function, you can reassign it with another LIBNAME statement
+or function.  However, if you assigned the libref with a CMS FILEDEF command,
+you must use another FILEDEF command to change it.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The COPY procedure ignores FILEDISP= and CMS FILEDEF commands
+when a sequential library is specified as the  destination of the copy. By
+default, the COPY procedure removes  all members in the destination sequential
+library and writes new members into the beginning of the SAS file. To  preserve
+existing members in a V6TAPE or later library, that library must be allocated
+using the host option DISP=MOD in the LIBNAME statement. For details, see <A href="#z0606462">Using the LIBNAME and FILENAME Options for Tape Processing</A>.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<BR><H3>Examples</H3>
+
+
+<UL>
+
+<LI>In the following SAS program, a SAS data file
+is written on an unlabeled tape that already contains one member of the same
+SAS data library. Assume that the tape has already been mounted, but not rewound
+and positioned.  FILEDISP=OLD, the default, is in effect, so a TAPE REW command
+is issued to position the tape before the first member in the library.  The
+DATA step writes the SAS data file on the tape after the existing SAS file.
+   
+
+<PRE>cms tape rew;
+libname favorite tape 'tap1';
+data favorite.fruits;
+   set mylib.oranges;
+run;</PRE><P>
+
+<LI>In the next example, an unlabeled tape already
+contains two external files.  FILEDISP=NEW is specified for the SAS data set,
+so the tape must be spaced forward. Otherwise, SAS writes over the existing
+files.    
+
+<PRE>cms tape rew;
+cms tape fsf 2;
+libname fall89 tape 'tap1';
+data fall89.scores (filedisp=new);
+   input student $11. test1 3.0 test2 3.0
+      test3 3.0 test4 3.0;
+   cards;
+...<I>more data lines</I>...
+;</PRE><P>
+
+<LI>In the third example, a SAS data library is created
+on a new tape that will have standard labels. The TAPE WVOL1 command writes
+the volume label at the beginning of the tape, and the LIBNAME statement includes
+LABEL=SL.  FILEDISP=NEW is specified because a new library is created.    
+
+<PRE>cms tape rew;
+cms tape modeset (den 6250;
+cms tape wvol1 vm6111;
+libname bank tape 'tap1' label=sl 1;
+data bank.ncyield (filedisp=new);
+   set agri.ncyield;
+run;</PRE><P>
+
+<LI>In the next example, a SAS data file is read from
+a tape with standard labels. The SAS data file is in the second file of the
+tape.    
+
+<PRE>libname tapefile tape 'tap2' label=sl 2;
+proc print data=tapefile.monitor;
+   var weight age initbac baccnt chckdate;
+   id subject;
+   by dose;
+run;</PRE><P>
+
+<LI>This next example illustrates the effects of specifying
+FILEDISP=NEW in an output step other than the first output step that follows
+the allocation of the libref. The library MYLIB is a tape format on disk library
+that has five members named ONE, TWO, THREE, FOUR, and FIVE. The first data
+step adds a new member, SIX, after member FIVE. The second data step writes
+over member FOUR, and members FIVE and SIX are lost. The value of FILEDISP=NEW
+is ignored and the default FILEDISP=OLD is assumed.  
+
+<PRE>libname mylib tape 'a';
+data mylib.six;
+f=1;
+output;
+run;
+data mylib.four (filedisp=new);
+d=1;
+output;
+run;</PRE><P>
+</UL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0425681.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zaccdisk.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="zeondisk.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0380567">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

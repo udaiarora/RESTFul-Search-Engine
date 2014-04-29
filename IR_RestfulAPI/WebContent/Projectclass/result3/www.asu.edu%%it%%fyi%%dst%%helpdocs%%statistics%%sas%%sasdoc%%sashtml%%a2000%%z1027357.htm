@@ -1,0 +1,196 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>QUEST Procedure Reference : Single-User and Multi-User Operation </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="znid-126.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1009037.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0989606.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1027357">Single-User and Multi-User Operation</A></FONT></H1>
+
+
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Single-User Operation</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043095">&#13;
+
+
+
+
+
+When you invoke the QUEST procedure with single-user access (S2KMODE=S),
+the SAS System displays the following information: </A>
+<P>
+<UL>
+
+<LI>SYSTEM 2000 initialization parameters<P>
+
+<LI>SYSTEM 2000 version
+number<P>
+
+<LI>copyright information.<P>
+</UL>
+
+<P>Issue the USER statement to establish your password and start your
+SYSTEM
+2000 session. For example, the following statements attach the EMPLOYEE database: 
+
+
+
+<PRE>   user,demo;    
+   data base name is employee;</PRE>
+<P>The SYSTEM 2000 interface to the SAS System accesses the database and
+displays any output on the output window or in the SAS print file (if you
+are executing in interactive line mode).
+<BR><H3>The S2KPARMS File</H3>
+
+
+<P><A name="z1043101">&#13;
+
+Since you are running in your own address space when you have single-user
+access, you can specify a variety of parameters. (Refer to the <B>SYSTEM
+2000 Product Support Manual</B> for information about SYSTEM 2000 execution
+parameters.)  To specify execution parameters for the QUEST procedure with
+single-user access, you must set up a file with a fileref of S2KPARMS.  If
+there is no S2KPARMS fileref, system defaults are used.</A>
+<P>For example, the LIST=YES parameter displays the parameter values on
+the log window when the system is initialized. To suppress this display, edit
+a file to contain LIST=NO and allocate it with a fileref of S2KPARMS in your
+SYSTEM 2000 CLIST or EXEC.
+<BR><H3>Attention Interrupts in TSO</H3>
+
+
+<P><A name="z1043103">&#13;
+
+
+If you press the Attention Interrupt key while processing a where-clause
+in single-user access, your request is canceled. A canceled retrieval produces
+no output, and a canceled update does not alter the database.</A>
+<P>If you interrupt processing at any other time, the interrupt is ignored.
+When you return to the SAS System, the usual SAS interrupt-handling mechanism
+is restored.
+<P>While it is not recommended, you can prevent single-user access from
+intercepting the SAS attention-interrupt mechanism by specifying STAX=NO in
+the S2KPARMS file. Be aware, however, that if you terminate both the QUEST
+procedure and the SAS System with the SAS Attention exit after having updated
+the database, you might have unwritten buffers left in memory. As a result,
+the database could be damaged.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Multi-User Operation</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043106">&#13;
+When you invoke the QUEST procedure in a Multi-User environment (S2KMODE=M),
+the SAS System responds with these messages: 
+
+
+</A>
+<PRE>QUEST Ready    
+S2K3212/00 - SYSTEM 2000 INTERACTIVE INTERFACE READY -</PRE>
+<P>Issue the USER statement to establish your password and start your SYSTEM
+2000 session. For example, the following statements attach the EMPLOYEE database: 
+
+
+
+<PRE>   user,demo;
+   data base name is employee;</PRE>
+<P>The SYSTEM 2000 interface to the SAS System accesses the database and
+displays any output on the output window or in the SAS print file (if you
+are executing in interactive line mode). 
+<BR><H3>Temporary Output File</H3>
+
+
+<P><A name="z1043109">&#13;
+The QUEST procedure uses a disk file to temporarily store output. In
+CMS, the file is allocated automatically. In TSO, you need to allocate a file
+with at least ten tracks of 3350 disk space (or the equivalent) with the DDname
+S2KOUTP. If the file is not allocated, you get a warning message (-895-),
+and any response from SYSTEM 2000 software that exceeds 4096 bytes will be
+truncated.</A>
+<P>Ten tracks of 3350 disk space is enough for typical use. If some output
+cannot be stored on S2KOUTP, message -897- appears, and you will lose some
+output. Reallocate the file with more space later. 
+<BR><H3>Command File</H3>
+
+
+<P><A name="z1043111">&#13;
+
+
+You can save SYSTEM 2000 statements in a file with the SAS Text Editor.
+You can direct the QUEST procedure to read statements from that file by submitting
+this statement: 
+
+
+</A>
+<PRE>   local command file is <I>fileref</I>;</PRE>
+<P>where <B>fileref</B> is the DDname for the file. However, any
+SAS macros in the file will not be expanded because the QUEST procedure will
+submit the statements directly to SYSTEM 2000 software without the SAS System
+reading them.
+<P>The following statement lets you continue to submit statements from
+the PROGRAM EDITOR window; write it at the end of the Command File:
+
+
+
+<PRE>   LOCAL COMMAND FILE IS INPUT;</PRE>
+<P>If you omit this command, the QUEST procedure automatically returns
+to the PROGRAM EDITOR window when it finds an end-of-file on the Command File.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;SYSTEM 2000 commands in a Command File must be specified in uppercase
+or a syntax error will occur.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The QUEST procedure allows you to use alternate user files for the Data
+File, Message File, and Report File also. They can be local files or files
+allocated in the Multi-User region.
+<BR><H3>Attention Interrupts in TSO</H3>
+
+
+<P><A name="z1043117">&#13;
+
+
+If you interrupt processing while running the QUEST procedure under
+TSO, the usual SAS message (asking whether you want to terminate or continue)
+is not displayed.</A>
+<P>Instead, if you interrupt processing while looking at the output screen,
+the attention interrupt is interpreted to mean that you want to purge any
+further output. The first line on the next page is displayed, but any further
+output from your last statement is discarded. If you interrupt processing
+at any other time, the interrupt is ignored.
+<P>To cancel the session, you must first terminate the QUEST procedure.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="znid-126.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1009037.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0989606.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1027357">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<TITLE>Alignment of SAS Dates</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">Working with Time Series Data</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Alignment of SAS Dates  </H2>
+<P><A NAME="idxtsd0313">&#13;</A><A NAME="idxtsd0312">&#13;</A><A NAME="idxtsd0315">&#13;</A><A NAME="idxtsd0314">&#13;</A><A NAME="idxtsd0317">&#13;</A><A NAME="idxtsd0316">&#13;</A>Any date within the time interval corresponding to an observation
+of a periodic time series can serve as an ID value for the observation.
+For example, the USCPI data in a previous example might have been
+recorded with dates at the 15th of each month.
+The person recording the data might reason that since the CPI values
+are monthly averages, midpoints of the months might be the appropriate
+ID values.
+<P>However, as far as SAS/ETS procedures are concerned, what is important
+about monthly data is the month of each observation, not the exact
+date of the ID value. If you indicate that the data are monthly
+(with an INTERVAL=MONTH) option, SAS/ETS procedures
+ignore the day of the month in processing the ID variable.
+The MONYY format also ignores the day of the month.
+<P>Thus, you could read in the monthly USCPI data with
+midmonth DATE values using the following statements:
+<P><PRE>
+   data uscpi;
+      input date date9. cpi;
+      format date monyy7.;
+   datalines;
+   15jun1990 129.9
+   15jul1990 130.4
+   15aug1990 131.6
+   15sep1990 132.7
+    ... etc. ...
+   ;
+</PRE>
+<P>The results of using this version of the USCPI data set for
+analysis with SAS/ETS procedures would be the same as with
+first-of-month values for DATE.
+Although you can use any date within the interval as an ID value for
+the interval, you may find working with time series in SAS less
+confusing if you always use date ID values normalized to the start
+of the interval.
+<P>For some applications it may be preferable to use end of period
+dates, such as 31Jan1994, 28Feb1994, 31Mar1994, ..., 31Dec1994.  For 
+other applications, such as plotting time series, it may be 
+more convenient to use interval midpoint dates to identify the
+observations.
+<P>SAS/ETS procedures provide an ALIGN= option to control the alignment
+of dates for output time series observations.  Procedures supporting 
+the ALIGN= option are ARIMA, DATASOURCE, EXPAND, and FORECAST.  In
+addition, the INTNX library function supports an optional argument
+to specify the alignment of the returned date value.
+<P><A NAME="idxtsd0319">&#13;</A><A NAME="idxtsd0318">&#13;</A><A NAME="idxtsd0321">&#13;</A><A NAME="idxtsd0320">&#13;</A><A NAME="idxtsd0323">&#13;</A><A NAME="idxtsd0322">&#13;</A><A NAME="idxtsd0325">&#13;</A><A NAME="idxtsd0324">&#13;</A><A NAME="idxtsd0327">&#13;</A><A NAME="idxtsd0326">&#13;</A><A NAME="idxtsd0329">&#13;</A><A NAME="idxtsd0328">&#13;</A><A NAME="idxtsd0331">&#13;</A><A NAME="idxtsd0330">&#13;</A>To normalize date values to the start of intervals,
+use the INTNX function with a 0 increment.
+The INTNX function with an increment of 0 computes the
+date of the first day of the interval
+(or the first second of the interval for datetime values).
+<P>For example, INTNX('MONTH','17OCT1991'D,0, BEG) returns the date
+'1OCT1991'D'.
+<P>The following statements show how the preceding example can be
+changed to normalize the mid-month DATE values to first-of-month and
+end-of-month values.  For exposition, the first-of-month value
+is transformed back into a middle-of-month value.
+<P><PRE>
+   data uscpi;
+      input date date9. cpi;
+      format date monyy7.;
+      monthbeg = intnx( 'month', date, 0, beg );
+      midmonth = intnx( 'month', monthbeg, 0, mid );
+      monthend = intnx( 'month', date, 0, end );
+   datalines;
+   15jun1990 129.9
+   15jul1990 130.4
+   15aug1990 131.6
+   15sep1990 132.7
+    ... etc. ...
+   ;
+</PRE>
+<P>If you want to compute the date of a particular day within an interval,
+you can use calendar functions, or you can increment the starting
+date of the interval by a number of days.
+The following example shows three ways to compute the 7th day of the month:
+<P><PRE>
+   data test;
+      set uscpi;
+      mon07_1 = mdy( month(date), 7, year(date) );
+      mon07_2 = intnx( 'month', date, 0, beg ) + 6;
+      mon07_3 = intnx( 'day', date, 6 );
+   run;
+</PRE>
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect37.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect39.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,745 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>DOMAIN Server : Configuring and Using the DOMAIN Server </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0382028.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zprocdom.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0103011.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z0382031">Configuring and Using the DOMAIN Server</A></FONT></H1>
+
+
+<P>You
+will perform tasks at both the DOMAIN server and the SAS/CONNECT local
+host or the SAS/SHARE client when you
+connect to a SAS/CONNECT remote host
+or a SAS/SHARE server.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Tasks to Perform at the DOMAIN Server</FONT></B></TD></TR></TABLE>
+
+<P>To
+connect two SAS sessions using the protocol gateway of the DOMAIN server,
+perform the following tasks at the DOMAIN Server:
+<OL START="1" type="1">
+<LI>If you use the TCP/IP inbound access method, configure the DOMAIN
+server in the SERVICES file.<P>
+
+<LI>Initialize the DOMAIN server.<P>
+
+<LI>Specify the inbound and outbound communications access
+methods.<P>
+
+<LI>Put outbound sign-on scripts for SAS/CONNECT on
+the DOMAIN server, if necessary.<P>
+</OL>
+
+<BR><H3>Configuring the DOMAIN Server in the SERVICES File</H3>
+
+
+<P>Verify that
+the DOMAIN server identifier is specified in the
+SERVICES file at the DOMAIN server. 
+<P>Example:
+
+
+
+<PRE>domsrv 5010/tcp #DOMAIN server</PRE>
+<P>See <A href="zervices.htm">Configuring the SERVICES File</A> for
+details about customizing the SERVICES file.
+<BR><H3>Starting the DOMAIN Server</H3>
+
+
+<P>You
+must start the DOMAIN server before a  SAS/CONNECT 
+local host or a SAS/SHARE client can
+use it.
+<P>To
+start the DOMAIN server, use the following syntax:
+
+
+
+<PRE>PROC DOMAIN PROTOCOL SERVERID=<I>domain-server-id</I>;</PRE>
+<P>where PROC DOMAIN is a procedure to create a DOMAIN service. PROTOCOL
+is always specified for the DOMAIN gateway service. SERVERID=<B>domain-server-id</B> specifies the access method network name.
+<P>Example:  
+
+
+
+<PRE>proc domain protocol serverid=domsrv;</PRE>
+<P>This statement declares DOMSRV as the DOMAIN server.
+<BR><H3>Specifying the Outbound Communications Access Method at the DOMAIN Server</H3>
+
+
+<P>At the DOMAIN server, specify the communications access method
+that will redirect the inbound message that was received from the SAS/CONNECT local
+host or the SAS/SHARE client. Use the
+following syntax:  
+
+
+
+<PRE>OPTIONS COMAMID=<I>access-method-id</I>;</PRE>
+<P>where COMAMID is an acronym for Communications Access Method Identification. <B>access-method-id</B> identifies the method that is used by the remote host
+to communicate with the SAS/CONNECT local
+host or the  SAS/SHARE  client by means
+of the domain server.
+<P>You may specify the COMAMID option in an OPTIONS statement, at a SAS
+invocation, or in a SAS configuration file. An example of an OPTIONS statement
+follows:
+
+
+
+<PRE>options comamid=tcp;</PRE>
+<P>The DOMAIN server attempts to locate the destination partner with the
+TCP/IP access method.
+<P>You must specify at least one auxiliary method for the DOMAIN server.
+Specifying a second auxiliary method is optional. Auxiliary methods are specified
+by using the COMAUX options.
+
+
+
+<PRE>COMAUX1=<I>alternate-method</I>
+COMAUX2=<I>alternate-method</I></PRE>
+<P>COMAUX options can be specified only at a SAS invocation or in a SAS
+configuration file. An example of specifying COMAMID, COMAUX1, and COMAUX2
+options in a SAS configuration file follows:
+
+
+
+<PRE>-comamid tcp
+-comaux1 appc
+-comaux2 netbios</PRE>
+<P>To minimize the number of failure-retry operations required to establish
+a connection to the remote host, specify the most heavily used outbound access
+methods, in descending order.
+<P>For example, if NetBIOS is specified as the inbound access method at
+the local host, the NetBIOS domain is searched first for the named service.
+If the service is not found, the search is redirected to the DOMAIN server,
+which attempts to locate the named service using the access methods specified
+in the COMAMID and COMAUX options; in this example, TCP/IP, APPC, and NetBIOS.
+<BR><H3><A name="znscript">Storing SAS/CONNECT Outbound Sign-on Scripts on the DOMAIN Server</A></H3>
+
+
+<P>The DOMAIN server provides script support for outbound access methods
+that require a script file to establish a SAS/CONNECT connection to a remote
+host.
+<P>You may store scripts in either of the following locations:
+<DL>
+<DT><B>!SASROOT</B>\DOMAIN\SCRIPT</DT>
+<DD>Store default scripts here. Name the default script DEFAULT.SCR
+and any additional scripts REMOTE.SCR, where REMOTE is the value specified
+in the REMOTE= option on the SAS/CONNECT local host. See <A href="#z0393325">Specifying the Remote Node Name</A> for information about specifying
+the REMOTE= option.<P></DD>
+
+<DT><B>!SASROOT</B>\DOMAIN\SCRIPT\<B>user</B></DT>
+<DD>Store customized scripts here. The DOMAIN server identifies
+the user by the userid and the password that are specified in the security
+macro variable (whose name varies by access method). The server then searches
+the user tree for the DEFAULT.SCR and REMOTE.SCR scripts, in that order.
+<P>For example, suppose the DOMAIN server node contained the following
+scripts:<P></DD>
+</DL>
+
+<P>
+<PRE><I>!SASROOT</I>\DOMAIN\SCRIPT\DEFAULT.SCR
+                       SDCMVS.SCR</PRE>
+<P>and
+<P>
+<PRE><I>!SASROOT</I>\DOMAIN\SCRIPT\<I>user</I>\DEFAULT.SCR
+                            SDCMVS.SCR</PRE> 
+<P>If the TCPSEC macro variable is set to <B>userid.password</B>,
+one of the script files in <B>!SASROOT</B>\DOMAIN\SCRIPT\<B>user</B> is used. Otherwise, the default script is used.
+<P>Prompt windows cannot be passed from the DOMAIN server to
+the local
+system. Therefore, INPUT and NOTIFY statements should not be used in the script
+files. The userid and password values normally obtained by an INPUT statement
+are managed through the two global macro variables SYSGWID and SYSGWPW. These
+macro variables are initialized with the value that is obtained from the appropriate
+security variable (the TCPSEC or VQSECURE macro variable or the APPC_SECURE
+environment variable). The global macro variables are referenced in the script
+file in TYPE statements as follows:
+<P>
+<PRE>waitfor 'login';
+type "&amp;SYSGWID" LF;
+waitfor 'Password';
+type "&amp;SYSGWPW" LF;</PRE>
+<P>See <A href="#zmainvar">Setting SAS Macro Variables</A>
+for details about the SYSGWID and SYSGWPW macro variables.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Tasks to Perform at the SAS/CONNECT Local Host and at the SAS/SHARE Client</FONT></B></TD></TR></TABLE>
+
+<P>Perform these tasks at the SAS/CONNECT local
+host and at the SAS/SHARE client: 
+<OL START="1" type="1">
+<LI>Set the necessary macro variables.<P>
+
+<LI>Specify the inbound
+communications access method.<P>
+
+<LI>Set up remote host or server security, if applicable.<P>
+</OL>
+
+<BR><H3><A name="zmainvar">Setting SAS Macro Variables</A></H3>
+
+
+<P>You must set macro variables at
+the
+SAS/CONNECT local
+host or at the SAS/SHARE client to
+identify the DOMAIN server node name and server identifier and to provide
+DOMAIN server security for connecting local hosts or clients. The macro variables
+that are set depend on the inbound access method that is used.
+<P>Macro variables are provided for the following inbound access methods: 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>APPC</TD></TR>
+<TR valign="top"><TD></TD><TD>NetBIOS</TD></TR>
+<TR valign="top"><TD></TD><TD>SPX</TD></TR>
+<TR valign="top"><TD></TD><TD>TCP/IP.</TD></TR></TABLE>
+<BR><H3>TCP/IP Access Method Macro Variables</H3>
+
+
+<P>The macro variables for the
+TCP/IP access method are
+<DL>
+<DT><B>gateway-host</B></DT>
+<DD>specifies the fully qualified TCP/IP node name if it has
+not already been defined in the local system's HOSTS file. If the node name
+of the DOMAIN server has already been defined, you do not have to define a
+macro variable. Set the <B>gateway-host</B> macro variable by using
+the following syntax:  
+
+
+
+<PRE>%LET GWHOST=<I>domain-server-nodename</I>;</PRE>
+<P>Example:  
+
+
+
+<PRE>%let gwhost=star.abc.xyz;</PRE>
+<P>Macro variable GWHOST stores the fully qualified TCP/IP node name of
+the DOMAIN server STAR.ABC.XYZ.<P></DD>
+
+<DT><B>TCP-gateway</B></DT>
+<DD>specifies the DOMAIN server's server identifier that you
+use to initialize the DOMAIN server in the PROC DOMAIN statement. You must
+also specify the same DOMAIN server identifier in the SERVICES file. See <A href="zervices.htm">Configuring the SERVICES File</A> for details about
+customizing the SERVICES file. Set the macro variable using the following
+syntax:  
+
+
+
+<PRE>%LET TCPGW=GWHOST.<I>domain-server-id</I>;</PRE>
+<P>Example:  
+
+
+
+<PRE>%let tcpgw=gwhost.domsrv;</PRE>
+<P>DOMSRV is the server identifier of the DOMAIN server. If the DOMAIN
+server node has been defined as STAR in the system's HOSTS file, you omit
+the GWHOST macro variable and assign the macro variable as follows:  
+
+
+
+<PRE>%let tcpgw=star.domsrv;</PRE><P></DD>
+
+<DT>TCPSEC</DT>
+<DD>is required by the target host. The DOMAIN server supplies
+the specified value to the outbound access method.
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+%LET TCPSEC=_NONE |
+_PROMPT_|
+<TABLE cellpadding="2" cellspacing="2">
+<TR><TD width="24"></TD><TD>
+<I>userid.password</I>;
+</TD></TR></TABLE>
+</TD></TR></TABLE>
+<P>Select the appropriate value for TCPSEC according to the measure of
+security that you want. For no security, either do not set the TCPSEC variable
+or set it to _NONE_. The default is _NONE_
+<P>If you set the TCPSEC variable to _PROMPT_, you will be prompted for
+a userid and a password.
+<P>Example:  
+
+
+
+<PRE>%let tcpsec=_prompt_;</PRE>
+<P>If you choose to assign the userid and the password directly to the
+TCPSEC variable at the SAS/CONNECT local
+host or at the SAS/SHARE client, you
+inadvertently may publicize this information and compromise the security of
+the DOMAIN server.  Hard-coding the value to the variable in a file allows
+anyone to read it.
+<P>Example:  
+
+
+
+<PRE>%let tcpsec=bass.time2go;</PRE>
+<P>In this example, BASS is the userid and TIME2GO is the password on the
+server or on the remote host.<P></DD>
+</DL>
+
+<BR><H3>NetBIOS and SPX Access Method Macro Variables</H3>
+
+
+<P>The macro variables for the NetBIOS and SPX access methods are
+
+<DL>
+<DT>VQPROTGW</DT>
+<DD>specifies the access method's network name, which you use
+to initialize the DOMAIN server in the PROC DOMAIN statement. Set the VQPROTGW
+macro variable using the following syntax:  
+
+
+
+<PRE>%LET VQPROTGW=<I>domain-server-id</I>;</PRE>
+<P>Example:  
+
+
+
+<PRE>%let vqprotgw=domsvr;</PRE>
+<P>DOMSVR is the access method's network name.<P></DD>
+
+<DT>VQSECURE</DT>
+<DD>is sometimes required by the target host (if the server
+is secure). The DOMAIN server supplies the specified value to the outbound
+access method.
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+%LET VQSECURE=_NONE_| _PROMPT_| <I>userid.password</I>;
+</TD></TR></TABLE>
+<P>Select the appropriate value for VQSECURE according
+to the measure of
+security that you want. The default is no security. For no security, either
+do not set the VQSECURE variable or set it to _NONE_.
+<P>If you set the VQSECURE variable to _PROMPT_, you will be prompted for
+a userid and a password.
+<P>Example:  
+
+
+
+<PRE>%let vqsecure=_prompt_;</PRE>
+<P>If you choose to assign the userid and the password directly to the
+VQSECURE variable at the SAS/CONNECT local
+host or at the SAS/SHARE client, you
+inadvertently may publicize this information and compromise the security of
+the remote host.  Hard-coding the value to the variable in a file allows anyone
+to read it.
+<P>Example:  
+
+
+
+<PRE>%let vqsecure=bass.time2go;</PRE>
+<P>In this example, BASS is the userid and TIME2GO is the password on the
+server or on the remote host.<P></DD>
+</DL>
+
+<BR><H3>APPC Access Method Variables</H3>
+
+
+<P>The variables for the APPC access
+method are 
+<DL>
+<DT>APPC_GATEWAY</DT>
+<DD>specifies the access method's network name, which you use
+to initialize the DOMAIN server in the  PROC DOMAIN  statement. Set the APPC_GATEWAY
+variable using the following syntax:  
+
+
+
+<PRE>SET=APPC_GATEWAY <I>domain-server-id</I>;</PRE>
+<P>Example:  
+
+
+
+<PRE>set=appc_gateway domsvr;</PRE>
+<P>DOMSVR is the access method's network name.<P></DD>
+
+<DT>APPC_SECURE</DT>
+<DD>is required by the target host. The DOMAIN server supplies
+the specified value to the outbound access method.
+<P>
+<P>
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top"><TD>
+SET=APPC_SECURE _NONE_| _PROMPT_|
+<I>userid.password</I>;
+</TD></TR></TABLE>
+<P>Select the appropriate value for APPC_SECURE according to the measure
+of security that you want. For no security, either do not set the APPC_SECURE
+variable or set it to _NONE_. The default is _NONE_.
+<P>If you set the APPC_SECURE variable to _PROMPT_, you will be prompted
+for the userid and the password.
+<P>Example:  
+
+
+
+<PRE>set=appc_secure _prompt_;</PRE>
+<P>If you choose to assign the userid and the password directly to the
+APPC_SECURE variable at the  SAS/CONNECT 
+local host or at the SAS/SHARE client,
+you inadvertently may publicize this information and compromise the security
+of the remote host. Hard-coding the value to the variable in a file allows
+anyone to read it.
+<P>Example:  
+
+
+
+<PRE>set=appc_secure bass.time2go;</PRE>
+<P>In this example, BASS is the userid and TIME2GO is the password on the
+server or on the remote host.<P></DD>
+</DL>
+
+<BR><H3>Specifying the Inbound Communications Access Method</H3>
+
+
+<P>You must
+specify the communications access method to be used
+by the local host. Use the following syntax:  
+
+
+
+<PRE>OPTIONS COMAMID=<I>access-method-id</I>;</PRE>
+<P>where COMAMID is an acronym for Communications Access Method Identification
+and <B>access-method-id</B> identifies the communications access method
+that is used.
+<P>For example, if you configure a NetBIOS inbound access method at the
+local host, then the DOMAIN server may redirect the connection request through
+the TCP/IP or APPC outbound communications access methods, which are active
+in the same logical domain.  
+
+
+
+<PRE>options comamid=netbios;</PRE>
+<P>The DOMAIN server will switch an inbound NetBIOS request for connection
+to a remote host to some other outbound access method that is contained in
+the same logical domain.
+<P>You may specify this OPTIONS statement at a SAS invocation or in a SAS
+configuration file.
+<BR><H3>Setting Up Security</H3>
+
+
+<P>You
+may use the TCPSEC, VQSECURE, or APPC_SECURE variable, if applicable, to specify
+the userid and the password that are required by the target host (see <A href="#zmainvar">Setting SAS Macro Variables</A>). The DOMAIN server
+supplies the specified value to the outbound access method, which negotiates
+security with the target host.
+<P>If you are using SAS/CONNECT and
+your outbound access method is TCP/IP, the DOMAIN server attempts to provide
+a userid and a password through a script. If your SAS/CONNECT script
+contains a hard-coded userid and password, the DOMAIN server does not alter
+these values.
+<P>Otherwise, security is handled by the DOMAIN server.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Tasks to Perform at the SAS/CONNECT Local Host Only</FONT></B></TD></TR></TABLE>
+
+<P>Perform these tasks at the SAS/CONNECT local
+host only: 
+<OL START="1" type="1">
+<LI>Specify the remote node to connect to.<P>
+
+<LI>Put sign-on scripts, as necessary, on the DOMAIN
+server.<P>
+
+<LI>Sign on to the remote host.<P>
+</OL>
+
+<BR><H3><A name="z0393325">Specifying the Remote Node Name</A></H3>
+
+
+<P>If
+using SAS/CONNECT to make a connection
+from a local host to a remote host, use the following syntax:  
+
+
+
+<PRE>OPTIONS REMOTE=<I>remote-session-id</I>;</PRE>
+<P>where <B>remote-session-id</B> specifies the remote host that
+you are connecting to. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The remote host is not the host that is
+running the DOMAIN server.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The value that you specify will depend on the platforms that are to
+be connected. See the appropriate part and chapter in this book for the connection
+that you want. For example, to connect a Windows NT local host to an OS/390
+remote host through an inbound TCP/IP access method, specify the OS/390 node
+name. See <A href="z0381371.htm#z1134964">SAS/CONNECT: Valid Access Methods Between Hosts</A>
+and <A href="z0381371.htm#z1134967">SAS/SHARE: Valid Access Methods Between Hosts</A>for
+information about access methods  between all remote host and local host pairs.
+<P>Example:  
+
+
+
+<PRE>options remote=rmtnode;</PRE>
+<P>You may specify this OPTIONS statement at SAS invocation or in a SAS
+configuration file.
+<BR><H3>Putting Sign-on Scripts on the DOMAIN Server</H3>
+
+
+<P>Supplying a sign-on
+script depends on the requirement of the
+remote host that you are connecting to. If you use sign-on scripts, put them
+in the following location on the DOMAIN server: 
+
+
+
+<PRE>!<I>sasroot</I>\domain\script</PRE>
+<P>See <A href="#znscript">Storing SAS/CONNECT Outbound Sign-on Scripts on the DOMAIN Server</A>
+for details about locating scripts at the DOMAIN server.
+<BR><H3>Signing On to the Remote Host</H3>
+
+
+<P>To complete your sign on to the
+remote host, enter the SIGNON
+statement. An example follows:  
+
+
+
+<PRE>options set=tcpsec _prompt_;
+options comamid=tcp  remote=rmtnode;
+signon;</PRE>
+<P>To allow a connection to the remote host, the TCPSEC variable specifies
+that the remote host will prompt for a username and a password. The TCP/IP
+access method is declared with a remote connection to a remote host identified
+as RMTNODE, which is the <B>remote-session-id</B>. The remote session
+identifier that you use is determined by the type of remote host that you
+are connecting to. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The remote host is not the host that is running
+the DOMAIN server.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>The SIGNON statement performs the sign-on process. 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;Sign-on
+script files are not needed on an OS/2 local host that uses the APPC access
+method because APPC has the ability to communicate directly with the remote
+host.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Although no errors are produced if you specify a script file, you do
+waste processing time. If you defined the RLINK fileref before establishing
+a connection, when you sign on, SAS/CONNECT processes
+and loads the script file identified by the fileref, but the APPC access method
+will ignore the script.
+<P>If you do not want to omit the RLINK fileref but you want to avoid wasting
+processing time, use the  NOSCRIPT  option in the SIGNON and SIGNOFF statements,
+shown as follows:  
+
+
+
+<PRE>signon noscript;
+.
+.
+.
+signoff noscript;</PRE>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Specifying a Server Name at the SAS/SHARE Client Only</FONT></B></TD></TR></TABLE>
+
+<P>The server name that you specify in the PROC SERVER, the PROC
+OPERATE, and the LIBNAME statements must be defined as the SAS/SHARE server-id.
+<P>The server name must meet the criteria for a valid SAS name. See
+<B>SAS Language Reference: Dictionary</B>
+for details about SAS naming rules.
+<P>An example of specifying the server name follows:  
+
+
+
+<PRE>options comamid=appc;
+libname demo 'C:/\' server=<I>remote-server-id</I>;</PRE>
+<P>In this example, at the client, the server name is specified as a <B>remote-server-id</B>.
+<P>For details about creating LIBNAME, PROC OPERATE, and PROC SERVER statements,
+see <B>SAS/SHARE User's Guide</B>.
+<P>The access method that you specified at the  SAS/SHARE 
+client first attempts to locate the remote session or the SAS server within
+its domain.  If the search for that named server fails and a gateway has been
+configured through an environment variable, the access method forwards a setup
+request to the  DOMAIN  server node. The protocol gateway service of the 
+DOMAIN  server attempts to locate the named server in one of its connected
+domains through the access methods specified by the COMAMID, COMAUX1, and
+COMAUX2 statements. Server names must be unique throughout the multi-domain
+network. All subsequent messages for that access method and server are routed
+through the DOMAIN server and redirected to the appropriate destination.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Examples</FONT></B></TD></TR></TABLE>
+
+<P>Example
+1:
+<P>The following statements illustrate a NetBIOS inbound access method
+and an APPC outbound access method to an OS/390 system. 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>Local SAS session:</TD></TR></TABLE>  
+
+
+
+<PRE>OPTIONS COMAMID=NETBIOS 
+        REMOTE=<I>LUname-of-APPC/MVS-scheduler</I>;
+%LET VQPROTGW=DOMSRV;
+%LET VQSECURE=_PROMPT_;
+SIGNON NOSCRIPT;</PRE>
+
+
+ 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>DOMAIN server configuration file:</TD></TR></TABLE>  
+
+
+
+<PRE>-COMAMID APPC
+-COMAUX1 NETBIOS</PRE>
+
+
+ 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>DOMAIN server syntax:</TD></TR></TABLE>  
+
+
+
+<PRE>PROC DOMAIN PROTOCOL SERVER=DOMSRV;
+RUN;</PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;DOMSRV is the NetBIOS resource name.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Example 2:
+<P>The following statements illustrate a NetBIOS inbound access method
+and a TCP/IP outbound access method. 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>Local SAS session:</TD></TR></TABLE>  
+
+
+
+<PRE>OPTIONS COMAMID=NETBIOS 
+        REMOTE=<I>tcp-name-of-remote-host</I>;
+%LET VQPROTGW=DOMSRV;
+%LET VQSECURE=_PROMPT_;
+SIGNON NOSCRIPT;</PRE>
+
+
+ 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>DOMAIN server Configuration file:</TD></TR></TABLE>  
+
+
+
+<PRE>-COMAMID NETBIOS
+-COMAUX1 TCP</PRE>
+
+
+ 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>DOMAIN server syntax:</TD></TR></TABLE>  
+
+
+
+<PRE>PROC DOMAIN PROTOCOL SERVER=DOMSRV;
+RUN;</PRE>
+
+
+ 
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;DOMSRV is the TCP/IP resource name. The <B>server-id</B> DOMSRV must be defined in the SERVICES file on the server host.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+<P>Example 3:
+<P>The
+following statements illustrate a TCP/IP inbound access method and
+an APPC outbound access method. 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>Local SAS session:</TD></TR></TABLE>  
+
+
+
+<PRE>OPTIONS COMAMID=TCP REMOTE=<I>LUname-of-APPC/MVS-scheduler</I>;
+%LET GWHOST=<I>Internet-address
+of DOMAIN server machine</I>;
+%LET TCPGW=GWHOST.DOMSRV;
+%LET TCPSEC=_PROMPT_;
+SIGNON NOSCRIPT;</PRE>
+
+
+ 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>DOMAIN server configuration file:</TD></TR></TABLE>  
+
+
+
+<PRE>-COMAMID APPC
+-COMAUX1 TCP</PRE>
+
+
+ 
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>DOMAIN server syntax:</TD></TR></TABLE>  
+
+
+
+<PRE>PROC DOMAIN PROTOCOL SERVER=DOMSRV;
+RUN;</PRE><BR>
+  
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;The <B>server-id</B> DOMSRV
+must be defined in the SERVICES file on the server host and on the local host.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0382028.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="zprocdom.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0103011.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z0382031">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

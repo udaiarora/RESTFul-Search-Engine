@@ -1,0 +1,191 @@
+<HTML>
+<HEAD>
+<TITLE>Monte Carlo Simulation</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect6.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect8.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Monte Carlo Simulation  </H2>
+<P>The RANDOM= option is used to request Monte Carlo (or stochastic)
+simulation to generate confidence intervals for a forecast. The
+confidence intervals are implied by the model's relationship to the
+the implicit random error term <IMG WIDTH="11" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="images/modeq8.gif"
+ ALT="{\epsilon}"> and the parameters.
+<P>The Monte Carlo simulation generates
+a random set of additive error values, one for each observation and
+each equation,
+and computes one set of perturbations of the parameters. These
+new parameters, along with the additive error terms, are then used to compute
+a new forecast that satisfies this new
+simultaneous system. Then a new set of additive error values and
+parameter perturbations is computed, and the process is repeated 
+the requested number of times.
+<P>Consider the following exchange rate model for the U.S. dollar with
+the German mark and the Japanese yen:
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>rate</I>_<I>jp</I> = <I>a<SUb>1</SUb></I> + <I>b<SUb>1</SUb>im</I>_<I>jp</I> + <I>c<SUb>1</SUb>di</I>_<I>jp</I>;</SPAN>
+</DL>
+
+<DL CLASS="equation"><DD>
+<SPAN CLASS="mathfont"><I>rate</I>_<I>wg</I> = <I>a<SUb>2</SUb></I> + <I>b<SUb>2</SUb>im</I>_<I>wg</I> + <I>c<SUb>1</SUb>di</I>_<I>wg</I>;</SPAN>
+</DL>
+where <I>rate_jp</I> and <I>rate_wg</I> are the exchange rate of the 
+Japanese yen and the German mark versus the U.S.
+dollar respectively; <I>im_jp</I> and <I>im_wg</I> are the imports from
+Japan and Germany in 1984 dollars respectively; and <I>di_jp</I> and 
+<I>di_wg</I> are the differences in inflation rate of Japan and the U.S.,
+and Germany and the U.S. respectively. 
+The Monte Carlo capabilities of the MODEL procedure are used to 
+generate error bounds on a forecast using this model.
+<P><PRE>
+   proc model data=exchange;
+      endo im_jp im_wg;
+      exo di_jp di_wg;
+      parms a1 a2 b1 b2 c1 c2;
+      label rate_jp = 'Exchange Rate of Yen/$'
+            rate_wg = 'Exchange Rate of Gm/$'
+            im_jp = 'Imports to US from Japan in 1984 $'
+            im_wg = 'Imports to US from WG in 1984 $'
+            di_jp = 'Difference in Inflation Rates US-JP'
+            di_wg = 'Difference in Inflation Rates US-WG';
+   
+      rate_jp = a1 + b1*im_jp + c1*di_jp;
+      rate_wg = a2 + b2*im_wg + c2*di_wg;
+   
+               /* Fit the EXCHANGE data */
+      fit rate_jp rate_wg / sur outest=xch_est outcov outs=s;
+   
+               /* Solve using the WHATIF data set */
+      solve rate_jp rate_wg / data=whatif estdata=xch_est sdata=s
+             random=100 seed=123 out=monte forecast;
+      id yr;
+      range yr=1986;
+   run;
+</PRE>
+<P>Data for the EXCHANGE data set was obtained from the Department of
+Commerce and the yearly &#34;Economic Report of the President.&#34;
+<P>First, the parameters are estimated using SUR 
+selected by the SUR option on the FIT statement. The OUTEST= option
+is used to create the XCH_EST data set which contains the estimates
+of the parameters. The OUTCOV option adds the covariance matrix
+of the parameters to the XCH_EST data set. The OUTS= option
+is used to save the covariance of the equation error in the
+data set S.
+<P>Next, Monte Carlo simulation is requested using the RANDOM= option
+on the SOLVE statement. The data set WHATIF, shown below,
+is used to drive the forecasts. The ESTDATA= option reads in the
+XCH_EST data set which contains the parameter estimates and covariance
+matrix. Because the parameter covariance matrix is included, perturbations
+of the parameters are performed. The SDATA= option causes the
+Monte Carlo simulation to use the 
+equation error covariance in the S data set to
+perturb the equation errors. The SEED= option selects the number 123
+as seed value for the random number generator.
+The output of the Monte Carlo simulation
+is written to the data set MONTE selected by the OUT= option.
+<P><PRE>
+                    /* data for simulation */
+       data whatif;
+          input yr rate_jp rate_wg imn_jp imn_wg emp_us emp_jp emp_wg
+             prod_us / prod_jp prod_wg cpi_us cpi_jp cpi_wg;
+          label cpi_us = 'US CPI 1982-1984 = 100'
+                cpi_jp = 'JP CPI 1982-1984 = 100'
+                cpi_wg = 'WG CPI 1982-1984 = 100';
+          im_jp = imn_jp/cpi_us;
+          im_wg = imn_wg/cpi_us;
+          ius = 100*(cpi_us-(lag(cpi_us)))/(lag(cpi_us));
+          ijp = 100*(cpi_jp-(lag(cpi_jp)))/(lag(cpi_jp));
+          iwg = 100*(cpi_wg-(lag(cpi_wg)))/(lag(cpi_wg));
+          di_jp = ius - ijp;
+          di_wg = ius - iwg;
+       datalines;
+       1980 226.63 1.8175 30714 11693 103.3 101.3 100.4 101.7
+            125.4 109.8  .824  .909  .868
+       1981 220.63 2.2631 35000 11000 102.8 102.2  97.9 104.6
+            126.3 112.8  .909  .954  .922
+       1982 249.06 2.4280 40000 12000  95.8 101.4  95.0 107.1
+            146.8 113.3  .965  .980  .970
+       1983 237.55 2.5539 45000 13100  94.4 103.4  91.1 111.6
+            152.8 116.8  .996  .999 1.003
+       1984 237.45 2.8454 50000 14300  99.0 105.8  90.4 118.5
+            152.2 124.7 1.039 1.021 1.027
+       1985 238.47 2.9419 55000 15600  98.1 107.6  91.3 124.2
+            161.1 128.5 1.076 1.042 1.048
+       1986    .      .   60000 17000  96.8 107.3  92.7 128.8
+            163.8 130.7 1.096 1.049 1.047
+       1987    .      .   65000 18500  97.1 106.1  92.8 132.0
+            176.5 129.9 1.136 1.050 1.049
+       1988    .      .   70000 20000  99.6 108.8  92.7 136.2
+            190.0 135.9 1.183 1.057 1.063
+       ;
+</PRE>
+<P>To generate a confidence interval plot for the forecast,
+use PROC UNIVARIATE to generate percentile bounds and
+use PROC GPLOT to plot the graph. The following SAS statements
+produce the graph in <A HREF="sect7.htm#modgplot">Figure 14.12</A>.
+<P><PRE>
+   proc sort data=monte;
+      by yr;
+   run;
+   
+   proc univariate data=monte noprint;
+      by yr;
+      var rate_jp rate_wg;
+      output out=bounds mean=mean p5=p5 p95=p95;
+   run;
+   
+   title &#34;Monte Carlo Generated Confidence Intervals on a Forecast&#34;;
+   proc gplot data=bounds;
+      plot mean*yr p5*yr p95*yr /overlay;
+      symbol1 i=join value=triangle;
+      symbol2 i=join value=square l=4;
+      symbol3 i=join value=square l=4;
+   run;
+</PRE>
+<P>
+<P><A NAME="modgplot">&#13;</A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/modgs12.gif" ALT="modgs12.gif (3877 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 14.12:</B> Monte Carlo Confidence Interval Plot</SPAN><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect6.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect8.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

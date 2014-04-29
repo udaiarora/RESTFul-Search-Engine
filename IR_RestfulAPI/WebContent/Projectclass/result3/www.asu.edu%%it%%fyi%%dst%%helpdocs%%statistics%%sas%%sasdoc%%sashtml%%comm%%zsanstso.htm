@@ -1,0 +1,351 @@
+<HTML>
+<!-- This page produced Tue Jun 22 10:41:23 EDT 1999
+ -->
+<!-- Used program version 1.117.1.1 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Sign-on Script Files : TCPMVS.SCR Script </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381714.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381252.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">Communications Access Methods for SAS/CONNECT     and SAS/SHARE Software                                                  </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="zsanstso">TCPMVS.SCR Script</A></FONT></H1>
+
+
+<P>The
+following script signs on and signs off an OS/390 remote host with TSO by
+using the TCP/IP access method.  
+
+
+
+<PRE>/*-------------------------------------------------------------------*/
+/*--            Copyright (C) 1990 by SAS Institute Inc., Cary NC  --*/
+/*--                                                               --*/
+/*-- name:      tcpmvs.scr                                         --*/
+/*--                                                               --*/
+/*-- purpose:   SAS/CONNECT SIGNON/SIGNOFF script for connecting   --*/
+/*--            to any OS/390 host with the TCP/IP access method   --*/
+/*--                                                               --*/
+/*-- notes:   1. This script may need modifications that account   --*/
+/*--             for the local flavor of your OS/390 environment.  --*/
+/*--             The logon procedure should mimic the events that  --*/
+/*--             you go through when "telnet"-ing to the same      --*/
+/*--             OS/390 host, either to TSO or to the OS/390       --*/
+/*--             spawner.                                          --*/
+/*--                                                               --*/
+/*--          2. You must have specified OPTIONS COMAMID=TCP       --*/
+/*--             in the local SAS session before using the SIGNON  --*/
+/*--             command.                                          --*/
+/*--                                                               --*/
+/*--          3. This script supports two flavors of connection:   --*/
+/*--             through a TSO session whose logon procedure       --*/
+/*--             invokes SAS directly rather than the TSO TMP, or  --*/
+/*--             through the OS/390 spawner.                       --*/
+/*--                                                               --*/
+/*--          4. If you use TSO to start the SAS session, in the   --*/
+/*--             signoff portion of the script, uncomment the      --*/
+/*--             LOGOFF command to complete session termination.   --*/
+/*--                                                               --*/
+/*--          5. If you use the OS/390 spawner to start the SAS    --*/
+/*--             session, and the client session is running a      --*/
+/*--             release prior to 6.09E or 6.11 TS040, uncomment   --*/
+/*--             the 'type CR LF;' statements after the prompts.   --*/
+/*--                                                               --*/
+/*-- support:   SAS Institute staff                                --*/
+/*--                                                               --*/
+/*-------------------------------------------------------------------*/
+
+<B>[1]</B> log "NOTE: Script file 'tcpmvs.scr' entered.";
+
+<B>[2]</B> if not tcp then goto notcp;
+   if signoff then goto signoff;
+
+/* ------------------------- TCP/IP SIGNON --------------------------*/
+/* make sure we are running the IBM TCP/IP or the OS/390 spawner      */
+<B>[3]</B> waitfor 'Userid: '                     : spnlogon,
+           'ENTER USERID'                 : tsologon,
+           120 seconds                    : noinit;
+
+/*------------------------- SPAWNER LOGON ---------------------------*/
+
+spnlogon:
+<B>[4]</B> input 'Userid?';
+/* type CR LF; */
+
+<B>[5]</B> waitfor 'Password',
+           120 seconds                    : spnfail;
+
+   input nodisplay 'Password?';
+/* type CR LF; */
+
+spndone:
+<B>[6]</B> waitfor 'Options',
+           'Userid'                       : spnlogon,
+           'Password expired'             : spnnewp,
+           120 seconds                    : spnfail;
+
+<B>[7]</B> type "DMR NOTERMINAL NO$SYNTAXCHECK COMAMID=TCP";
+/* type CR LF; */
+
+<B>[8]</B> waitfor 'SESSION ESTABLISHED',
+           120 seconds                    : spnfail;
+
+<B>[9]</B> log 'NOTE: SAS/CONNECT conversation established.';
+   stop;
+
+
+spnnewp:
+ <B>[1</B><B>0]</B> input nodisplay 'New Password?';
+/* type CR LF; */
+
+   waitfor 'Verify new password',
+           120 seconds                    : spnfail;
+
+   input nodisplay 'Verify New Password';
+/* type CR LF; */
+
+   goto spndone;
+
+spnfail:
+   log 'ERROR: Invalid SPAWNER prompt message received.';
+   abort;
+
+/*--------------------------- TSO LOGON -----------------------------*/
+
+tsologon:
+ <B>[1</B><B>1]</B> input 'Userid?';
+   type LF;
+
+<B>[1</B><B>2]</B> waitfor 'ENTER PASSWORD',
+           120 seconds                    : nolog;
+
+tsopass:
+   input nodisplay 'Password?';
+   type LF;
+
+tsodone:
+ <B>[1</B><B>3]</B> waitfor 'SESSION ESTABLISHED',
+           'PASSWORD INVALID'             : tsopass,
+           'ENTER NEW PASSWORD'           : tsonewp,
+           'CURRENTLY LOGGED ON'          : dup_log,
+           'NOT VALID'                    : nouser,
+           120 seconds                    : notso;
+   waitfor 1 second;
+
+<B>[1</B><B>4]</B> log 'NOTE: SAS/CONNECT conversation established.';
+
+   stop;
+
+tsonewp:
+ <B>[1</B><B>5]</B> input nodisplay 'New Password?';
+   type LF;
+
+   waitfor 'VERIFY NEW PASSWORD',
+           120 seconds                    : notso;
+
+   input nodisplay 'Verify New Password';
+   type LF;
+
+   goto tsodone;
+
+/*---------------------------- SIGNOFF ------------------------------*/
+
+<B>[1</B><B>6]</B> signoff:
+
+/* ------------ for TSO, uncomment the following section ------------*/
+   type 'logoff' LF;
+   waitfor 'LOGGED OFF'                   : logoff,
+           20 seconds;
+
+   log 'WARNING: Did not get messages confirming logoff.';
+   abort;
+
+logoff:
+/* ------------ for TSO, uncomment the previous section ------------ */
+
+   log 'NOTE: SAS/CONNECT conversation terminated.';
+   stop;
+
+/* ----------------------- TSO ERROR ROUTINES ------------------------*/
+
+<B>[1</B><B>7]</B> nouser:
+   log 'ERROR: Unrecognized userid.';
+   abort;
+
+nopass:
+   log 'ERROR: Invalid password.';
+   abort;
+
+notcp:
+   log 'ERROR: Incorrect communications access method.';
+   log 'NOTE: You must set "OPTIONS COMAMID=TCP;" before using this';
+   log '      script file.';
+   abort;
+
+noinit:
+   log 'ERROR: Did not understand remote session banner.';
+   abort;
+
+nolog:
+   log 'ERROR: Did not get userid or password prompt.';
+   abort;
+
+notso:
+   log 'ERROR: Did not get TSO startup messages after logon.';
+   abort;
+
+dup_log:
+   log 'ERROR: User is already logged onto TSO.';
+   abort;</PRE>
+
+
+ 
+<OL START="1" type="1">
+<LI>The LOG statement sends the enquoted message to the log file or
+to the LOG window of the local SAS session. Although it is not necessary to
+include LOG statements in your script file, the LOG statements keep the user
+informed about the progress of the connection.<P>
+
+<LI>The IF/THEN statement detects whether the script was called by
+the SIGNON statement. When you are signing off, the IF/THEN statement directs
+script processing to the statement labeled SIGNOFF. See step 8.<P>
+
+<LI>The WAITFOR statement awaits the login prompt from the remote
+host. If the statement does not receive the prompt within 120 seconds, it
+directs script processing to branch to the statement labeled NOINIT.<P>
+
+<LI>The INPUT statement displays a window with the text 
+
+
+<CODE><B>Userid?</B></CODE> to allow the user to enter a remote host logon userid. The TYPE statement
+sends a line feed to the remote host to enter the userid to the remote host.<P>
+
+<LI>The WAITFOR statement waits for the password prompt from the remote
+host and branches to the NOLOG label if it is not received within 120 seconds.
+The INPUT statement that follows the WAITFOR statement displays a window for
+the user to enter a password.<P>
+
+<LI>The WAITFOR statement awaits the prompt for SAS options and branches
+to various condition handlers if this prompt is not received.<P>
+
+<LI>The TYPE statement sends the appropriate options for the SAS/CONNECT
+session.<P>
+
+<LI>The message 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> is displayed when
+a SAS session is started on the remote host with the DMR and COMAMID=TCP options.
+The WAITFOR statement awaits the display of the message 
+
+
+<CODE><B>SESSION
+ESTABLISHED</B></CODE> to be issued by the remote host. If the 
+
+
+<CODE><B>SESSION
+ESTABLISHED</B></CODE> response is received within 120 seconds, processing continues
+with the next LOG statement. If the 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> response
+does not occur within 120 seconds, the script assumes that the remote SAS
+session has not started and processing branches to the statement labeled NOSTRT.<P>
+
+<LI>After the connection has been successfully established, the user
+must stop the rest of the script from processing.  Without this STOP statement,
+processing continues through the remaining statements in the script.<P>
+
+<LI>This section prompts for a new password if the password has expired.<P>
+
+<LI>The INPUT
+statement displays a window with the text 
+
+
+<CODE><B>Userid?</B></CODE> to allow the user
+to enter a remote host logon userid. The TYPE statement sends a line feed
+to the remote host to enter the userid to the remote host.<P>
+
+<LI>The WAITFOR statement waits for the password prompt from the remote
+host and branches to the NOLOG label if it is not received within 120 seconds.
+The INPUT statement that follows the WAITFOR statement displays a window for
+the user to enter a password.<P>
+
+<LI>The message 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> is displayed when a SAS session
+is started on the remote host with the DMR and COMAMID=TCP options. The WAITFOR
+statement awaits the display of the message 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> to be issued by
+the remote host. If the 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> response is received within 120
+seconds, processing continues with the next LOG statement. If the 
+
+
+<CODE><B>SESSION ESTABLISHED</B></CODE> response
+does not occur within 120 seconds, the script assumes that the remote SAS
+session has not started and processing branches to the statement labeled NOSTRT.<P>
+
+<LI>After the connection has been successfully established, the user
+must stop the rest of the script from processing.  Without this STOP statement,
+processing continues through the remaining statements in the script.<P>
+
+<LI>This section prompts for a new password if the password has expired.<P>
+
+<LI>This section
+of code is executed when the script is invoked to
+terminate the link.  The IF statement (see step 2) sends processing to this
+section of the script when the script is invoked by a SIGNOFF statement. This
+section awaits a remote host prompt before displaying 
+
+
+<CODE><B>LOGOFF</B></CODE>,
+which logs the user off the remote host. Before it stops the link, the script
+issues a LOG statement to notify the user that the link is terminated.<P>
+
+<LI>These statements are processed only if the prompts expected in
+the previous steps are not received. This section of the script issues messages
+to the local SAS log and then abnormally ends the script processing as well
+as the SIGNON.<P>
+</OL>
+
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0172541.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z0381714.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0381252.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#zsanstso">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

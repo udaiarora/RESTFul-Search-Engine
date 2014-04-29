@@ -1,0 +1,259 @@
+<HTML>
+<HEAD>
+<TITLE>Functions Across Time</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect65.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect67.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The MODEL Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Functions Across Time  </H2>
+<A NAME="idxmod0645">&#13;</A><A NAME="idxmod0644">&#13;</A><A NAME="idxmod0647">&#13;</A><A NAME="idxmod0646">&#13;</A><A NAME="idxmod0649">&#13;</A><A NAME="idxmod0648">&#13;</A><A NAME="idxmod0650">&#13;</A>PROC MODEL provides four types of special built-in functions that refer 
+to the values of variables and expressions in previous time periods. 
+These functions have the form
+<P><DL>
+<DT>LAG<I>n</I>( <SPAN CLASS="ssbeleven"><B><I>i</I> , </B></SPAN> <I>x</I> )
+<DD>returns the <I>i</I>th lag of <I>x</I>, 
+where <I>n</I> is the maximum lag;
+<BR><BR><DT>DIF<I>n</I>(<I>x</I>) 
+<DD>difference of <I>x</I> at lag <I>n</I>
+<BR><BR><DT>ZLAG<I>n</I>( <SPAN CLASS="ssbeleven"><B><I>i</I> , </B></SPAN> <I>x</I> )
+<DD>returns the <I>i</I>th lag of <I>x</I>, 
+where <I>n</I> is the maximum lag,
+with missing lags replaced with zero;
+<BR><BR><DT>ZDIF<I>n</I>(<I>x</I>) 
+<DD>difference with lag length truncated and missing values converted to zero;
+<BR><BR><DT>MOVAVGn( <I>x</I> )
+<DD>the width of the moving average is <I>n</I>, 
+and <I>x</I> is the variable or expression to compute the moving average of.
+Missing values of <I>x</I> are omitted in computing the average.
+</DL>
+<P>where <I>n</I> represents the number of periods, and <I>x</I> is any expression.
+The argument <I>i</I> is a variable or expression giving the lag length 
+(<SPAN CLASS="mathfont">0 &#60;= <I>i</I> &#60;= <I>n</I></SPAN>), if the index value <I>i</I> is omitted, the
+maximum lag length <I>n</I> is used.
+<P>If you do not specify <I>n</I>, the number of periods is assumed to be one. 
+For example, LAG(X) is the same as LAG1(X). 
+No more than four digits can be used with a lagging function;
+that is, LAG9999 is the greatest LAG function,
+ZDIF9999 is the greatest ZDIF function, and so on.
+<P>The LAG functions get values from previous observations and
+make them available to the program. For example, LAG(X) returns the
+value of the variable X as it was computed in the execution of the
+program for the preceding observation. 
+The expression LAG2(X+2*Y) returns the value of the expression X+2*Y, 
+computed using the values of the variables X and Y that were computed by 
+the execution of the program for the observation two periods ago.
+<P>The DIF functions return the difference between the current value
+of a variable or expression and the value of its LAG. 
+For example, DIF2(X) is a short way of writing X-LAG2(X), 
+and DIF15(SQRT(2*Z)) is a short way of writing SQRT(2*Z)-LAG15(SQRT(2*Z)).
+<P>The ZLAG and ZDIF functions are like the LAG and DIF functions, but they
+are not counted in the determination of the program lag length, and they
+replace missing values with 0s. The ZLAG function returns the
+lagged value if the lagged value is nonmissing, or 0 if the lagged value is missing. 
+The ZDIF function returns the differenced value if the differenced value 
+is nonmissing, or 0 if the value
+of the differenced value is missing. 
+The ZLAG function is especially useful for models with ARMA error processes.
+See &#34;Lag Logic&#34;, which follows for details.
+<P><H3><I>Lag Logic</I></H3>
+<A NAME="idxmod0652">&#13;</A><A NAME="idxmod0651">&#13;</A>The LAG and DIF lagging functions in the MODEL procedure are different
+from the queuing functions with the same names in the DATA step.
+Lags are determined by the final values that are set for the program
+variables by the execution of the model program for the observation.
+This can have upsetting consequences for programs that take lags of
+program variables that are given different values at various places
+in the program, for example,
+<P><PRE>
+   temp = x + w;
+   t    = lag( temp );
+   temp = q - r;
+   s    = lag( temp );
+</PRE>
+<P>The expression LAG(TEMP) always refers to LAG(Q-R), never to LAG(X+W),
+since Q-R is the final value assigned to the variable TEMP by the model program. 
+If LAG(X+W) is wanted for T, it should be computed as
+T=LAG(X+W) and not T=LAG(TEMP), as in the preceding example.
+<P>Care should also be exercised in using the DIF functions with program
+variables that may be reassigned later in the program. 
+For example, the program
+<P><PRE>
+   temp =  x ;
+   s    = dif( temp );
+   temp = 3 * y;
+</PRE>
+<P>computes values for S equivalent to
+<P><PRE>
+   s =  x  - lag( 3 * y );
+</PRE>
+<P>Note that in the preceding examples, TEMP is a program variable,
+<I>not</I> a model variable. 
+If it were a model variable, the assignments to it would be
+changed to assignments to a corresponding equation variable.
+<P>Note that whereas LAG1(LAG1(X)) is the same as LAG2(X),
+DIF1(DIF1(X)) is <I>not</I> the same as DIF2(X). The DIF2 function is
+the difference between the current period value at the point in the
+program where the function is executed and the final value at the end of
+execution two periods ago; DIF2 is not the second difference.
+In contrast, DIF1(DIF1(X)) is equal to DIF1(X)-LAG1(DIF1(X)), which
+equals X-2*LAG1(X)+LAG2(X), which is the second difference of X.
+<P>More information on the differences between PROC MODEL and the DATA step
+LAG and DIF functions is found in <A HREF="../chap2/index.htm">Chapter 2</A>.
+<P><H3><I>Lag Lengths</I></H3>
+<A NAME="idxmod0654">&#13;</A><A NAME="idxmod0653">&#13;</A>The lag length of the model program is the number of lags needed for any
+relevant equation. The program lag length controls the number of
+observations used to initialize the lags.
+<P>PROC MODEL keeps track of the use of lags in the model program and
+automatically determines the lag length of each equation
+and of the model as a whole. 
+PROC MODEL sets the program lag length to the maximum number of lags needed 
+to compute any equation to be estimated, solved, or needed to 
+compute any instrument variable used.
+<P>In determining the lag length, the ZLAG and ZDIF functions are treated 
+as always having a lag length of 0.
+For example, if Y is computed as
+<P><PRE>
+   y = lag2( x + zdif3( temp ) );
+</PRE>
+<P>then Y has a lag length of 2 (regardless of how TEMP is defined).
+If Y is computed as
+<P><PRE>
+   y = zlag2( x + dif3( temp ) );
+</PRE>
+<P>then Y has a lag length of 0.
+<P>This is so that ARMA errors can be specified without causing
+the loss of additional observations to the lag starting
+phase and so that recursive lag specifications, such as
+moving-average error terms, can be used. 
+Recursive lags are not permitted unless the ZLAG or ZDIF functions are 
+used to truncate the lag length. For example, the following statement
+produces an error message:
+<P><PRE>
+   t = a + b * lag( t );
+</PRE>
+<P>The program variable T depends recursively on its own lag, and the
+lag length of T is therefore undefined.
+<P>In the following equation 
+RESID.Y depends on the predicted value for the Y equation but the predicted 
+value for the Y equation depends on the LAG of RESID.Y, and, thus, the 
+predicted value for the Y equation depends recursively on its own lag.
+<P><PRE>
+   y = yhat + ma * lag( resid.y );
+</PRE>
+The lag length is infinite, and PROC MODEL prints an error message and stops.
+Since this kind of specification is allowed, the recursion must be 
+truncated at some point. 
+The ZLAG and ZDIF functions do this.
+<P>The following equation
+is legal and results in a lag length for the Y equation equal to the 
+lag length of YHAT:
+<P><PRE>
+   y = yhat + ma * zlag( resid.y );
+</PRE>
+Initially, the lags of RESID.Y are missing, and the ZLAG function
+replaces the missing residuals with 0s, their unconditional expected values.
+<P>The ZLAG0 function can be used to zero out the lag length of an expression.
+ZLAG0(<I>x</I>) returns the current period value of the expression
+<I>x</I>, if nonmissing, or else returns 0, and prevents the lag
+length of <I>x</I> from contributing to the lag length of the current statement.
+<P><H3><I>Initializing Lags</I></H3>
+<A NAME="idxmod0656">&#13;</A><A NAME="idxmod0655">&#13;</A>At the start of each pass through the data set or BY group,
+the lag variables are set to missing values and
+an initialization is performed to fill the lags.
+During this phase,
+observations are read from the data set, and the model variables are
+given values from the data. If necessary, the model is executed to
+assign values to program variables that are 
+used in lagging functions. The results for variables used in lag
+functions are saved.
+These observations are not included in the estimation or solution.
+<P>If, during the execution of the
+program for the lag starting phase, a lag function refers to lags
+that are missing, the lag function returns missing. Execution
+errors that occur while starting the lags are not reported unless
+requested. The modeling system automatically determines whether the
+program needs to be executed during the lag starting phase.
+<P>If L is the maximum lag length of any equation being fit or solved, then
+the first L observations are used to prime the lags.
+If a BY statement is used, the first L observations in the BY group
+are used to prime the lags.
+If a RANGE statement is used, the first L observations prior to
+the first observation requested in the RANGE statement 
+are used to prime the lags.
+Therefore, there should be at least L observations in the data set.
+<P>Initial values for the lags of model variables can also be supplied in
+VAR, ENDOGENOUS, and EXOGENOUS statements. This feature provides
+initial lags of solution variables for dynamic solution when
+initial values for the solution variable are not available in the
+input data set. For example, the statement
+<P><PRE>
+   var x 2 3 y 4 5 z 1;
+</PRE>
+<P>feeds the initial lags exactly like these values in an input data set:
+<P><TABLE COLS=4 FRAME=BOX RULES=GROUPS CELLPADDING=5 CELLSPACING=0 BGCOLOR="#F0F0F0" BORDER=1><COL><COL><COL><COL>
+<TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Lag</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">X</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Y</FONT></B>
+                      </TD>
+                     <TD BGCOLOR="#BBBBBB"  ALIGN=LEFT NOWRAP><B>
+                      <FONT COLOR="#003399" FACE="Verdana, Helvetica, Helv">Z</FONT></B>
+                      </TD>
+                     </TR><TBODY>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>3</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>5</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>.</TD></TR>
+<TR VALIGN="TOP"><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>1</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>2</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>4</TD><TD BGCOLOR="#DDDDDD" ALIGN=LEFT NOWRAP>1</TD></TR></TBODY>
+</TABLE>
+<P>If initial values for lags are available in the input data set and
+initial lag values are also given in a declaration statement, the values
+in the VAR, ENDOGENOUS, or EXOGENOUS statements take priority.
+<P>The RANGE statement is used to control the range of observations in the input 
+data set that are processed by PROC MODEL. 
+In the statement
+<P><PRE>
+   range date = '01jan1924'd to '01dec1943'd;
+</PRE>
+<P>`01jan1924' specifies the starting period of the range,
+and `01dec1943' specifies the ending period.
+The observations in the data set immediately prior to the 
+start of the range are used to initialize the lags.
+<P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect65.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect67.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

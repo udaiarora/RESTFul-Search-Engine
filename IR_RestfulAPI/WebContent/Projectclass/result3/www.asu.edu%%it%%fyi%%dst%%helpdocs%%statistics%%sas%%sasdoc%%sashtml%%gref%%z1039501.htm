@@ -1,0 +1,237 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>The GANNO Procedure : Using Annotate Graphics in a Drill-down Graph </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="znnochap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z2n03-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0723580.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">The GANNO Procedure</FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1039501">Example 4: Using Annotate Graphics in a Drill-down Graph</A></FONT></H1>
+<HR>
+
+<TABLE cellpadding="4" cellspacing="2">
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B><B>Procedure features:</B></B></TD>
+<TD bgcolor="#CCCCCC" align="left"> 
+
+
+
+<TABLE cellpadding="4" cellspacing="0">
+<TR valign="top"><TD>PROC
+GANNO statement option:
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD>IMAGEMAP=</TD></TR></TABLE></TD></TR></TABLE> 
+</TD></TR>
+<TR valign="top">
+<TD align="right" bgcolor="#F5F5F5" nowrap><B><B>Sample library member:</B></B></TD>
+<TD bgcolor="#CCCCCC" align="left">  GR12N04
+</TD></TR>
+</TABLE>
+<HR>
+
+<P>This example creates essentially the same Annotate data set used in
+<A href="z2n02-ex.htm">Storing Annotate Graphics</A>. It draws
+four colored squares and displays the data set as a single graphics
+output.
+<P>
+<P>
+<P><IMG border="0" src="./images/01329239.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>However, this time the example shows you how to use
+Annotate
+graphics
+to generate a drill-down graph (see <A href="z1025181.htm">About Drill-down Graphs</A>). The example uses the HTML variable in
+the Annotate data set to specify linking information that defines each of
+the four squares as a hot zone. When the graph is viewed in a browser, you
+can click on a square to drill down to a related graph. For example, if you
+click on the green square, it drills down to a graph that confirms that you
+selected the green square.
+<P>
+<P>
+<P><IMG border="0" src="./images/01329240.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>The example uses the HTML device driver
+to
+generate the drill-down graph.
+To implement the drill-down capability, the Annotate data set uses the HTML
+variable to provide the linking information (see <A href="zct-html.htm">HTML Variable</A>), and the GANNO procedure uses the IMAGEMAP=
+option to create an Imagemap data set. The presence of the HTML variable in
+the Annotate data set and the IMAGEMAP= option on the GANNO procedure causes
+the HTML device driver to generate an image map for the graph. It writes the
+image map to the file index.html, which the HTML device driver creates for
+displaying Web output (see <A href="z1024732.htm#z1024740">Displaying Graphs on One Web Page (DEV=HTML)</A>).
+<P>To prevent the HTML device driver from writing over the contents of
+index.html after the drill-down graph has been generated, the example switches
+to the GIF device driver. It then runs four GSLIDE procedures to generate
+the target output. Each GSLIDE procedure uses the NAME= option to name the
+graph it produces, ensuring that the GIF driver creates files named green.gif,
+blue.gif, red.gif, and gray.gif. These are the files that are referenced as
+targets by the strings that are specified for the Annotate data set's HTML
+variable.
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z1039521">&nbsp;</A><A href="z1039521.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>/* define the output location */
+filename webout '<I>path-to-Web-server</I>';
+   /* set the graphics environment */
+goptions reset=global gunit=pct
+         colors=(black blue green red);</PRE></TD></TR></TABLE>
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z1039554">&nbsp;</A><A href="z1039554.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>   /* create Annotate data set */
+data squares;
+     length function style color $ 8
+            html text $ 15;
+     xsys='3'; ysys='3';
+
+        /* draw the green square */
+     color='green';
+     function='move'; x=10; y=65; output;
+     function='bar';  x=30; y=95; style='solid';
+        html='href=green.gif'; output;
+
+        /* label green square */
+     function='label'; x=10; y=63; position='6';
+        style='swissb'; size=2; text='Green'; output;
+
+        /* draw the red square */
+     color='red';
+     function='move'; x=60; y=65; output;
+     function='bar';  x=80; y=95;
+        html='href=red.gif'; output;
+
+        /* label red square */
+     function='label'; x=60; y=63; position='6';
+        style='swissb'; size=2; text='Red'; output;
+
+        /* draw the blue square */
+     color='blue';
+     function='move'; x=10; y=15; output;
+     function='bar';  x=30; y=45;
+        html='href=blue.gif'; output;
+
+        /* label blue square */
+     function='label'; x=10; y=12; position='6';
+        style='swissb'; size=2; text='Blue'; output;
+
+        /* draw the gray square */
+     color='gray';
+     function='move'; x=60; y=15; output;
+     function='bar';  x=80; y=45;
+        html='href=gray.gif'; output;
+
+        /* label gray square and add a footnote */
+     function='label'; x=60; y=12; position='6';
+        style='swissb'; size=2; text='Gray'; output;
+
+        /* draw a blue frame */
+     function='frame'; color='blue'; style='empty';
+        /* set null link for background area in frame */
+        html=''; output;
+run;</PRE></TD></TR></TABLE>
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z1039561">&nbsp;</A><A href="z1039561.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>/* set the graphics options for the web page */ 
+goptions dev=html gsfname=webout
+          xpixels=450 ypixels=400
+          transparency; </PRE></TD></TR></TABLE>
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z1039564">&nbsp;</A><A href="z1039564.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>/* generate annotate graphics */ 
+proc ganno annotate=squares
+    imagemap=annomap
+    description='Four squares'; 
+run; </PRE></TD></TR></TABLE>
+
+
+
+<TABLE cellspacing="0" cellpadding="6" border="0">
+<TR valign="top">
+<TD ><A name="z1039567">&nbsp;</A><A href="z1039567.htm"><IMG border="0" src="../common/images/snbut.gif" height="24" width="24" alt="Note about code"></A></TD><TD><PRE>/* change to gif driver for target output */
+goptions dev=gif ftext=centb ctext=green;
+
+/* generate the target output */
+proc gslide wframe=4
+   cframe=green name='green';
+   note height=20;
+   note height=10
+        justify=center
+       'Green Grass';
+run;
+
+goptions ctext=blue;
+proc gslide wframe=4
+   cframe=blue name='blue';
+   note height=20;
+   note height=10
+        justify=center
+       'Blue Sky';
+run;
+
+goptions ctext=red;
+proc gslide wframe=4
+   cframe=red name='red';
+   note height=20;
+   note height=10
+        justify=center
+       'Red Wine';
+run;
+
+goptions ctext=gray;
+proc gslide wframe=4
+   cframe=gray name='gray';
+   note height=20;
+   note height=10
+        justify=center
+       'Gray Mare';
+run;
+quit;</PRE></TD></TR></TABLE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="znnochap.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z2n03-ex.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z0723580.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1039501">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

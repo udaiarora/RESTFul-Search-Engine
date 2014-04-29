@@ -1,0 +1,450 @@
+<HTML>
+<!-- This page produced Tue Jul 20 10:24:46 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE> SCLException Class : Using the SCLException Class </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z29-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z29over.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z40eths.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/AF Software: Class Dictionary                                                                                         </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z100tion">Using the SCLException Class</A></FONT></H1>
+
+
+<P>This section describes the semantics of the <B>catch-throw</B>
+exception handling mechanism that is built into SCL.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Introduction to Catch-Throw Exception Handling</FONT></B></TD></TR></TABLE>
+
+<P>Catch-throw exception handling is a programming concept that has been
+made popular by languages such as Lisp and Java. It allows the developer greater
+control over raising and recovering from exceptions than that offered by a
+typical signal-handling mechanism.  In a signal-handler application, such
+as the SCL generic program halt handler, exceptions are processed by special "handler"
+routines, which can typically provide  a message, perhaps save some information,
+and then either try to continue execution or halt the application.   
+<P>Catch-throw performs a similar role, but it also provides a developer
+with greater flexibility and eliminates the need for a centralized exception
+handler routine. In particular, the exception-handling syntax is built into
+the SCL language, which allows the user to make error recovery code a natural
+part of the application itself. This implementation clarifies the types of
+exceptions that may be encountered in a particular piece of code. It also
+allows a natural stack-unwinding mechanism in which errors are processed in
+each stack frame and then passed up to the previous caller where a partial
+recovery may be effected.  
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Basic Syntax and Semantics</FONT></B></TD></TR></TABLE>
+
+<P>To "throw" (or raise) an exception, the developer creates
+a special class to represent the exception, and then uses the THROW syntax
+in SCL to pass the class back up the stack framework. For example, 
+
+
+
+<PRE>/* Y Class */
+import sashelp.classes;
+  class y;
+  m: method;
+    /* Throw an exception. Set message via constructor. */
+    throw _new_ SCLException('Exception in method m');
+ endmethod;
+endclass;</PRE>This examples throws an instance of the base exception class,
+sashelp.classes.SCLException.class.
+<P>The THROW statement halts execution of the current entry for Y.CLASS
+and passes control up to the calling entry. If that entry contains a CATCH
+statement for the thrown class, execution in that entry will continue at the
+location of that CATCH statement. If there is no corresponding CATCH statement,
+control will pass up to the next calling entry where the search for a matching
+CATCH statement will go on. This process will continue until a CATCH statement
+is found, or the stack is completely unwound, in which case the "uncaught"
+throw is treated the same as a program halt.   
+<P>Since the exception is a class, it can be designed to contain any type
+of information the user may consider relevant to error recovery. The simplest
+piece of information may just be an error message, as in the above example.
+  
+<P>An example of code that calls Y.CLASS's method m is 
+
+
+
+<PRE>/* X.CLASS */
+import sashelp.classes;
+class x;
+ m: method;
+
+    /* Catch blocks must reside in do-statements. */
+    do;
+      /* Declare local exception variable. */
+      dcl SCLException scle;
+      dcl y y = _new_ y();
+
+      /* Call method which throws exception. */
+      y.m();
+
+      /* Catch block for SCLException object. */
+      catch scle;
+         /* Print exception information. */
+         put scle.getMessage();
+         call putlist(scle.traceback);
+      endcatch;
+    end;
+ endmethod;
+endclass;</PRE>Here, a local variable <B><CODE><FONT size="+1">scle</FONT></CODE></B>
+is declared to contain an exception of type SCLException. Also, a CATCH block
+is placed after the call to <B><CODE><FONT size="+1">m</FONT></CODE></B>. When theSCLException
+is thrown during the method call, control will pass to the CATCH block. In
+this example, the CATCH  block will print the message that was passed to the
+constructor of the thrown object. It will also print the SCL entry traceback
+list, which is stored automatically in the thrown object by the SCL interpreter.
+Once a throw is caught in this way, execution will continue.
+<P>As noted in the comment in X.CLASS, CATCH blocks must always reside
+in an enclosed DO statement. Additionally, CATCH statements must always contain
+an exception variable to hold the thrown exception. The general syntax for
+a DO statement containing CATCH blocks is:
+
+
+
+<PRE>do;
+     dcl e1 e1;
+     dcl e2 e2;
+     .....
+     dcl en en;
+
+     catch e1;
+       /* process exception e1. */
+     endcatch;
+
+     catch e2;
+       /* process exception e2. */
+     endcatch;
+
+     ....
+
+     catch en;
+       /* process exception en. */
+     endcatch;
+
+   end;</PRE>If an exception is encountered in the DO statement, the SCL
+interpreter will search for a suitable CATCH block to execute. If such a CATCH
+block is found, the code within it will execute, and control will then transfer
+to the end of the DO statement block.  
+<P><B>Nested Do Statements.</B> If no such CATCH block is found in
+the current DO statement, any enclosed DO statements will be searched for
+a matching catch block. If one is found, it will execute and the application
+will continue normally from the end of that DO statement. For example, a DO
+statement may contain      
+
+
+
+<PRE>do;
+     dcl e1 e1;
+
+     do;
+       dcl e2 e2;
+
+       y.m();
+
+       catch e2;
+        /* process e2. */
+       endcatch;
+     end;
+
+     catch e1;
+       /* process e1. */
+     endcatch;
+   end;</PRE>
+<P>If the method m throws the exception e1, control will transfer to the
+CATCH block for e1 in the outer DO statement.  If no matching CATCH statement
+appears in the current entry, control will transfer to the previous entry
+in the stack frame, where the search for a matching CATCH statement will continue
+in the same manner.
+<P><B>Catch Statement Control:</B> If no exception occurs, none of
+the CATCH blocks will execute. In other words, when the SCL interpreter executes
+a CATCH statement, it transfers control directly to the end of the loop, which
+prevents the execution of any statements located between CATCH blocks. Also,
+all CATCH blocks should appear at the end of the DO statement, otherwise,
+no statements in the DO statement will execute. For example, if the CATCH
+block in X is placed at the beginning of the DO statement:
+
+
+
+<PRE>do;
+      dcl SCLException scle;
+      dcl y y = _new_ y();
+
+      catch scle;
+         /* Print exception information. */
+         put scle.getMessage();
+         call putlist(scle.traceback);
+      endcatch;
+
+      y.m();
+end;</PRE>The method call to m does not execute because control would have
+passed out of the DO statement when the CATCH statement was encountered. 
+<P><B>Nested Catch Blocks:</B> Catch blocks can be nested. For instance,
+if we had a class W.CLASS, and two exceptions e1 and e2: 
+
+
+
+<PRE>/* W.CLASS */
+class w;
+m: method n:num;
+  do;
+   dcl e1 e1;
+   dcl e2 e2;
+   do;
+     if (n &lt; 0) then throw _new_ e2();
+     else throw _new_ e1();
+
+     catch e2;
+       put 'caught inner e2';
+       do;
+         dcl e1 e1;
+         if (n &lt; 0) then throw _new_ e2();
+         else throw _new_ e1();
+         catch e1;
+           put 'caught inner e1';
+         endcatch;
+       end;
+     endcatch;
+    end;
+
+   catch e1;
+     put 'caught outer e1';
+   endcatch;
+   catch e2;
+    put 'caught outer e2';
+   endcatch;
+  end;
+endmethod;
+endclass;</PRE>and ran W's method m with a negative argument: 
+
+
+
+<PRE>/* WW.SCL */
+  init:
+    dcl w w = _new_ w();
+    w.m(-2);
+    return;</PRE>The output is 
+
+
+
+<PRE>caught inner e2 
+caught outer e2 </PRE>Note that the throw of e2 in the inner CATCH block
+for e2 is passed to the outer CATCH block -- that is, the code does not
+enter an infinite loop by continually going to the inner CATCH block.  But
+if there is a matching CATCH within the enclosing CATCH block, then the throw
+will be caught as normal. For instance, if, in the above example, we reversed
+the conditional in the inner CATCH block so that e1 is thrown:
+
+
+
+<PRE>catch e2;
+       put 'caught inner e2';
+       do;
+         dcl e1 e1;
+         if (n > 0) then throw _new_ e2();
+         else throw _new_ e1();
+         catch e1;
+           put 'caught inner e1';
+         endcatch;
+       end;
+     endcatch;</PRE>then the output would be  
+
+
+
+<PRE>caught inner e2 
+caught inner e1</PRE>There is a general rule: If a throw takes place within
+an enclosing CATCH block, that CATCH block cannot catch the throw.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Exception Classes</FONT></B></TD></TR></TABLE>
+
+<P>Different types of exceptions can be created by subclassing the SCLException
+class, and corresponding CATCH statements can be created to catch these exceptions
+using a class hierarchy look-up.   For example, consider a new exception class:
+
+
+
+<PRE>class NewException extends SCLException
+     dcl string SecondaryMessage;
+  endclass;</PRE>and the previous example included the following code:
+
+
+
+<PRE>/* Y.CLASS */
+  import sashelp.classes;
+  class y;
+  m: method;
+    dcl NewException NewException = _new_('Exception in method m');
+    NewException.SecondaryMessage = "There's no code in m!";
+    throw NewException;
+ endmethod;
+endclass;</PRE>The CATCH statement in X.CLASS still catches this exception
+because NewException is a subclass of SCLException. The constructor message
+and traceback will be printed as before.  
+<P>If you want to print the secondary message, however, there must be a
+change to the CATCH block to catch the NewException class:
+
+
+
+<PRE>do;
+      dcl NewException ne;
+      dcl y y = _new_ y();
+
+      /* Call method which throws exception. */
+      y.m();
+
+      /* Catch block for NewException object. */
+      catch ne;
+         /* Print exception information. */
+         put ne.getMessage();
+         call putlist(ne.traceback);
+         /* Print secondary message */
+         put ne.SecondaryMessage=;
+      endcatch;
+    end;</PRE>If NewException is the only exception that may be thrown in
+the DO statement, there is no problem. If SCLException is also thrown, that
+throw will pass this entry. If that happens, and no other entry in the calling
+stack frame catches it, then the applica tion will halt - just as in the case
+of a typical program halt.
+<P>If you want to catch the exception in X.CLASS, you must add the SCLException
+back in. For example, suppose Y.CLASS threw both SCLException and NewException:
+
+
+
+<PRE>/* Y.CLASS */
+  import sashelp.classes;
+  class y;
+  m: method n: num;
+    if (n >= 0) then do;
+      dcl NewException NewException = _new_('Exception in method m');
+      NewException.SecondaryMessage = "There's no code in m!";
+      throw NewException;
+    end;
+   else
+    throw _new_ SCLException('Exception in method m');
+ endmethod;
+endclass;</PRE>and X.CLASS is modified to include:
+
+
+
+<PRE>do;
+      dcl NewException ne;
+      dcl SCLException scle;
+      dcl y y = _new_ y();
+
+      y.m(x);
+
+      /* Catch block for NewException object. */
+      catch ne;
+         put ne.getMessage();
+         call putlist(ne.traceback);
+         /* Print secondary message */
+         put ne.SecondaryMessage=;
+      endcatch;
+
+      /* Catch block for SCLException object. */
+      catch scle;
+         put scle.getMessage();
+         call putlist(scle.traceback);
+      endcatch;
+    end;</PRE>Depending on the value of <B><CODE><FONT size="+1">x</FONT></CODE></B>,
+the program throws either one exception or the other. If the SCLException
+is thrown, control will pass to the SCLException CATCH block. Otherwise, if
+the NewException is thrown, control will pass to the NewException CATCH block
+because the CATCH block lookup will try to find the best class match.
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Localized Recovery and Stack Unwinding</FONT></B></TD></TR></TABLE>
+
+<P>The catch-throw mechanism allows a developer to perform localized error
+recovery in each entry in a stack frame. This operation is performed by coding
+relevant CATCH blocks for an entry and then rethrowing the same or another
+exception.  For example, suppose we create another class Z:
+
+
+
+<PRE>Z.CLASS
+import sashelp.classes;
+class z;
+ n:method;
+   throw _new_ SCLException('Exception from z');
+ endmethod;
+endclass;</PRE>Y.CLASS is modified to include:
+
+
+
+<PRE>import sashelp.classes;
+  class y;
+  m: method;
+     do;
+       dcl z z = _new_ z();
+       dcl SCLException scle;
+       z.n();
+
+       catch scle;
+         put "Exception caught in y";
+         throw scle;
+       endcatch;
+    end;
+ endmethod;
+endclass;</PRE>In this case, Z.CLASS will throw an exception, which Y will catch.
+After processing the exception, Y will then pass it back up the stack frame
+by throwing it again. X.CLASS will catch that throw just as before.  If you
+modify X.CLASS's CATCH block to include
+
+
+
+<PRE>catch scle;
+         put 'Exception caught in x';
+         put scle.getMessage();
+         call putlist(scle.traceback);
+      endcatch;</PRE>You will see the output:
+
+
+
+<PRE>Exception caught in y
+Exception caught in x
+Exception from z
+(WORK.LL.Y.SCL=11 WORK.LL.X.SCL=12 WORK.LL.XX.SCL=3 )[4465]</PRE>where XX.SCL
+is an SCL entry that creates in instance of X and calls the method m. Note
+that the message is still the original constructor message that was set in
+Z, but the traceback attribute indicates the most recent throw in Y.
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z29-doc.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z29over.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z40eths.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z100tion">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

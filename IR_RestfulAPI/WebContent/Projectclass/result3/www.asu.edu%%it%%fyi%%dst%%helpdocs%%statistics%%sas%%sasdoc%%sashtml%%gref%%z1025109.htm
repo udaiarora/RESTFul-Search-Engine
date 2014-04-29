@@ -1,0 +1,138 @@
+<HTML>
+<!-- This page produced Fri Jul  9 14:14:38 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Bringing SAS/GRAPH Output to the Web : Example 2: Using ODS with SAS/GRAPH Software </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1024836.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1038660.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/GRAPH Software: Reference                                                                                             </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1025109">Example 2: Using ODS with SAS/GRAPH Software</A></FONT></H1>
+
+
+<P><A name="z1081860">&#13;
+ This example uses ODS to generate Web output. It
+produces a bar chart that shows sales figures for three sales regions. The
+GCHART procedure uses BY-group processing to generate a separate chart for
+each region.</A>
+<P>The ODS HTML statement creates a body file and contents
+file, and it uses a frame file to display the output. The NEWFILE= option
+is used to direct each output graph to its own GIF file. To see each graph,
+you select the reference to it in the Table of Contents, which is displayed
+in the left frame when you view file saleFram.html in a
+browser.
+<P>
+<P>
+<P><IMG border="0" src="./images/01329084.gif" vspace="12" alt="[IMAGE]">
+<P>
+<P>In this example, the data
+and the
+output are kept simple
+so that you can focus on the code used in ODS processing. For more detailed
+examples, see the following:
+
+
+
+<TABLE cellpadding="6" cellspacing="2">
+<TR valign="top"><TD></TD><TD><A href="zods0-ex.htm">Example 8.  Creating a Simple Web Page with the ODS HTML Statement</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="zods1-ex.htm">Example 9.  Combining Graphs and Reports in a Web Page</A></TD></TR>
+<TR valign="top"><TD></TD><TD><A href="zods2-ex.htm">Example 10.  Creating a Bar Chart with Drill-down for the Web</A></TD></TR></TABLE>
+<P>
+
+<PRE>/* This program uses ODS to create html */
+/* and gif output. This is the only line you */
+/* have to change to run the program. Specify */
+/* a location in your file system.    */
+filename odsout '<I>path-to-Web-server</I>';
+
+/* close the listing destination */
+ods listing close;
+
+/* set the graphics environment */
+goptions reset=global gunit=pct
+         htitle=6 htext=4 ctext=black
+         ftitle=zapfb ftext=swiss;
+
+/* create data set REGSALES */
+data regsales;
+    length Region State $ 8;
+    format Sales dollar8.;
+    input Region State Sales;
+    datalines;
+West CA 13636
+West OR 18988
+West WA 14523
+Central IL 18038
+Central IN 13611
+Central OH 11084
+Central MI 19660
+South FL 14541
+South GA 19022
+;
+
+/* Sort data by the BY variable */
+proc sort data=regsales;
+by region;
+run;
+
+/* assign graphics options for ODS output */
+goptions device=gif transparency noborder;
+
+/* open html destination for ODS output */
+ods html body='sales.html'
+         contents='saleCont.html'
+         frame='saleFram.html'
+         path=odsout
+         newfile=output;
+
+/* Run the GCHART procedure */
+title1 'Regional Sales';
+proc gchart data=regsales;
+   vbar3d state / sumvar=sales
+   patternid=by;
+by region;
+run;
+quit;
+
+/* close the html destination */
+ods html close;
+
+/* open the listing destination */
+ods listing;</PRE>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z0696071.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1024836.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1038660.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1025109">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

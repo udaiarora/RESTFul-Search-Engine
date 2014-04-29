@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+<TITLE>MINQUAD and MAXQUAD Statements</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<A NAME="nlpquads">&#13;</A>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect19.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The NLP Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>MINQUAD and MAXQUAD Statements</H2>
+<A NAME="idxnlp0334">&#13;</A><A NAME="idxnlp0335">&#13;</A><A NAME="idxnlp0336">&#13;</A><DL><DD><B CLASS="ssbeleven">MINQUAD</B> <I CLASS="ssieleven"> H_name [ , g_name [ , c_number ] ] <SPAN CLASS="ssbeleven"><B>;</B></SPAN></I></DL>
+<DL><DD><B CLASS="ssbeleven">MAXQUAD</B> <I CLASS="ssieleven"> H_name [ , g_name [ , c_number ] ] <SPAN CLASS="ssbeleven"><B>;</B></SPAN></I></DL>
+<P>The MINQUAD and MAXQUAD statements specify the <SPAN CLASS="mathfont"><I>H</I></SPAN>, <SPAN CLASS="mathfont"><I>g</I></SPAN>, and <SPAN CLASS="mathfont"><I>c</I></SPAN>,
+matrices that define a quadratic objective function.
+The MINQUAD statement is for minimizing the objective and the
+MAXQUAD statement is for maximizing the objective function.
+<P>The rows and columns in <SPAN CLASS="mathfont"><I>H</I></SPAN> and <SPAN CLASS="mathfont"><I>g</I></SPAN> correspond
+to the order of decision variables given in the DECVAR statement.
+Specifying the objective function with a MINQUAD or MAXQUAD
+statement indirectly defines the analytic derivatives for
+the objective function. 
+Therefore, statements specifying
+derivatives are not valid in these cases.
+Also, only use these statements when TECH=LINCOMP
+or TECH=QUADAS and no nonlinear constraints are imposed.
+<P>There are three ways of using the MINQUAD or
+MAXQUAD statement:
+<UL>
+<LI> <B>Using ARRAY Statements</B>: <BR>The names <I>H_name</I> and <I>g_name</I> specified in the
+MINQUAD or MAXQUAD statement can be used in ARRAY statements.
+This specification is mainly for small problems with almost dense 
+<SPAN CLASS="mathfont"><I>H</I></SPAN> matrices.
+<PRE>
+  proc nlp pall;
+    array h[2,2] .4 0
+                  0 4;
+    minquad h, -100;
+    decvar x1 x2 = -1;
+    bounds  2 &#60;= x1 &#60;= 50,
+          -50 &#60;= x2 &#60;= 50;
+    lincon 10 &#60;= 10 * x1 - x2;
+    run;
+</PRE>
+<LI> <B>Using Elementwise Setting</B>: <BR>The names <I>H_name</I> and <I>g_name</I> specified in the
+MINQUAD or MAXQUAD statement can be followed directly by
+one-dimensional indices specifying the corresponding
+elements of matrix <SPAN CLASS="mathfont"><I>H</I></SPAN> and vector <SPAN CLASS="mathfont"><I>g</I></SPAN>. 
+These element names
+can be used at the left side of numerical assignments.
+The one-dimensional index value <SPAN CLASS="mathfont"><I>l</I></SPAN> following <I>H_name</I>
+which corresponds to the element <SPAN CLASS="mathfont"><I>H</I><SUB><I>ij</I></SUB></SPAN> is computed by
+<IMG WIDTH="173" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="images/nlpeq60.gif"
+ ALT="l = (i-1)n + j, i \geq j">.The matrix <SPAN CLASS="mathfont"><I>H</I></SPAN> and vector <SPAN CLASS="mathfont"><I>g</I></SPAN> are initialized to zero,
+so that only the nonzero elements need be given.
+This specification is efficient for small problems with
+sparse <SPAN CLASS="mathfont"><I>H</I></SPAN> matrices.
+<P><PRE>
+  proc nlp pall;
+    minquad h, -100;
+    decvar x1 x2;
+    bounds  2 &#60;= x1 &#60;= 50,
+          -50 &#60;= x2 &#60;= 50;
+    lincon 10 &#60;= 10 * x1 - x2;
+    h1 = .4; h4 = 4;
+  run;
+</PRE>
+<LI> <B>Using MATRIX Statements</B>: <BR>The names <I>H_name</I> and <I>g_name</I> specified in the
+MINQUAD or MAXQUAD statement can be used in MATRIX statements.
+There are different ways to specify
+the nonzero elements of matrix <SPAN CLASS="mathfont"><I>H</I></SPAN> and vector <SPAN CLASS="mathfont"><I>g</I></SPAN> by MATRIX
+statements. The following example illustrates one
+way to use the MATRIX statement<A NAME="idxnlp0333">&#13;</A>.
+<P><PRE>
+  proc nlp all;
+    matrix h[1,1] = .4 4;
+    minquad h, -100;
+    decvar x1 x2 = -1;
+    bounds 2 &#60;= x1 &#60;= 50;
+         -50 &#60;= x2 &#60;= 50;
+    lincon 10 &#60;= 10 * x1 - x2;
+  run;
+</PRE>
+</UL><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect19.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect21.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,109 @@
+<HTML>
+<HEAD>
+<TITLE>Forecasting Autoregressive Error Models</TITLE>
+<LINK REL="STYLESHEET" TYPE="text/css" HREF="../sas.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A NAME="topofpage" HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+</TR>
+</TABLE>
+<TABLE BGCOLOR="#CCCC99" WIDTH="100%" CELLPADDING=4>
+<TR>
+  <TD VALIGN=MIDDLE CLASS="chaphead"><I><FONT SIZE="2">The AUTOREG Procedure</FONT></I></TD>
+</TR>
+</TABLE><BR>
+<P><!--End of Navigation Panel-->
+<H2>Forecasting Autoregressive Error Models  </H2>
+<P>To produce forecasts for future periods,
+include observations for the forecast periods in the input data set.
+The forecast observations must provide values for the independent variables
+and have missing values for the response variable.
+<P>For the time trend model, the only regressor is time.
+The following statements add observations for time periods 37 through 46
+to the data set A to produce an augmented data set B:
+<P><PRE>
+
+   data b;
+      y = .;
+      do time = 37 to 46; output; end;
+   run;
+   
+   data b; merge a b; by time; run;
+</PRE>
+<P>To produce the forecast, use the augmented data set as
+input to PROC AUTOREG,
+and specify the appropriate options in the OUTPUT statement.
+The following statements produce forecasts for the
+time trend with autoregressive error model.
+The output data set includes all the variables in the input data set,
+the forecast values (YHAT),
+the predicted trend (YTREND),
+and the upper (UCL) and lower (LCL) 95% confidence limits.
+<P><PRE>
+
+   proc autoreg data=b;
+      model y = time / nlag=2 method=ml;
+      output out=p p=yhat pm=ytrend
+                   lcl=lcl ucl=ucl;
+   run;
+</PRE>
+<P>The following statements plot the predicted values
+and confidence limits,
+and they also plot the trend line for reference.
+The actual observations are shown for periods 16 through 36,
+and a reference line is drawn at the start of the
+out-of-sample forecasts.
+<P><PRE>
+
+   title &#34;Forecasting Autocorrelated Time Series&#34;;
+   proc gplot data=p;
+      plot y*time=1 yhat*time=2 ytrend*time=3
+           lcl*time=3 ucl*time=3 /
+           overlay HREF=36.5;
+      where time &#62;= 16;
+      symbol1 v=star i=none;
+      symbol2 v=circle i=join;
+      symbol3 v=none i=join;
+   run;
+</PRE>
+<P>The plot is shown in <A HREF="sect4.htm#autf7">Figure 8.6</A>.
+Notice that the forecasts take into account the recent
+departures from the trend but converge back to the trend line
+for longer forecast horizons.
+<P>
+<P><A NAME="autf7">&#13;</A><CENTER>
+        <TABLE BORDER="1" CELLPADDING="7" CELLSPACING="0" 
+         RULES="GROUPS" FRAME="BOX"
+         BGCOLOR="#F0F0F0" BORDERCOLOR="#000000">
+        <TR><TD ALIGN="CENTER" VALIGN="MIDDLE" BGCOLOR="#F0F0F0">
+<IMG SRC="images/autgs06.gif" ALT="autgs06.gif (4953 bytes)" HEIGHT="350" WIDTH="563">
+</TD></TR></TABLE></CENTER><BR>
+<SPAN CLASS="ssften"><B>Figure 8.6:</B> PROC AUTOREG Forecasts</SPAN><P>
+<!--Navigation Panel-->
+<TABLE BORDER="0" CELLPADDING="0">
+<TR VALIGN="TOP">
+  <TD ALIGN="CENTER">
+  <A HREF="index.htm">
+  <IMG BORDER="0" SRC="../../common/images/cont1.gif" ALT="Chapter Contents" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Chapter Contents</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect3.htm"><IMG BORDER="0" SRC="../../common/images/prev1.gif" ALT="Previous" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Previous</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="sect5.htm"><IMG BORDER="0" SRC="../../common/images/next1.gif" ALT="Next" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Next</FONT></A></TD>
+  <TD ALIGN=CENTER>
+  <A HREF="#topofpage">
+  <IMG BORDER="0" SRC="../../common/images/top1.gif" ALT="Top" WIDTH="99" HEIGHT="16"><BR><FONT SIZE="-2">Top</FONT></A></TD>
+</TR>
+</TABLE>
+<P><!--End of Navigation Panel-->
+<P><FONT SIZE="1"><A HREF="../../common/images/copyrite.htm">Copyright &copy; 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>

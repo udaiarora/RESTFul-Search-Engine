@@ -1,0 +1,278 @@
+<HTML>
+<!-- This page produced Fri Jul  2 16:54:11 EDT 1999
+ -->
+<!-- Used program version 1.118.1.2 from beta -->
+<HEAD>
+<!-- <META http-equiv="Content-Type" content="text/html; charset="> -->
+<TITLE>Using SYSTEM 2000 Data in SAS Programs : Updating a SAS Data File with SYSTEM 2000 Data </TITLE></HEAD>
+<BODY bgcolor="#FFFFFF">
+<!-- navigation -->
+<TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003232.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1004824.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1004866.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+</TR></TABLE>
+<!-- running head -->
+<TABLE width="100%" cellpadding="4">
+<TR valign="MIDDLE">
+<TD bgcolor="#CCCC99"><I><FONT size="2">SAS/ACCESS Interface to SYSTEM 2000 Data          Management Software: Reference                                          </FONT></I></TD>
+</TR>
+</TABLE><H1><FONT size="5"><A name="z1004856">Updating a SAS Data File with SYSTEM 2000 Data</A></FONT></H1>
+
+
+<P><A name="z1043169">&#13;  You can update a SAS data file with SYSTEM 2000 data
+described
+by a view descriptor just as you can update a SAS data file using another
+data file: by using a DATA step UPDATE statement. In this section, the term <B>transaction data</B> refers to the new data that are to be added to the
+original file. Because the SAS/ACCESS interface to SYSTEM 2000 uses the Version
+6 compatibility engine, the transaction data are from a Version 6 source.
+The original file can be a Version 6 data file or a Version 7 data file. See
+the following sections for an example.</A>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Updating a Version 6 Data File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043170">&#13;
+ You can update a Version
+6 SAS data file with SYSTEM 2000 data described by a view descriptor the same
+as you did with Version 6 of the SAS System. Suppose you have a Version 6
+data file, V6.BIRTHDY, that contains  Marketing employee names and birthdays.
+ The file is out-of-date, and you want to update it with data described by
+VLIB.EMPBD. To perform the update, enter the following SAS code: 
+
+
+</A>
+<PRE>    proc sort data=v6.birthdy;
+       by lastname;
+    run; 
+ 
+    data mydata.newbday;
+       update v6.birthdy vlib.empbd;
+       by lastname firstnme;
+    run; </PRE>
+<P>In this example, the updated SAS data file, MYDATA.NEWBDAY,
+is a Version 6 data file.  When the UPDATE statement references the view descriptor
+VLIB.EMPBD and uses a BY statement in the DATA step, the BY statement causes
+the interface view engine to automatically generate a SYSTEM 2000 ordering-clause
+for the variable LASTNAME.  Thus, the ordering-clause causes the SYSTEM 2000
+data to be presented to the SAS System in a sorted order so they can be used
+to update the MYDATA.NEWBDAY data file.  The data file V6.BIRTHDY had to be
+sorted before the update, because the UPDATE statement expects the data to
+be sorted by the BY variable.
+<P><A href="#z1017610">Data File to Be Updated, V6.BIRTHDY</A>,
+<A href="#z1017613">Data Described by the View Descriptor, VLIB.EMPBD</A>, and <A href="#z1017616">Updated Data File, MYDATA. NEWBDAY</A> show the
+results of the PRINT procedure on the original data file, the transaction
+data, and the updated data file.
+
+<P>
+<B><I><A name="z1017610">Data File to Be Updated, V6.BIRTHDY</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                     V6.BIRTHDY Data File                        1
+ 
+           OBS    LASTNAME     FIRSTNME     BIRTHDAY
+ 
+             1    JONES        FRANK        22MAY53
+             2    MCVADE       CURTIS       25DEC54
+             3    SMITH        VIRGINIA     14NOV49
+             4    TURNER       BECKY        26APR50</PRE></TD></TR></TABLE>
+
+<P>
+
+<P>
+<B><I><A name="z1017613">Data Described by the View Descriptor, VLIB.EMPBD</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                   Data Described by VLIB.EMPBD                     1
+ 
+           OBS    LASTNAME       FIRSTNME      BIRTHDAY
+ 
+             1    AMEER          DAVID         10OCT51
+             2    BROOKS         RUBEN R.      25FEB52
+             3    BROWN          VIRGINA P.    24MAY46
+             4    CHAN           TAI           04JUL46
+             5    GARRETT        OLAN M.       23JAN35
+             6    GIBSON         GEORGE J.     23APR46
+             7    GOODSON        ALAN F.       21JUN50
+             8    JUAREZ         ARMANDO       28MAY47
+             9    LITTLEJOHN     FANNIE        17MAY54
+            10    RICHARDSON     TRAVIS Z.     30NOV37
+            11    RODRIGUEZ      ROMUALDO R    09FEB29
+            12    SCHOLL         MADISON A.    19MAR45
+            13    SHROPSHIRE     LELAND G.     04SEP49
+            14    SMITH          JERRY LEE     13SEP42
+            15    VAN HOTTEN     GWENDOLYN     13SEP42
+            16    WAGGONNER      MERRILEE D    27APR36
+            17    WILLIAMSON     JANICE L.     19MAY52</PRE></TD></TR></TABLE>
+
+<P>
+
+<P>
+<B><I><A name="z1017616">Updated Data File, MYDATA. NEWBDAY</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                       MYDATA.NEWBDAY Data File                     1
+ 
+           OBS    LASTNAME      FIRSTNME      BIRTHDAY
+ 
+             1    AMEER         DAVID         10OCT51
+             2    BROOKS        RUBEN R.      25FEB52
+             3    BROWN         VIRGINA P.    24MAY46
+             4    CHAN          TAI           04JUL46
+             5    GARRETT       OLAN M.       23JAN35
+             6    GIBSON        GEORGE J.     23APR46
+             7    GOODSON       ALAN F.       21JUN50
+             8    JONES         FRANK         22MAY53
+             9    JUAREZ        ARMANDO       28MAY47
+            10    LITTLEJOHN    FANNIE        17MAY54
+            11    MCVADE        CURTIS        25DEC54
+            12    RICHARDSON    TRAVIS Z.     30NOV37
+            13    RODRIGUEZ     ROMUALDO R    09FEB29
+            14    SCHOLL        MADISON A.    19MAR45
+            15    SHROPSHIRE    LELAND G.     04SEP49
+            16    SMITH         JERRY LEE     13SEP42
+            17    SMITH         VIRGINIA      14NOV49
+            18    TURNER        BECKY         26APR50
+            19    VAN HOTTEN    GWENDOLYN     13SEP42
+            20    WAGGONNER     MERRILEE D    27APR36
+            21    WILLIAMSON    JANICE L.     19MAY52</PRE></TD></TR></TABLE>
+
+<P>
+<P><TABLE width="100%" cellpadding="0" cellspacing="0">
+<TR valign="bottom"><TD><HR></TD></TR>
+<TR valign="top"><TD><B><FONT size="5">Updating a Version 7 Data File</FONT></B></TD></TR></TABLE>
+
+<P><A name="z1043173">&#13;
+ Versions 6 and 7 of the
+SAS System support different naming conventions, therefore, there may be character-length
+discrepancies between the variables in the original data file and the transaction
+data. You have two choices when updating a Version 7 data file with the data
+described by a view descriptor:</A>
+<P>
+<UL>
+
+<LI>let the compatibility engine truncate names exceeding
+8 characters. The truncated variables will be added to the updated data file
+as new variables.<P>
+
+<LI>rename the variables in the Version 7 data file
+to match the variable names in the descriptor file.<P>
+</UL>
+
+<P>The following example resolves character-length discrepancies
+by using the RENAME DATA step option with the UPDATE statement. The Version
+7 data file V7.CONSULTING_BIRTHDAYS, which contains Consulting names and birthdays,
+is updated with data described by VLIB.EMPBD. 
+
+
+
+<PRE>    proc sort data=v7.consulting_birthdays;
+       by last_name;
+    run; 
+ 
+    data newdata.new_birthdays;
+       update v7.consulting_birthdays
+       (rename=(last_name=lastname 
+                first_name=firstnme
+                birthdate=birthday)) vlib.empbd;
+       by lastname firstnme;
+    run; </PRE> 
+<P>In this example, the updated SAS data file NEWDATA.NEW_BIRTHDAYS
+is a Version 7 data file stored in the Version 7 SAS library associated with
+the libref NEWDATA. The RENAME= DATA step option is used with the UPDATE statement
+to rename the variables before the updated data file NEWDATA.NEW_BIRTHDAYS
+is created. 
+<P><A href="#z1017817">Data File to be Updated, V7.CONSULTING_BIRTHDAYS</A>
+and <A href="#z1017820">Updated Data File, V7.NEW_BIRTHDAYS</A>
+show the results of the PRINT procedure on the original data file and the
+updated data file. 
+
+<P>
+<B><I><A name="z1017817">Data File to be Updated, V7.CONSULTING_BIRTHDAYS</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>               V7.Consulting_Birthdays Data File                1
+ 
+           obs    last_name   first_name    birthdate
+ 
+             1    JOHNSON      ED           30JAN65
+             2    LEWIS        THOMAS       25MAY54
+             3    SMITH        AMANDA       02DEC60
+             4    WILSON       REBECCA      13APR58</PRE></TD></TR></TABLE>
+
+<P>
+<P>
+<P>
+<B><I><A name="z1017820">Updated Data File, V7.NEW_BIRTHDAYS</A></I></B><BR>
+
+
+<TABLE border="1" cellpadding="12" cellspacing="0" bgcolor="#FAFAFA">
+<TR>
+<TD><PRE>                     V7.NEW_BIRTHDAYS Data File                  1
+ 
+           obs    lastname      firstnme       birthday
+ 
+             1    AMEER          DAVID         10OCT51
+             2    BROOKS         RUBEN R.      25FEB52
+             3    BROWN          VIRGINA P.    24MAY46
+             4    CHAN           TAI           04JUL46
+             5    GARRETT        OLAN M.       23JAN35
+             6    GIBSON         GEORGE J.     23APR46
+             7    GOODSON        ALAN F.       21JUN50
+             8    JOHNSON        ED            30JAN65
+             9    JUAREZ         ARMANDO       28MAY47
+            10    LEWIS          THOMAS        25MAY54
+            11    LITTLEJOHN     FANNIE        17MAY54
+            12    RICHARDSON     TRAVIS Z.     30NOV37
+            13    RODRIGUEZ      ROMUALDO R    09FEB29
+            14    SCHOLL         MADISON A.    19MAR45
+            15    SHROPSHIRE     LELAND G.     04SEP49
+            16    SMITH          AMANDA        02DEC60
+            17    SMITH          JERRY LEE     13SEP42
+            18    VAN HOTTEN     GWENDOLYN     13SEP42
+            19    WAGGONNER      MERRILEE D    27APR36
+            20    WILLIAMSON     JANICE L.     19MAY52
+            21    WILSON         REBBECA       13APR58</PRE></TD></TR></TABLE>
+
+<P>
+<P>For more information on the UPDATE statement, see <B>SAS Language Reference: Dictionary</B>.
+<P><B>Note:</B>&nbsp;&nbsp;&nbsp;You cannot update a SYSTEM 2000
+database directly
+using the DATA  step, but you can update a SYSTEM 2000 database using the
+following procedures: APPEND, FSEDIT, FSVIEW, QUEST, and SQL. See <A href="z1003235.htm">Browsing and Updating SYSTEM 2000 Data</A> for more information on
+updating SYSTEM 2000 data.&nbsp;&nbsp;<IMG border="0" src="../common/images/cautend.gif" alt="[cautionend]" align="bottom"><BR>
+
+<P><!-- navigation -->
+<P><TABLE cellpadding="0" cellspacing="0">
+<TR valign="top">
+<TD align="center">
+<A href="z1003232.htm">
+<IMG border="0" SRC="../common/images/cont1.gif"><BR><FONT size="-2">Chapter Contents</FONT></A></TD>
+<TD align="center">
+<A href="z1004824.htm">
+<IMG border="0" src="../common/images/prev1.gif"><BR><FONT size="-2">Previous</FONT></A></TD>
+<TD align="center">
+<A href="z1004866.htm">
+<IMG border="0" SRC="../common/images/next1.gif"><BR><FONT size="-2">Next</FONT></A></TD>
+<TD align="center">
+<A href="#z1004856">
+<IMG border="0" SRC="../common/images/top1.gif"><BR><FONT size="-2">Top of Page</FONT></A></TD>
+</TR></TABLE>
+<P><FONT size=1><A href="../common/images/copyrite.htm">Copyright 1999 by SAS Institute Inc., Cary, NC, USA. All rights reserved.</A></FONT>
+</BODY>
+</HTML>
